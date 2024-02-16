@@ -335,7 +335,7 @@ li a {
     color: white;
 }
 
-@media only screen and (min-width: 420px) {
+@media only screen and (min-width: 420px) and (max-width: 1024px) {
     .container-main {
         width: 100%;
         height: 100vvh;
