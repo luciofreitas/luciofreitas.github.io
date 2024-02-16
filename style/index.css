@@ -3,11 +3,15 @@
     padding: 0;
     font-family: 'Rubik', sans-serif;
 }
+body{
+    
+}
 .container-main {
     display: flex;
     width: 100%;
-    height: 100dvh;
+    height: 100vh;
     justify-content: center;
+    align-items: center;
     padding-top: 10%;
     background-color: #0d1424;
 }
@@ -163,7 +167,7 @@
     left: 150px;
     top: -2px;
 }
- 
+
 #a-s-study {
     grid-area: 1/4;
     background-color: #ff5e7d;
@@ -266,7 +270,7 @@
 }
 
 #a-s-d-self-care {
-    height: 79%;
+    height: 80%;
     border-radius: 4%;
     background-color: #1d204b;
     position: relative;
@@ -309,14 +313,14 @@ li a {
     font-size: 25px;
 }
 
-#timer {
+.timer {
     text-align: left;
     padding-left: 40px;
     font-size: 50px;
     font-weight: 300;
 }
 
-#timerLastWeek {
+.timerLastWeek {
     font-size: 12px;
     text-align: left;
     padding-left: 40px;
@@ -329,4 +333,319 @@ li a {
 #profile-menu-monthly {
     text-decoration: none;
     color: white;
+}
+
+@media only screen and (min-width: 420px) {
+    .container-main {
+        width: 100%;
+        height: 100vvh;
+        justify-content: center;
+    }
+
+    .actives-states {
+        /* border: 1px solid black;*/
+        width: auto;
+        height: 100dvh;
+        display: grid;
+        grid-template-columns: 100px;
+        grid-template-rows: 170px 150px 150px 150px 150px 150px 150px;
+        position: relative;
+        left: -60px;
+    }
+
+    .active-state {
+        margin-top: 20px;
+        margin-bottom: 0px;
+        border-radius: 7%;
+    }
+
+    #a-s-profile {
+        grid-area: 1/2;
+        width: 250px;
+        height: 150px;
+   
+    }
+
+    .profile-desc {
+        width: 100%;
+        border: 1px solid black;
+    }
+
+    #a-s-d-profile {
+        height: 70%;
+        border-radius: 5%;
+        background-color: #5746ea;
+    }
+
+    .container-a-s-d-profile-image {
+        width: 50px;
+        height: 50px;
+        border: 3px solid white;
+        border-radius: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        top: 25%;
+        left: 12%;
+    }
+
+    #a-s-d-profile-image {
+        width: 50px;
+    }
+
+    .container-a-s-d-profile-text {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        top: -13%;
+        left: 40%;
+    }
+
+    .reportFor {
+        color: #c3beff;
+        font-size: 12px;
+    }
+
+    .profile-name {
+        color: #fcfbff;
+        font-size: 18px;
+        font-weight: 300;
+    }
+
+    .profile-menu {
+        display: flex;
+        font-size: 12px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        top: 7%;
+        left: 4%;
+        margin-right: 20px;
+    }
+
+
+    #a-s-work {
+        grid-area: 2/2;
+        height: 130px;
+        background-color: #ff8b64;
+        overflow: hidden;
+    }
+
+    .work-desc {
+        width: 100%;
+        height: 100%;
+    }
+
+    .work-desc:hover {
+        background-color: #34397b !important;
+        cursor: pointer;
+    }
+
+    #a-s-d-work {
+        width: 100%;
+        height: 70%;
+        border-radius: 7%;
+        background-color: #1d204b;
+        position: relative;
+        top: -38px;
+    }
+
+    #a-s-d-work-image {
+        position: relative;
+        left: 150px;
+        top: -5px;
+    }
+
+    .container-a-s-d-work-text,
+    .container-a-s-d-play-text,
+    .container-a-s-d-study-text,
+    .container-a-s-d-exercise-text,
+    .container-a-s-d-social-text,
+    .container-a-s-d-self-care-text {
+        color: white;
+    }
+
+    #a-s-play {
+        height: 130px;
+        grid-area: 3/2;
+        background-color: #56c2e6;
+        overflow: hidden;
+    }
+
+    .play-desc {
+        width: 100%;
+    }
+
+    .play-desc:hover {
+        background-color: #34397b !important;
+        cursor: pointer;
+    }
+
+    #a-s-d-play {
+        height: 70%;
+        border-radius: 7%;
+        background-color: #1d204b;
+        position: relative;
+        top: -38px;
+    }
+
+    #a-s-d-play-image {
+        position: relative;
+        left: 150px;
+        top: -2px;
+    }
+
+    #a-s-study {
+        grid-area: 4/2;
+        height: 130px;
+        background-color: #ff5e7d;
+        overflow: hidden;
+    }
+
+    .study-desc {
+        width: 100%;
+    }
+
+    .study-desc:hover {
+        background-color: #34397b !important;
+        cursor: pointer;
+    }
+
+    #a-s-d-study {
+        height: 79%;
+        border-radius: 4%;
+        background-color: #1d204b;
+        position: relative;
+        top: -27px;
+    }
+
+    #a-s-d-study-image {
+        position: relative;
+        left: 150px;
+        top: -5px;
+    }
+
+    #a-s-exercise {
+        grid-area: 5/2;
+        height: 130px;
+        background-color: #4bcf83;
+        overflow: hidden;
+    }
+
+    .exercise-desc {
+        width: 100%;
+    }
+
+    .exercise-desc:hover {
+        background-color: #34397b !important;
+        cursor: pointer;
+    }
+
+    #a-s-d-exercise {
+        height: 79%;
+        border-radius: 4%;
+        background-color: #1d204b;
+        position: relative;
+        top: -10px;
+    }
+
+    #a-s-d-exercise-image {
+        position: relative;
+        left: 150px;
+    }
+
+    #a-s-social {
+        grid-area: 6/2;
+        height: 130px;
+        background-color: #7235d1;
+        overflow: hidden;
+    }
+
+    .social-desc {
+        width: 100%;
+    }
+
+    .social-desc:hover {
+        background-color: #34397b !important;
+        cursor: pointer;
+    }
+
+    #a-s-d-social {
+        height: 79%;
+        border-radius: 4%;
+        background-color: #1d204b;
+        position: relative;
+        top: -30px;
+    }
+
+    #a-s-d-social-image {
+        position: relative;
+        left: 150px;
+        top: -10px;
+    }
+
+    #a-s-self-care {
+        grid-area: 7/2;
+        height: 130px;
+        background-color: #f1c75b;
+        overflow: hidden;
+    }
+
+    .self-care-desc {
+        width: 100%;
+    }
+
+    .self-care-desc:hover {
+        background-color: #34397b !important;
+        cursor: pointer;
+    }
+
+    #a-s-d-self-care {
+        height: 80%;
+        border-radius: 4%;
+        background-color: #1d204b;
+        position: relative;
+        top: -23px;
+    }
+
+    #a-s-d-self-care-image {
+        position: relative;
+        left: 150px;
+        top: -8px;
+    }
+
+    li a {
+        font-size: 12px;
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 15px 20px;
+        text-decoration: none;
+
+    }
+
+    .timer {
+        text-align: left;
+        padding-left: 20px;
+        font-size: 20px;
+        font-weight: 300;
+        margin-top: -20px;
+    }
+
+    .timerLastWeek {
+        font-size: 12px;
+        text-align: left;
+        padding-left: 20px;
+        margin-top: -10px;
+        color: #7b7fb3 !important;
+    }
+
+    .timerAndTimerLastWeek {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-right: 20px;
+    }
 }
