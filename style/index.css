@@ -341,7 +341,7 @@ li a {
 
     .actives-states {
         /* border: 1px solid black;*/
-        width: 100%;
+        width: auto;
         height: 100dvh;
         display: grid;
         grid-template-columns: 100px;
