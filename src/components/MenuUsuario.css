@@ -84,6 +84,18 @@
   position: static !important; /* Remove positioning que pode interferir com ::after */
 }
 
+/* Forçar que o header não tenha NENHUM hover effect */
+.dropdown-user-name-header:hover,
+.dropdown-user-name-header:focus,
+.dropdown-user-name-header:active {
+  background-color: transparent !important; /* Sem background mesmo no hover */
+  transform: none !important; /* Remove qualquer transformação */
+  box-shadow: none !important; /* Remove qualquer sombra */
+  color: inherit !important; /* Mantém cor original */
+  cursor: default !important; /* Cursor nunca muda */
+  border-radius: 0 !important; /* Remove qualquer border-radius de hover */
+}
+
 /* Remover COMPLETAMENTE qualquer seletor (linha amarela) do primeiro item */
 .dropdown-user-name-header::after,
 .dropdown-user-name-header::before {
@@ -94,11 +106,17 @@
   background: transparent !important;
 }
 
-.dropdown-user-name:hover,
-.dropdown-user-name-header:hover {
+.dropdown-user-name:hover {
   background-color: transparent !important; /* Sem background mesmo no hover */
   transform: none !important; /* Remove qualquer transformação no hover */
   box-shadow: none !important; /* Remove qualquer sombra */
+}
+
+/* Regra separada mais específica para o header - sobrescreve qualquer hover global */
+.dropdown-user-name-header:hover {
+  background-color: transparent !important; /* NUNCA muda background */
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Garantir que não haja NENHUM seletor em qualquer estado para o header */
@@ -235,6 +253,13 @@
   pointer-events: auto !important; /* garante clique */
 }
 
+/* EXCEÇÃO: O header não deve ter hover - mais específico que a regra geral */
+.user-menu-root .user-dropdown .dropdown-user-name-header {
+  cursor: default !important;
+  pointer-events: none !important;
+  transition: none !important;
+}
+
 .user-menu-root .user-dropdown .dropdown-item::after {
   /* re-enable the yellow underline specifically for dropdown items */
   content: '' !important;
@@ -255,6 +280,17 @@
 .user-menu-root .user-dropdown .dropdown-item:hover {
   background-color: rgba(0, 0, 0, 0.03) !important;
   color: #374151 !important; /* Force correct hover color */
+}
+
+/* EXCEÇÃO ESPECÍFICA: O header NUNCA tem hover effect */
+.user-menu-root .user-dropdown .dropdown-user-name-header:hover,
+.user-menu-root .user-dropdown .dropdown-user-name-header:focus,
+.user-menu-root .user-dropdown .dropdown-user-name-header:active {
+  background-color: transparent !important; /* NUNCA muda */
+  color: inherit !important;
+  cursor: default !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .user-menu-root .user-dropdown .dropdown-item:hover::after,
