@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import Menu from './components/Menu';
 import { AuthContext } from './App';
 import CompatibilityModal from './CompatibilityModal';
+import ProductDetailModal from './components/ProductDetailModal';
 import SearchForm from './components/SearchForm';
 import PecasGrid from './components/PecasGrid';
 import CompatibilityGrid from './components/CompatibilityGrid';
@@ -32,6 +33,10 @@ export default function BuscarPeca() {
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState(null);
+  
+  // modal de detalhes da peça
+  const [showProductDetailModal, setShowProductDetailModal] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState(null);
 
   useEffect(() => {
     const loadMeta = async () => {
@@ -245,10 +250,24 @@ export default function BuscarPeca() {
   const renderPecasModal = (lista) => (
     <div className="buscarpeca-modal-pecas">
       <div className="compat-results-grid">
-        <PecasGrid pecas={lista} onViewCompatibility={openModal} />
+        <PecasGrid 
+          pecas={lista} 
+          onViewCompatibility={openModal}
+          onViewDetails={openProductDetailModal}
+        />
       </div>
     </div>
   );
+
+  const openProductDetailModal = (productId) => {
+    setSelectedProductId(productId);
+    setShowProductDetailModal(true);
+  };
+
+  const closeProductDetailModal = () => {
+    setShowProductDetailModal(false);
+    setSelectedProductId(null);
+  };
 
   const openModal = (pecaOrId) => {
     const peca = typeof pecaOrId === 'object' && pecaOrId ? pecaOrId : pecas.find(p => p.id === pecaOrId);
@@ -359,6 +378,12 @@ export default function BuscarPeca() {
       >
         {modalContent}
       </CompatibilityModal>
+
+      <ProductDetailModal
+        isOpen={showProductDetailModal}
+        onClose={closeProductDetailModal}
+        productId={selectedProductId}
+      />
     </>
   );
 }

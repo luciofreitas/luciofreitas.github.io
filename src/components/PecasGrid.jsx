@@ -2,7 +2,7 @@ import React from 'react';
 import PecaCard from './PecaCard';
 import './PecasGrid.css';
 
-function PecasGrid({ pecas, onViewCompatibility }) {
+function PecasGrid({ pecas, onViewCompatibility, onViewDetails }) {
   if (!pecas || pecas.length === 0) {
     return (
       <div className="pecas-grid-empty">
@@ -18,6 +18,7 @@ function PecasGrid({ pecas, onViewCompatibility }) {
           key={peca.id} 
           peca={peca} 
           onViewCompatibility={onViewCompatibility}
+          onViewDetails={onViewDetails}
         />
       ))}
     </div>

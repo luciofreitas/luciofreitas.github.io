@@ -2,7 +2,7 @@ import React from 'react';
 import WhatsAppButton from './WhatsAppButton';
 import './PecaCard.css';
 
-function PecaCard({ peca, onViewCompatibility }) {
+function PecaCard({ peca, onViewCompatibility, onViewDetails }) {
   return (
     <div className="peca-card">
       <h3 className="peca-card-title">{peca.name}</h3>
@@ -22,12 +22,21 @@ function PecaCard({ peca, onViewCompatibility }) {
         </div>
       )}
       
-      <button 
-        className="peca-card-compat-btn" 
-        onClick={() => onViewCompatibility(peca)}
-      >
-        Ver compatibilidade
-      </button>
+      <div className="peca-card-actions">
+        <button 
+          className="peca-card-compat-btn" 
+          onClick={() => onViewCompatibility(peca)}
+        >
+          Ver compatibilidade
+        </button>
+        
+        <button 
+          className="peca-card-details-btn" 
+          onClick={() => onViewDetails && onViewDetails(peca.id)}
+        >
+          Ver ficha completa
+        </button>
+      </div>
     </div>
   );
 }

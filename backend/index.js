@@ -266,6 +266,68 @@ app.get('/api/pecas/compatibilidade/:part_id', (req, res) => {
   return res.json({ compatibilidade: compatibles, total: compatibles.length });
 });
 
+app.get('/api/pecas/:id', (req, res) => {
+  const id = req.params.id;
+  
+  // Tentar carregar dados detalhados do JSON
+  try {
+    const detailsPath = path.join(__dirname, 'parts_detailed.json');
+    if (fs.existsSync(detailsPath)) {
+      const detailedParts = JSON.parse(fs.readFileSync(detailsPath, 'utf8'));
+      const detailedPart = detailedParts.find(p => p.id === id);
+      
+      if (detailedPart) {
+        return res.json(detailedPart);
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar dados detalhados:', error);
+  }
+  
+  // Fallback para dados básicos se não encontrar no detailed
+  const basicPart = PARTS_DB.find(p => p.id === id);
+  if (basicPart) {
+    // Converter dados básicos para formato detalhado
+    const detailedFromBasic = {
+      id: basicPart.id,
+      nome: basicPart.name,
+      categoria: basicPart.category,
+      fabricante: basicPart.manufacturer,
+      numero_peca: basicPart.part_number,
+      descricao: basicPart.description,
+      especificacoes_tecnicas: basicPart.specifications || {},
+      aplicacoes_detalhadas: (basicPart.applications || []).map(app => ({
+        marca: "N/A",
+        modelo: "N/A", 
+        ano_inicio: null,
+        ano_fim: null,
+        motor: "N/A",
+        observacoes: app
+      })),
+      imagens: ["/assets/placeholder-part.jpg"],
+      preco: 0,
+      estoque: 0,
+      prazo_entrega_dias: 0,
+      garantia_meses: 12,
+      instalacao: {
+        dificuldade: "Médio",
+        tempo_estimado_min: 30,
+        ferramentas_necessarias: ["Ferramentas básicas"],
+        precaucoes: ["Seguir manual do veículo"]
+      },
+      recall_relacionado: false,
+      documentos: [],
+      pecas_relacionadas: [],
+      avaliacoes: [],
+      perguntas_frequentes: []
+    };
+    
+    return res.json(detailedFromBasic);
+  }
+  
+  return res.status(404).json({ erro: 'Peça não encontrada' });
+});
+
 // Generic endpoints (will use Postgres if available, else CSV)
 app.get('/api/products', async (req, res) => {
   if(pgClient){
