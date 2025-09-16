@@ -67,6 +67,7 @@ export default function BuscarPeca() {
 
   // Clear dependent selections when parent selections change
   useEffect(() => {
+    console.log('🔄 selectedGrupo mudou para:', `"${selectedGrupo}"`);
     // When grupo changes, clear categoria and fabricante
     setSelectedCategoria('');
     setSelectedFabricante('');
@@ -346,7 +347,10 @@ export default function BuscarPeca() {
               <h2 className="page-title">Catálogo de Peças</h2>
             <SearchForm
               selectedGrupo={selectedGrupo}
-              setSelectedGrupo={setSelectedGrupo}
+              setSelectedGrupo={(valor) => {
+                console.log('🔧 setSelectedGrupo chamado com:', `"${valor}"`);
+                setSelectedGrupo(valor);
+              }}
               selectedCategoria={selectedCategoria}
               setSelectedCategoria={setSelectedCategoria}
               selectedMarca={selectedMarca}

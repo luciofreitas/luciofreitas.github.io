@@ -18,6 +18,7 @@ export default function CustomDropdown({ options = [], value, onChange, placehol
   }, []);
 
   function handleSelect(option) {
+    console.log('🎯 CustomDropdown selecionou:', option);
     onChange(option);
     setOpen(false);
   }
