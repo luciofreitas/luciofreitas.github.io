@@ -68,7 +68,7 @@
 
 /* Nome do usuário no dropdown (apenas visível no mobile) */
 .dropdown-user-name {
-  background-color: #f3f4f6 !important;
+  background-color: transparent !important; /* Sem background */
   font-weight: 600 !important;
   border-bottom: 1px solid #e5e7eb !important;
   cursor: default !important;
@@ -80,7 +80,7 @@
   pointer-events: none !important; /* Não clicável */
   cursor: default !important;
   transition: none !important; /* Remove todas as transições */
-  background-color: #f3f4f6 !important; /* Fundo fixo cinza claro */
+  background-color: transparent !important; /* Sem background */
   position: static !important; /* Remove positioning que pode interferir com ::after */
 }
 
@@ -96,7 +96,7 @@
 
 .dropdown-user-name:hover,
 .dropdown-user-name-header:hover {
-  background-color: #f3f4f6 !important; /* Não muda cor no hover */
+  background-color: transparent !important; /* Sem background mesmo no hover */
   transform: none !important; /* Remove qualquer transformação no hover */
   box-shadow: none !important; /* Remove qualquer sombra */
 }
