@@ -58,6 +58,173 @@ export default function BuscarPeca() {
     return () => window.removeEventListener('app-refresh', onRefresh);
   }, []);
 
+  // Clear dependent selections when parent selections change
+  useEffect(() => {
+    // When grupo changes, clear categoria and fabricante
+    setSelectedCategoria('');
+    setSelectedFabricante('');
+    setSelectedMarca('');
+    setSelectedModelo('');
+    setSelectedAno('');
+  }, [selectedGrupo]);
+
+  useEffect(() => {
+    // When categoria changes, clear fabricante
+    setSelectedFabricante('');
+    setSelectedMarca('');
+    setSelectedModelo('');
+    setSelectedAno('');
+  }, [selectedCategoria]);
+
+  useEffect(() => {
+    // When fabricante changes, clear marca, modelo, ano
+    setSelectedMarca('');
+    setSelectedModelo('');
+    setSelectedAno('');
+  }, [selectedFabricante]);
+
+  useEffect(() => {
+    // When marca changes, clear modelo and ano
+    setSelectedModelo('');
+    setSelectedAno('');
+  }, [selectedMarca]);
+
+  useEffect(() => {
+    // When modelo changes, clear ano
+    setSelectedAno('');
+  }, [selectedModelo]);
+
+  // Filter dropdown options based on current selections
+  const getFilteredPecas = () => {
+    if (!selectedGrupo) return Array.from(new Set(todasPecas.map(p => p.name)));
+    return Array.from(new Set(todasPecas.filter(p => p.category === selectedGrupo).map(p => p.name)));
+  };
+
+  const getFilteredFabricantes = () => {
+    let filtered = todasPecas;
+    if (selectedGrupo) {
+      filtered = filtered.filter(p => p.category === selectedGrupo);
+    }
+    if (selectedCategoria) {
+      filtered = filtered.filter(p => p.name === selectedCategoria);
+    }
+    return Array.from(new Set(filtered.map(p => p.manufacturer).filter(Boolean)));
+  };
+
+  const getFilteredMarcas = () => {
+    let filtered = todasPecas;
+    if (selectedGrupo) {
+      filtered = filtered.filter(p => p.category === selectedGrupo);
+    }
+    if (selectedCategoria) {
+      filtered = filtered.filter(p => p.name === selectedCategoria);
+    }
+    if (selectedFabricante) {
+      filtered = filtered.filter(p => p.manufacturer === selectedFabricante);
+    }
+    
+    const marcasSet = new Set();
+    filtered.forEach(peca => {
+      if (peca.applications) {
+        peca.applications.forEach(app => {
+          const appStr = String(app).toLowerCase();
+          // Extract brand names from application strings
+          const commonBrands = ['ford', 'chevrolet', 'volkswagen', 'fiat', 'honda', 'toyota', 'hyundai', 'nissan', 'renault', 'peugeot', 'citroën', 'bmw', 'mercedes', 'audi', 'volvo', 'mitsubishi', 'kia', 'suzuki', 'jeep', 'land rover', 'jaguar'];
+          commonBrands.forEach(brand => {
+            if (appStr.includes(brand)) {
+              marcasSet.add(brand.charAt(0).toUpperCase() + brand.slice(1));
+            }
+          });
+        });
+      }
+    });
+    return Array.from(marcasSet);
+  };
+
+  const getFilteredModelos = () => {
+    if (!selectedMarca) return modelos;
+    
+    let filtered = todasPecas;
+    if (selectedGrupo) {
+      filtered = filtered.filter(p => p.category === selectedGrupo);
+    }
+    if (selectedCategoria) {
+      filtered = filtered.filter(p => p.name === selectedCategoria);
+    }
+    if (selectedFabricante) {
+      filtered = filtered.filter(p => p.manufacturer === selectedFabricante);
+    }
+    
+    const modelosSet = new Set();
+    const marcaLower = selectedMarca.toLowerCase();
+    
+    filtered.forEach(peca => {
+      if (peca.applications) {
+        peca.applications.forEach(app => {
+          const appStr = String(app).toLowerCase();
+          if (appStr.includes(marcaLower)) {
+            // Extract model from application string - this is a simplified approach
+            const parts = appStr.split(' ');
+            const marcaIndex = parts.findIndex(part => part.includes(marcaLower));
+            if (marcaIndex >= 0 && marcaIndex < parts.length - 1) {
+              const possibleModel = parts[marcaIndex + 1];
+              if (possibleModel && possibleModel.length > 1) {
+                modelosSet.add(possibleModel.charAt(0).toUpperCase() + possibleModel.slice(1));
+              }
+            }
+          }
+        });
+      }
+    });
+    return Array.from(modelosSet);
+  };
+
+  const getFilteredAnos = () => {
+    if (!selectedMarca && !selectedModelo) return anos;
+    
+    let filtered = todasPecas;
+    if (selectedGrupo) {
+      filtered = filtered.filter(p => p.category === selectedGrupo);
+    }
+    if (selectedCategoria) {
+      filtered = filtered.filter(p => p.name === selectedCategoria);
+    }
+    if (selectedFabricante) {
+      filtered = filtered.filter(p => p.manufacturer === selectedFabricante);
+    }
+    
+    const anosSet = new Set();
+    const marcaLower = selectedMarca?.toLowerCase();
+    const modeloLower = selectedModelo?.toLowerCase();
+    
+    filtered.forEach(peca => {
+      if (peca.applications) {
+        peca.applications.forEach(app => {
+          const appStr = String(app).toLowerCase();
+          const matchesMarca = !marcaLower || appStr.includes(marcaLower);
+          const matchesModelo = !modeloLower || appStr.includes(modeloLower);
+          
+          if (matchesMarca && matchesModelo) {
+            // Extract years from application string
+            const yearRegex = /\d{4}(?:-\d{4})?/g;
+            const yearMatches = appStr.match(yearRegex) || [];
+            yearMatches.forEach(yearStr => {
+              if (yearStr.includes('-')) {
+                const [start, end] = yearStr.split('-').map(Number);
+                for (let y = start; y <= end; y++) {
+                  anosSet.add(String(y));
+                }
+              } else {
+                anosSet.add(yearStr);
+              }
+            });
+          }
+        });
+      }
+    });
+    return Array.from(anosSet).sort();
+  };
+
   const renderPecasModal = (lista) => (
     <div className="buscarpeca-modal-pecas">
       <div className="compat-results-grid">
@@ -154,11 +321,11 @@ export default function BuscarPeca() {
               selectedFabricante={selectedFabricante}
               setSelectedFabricante={setSelectedFabricante}
               grupos={grupos}
-              todasPecas={todasPecas}
-              marcas={marcas}
-              modelos={modelos}
-              anos={anos}
-              fabricantes={fabricantes}
+              todasPecas={getFilteredPecas()}
+              marcas={getFilteredMarcas()}
+              modelos={getFilteredModelos()}
+              anos={getFilteredAnos()}
+              fabricantes={getFilteredFabricantes()}
               onSearch={handleSearch}
               onClear={handleClear}
               loading={loading}
