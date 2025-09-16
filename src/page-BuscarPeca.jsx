@@ -39,6 +39,9 @@ export default function BuscarPeca() {
         const res = await fetch('/api/pecas/meta');
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
         const data = await res.json();
+        console.log('Loaded data - grupos:', data.grupos);
+        console.log('Loaded data - pecas count:', data.pecas?.length);
+        console.log('Sample peca with category:', data.pecas?.slice(0, 2));
         setGrupos(data.grupos || []);
         setTodasPecas(data.pecas || []);
         setMarcas(data.marcas || []);
@@ -96,8 +99,23 @@ export default function BuscarPeca() {
 
   // Filter dropdown options based on current selections
   const getFilteredPecas = () => {
-    if (!selectedGrupo) return Array.from(new Set(todasPecas.map(p => p.name)));
-    return Array.from(new Set(todasPecas.filter(p => p.category === selectedGrupo).map(p => p.name)));
+    // Safety check - return empty if data not loaded
+    if (!todasPecas || todasPecas.length === 0) {
+      return [];
+    }
+    
+    if (!selectedGrupo) {
+      return Array.from(new Set(todasPecas.map(p => p.name || '').filter(Boolean)));
+    }
+    
+    // Filter pieces by selected group (case-insensitive match)
+    const filteredByGroup = todasPecas.filter(p => {
+      if (!p.category) return false;
+      return p.category.toLowerCase().trim() === selectedGrupo.toLowerCase().trim();
+    });
+    
+    const pecaNames = Array.from(new Set(filteredByGroup.map(p => p.name || '').filter(Boolean)));
+    return pecaNames;
   };
 
   const getFilteredFabricantes = () => {
