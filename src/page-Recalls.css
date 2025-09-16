@@ -1,0 +1,379 @@
+/* page-Recalls.css - Estilos para a página de recalls */
+
+.recalls-section {
+  padding: 0 1rem;
+  background: #fff;
+  max-width: 75rem;
+  margin: 0 auto;
+}
+
+.recalls-intro {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.recalls-intro p {
+  color: #64748b;
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Área de busca e filtros */
+.recalls-search {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-field label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.recalls-input, .recalls-select {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background: #fff;
+  color: #111827;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.recalls-input:focus, .recalls-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.recalls-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recalls-btn-secondary {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #d1d5db;
+}
+
+.recalls-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+/* Resultados */
+.recalls-results {
+  margin-bottom: 3rem;
+}
+
+.results-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.results-header h3 {
+  color: #374151;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+/* Lista de recalls */
+.recalls-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.recall-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.recall-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.recall-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.recall-title h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.recall-years {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.recall-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Badges de risco */
+.risk-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.risk-high {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+.risk-medium {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.risk-low {
+  background: #bbf7d0;
+  color: #059669;
+}
+
+/* Badges de status */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* Informações do recall */
+.recall-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+}
+
+.recall-component, .recall-date {
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.recall-component strong, .recall-date strong {
+  color: #111827;
+}
+
+/* Descrições */
+.recall-description, .recall-action {
+  margin-bottom: 1.25rem;
+}
+
+.recall-description h5, .recall-action h5 {
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.recall-description p, .recall-action p {
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Detalhes */
+.recall-details {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.recall-vin, .recall-source {
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.recall-vin:last-child, .recall-source:last-child {
+  margin-bottom: 0;
+}
+
+.recall-vin strong, .recall-source strong {
+  color: #111827;
+}
+
+/* ID do recall */
+.recall-id {
+  text-align: right;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-family: 'Courier New', monospace;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* Sem resultados */
+.no-results {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #6b7280;
+  background: #f8fafc;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+.no-results p {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.no-results p:last-child {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+/* Rodapé com informações */
+.recalls-footer {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.important-info h3 {
+  color: #374151;
+  font-size: 1.25rem;
+  margin: 0 0 1.5rem 0;
+  font-weight: 600;
+}
+
+.important-info ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.important-info li {
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.important-info li::before {
+  content: "•";
+  color: #2563eb;
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.important-info li strong {
+  color: #111827;
+}
+
+/* Responsividade */
+@media (max-width: 48rem) {
+  .recalls-section {
+    padding: 0 0.5rem;
+  }
+  
+  .search-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .recall-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .recall-badges {
+    align-self: flex-start;
+  }
+  
+  .recall-info {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .recalls-intro {
+    padding: 1rem;
+  }
+  
+  .recalls-search {
+    padding: 1rem;
+  }
+  
+  .recall-card {
+    padding: 1rem;
+  }
+  
+  .recalls-footer {
+    padding: 1.5rem;
+  }
+}

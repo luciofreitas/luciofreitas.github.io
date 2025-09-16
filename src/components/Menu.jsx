@@ -30,6 +30,7 @@ function Menu() {
         }
       }
     },
+    { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
     { id: 'parceiros', label: 'Parceiros', onClick: () => navigate('/parceiros') },
     { id: 'contato', label: 'Contato', onClick: () => navigate('/contato-logado') }
   ];

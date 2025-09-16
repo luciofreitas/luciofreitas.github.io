@@ -13,6 +13,7 @@ import Parceiros from './page-Parceiros';
 import ContatoLogado from './page-ContatoLogado';
 import BuscarPeca from './page-BuscarPeca';
 import PagePerfil from './page-Perfil';
+import PageRecalls from './page-Recalls';
 import './App.css';
 import './CustomDropdown.css';
 
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/contato" element={<Contato />} />
             <Route path="/contato-logado" element={<ContatoLogado />} />
             <Route path="/parceiros" element={<Parceiros />} />
+            <Route path="/recalls" element={<PageRecalls />} />
             <Route path="/nosso-projeto" element={<NossoProjeto />} />
             <Route path="/perfil" element={
               <ProtectedRoute>

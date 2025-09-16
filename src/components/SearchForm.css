@@ -7,23 +7,21 @@
   padding: 1.5rem;
   box-shadow: 0 0.375rem 1.125rem rgba(16,24,40,0.04);
   margin: 2rem auto;
-  max-width: 25rem; /* Reduzido para 25rem para layout vertical */
-  width: 100%;
+  max-width: 50rem; /* Restaurado para 50rem para layout desktop */
   box-sizing: border-box;
-  display: block;
 }
 
 .search-form-row {
   display: flex;
-  flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
 .search-form-field {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  min-width: 20rem; /* Restaurado min-width para desktop */
 }
 
 .search-form-field label {
@@ -138,7 +136,8 @@
 @media (max-width: 48rem) {
   .search-form {
     padding: 1rem;
-    margin: 1rem;
+    margin: 1rem auto;
+    max-width: 25rem; /* Largura reduzida apenas para mobile */
   }
   
   .search-form-row {
