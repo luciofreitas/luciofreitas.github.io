@@ -42,7 +42,7 @@ function SearchForm({
           <label htmlFor="categoria">Peça</label>
           {/* CustomDropdown abre sempre para baixo e substitui o select nativo */}
           <CustomDropdown
-            options={[{ value: '', label: '' }, ...Array.from(new Set(todasPecas.map(p => p.name))).map(n => ({ value: n, label: n }))]}
+            options={[{ value: '', label: '' }, ...todasPecas.map(n => ({ value: n, label: n }))]}
             value={selectedCategoria}
             onChange={setSelectedCategoria}
             placeholder=""
