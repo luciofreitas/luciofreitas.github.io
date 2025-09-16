@@ -78,15 +78,24 @@
   transform: scale(1.05);
 }
 
-/* Área central do menu - em desktop fica no centro-direita */
+/* Área central do menu - centralizado absolutamente em desktop */
 .menu-login-center {
   display: flex;
   justify-content: center;
   align-items: center;
   min-width: 0;
   order: 2 !important; /* Segunda posição na ordem */
-  margin-left: clamp(2rem, 8vw, 8rem) !important; /* Margem responsiva proporcional à viewport */
-  /* Em desktop: distância proporcional da logo, em mobile: será reposicionado */
+}
+
+/* Centralização absoluta apenas em desktop (768px+) */
+@media (min-width: 48rem) {
+  .menu-login-center {
+    /* Centralização absoluta baseada na viewport */
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    /* Removido margin-left para usar centralização absoluta */
+  }
 }
 
 /* Navegação do menu */
@@ -119,9 +128,7 @@
     font-size: 0.9rem;
     padding: 0.3em 0.7em;
   }
-  .menu-login-center {
-    margin-left: 3rem !important; /* Distância fixa proporcional para telas pequenas */
-  }
+  /* Centralização mantida via position absolute - removido margin-left */
 }
 
 @media (min-width: 64rem) and (max-width: 80rem) {
@@ -133,9 +140,7 @@
     font-size: 1rem;
     padding: 0.35em 0.9em;
   }
-  .menu-login-center {
-    margin-left: 4rem !important; /* Distância proporcional para telas médias */
-  }
+  /* Centralização mantida via position absolute - removido margin-left */
 }
 
 @media (min-width: 80rem) and (max-width: 96rem) {
@@ -147,9 +152,7 @@
     font-size: 1.1rem;
     padding: 0.4em 1em;
   }
-  .menu-login-center {
-    margin-left: 6rem !important; /* Distância maior para telas grandes */
-  }
+  /* Centralização mantida via position absolute - removido margin-left */
 }
 
 @media (min-width: 96rem) {
@@ -161,9 +164,7 @@
     font-size: 1.2rem;
     padding: 0.45em 1.1em;
   }
-  .menu-login-center {
-    margin-left: 8rem !important; /* Distância máxima para telas muito grandes */
-  }
+  /* Centralização mantida via position absolute - removido margin-left */
 }
 
 /* Estilo para indicador acima do item do menu ao hover */
