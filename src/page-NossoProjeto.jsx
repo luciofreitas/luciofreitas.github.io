@@ -10,6 +10,12 @@ export default function NossoProjeto() {
   <div className="page-content" id="nosso-projeto">
   <div className="nosso-projeto-section nosso-projeto-container">
           <h2 className="page-title">Nosso Projeto</h2>
+          
+          <div className="nossoprojeto-intro">
+            <p>
+              Conheça o Peça Fácil - nossa solução para compatibilidade automotiva.
+            </p>
+          </div>
 
           <div>
             <p className="nosso-projeto-paragraph">

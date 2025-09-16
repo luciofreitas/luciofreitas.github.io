@@ -19,9 +19,12 @@ export default function ContatoLogado() {
   <div className="page-wrapper menu-page">
   <div className="page-content" id="contato-logado">
             <h2 className="page-title">Contato</h2>
-            <p className="contato-logado-intro">
-              Entre em contato conosco pelo formulário abaixo ou pelos canais oficiais.
-            </p>
+            
+            <div className="contatologado-intro">
+              <p>
+                Entre em contato conosco pelo formulário abaixo ou pelos canais oficiais.
+              </p>
+            </div>
 
             <ContatoForm requireAuth={true} user={usuarioLogado} onSubmit={handleSubmit} />
 

@@ -10,9 +10,12 @@ export default function Contato() {
   <div className="page-wrapper">
   <div className="page-content" id="contato">
           <h2 className="page-title">Contato</h2>
-          <p className="contato-intro">
-            Entre em contato conosco pelo formulário abaixo ou pelos canais oficiais.
-          </p>
+          
+          <div className="contato-intro">
+            <p>
+              Entre em contato conosco pelo formulário abaixo ou pelos canais oficiais.
+            </p>
+          </div>
 
           <ContatoForm />
 

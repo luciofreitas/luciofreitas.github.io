@@ -9,9 +9,13 @@ export default function SejaPro() {
   <div className="page-wrapper">
   <div className="page-content" id="seja-pro">
           <h2 className="page-title">Seja Pro</h2>
-          <p className="seja-pro-intro">
-            Tenha acesso a benefícios exclusivos e suporte prioritário ao se tornar um membro Pro.
-          </p>
+          
+          <div className="sejapro-intro">
+            <p>
+              Tenha acesso a benefícios exclusivos e suporte prioritário ao se tornar um membro Pro.
+            </p>
+          </div>
+          
           <div className="seja-pro-cards">
             <div className="seja-pro-card">
               <h3 className="seja-pro-card-title">Básico</h3>
