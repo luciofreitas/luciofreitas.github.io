@@ -79,26 +79,41 @@
 .dropdown-user-name-header {
   pointer-events: none !important; /* Não clicável */
   cursor: default !important;
-  transition: none !important; /* Remove transições */
-  background-color: #f3f4f6 !important; /* Fundo fixo */
+  transition: none !important; /* Remove todas as transições */
+  background-color: #f3f4f6 !important; /* Fundo fixo cinza claro */
+  position: static !important; /* Remove positioning que pode interferir com ::after */
 }
 
-/* Remover traço amarelo APENAS do primeiro item */
-.dropdown-user-name-header::after {
+/* Remover COMPLETAMENTE qualquer seletor (linha amarela) do primeiro item */
+.dropdown-user-name-header::after,
+.dropdown-user-name-header::before {
   display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 .dropdown-user-name:hover,
 .dropdown-user-name-header:hover {
   background-color: #f3f4f6 !important; /* Não muda cor no hover */
   transform: none !important; /* Remove qualquer transformação no hover */
+  box-shadow: none !important; /* Remove qualquer sombra */
 }
 
-/* Garantir que não haja traço amarelo no hover para o header */
+/* Garantir que não haja NENHUM seletor em qualquer estado para o header */
 .dropdown-user-name-header:hover::after,
-.dropdown-user-name-header:focus::after {
+.dropdown-user-name-header:focus::after,
+.dropdown-user-name-header:active::after,
+.dropdown-user-name-header:hover::before,
+.dropdown-user-name-header:focus::before,
+.dropdown-user-name-header:active::before {
   display: none !important;
+  content: none !important;
   width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  opacity: 0 !important;
 }
 
 /* Desktop: esconder nome do usuário no dropdown */
