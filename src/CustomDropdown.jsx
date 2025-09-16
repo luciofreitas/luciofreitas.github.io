@@ -43,9 +43,9 @@ export default function CustomDropdown({ options = [], value, onChange, placehol
       {open && (
         <div className="dropdown-menu">
           {visibleOptions.length === 0 && <div className="dropdown-item disabled">Nenhum item</div>}
-          {visibleOptions.map(opt => (
+          {visibleOptions.map((opt, index) => (
             <div
-              key={opt.value}
+              key={`${opt.value}_${index}`}
               className={`dropdown-item${opt.value === value ? ' selected' : ''}`}
               onClick={() => handleSelect(opt.value)}
             >
