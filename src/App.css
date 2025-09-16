@@ -176,7 +176,7 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.5); /* Fundo cinza semi-transparente */
   display: flex;
   align-items: flex-start; /* Align to top instead of center */
   justify-content: center;
@@ -375,12 +375,12 @@ body { scrollbar-gutter: stable; }
   padding: 0 !important; /* Remove all padding to ensure consistency */
   margin-top: 0 !important; /* No top margin - container controls top spacing */
   margin-bottom: var(--space-lg) !important; /* Consistent bottom spacing using token */
-  font-size: var(--font-size-2xl) !important; /* Using design token for size */
+  font-size: 2.5rem !important; /* Increased from var(--font-size-2xl) to match glossário size */
   color: var(--color-primary) !important; /* Using design token for color */
   display: block !important;
   text-align: center !important;
   scroll-margin-top: calc(var(--header-height) + var(--space-sm)) !important; /* Using tokens */
-  font-weight: var(--font-weight-semibold) !important; /* Using design token */
+  font-weight: 700 !important; /* Bold weight to match glossário */
   width: 100% !important; /* Full width for center alignment */
 }
 
@@ -530,7 +530,7 @@ body { scrollbar-gutter: stable; }
   left: 0;
   right: 0;
   bottom: 0;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.5); /* Fundo cinza semi-transparente */
   display: flex;
   align-items: flex-start; /* Align to top instead of center */
   justify-content: center;

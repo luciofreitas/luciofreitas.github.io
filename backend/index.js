@@ -350,6 +350,59 @@ app.get('/api/vehicles', async (req, res) => {
   }
   res.json(csvData.vehicles);
 });
+// Luzes do Painel - Glossário Automotivo
+app.get('/api/luzes-painel', (req, res) => {
+  try {
+    const luzesPath = path.join(__dirname, 'luzes_painel.json');
+    if (!fs.existsSync(luzesPath)) {
+      return res.status(404).json({ error: 'Arquivo de luzes do painel não encontrado' });
+    }
+    const luzes = JSON.parse(fs.readFileSync(luzesPath, 'utf8'));
+    
+    // Aplicar filtros se fornecidos na query
+    let filteredLuzes = luzes;
+    
+    // Filtrar por categoria
+    if (req.query.categoria) {
+      filteredLuzes = filteredLuzes.filter(luz => luz.categoria === req.query.categoria);
+    }
+    
+    // Filtrar por prioridade
+    if (req.query.prioridade) {
+      filteredLuzes = filteredLuzes.filter(luz => luz.prioridade === req.query.prioridade);
+    }
+    
+    // Filtrar por cor
+    if (req.query.cor) {
+      filteredLuzes = filteredLuzes.filter(luz => luz.cor === req.query.cor);
+    }
+    
+    // Busca por texto
+    if (req.query.busca) {
+      const busca = req.query.busca.toLowerCase();
+      filteredLuzes = filteredLuzes.filter(luz => 
+        luz.nome.toLowerCase().includes(busca) ||
+        luz.descricao.toLowerCase().includes(busca) ||
+        luz.causas_comuns.some(causa => causa.toLowerCase().includes(busca))
+      );
+    }
+    
+    res.json({ 
+      luzes: filteredLuzes,
+      total: filteredLuzes.length,
+      filtros_aplicados: {
+        categoria: req.query.categoria,
+        prioridade: req.query.prioridade,
+        cor: req.query.cor,
+        busca: req.query.busca
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao carregar luzes do painel:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 app.get('/api/fitments', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM fitments'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/fitments:', err.message);} } res.json(csvData.fitments); });
 app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM equivalences'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/equivalences:', err.message);} } res.json(csvData.equivalences); });
 app.get('/api/users', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT id,email,name,is_pro,pro_since,created_at FROM users'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });

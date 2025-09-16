@@ -1,0 +1,289 @@
+[
+  {
+    "id": "check_engine",
+    "nome": "Check Engine (Motor)",
+    "icone": "🔧",
+    "cor": "amarelo",
+    "prioridade": "Alto",
+    "descricao": "Indica problema no sistema de gerenciamento do motor ou emissões.",
+    "acoes": [
+      "Continue dirigindo com cuidado",
+      "Faça diagnóstico OBD-II",
+      "Leve à oficina em até 1 semana"
+    ],
+    "causas_comuns": [
+      "Sensor de oxigênio defeituoso",
+      "Problema no sistema de combustível",
+      "Falha no catalisador",
+      "Vela de ignição com defeito"
+    ],
+    "recall_relacionado": false,
+    "categoria": "motor",
+    "tempo_estimado": "30-120 min",
+    "dificuldade": "Médio-Alto"
+  },
+  {
+    "id": "oil_pressure",
+    "nome": "Pressão do Óleo",
+    "icone": "🛢️",
+    "cor": "vermelho",
+    "prioridade": "Crítico",
+    "descricao": "Pressão do óleo do motor muito baixa - risco de dano severo ao motor.",
+    "acoes": [
+      "PARE IMEDIATAMENTE",
+      "Desligue o motor",
+      "Verifique nível de óleo",
+      "Não dirija - chame guincho"
+    ],
+    "causas_comuns": [
+      "Nível baixo de óleo",
+      "Bomba de óleo defeituosa",
+      "Vazamento de óleo",
+      "Sensor de pressão defeituoso"
+    ],
+    "recall_relacionado": false,
+    "categoria": "motor",
+    "tempo_estimado": "15-60 min",
+    "dificuldade": "Baixo-Alto"
+  },
+  {
+    "id": "battery",
+    "nome": "Bateria/Alternador",
+    "icone": "🔋",
+    "cor": "vermelho",
+    "prioridade": "Alto",
+    "descricao": "Sistema de carregamento da bateria com problema.",
+    "acoes": [
+      "Pare em local seguro",
+      "Desligue equipamentos não essenciais",
+      "Vá direto à oficina",
+      "Não desligue o motor desnecessariamente"
+    ],
+    "causas_comuns": [
+      "Alternador defeituoso",
+      "Bateria fraca/defeituosa",
+      "Correia do alternador solta/quebrada",
+      "Conexões soltas"
+    ],
+    "recall_relacionado": false,
+    "categoria": "eletrico",
+    "tempo_estimado": "30-90 min",
+    "dificuldade": "Médio"
+  },
+  {
+    "id": "temperature",
+    "nome": "Temperatura do Motor",
+    "icone": "🌡️",
+    "cor": "vermelho",
+    "prioridade": "Crítico",
+    "descricao": "Motor superaquecendo - risco de dano permanente.",
+    "acoes": [
+      "PARE IMEDIATAMENTE",
+      "Desligue o motor",
+      "Aguarde esfriar (30+ min)",
+      "Verifique nível do radiador",
+      "Chame guincho se necessário"
+    ],
+    "causas_comuns": [
+      "Baixo nível de líquido de arrefecimento",
+      "Vazamento no radiador",
+      "Termostato defeituoso",
+      "Bomba d'água com problema"
+    ],
+    "recall_relacionado": false,
+    "categoria": "arrefecimento",
+    "tempo_estimado": "30-120 min",
+    "dificuldade": "Médio-Alto"
+  },
+  {
+    "id": "abs",
+    "nome": "ABS (Sistema de Freios)",
+    "icone": "🛡️",
+    "cor": "amarelo",
+    "prioridade": "Médio",
+    "descricao": "Sistema ABS desativado - freios funcionam normalmente.",
+    "acoes": [
+      "Continue dirigindo com cuidado",
+      "Evite frenadas bruscas",
+      "Agende manutenção",
+      "Teste os freios em velocidade baixa"
+    ],
+    "causas_comuns": [
+      "Sensor ABS defeituoso",
+      "Problema na central ABS",
+      "Conexão elétrica solta",
+      "Anel magnético danificado"
+    ],
+    "recall_relacionado": false,
+    "categoria": "freios",
+    "tempo_estimado": "45-90 min",
+    "dificuldade": "Alto"
+  },
+  {
+    "id": "airbag",
+    "nome": "Airbag/SRS",
+    "icone": "🎈",
+    "cor": "amarelo",
+    "prioridade": "Alto",
+    "descricao": "Sistema de airbag com falha - risco em caso de acidente.",
+    "acoes": [
+      "Continue dirigindo normalmente",
+      "Leve à oficina especializada",
+      "Não tente reparar sozinho",
+      "Use sempre cinto de segurança"
+    ],
+    "causas_comuns": [
+      "Sensor de impacto defeituoso",
+      "Problema na central do airbag",
+      "Conexão do assento solta",
+      "Airbag já acionado"
+    ],
+    "recall_relacionado": true,
+    "categoria": "seguranca",
+    "tempo_estimado": "60-180 min",
+    "dificuldade": "Alto"
+  },
+  {
+    "id": "brake",
+    "nome": "Sistema de Freio",
+    "icone": "🛑",
+    "cor": "vermelho",
+    "prioridade": "Crítico",
+    "descricao": "Problema no sistema de freios ou freio de mão acionado.",
+    "acoes": [
+      "Verifique se freio de mão está solto",
+      "Se luz continuar, PARE com segurança",
+      "Teste pedal do freio",
+      "Chame guincho se freio não funcionar"
+    ],
+    "causas_comuns": [
+      "Freio de mão acionado",
+      "Baixo nível de fluido de freio",
+      "Pastilhas gastas",
+      "Vazamento no sistema"
+    ],
+    "recall_relacionado": false,
+    "categoria": "freios",
+    "tempo_estimado": "30-120 min",
+    "dificuldade": "Médio-Alto"
+  },
+  {
+    "id": "tpms",
+    "nome": "TPMS (Pressão dos Pneus)",
+    "icone": "🛞",
+    "cor": "amarelo",
+    "prioridade": "Médio",
+    "descricao": "Pressão de um ou mais pneus fora do padrão.",
+    "acoes": [
+      "Verifique visualmente os pneus",
+      "Meça a pressão de todos os pneus",
+      "Calibre conforme especificação",
+      "Se luz persistir, verifique sensores"
+    ],
+    "causas_comuns": [
+      "Pneu com pressão baixa",
+      "Mudança brusca de temperatura",
+      "Sensor TPMS defeituoso",
+      "Pneu furado ou com vazamento"
+    ],
+    "recall_relacionado": false,
+    "categoria": "pneus",
+    "tempo_estimado": "15-30 min",
+    "dificuldade": "Baixo"
+  },
+  {
+    "id": "esp_traction",
+    "nome": "ESP/Controle de Tração",
+    "icone": "🌪️",
+    "cor": "amarelo",
+    "prioridade": "Médio",
+    "descricao": "Sistema de controle de estabilidade desativado ou ativo.",
+    "acoes": [
+      "Continue dirigindo com cuidado",
+      "Reduza velocidade em curvas",
+      "Evite acelerações bruscas",
+      "Se luz fixa, leve à oficina"
+    ],
+    "causas_comuns": [
+      "Sistema ativado (normal)",
+      "Sensor defeituoso",
+      "Problema no ABS",
+      "Sistema desligado manualmente"
+    ],
+    "recall_relacionado": false,
+    "categoria": "seguranca",
+    "tempo_estimado": "45-90 min",
+    "dificuldade": "Alto"
+  },
+  {
+    "id": "fuel",
+    "nome": "Combustível Baixo",
+    "icone": "⛽",
+    "cor": "amarelo",
+    "prioridade": "Baixo",
+    "descricao": "Nível de combustível baixo - abasteça em breve.",
+    "acoes": [
+      "Procure posto mais próximo",
+      "Evite andar com reserva por muito tempo",
+      "Abasteça o quanto antes",
+      "Não deixe acabar completamente"
+    ],
+    "causas_comuns": [
+      "Combustível realmente baixo",
+      "Sensor de nível defeituoso",
+      "Boia do tanque com problema"
+    ],
+    "recall_relacionado": false,
+    "categoria": "combustivel",
+    "tempo_estimado": "5-30 min",
+    "dificuldade": "Baixo"
+  },
+  {
+    "id": "glow_plug",
+    "nome": "Vela Aquecedora (Diesel)",
+    "icone": "🔥",
+    "cor": "amarelo",
+    "prioridade": "Baixo",
+    "descricao": "Sistema de preaquecimento para motor diesel.",
+    "acoes": [
+      "Aguarde luz apagar antes de dar partida",
+      "Normal em tempo frio",
+      "Se não apagar, verifique sistema",
+      "Mantenha rotina de manutenção"
+    ],
+    "causas_comuns": [
+      "Funcionamento normal",
+      "Vela aquecedora defeituosa",
+      "Problema no módulo de controle",
+      "Sensor de temperatura defeituoso"
+    ],
+    "recall_relacionado": false,
+    "categoria": "motor",
+    "tempo_estimado": "30-60 min",
+    "dificuldade": "Médio"
+  },
+  {
+    "id": "dpf",
+    "nome": "DPF/Filtro de Partículas",
+    "icone": "💨",
+    "cor": "amarelo",
+    "prioridade": "Médio",
+    "descricao": "Filtro de partículas diesel precisa regeneração.",
+    "acoes": [
+      "Faça viagem em estrada (20+ min)",
+      "Mantenha RPM entre 2000-3000",
+      "Não desligue durante regeneração",
+      "Se persistir, leve à oficina"
+    ],
+    "causas_comuns": [
+      "Filtro entupido por uso urbano",
+      "Regeneração incompleta",
+      "Sensor defeituoso",
+      "Combustível de má qualidade"
+    ],
+    "recall_relacionado": false,
+    "categoria": "emissoes",
+    "tempo_estimado": "20-60 min (regeneração)",
+    "dificuldade": "Baixo-Médio"
+  }
+]
