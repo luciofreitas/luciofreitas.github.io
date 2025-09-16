@@ -86,13 +86,6 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
               </div>
               
               <div className="product-basic-info">
-                <div className="product-price-stock">
-                  <span className="price">R$ {productDetails.preco?.toFixed(2).replace('.', ',')}</span>
-                  <span className={`stock ${productDetails.estoque > 5 ? 'in-stock' : 'low-stock'}`}>
-                    {productDetails.estoque > 0 ? `${productDetails.estoque} em estoque` : 'Fora de estoque'}
-                  </span>
-                </div>
-                
                 {productDetails.recall_relacionado && (
                   <div className="recall-alert">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -128,6 +121,11 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                     </svg>
                     {productDetails.instalacao?.tempo_estimado_min} min
                   </div>
+                </div>
+
+                <div className="contact-workshop">
+                  <p><strong>💡 Para preços e disponibilidade:</strong></p>
+                  <p>Consulte nossas oficinas parceiras próximas ao seu local</p>
                 </div>
               </div>
             </div>
@@ -173,10 +171,11 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                     <h3>Descrição</h3>
                     <p>{productDetails.descricao}</p>
                     
-                    <h3>Garantia e Entrega</h3>
-                    <div className="delivery-warranty">
-                      <div>📦 Entrega em {productDetails.prazo_entrega_dias} dias úteis</div>
-                      <div>🛡️ Garantia de {productDetails.garantia_meses} meses</div>
+                    <h3>Como Adquirir</h3>
+                    <div className="workshop-info">
+                      <div>🏪 Consulte preços e disponibilidade com nossas oficinas parceiras</div>
+                      <div>🛠️ Instalação profissional disponível</div>
+                      <div>� Garantia conforme política de cada oficina</div>
                     </div>
 
                     {productDetails.pecas_relacionadas && (

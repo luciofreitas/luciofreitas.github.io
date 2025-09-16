@@ -305,21 +305,22 @@ app.get('/api/pecas/:id', (req, res) => {
         observacoes: app
       })),
       imagens: ["/assets/placeholder-part.jpg"],
-      preco: 0,
-      estoque: 0,
-      prazo_entrega_dias: 0,
-      garantia_meses: 12,
       instalacao: {
         dificuldade: "Médio",
         tempo_estimado_min: 30,
         ferramentas_necessarias: ["Ferramentas básicas"],
-        precaucoes: ["Seguir manual do veículo"]
+        precaucoes: ["Seguir manual do veículo", "Consultar oficina parceira se necessário"]
       },
       recall_relacionado: false,
       documentos: [],
       pecas_relacionadas: [],
       avaliacoes: [],
-      perguntas_frequentes: []
+      perguntas_frequentes: [
+        {
+          pergunta: "Onde posso comprar esta peça?",
+          resposta: "Consulte nossas oficinas parceiras para preços e disponibilidade."
+        }
+      ]
     };
     
     return res.json(detailedFromBasic);

@@ -44,10 +44,6 @@
       "/assets/pecas/filtro-ar-mann-c25024-2.jpg", 
       "/assets/pecas/filtro-ar-mann-c25024-instalacao.jpg"
     ],
-    "preco": 49.90,
-    "estoque": 15,
-    "prazo_entrega_dias": 2,
-    "garantia_meses": 12,
     "instalacao": {
       "dificuldade": "Fácil",
       "tempo_estimado_min": 10,
@@ -83,7 +79,7 @@
         "usuario": "Maria Santos",
         "nota": 4,
         "data": "2024-07-28", 
-        "texto": "Boa qualidade, preço justo. Entrega rápida."
+        "texto": "Boa qualidade. Encaixe perfeito no meu Uno 2012."
       }
     ],
     "perguntas_frequentes": [
@@ -92,8 +88,8 @@
         "resposta": "Não, este modelo é específico para motores 1.0. Para motores 1.4 consulte o modelo C 25 025."
       },
       {
-        "pergunta": "Precisa trocar junto com o filtro de óleo?",
-        "resposta": "Não é obrigatório, mas recomendamos para manutenção completa do sistema."
+        "pergunta": "Posso instalar sem conhecimento técnico?",
+        "resposta": "Sim, é uma instalação simples. Consulte sempre o manual do veículo ou procure uma oficina parceira."
       }
     ]
   },
@@ -132,10 +128,6 @@
       "/assets/pecas/filtro-oleo-fram-ph3614-1.jpg",
       "/assets/pecas/filtro-oleo-fram-ph3614-2.jpg"
     ],
-    "preco": 28.50,
-    "estoque": 8,
-    "prazo_entrega_dias": 1,
-    "garantia_meses": 6,
     "instalacao": {
       "dificuldade": "Médio",
       "tempo_estimado_min": 25,
@@ -166,13 +158,17 @@
         "usuario": "Carlos Oliveira",
         "nota": 4,
         "data": "2024-08-20",
-        "texto": "Boa qualidade, mas atenção ao recall."
+        "texto": "Boa qualidade, mas atenção ao recall. Instalação tranquila."
       }
     ],
     "perguntas_frequentes": [
       {
         "pergunta": "Qual o torque correto de aperto?",
         "resposta": "15-18 Nm ou 3/4 de volta após contato da vedação."
+      },
+      {
+        "pergunta": "Posso trocar sem elevador?",
+        "resposta": "Sim, mas use rampa segura e ferramentas adequadas. Recomendamos procurar uma oficina."
       }
     ]
   }

@@ -151,35 +151,6 @@
   gap: 1.5rem;
 }
 
-.product-price-stock {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.price {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #059669;
-}
-
-.stock {
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.stock.in-stock {
-  background: #d1fae5;
-  color: #047857;
-}
-
-.stock.low-stock {
-  background: #fed7aa;
-  color: #c2410c;
-}
-
 .recall-alert {
   display: flex;
   gap: 0.75rem;
@@ -218,6 +189,23 @@
   background: #f9fafb;
   border-radius: 0.5rem;
   font-size: 0.875rem;
+}
+
+.contact-workshop {
+  padding: 1rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  color: #1e40af;
+  font-size: 0.875rem;
+}
+
+.contact-workshop p {
+  margin: 0 0 0.5rem 0;
+}
+
+.contact-workshop p:last-child {
+  margin: 0;
 }
 
 .installation-info {
@@ -325,22 +313,26 @@
 
 /* Conteúdo específico das abas */
 
-.delivery-warranty {
+.workshop-info {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
-.delivery-warranty > div {
+.workshop-info > div {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  background: #f9fafb;
+  background: #f0fdf4;
   border-radius: 0.375rem;
+  border-left: 3px solid #16a34a;
   font-size: 0.875rem;
+  color: #166534;
 }
+
+/* Seção removida: delivery-warranty (agora é workshop-info) */
 
 .related-parts {
   display: flex;
@@ -534,16 +526,6 @@
     grid-template-columns: 1fr;
     gap: 1rem;
     padding: 1rem;
-  }
-  
-  .price {
-    font-size: 1.5rem;
-  }
-  
-  .product-price-stock {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
   }
   
   .installation-info {
