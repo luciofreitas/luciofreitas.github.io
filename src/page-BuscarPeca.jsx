@@ -36,15 +36,9 @@ export default function BuscarPeca() {
   useEffect(() => {
     const loadMeta = async () => {
       try {
-        console.log('🔄 Carregando dados da API...');
         const res = await fetch('/api/pecas/meta');
         if (!res.ok) throw new Error(`Servidor retornou ${res.status}`);
         const data = await res.json();
-        console.log('✅ Dados carregados:', {
-          grupos: data.grupos,
-          totalPecas: data.pecas?.length,
-          exemplosPecas: data.pecas?.slice(0, 3)
-        });
         setGrupos(data.grupos || []);
         setTodasPecas(data.pecas || []);
         setMarcas(data.marcas || []);
@@ -52,7 +46,6 @@ export default function BuscarPeca() {
         setAnos(data.anos || []);
         setFabricantes(data.fabricantes || []);
       } catch (err) {
-        console.error('❌ Erro ao carregar dados:', err);
         console.warn('Failed to load /api/pecas/meta:', err && err.message ? err.message : err);
         setError('Não foi possível carregar os dados iniciais. Tente recarregar a página.');
       }
@@ -67,7 +60,6 @@ export default function BuscarPeca() {
 
   // Clear dependent selections when parent selections change
   useEffect(() => {
-    console.log('🔄 selectedGrupo mudou para:', `"${selectedGrupo}"`);
     // When grupo changes, clear categoria and fabricante
     setSelectedCategoria('');
     setSelectedFabricante('');
@@ -104,21 +96,13 @@ export default function BuscarPeca() {
 
   // Filtrar opções de dropdown baseado nas seleções atuais
   const getFilteredPecas = () => {
-    console.log('🔍 getFilteredPecas chamada:', {
-      grupoSelecionado: selectedGrupo,
-      totalPecas: todasPecas.length,
-      exemplosCategorias: Array.from(new Set(todasPecas.slice(0, 10).map(p => p.category)))
-    });
-    
     // Verificação de segurança - retorna vazio se dados não carregaram
     if (!todasPecas || todasPecas.length === 0) {
-      console.log('⚠️ Dados ainda não carregados');
       return [];
     }
     
     if (!selectedGrupo || selectedGrupo === '') {
       const todasPecasNomes = Array.from(new Set(todasPecas.map(p => p.name || '').filter(Boolean)));
-      console.log('📦 Nenhum grupo selecionado, retornando todas as peças:', todasPecasNomes.length);
       return todasPecasNomes;
     }
     
@@ -130,11 +114,6 @@ export default function BuscarPeca() {
     });
     
     const nomesUnicos = Array.from(new Set(pecasFiltradas.map(p => p.name || '').filter(Boolean)));
-    console.log(`🎯 Peças do grupo "${selectedGrupo}":`, {
-      pecasEncontradas: pecasFiltradas.length,
-      nomesUnicos: nomesUnicos
-    });
-    
     return nomesUnicos;
   };
 
@@ -347,10 +326,7 @@ export default function BuscarPeca() {
               <h2 className="page-title">Catálogo de Peças</h2>
             <SearchForm
               selectedGrupo={selectedGrupo}
-              setSelectedGrupo={(valor) => {
-                console.log('🔧 setSelectedGrupo chamado com:', `"${valor}"`);
-                setSelectedGrupo(valor);
-              }}
+              setSelectedGrupo={setSelectedGrupo}
               selectedCategoria={selectedCategoria}
               setSelectedCategoria={setSelectedCategoria}
               selectedMarca={selectedMarca}
