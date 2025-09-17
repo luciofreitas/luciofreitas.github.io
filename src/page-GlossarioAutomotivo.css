@@ -361,6 +361,12 @@
   .filtros-row {
     flex-direction: column;
     gap: 1rem;
+    /* Alinhar todo o conteúdo à esquerda no mobile */
+    align-items: flex-start;
+    /* diminuir largura do container em telas pequenas e centralizar o bloco */
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
   }
   
   .filtro-group {
@@ -369,6 +375,15 @@
   
   .busca-input {
     min-width: unset;
+  }
+
+  /* Botão limpar deve ficar alinhado à direita no mobile */
+  .btn-limpar-filtros {
+    /* Centralizar o botão e reduzir largura para ficar mais discreto */
+    align-self: center;
+    width: auto;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
   }
   
   .luzes-grid {

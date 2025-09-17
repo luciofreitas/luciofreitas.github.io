@@ -31,7 +31,7 @@ function Menu() {
       }
     },
     { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
-    { id: 'glossario', label: 'Glossário', onClick: () => navigate('/glossario') },
+    { id: 'guias', label: 'Guias', onClick: () => navigate('/guias') },
     { id: 'parceiros', label: 'Parceiros', onClick: () => navigate('/parceiros') },
     { id: 'contato', label: 'Contato', onClick: () => navigate('/contato-logado') }
   ];

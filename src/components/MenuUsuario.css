@@ -27,18 +27,20 @@
   position: relative;
 }
 
-/* Desktop: mostrar nome, esconder ícone */
-.user-name-desktop {
-  display: inline !important;
+/* Desktop: mostrar ícone grande, esconder ícone pequeno */
+.user-icon-desktop {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-icon-mobile {
   display: none !important;
 }
 
-/* Mobile: esconder nome, mostrar ícone */
+/* Mobile: esconder ícone grande, mostrar ícone pequeno */
 @media (max-width: 48rem) {
-  .user-name-desktop {
+  .user-icon-desktop {
     display: none !important;
   }
   
@@ -164,6 +166,23 @@
 
 .user-menu-root .user-button:hover::after {
   width: 80% !important;
+}
+
+/* Hide the underline (traço) when the button is icon-only (user icon) */
+.user-menu-root .user-button.icon-only::after,
+.user-menu-root .user-button.icon-only:hover::after {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  content: none !important;
+}
+
+/* Accessibility: keep a visible focus ring for keyboard users when the underline is removed */
+.user-menu-root .user-button.icon-only:focus-visible {
+  outline: 2px solid rgba(59,130,246,0.55) !important; /* blue focus ring */
+  outline-offset: 2px !important;
+  border-radius: 0.375rem !important;
 }
 
 /* Indicador de versão Pro */

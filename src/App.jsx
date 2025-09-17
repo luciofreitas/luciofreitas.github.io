@@ -14,7 +14,7 @@ import ContatoLogado from './page-ContatoLogado';
 import BuscarPeca from './page-BuscarPeca';
 import PagePerfil from './page-Perfil';
 import PageRecalls from './page-Recalls';
-import PageGlossario from './page-Glossario';
+import PageGuias from './page-Guias';
 import './App.css';
 import './CustomDropdown.css';
 
@@ -66,7 +66,9 @@ export default function App() {
             <Route path="/contato-logado" element={<ContatoLogado />} />
             <Route path="/parceiros" element={<Parceiros />} />
             <Route path="/recalls" element={<PageRecalls />} />
-            <Route path="/glossario" element={<PageGlossario />} />
+            <Route path="/guias" element={<PageGuias />} />
+            {/* Redirecionamento da rota antiga glossario para guias */}
+            <Route path="/glossario" element={<Navigate to="/guias" replace />} />
             <Route path="/nosso-projeto" element={<NossoProjeto />} />
             <Route path="/perfil" element={
               <ProtectedRoute>

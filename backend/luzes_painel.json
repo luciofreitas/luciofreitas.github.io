@@ -2,7 +2,7 @@
   {
     "id": "check_engine",
     "nome": "Check Engine (Motor)",
-    "icone": "🔧",
+    "icone": "⚠️",
     "cor": "amarelo",
     "prioridade": "Alto",
     "descricao": "Indica problema no sistema de gerenciamento do motor ou emissões.",
@@ -25,7 +25,7 @@
   {
     "id": "oil_pressure",
     "nome": "Pressão do Óleo",
-    "icone": "🛢️",
+    "icone": "�",
     "cor": "vermelho",
     "prioridade": "Crítico",
     "descricao": "Pressão do óleo do motor muito baixa - risco de dano severo ao motor.",
@@ -49,7 +49,7 @@
   {
     "id": "battery",
     "nome": "Bateria/Alternador",
-    "icone": "🔋",
+    "icone": "🪫",
     "cor": "vermelho",
     "prioridade": "Alto",
     "descricao": "Sistema de carregamento da bateria com problema.",
@@ -98,7 +98,7 @@
   {
     "id": "abs",
     "nome": "ABS (Sistema de Freios)",
-    "icone": "🛡️",
+    "icone": "🅰️",
     "cor": "amarelo",
     "prioridade": "Médio",
     "descricao": "Sistema ABS desativado - freios funcionam normalmente.",
@@ -122,7 +122,7 @@
   {
     "id": "airbag",
     "nome": "Airbag/SRS",
-    "icone": "🎈",
+    "icone": "🛡️",
     "cor": "amarelo",
     "prioridade": "Alto",
     "descricao": "Sistema de airbag com falha - risco em caso de acidente.",
@@ -146,7 +146,7 @@
   {
     "id": "brake",
     "nome": "Sistema de Freio",
-    "icone": "🛑",
+    "icone": "�",
     "cor": "vermelho",
     "prioridade": "Crítico",
     "descricao": "Problema no sistema de freios ou freio de mão acionado.",
@@ -170,7 +170,7 @@
   {
     "id": "tpms",
     "nome": "TPMS (Pressão dos Pneus)",
-    "icone": "🛞",
+    "icone": "⚫",
     "cor": "amarelo",
     "prioridade": "Médio",
     "descricao": "Pressão de um ou mais pneus fora do padrão.",
@@ -194,7 +194,7 @@
   {
     "id": "esp_traction",
     "nome": "ESP/Controle de Tração",
-    "icone": "🌪️",
+    "icone": "�",
     "cor": "amarelo",
     "prioridade": "Médio",
     "descricao": "Sistema de controle de estabilidade desativado ou ativo.",
@@ -284,6 +284,100 @@
     "recall_relacionado": false,
     "categoria": "emissoes",
     "tempo_estimado": "20-60 min (regeneração)",
+    "dificuldade": "Baixo-Médio"
+  },
+  {
+    "id": "seatbelt",
+    "nome": "Cinto de Segurança",
+    "icone": "🔗",
+    "cor": "vermelho",
+    "prioridade": "Alto",
+    "descricao": "Lembrete para colocar o cinto de segurança.",
+    "acoes": [
+      "Coloque o cinto de segurança",
+      "Verifique se está bem travado",
+      "Ajuste a posição corretamente"
+    ],
+    "causas_comuns": [
+      "Cinto não colocado",
+      "Cinto não travado corretamente",
+      "Sensor do assento ativado",
+      "Fivela solta"
+    ],
+    "recall_relacionado": false,
+    "categoria": "seguranca",
+    "tempo_estimado": "1 min",
+    "dificuldade": "Baixo"
+  },
+  {
+    "id": "door_open",
+    "nome": "Porta Aberta",
+    "icone": "🚪",
+    "cor": "amarelo",
+    "prioridade": "Baixo",
+    "descricao": "Uma ou mais portas estão abertas ou mal fechadas.",
+    "acoes": [
+      "Verifique todas as portas",
+      "Feche completamente",
+      "Verifique malas e capô",
+      "Teste novamente"
+    ],
+    "causas_comuns": [
+      "Porta mal fechada",
+      "Sensor de porta defeituoso",
+      "Malas/capô abertos",
+      "Problema elétrico"
+    ],
+    "recall_relacionado": false,
+    "categoria": "seguranca",
+    "tempo_estimado": "2-5 min",
+    "dificuldade": "Baixo"
+  },
+  {
+    "id": "turn_signal",
+    "nome": "Pisca-Pisca",
+    "icone": "⬅️",
+    "cor": "verde",
+    "prioridade": "Baixo",
+    "descricao": "Indicador de direção ativado (seta).",
+    "acoes": [
+      "Desligue a seta se não estiver virando",
+      "Complete a manobra",
+      "Verifique se desligou automaticamente"
+    ],
+    "causas_comuns": [
+      "Esquecimento do motorista",
+      "Curva incompleta",
+      "Relé defeituoso",
+      "Interruptor travado"
+    ],
+    "recall_relacionado": false,
+    "categoria": "eletrico",
+    "tempo_estimado": "1 min",
+    "dificuldade": "Baixo"
+  },
+  {
+    "id": "parking_brake",
+    "nome": "Freio de Mão",
+    "icone": "🅿️",
+    "cor": "vermelho",
+    "prioridade": "Médio",
+    "descricao": "Freio de estacionamento acionado.",
+    "acoes": [
+      "Solte o freio de mão",
+      "Verifique se luz apagou",
+      "Se persistir, verifique nível do fluido",
+      "Teste funcionamento"
+    ],
+    "causas_comuns": [
+      "Freio de mão acionado",
+      "Cabo esticado",
+      "Baixo nível de fluido",
+      "Ajuste necessário"
+    ],
+    "recall_relacionado": false,
+    "categoria": "freios",
+    "tempo_estimado": "1-30 min",
     "dificuldade": "Baixo-Médio"
   }
 ]

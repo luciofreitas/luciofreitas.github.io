@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Menu from './components/Menu';
-import './page-Glossario.css';
+import './page-GlossarioAutomotivo.css';
 
-function PageGlossario() {
+function PageGlossarioAutomotivo() {
   const [luzes, setLuzes] = useState([]);
   const [luzesFiltered, setLuzesFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -346,4 +346,4 @@ function PageGlossario() {
   );
 }
 
-export default PageGlossario;
+export default PageGlossarioAutomotivo;

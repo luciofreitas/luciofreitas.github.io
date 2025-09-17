@@ -327,11 +327,11 @@ html, body {
 }
 
 /* Use auto vertical overflow so scrollbar only appears when needed */
-/* Always reserve vertical scrollbar space to avoid horizontal layout shift when it appears/disappears */
-html { overflow-y: scroll; }
-
 /* Keep scrollbar gutter stable where supported to prevent content/header shifting */
-body { scrollbar-gutter: stable; }
+html { 
+  overflow-y: auto; 
+  scrollbar-gutter: stable; 
+}
 
 #root {
   min-height: 100vh;
