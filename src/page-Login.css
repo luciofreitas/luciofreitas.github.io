@@ -1,4 +1,4 @@
-/* Inputs DaisyUI delicados e limpos no login */
+/* Inputs DaisyUI delicados e limpos no login - compatibilidade cross-browser */
 .input {
   background-color: #fff !important;
   color: #111 !important;
@@ -8,7 +8,21 @@
   box-shadow: none !important;
   font-size: 1em;
   padding: 0.5rem 0.75rem;
+  /* Compatibilidade cross-browser */
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.4;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Força cor de texto para todos os navegadores */
+  -webkit-text-fill-color: #111 !important;
 }
+
 /* Inputs DaisyUI sempre claros no login */
 .input {
   background-color: #fff !important;
@@ -17,10 +31,37 @@
 
 /* Focus state: stronger blue outline without changing layout */
 .input:focus {
-  outline: none;
+  outline: none !important;
   border-color: #1d4ed8 !important;
   box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08) !important;
+  /* Compatibilidade cross-browser para focus */
+  -webkit-box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08) !important;
+  -moz-box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08) !important;
 }
+
+/* Títulos dos cards Entrar/Registrar - compatibilidade cross-browser */
+.login-section-title {
+  color: #1f2937 !important; /* Gray-800 - cor escura consistente */
+  font-size: 1.5rem !important; /* 24px */
+  font-weight: 600 !important; /* semi-bold */
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  margin-bottom: 1rem !important;
+  line-height: 1.2 !important;
+  /* Força estilos para todos os navegadores */
+  -webkit-text-fill-color: #1f2937 !important;
+  -webkit-text-stroke: none !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Força estilos específicos para navegadores baseados em Chromium (Opera GX, Edge) */
+.login-section-title {
+  color: #1f2937 !important;
+}
+
 /* Força padding zero nos h2 dos formulários de login e registro */
 
 .login-page-main {

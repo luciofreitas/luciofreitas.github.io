@@ -1238,3 +1238,34 @@ select { -webkit-appearance: none; appearance: none; }
     gap: var(--space-lg) !important;
   }
 }
+
+/* ===== COMPATIBILIDADE CROSS-BROWSER ===== */
+/* Força cor de texto consistente em todos os navegadores */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-text-stroke: none !important;
+}
+
+/* Normalização específica para Opera GX e navegadores Chromium */
+input, textarea, button, select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Força rendering consistente */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Compatibilidade com navegadores antigos */
+@supports not (appearance: none) {
+  input, textarea, button, select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+}
