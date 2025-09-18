@@ -49,7 +49,6 @@ export default function Login() {
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
   const [showPasswordRegister, setShowPasswordRegister] = useState(false);
   const [showPasswordConfirmRegister, setShowPasswordConfirmRegister] = useState(false);
-  const [localStorageAvailable, setLocalStorageAvailable] = useState(true);
 
   const navigate = useNavigate();
   const { setUsuarioLogado } = useContext(AuthContext || {});
@@ -73,14 +72,8 @@ export default function Login() {
     console.log('[Debug] Login component mounted');
     const lsAvailable = testLocalStorage();
     console.log('[Debug] localStorage disponível?', lsAvailable);
-    setLocalStorageAvailable(lsAvailable);
-    
-    if (!lsAvailable) {
-      console.warn('[Debug] localStorage não disponível - usando apenas contas demo');
-    }
     
     console.log('[Debug] Usuários iniciais:', getUsuarios().length);
-    console.log('[Debug] Contas demo disponíveis:', usuariosDemoGlobais.length);
   }, []);
 
   function getUsuarios() {
@@ -128,12 +121,6 @@ export default function Login() {
   function saveUsuario(novoUsuario) {
     console.log('[Debug] saveUsuario iniciado');
     
-    if (!localStorageAvailable) {
-      console.warn('[Debug] localStorage não disponível - registro temporário apenas');
-      alert('⚠️ Seu navegador não permite salvar dados.\nSeu registro será temporário. Use uma das contas demo para testes permanentes.');
-      return novoUsuario;
-    }
-    
     // Obter apenas usuários do localStorage (excluir demos e seeds)
     let usuariosLS = [];
     try {
@@ -143,6 +130,7 @@ export default function Login() {
       }
     } catch (e) {
       console.error('[Debug] Erro ao ler localStorage existente:', e);
+      return novoUsuario; // Falha silenciosa
     }
     
     console.log('[Debug] Usuários do localStorage antes de salvar:', usuariosLS.length);
@@ -324,55 +312,6 @@ export default function Login() {
       <div className="page-wrapper login-page-wrapper">
         <div className="page-content login-content-container">
           <h2 className="page-heading login-heading page-title">Faça o Login ou Cadastro</h2>
-          
-          {/* Alerta sobre localStorage e contas demo */}
-          {!localStorageAvailable && (
-            <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-yellow-700">
-                    <strong>Modo Limitado:</strong> Seu navegador não permite salvar dados localmente. 
-                    Use uma das contas demo abaixo para testar o sistema!
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Lista de contas demo - sempre visível */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
-            <h3 className="text-lg font-semibold text-blue-800 mb-3">🧪 Contas Demo Disponíveis:</h3>
-            <div className="space-y-2">
-              {usuariosDemoGlobais.map((user, index) => (
-                <div key={user.id} className="bg-white p-3 rounded border text-sm">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <strong>{user.nome}</strong><br />
-                      <span className="text-gray-600">E-mail: {user.email}</span><br />
-                      <span className="text-gray-600">Senha: {user.senha}</span>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setEmail(user.email);
-                        setSenha(user.senha);
-                      }}
-                      className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                    >
-                      Usar Esta Conta
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-gray-600 mt-3">
-              💡 <strong>Dica:</strong> Essas contas funcionam em qualquer navegador/dispositivo e são ideais para demonstrações!
-            </p>
-          </div>
           
           <div className="login-forms-row">
             <div className="login-form-card">
