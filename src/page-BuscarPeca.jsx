@@ -43,12 +43,23 @@ export default function BuscarPeca() {
     const loadMeta = async () => {
       try {
         const data = await apiService.getPecasMeta();
+        console.log('Data received in component:', data);
+        
         setGrupos(data.grupos || []);
         setTodasPecas(data.pecas || []);
         setMarcas(data.marcas || []);
         setModelos(data.modelos || []);
         setAnos(data.anos || []);
         setFabricantes(data.fabricantes || []);
+        
+        console.log('States set:', {
+          grupos: data.grupos?.length || 0,
+          pecas: data.pecas?.length || 0,
+          marcas: data.marcas?.length || 0,
+          modelos: data.modelos?.length || 0,
+          anos: data.anos?.length || 0,
+          fabricantes: data.fabricantes?.length || 0
+        });
       } catch (err) {
         console.warn('Failed to load metadata:', err && err.message ? err.message : err);
         setError('Não foi possível carregar os dados iniciais. Tente recarregar a página.');

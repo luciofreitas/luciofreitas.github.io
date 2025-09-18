@@ -98,9 +98,13 @@ class ApiService {
         const anos = new Set();
         const todasMarcasVeiculos = new Set();
         
+        console.log('Processing applications...');
+        let appCount = 0;
+        
         partsData.forEach(part => {
           if (part.applications && Array.isArray(part.applications)) {
             part.applications.forEach(app => {
+              appCount++;
               if (typeof app === 'string') {
                 // Parse string like "Fiat Uno 2010-2011-2012-2013-2014-2015"
                 const parts = app.trim().split(/\s+/);
@@ -125,6 +129,11 @@ class ApiService {
             });
           }
         });
+        
+        console.log(`Processed ${appCount} applications`);
+        console.log('Vehicle brands found:', [...todasMarcasVeiculos].slice(0, 10));
+        console.log('Models found:', [...modelos].slice(0, 10));
+        console.log('Years found:', [...anos].slice(0, 10));
         
         const result = { 
           grupos: grupos, 
