@@ -2,12 +2,15 @@
   "name": "pecas-automotivas-compativeis",
   "version": "0.0.1",
   "private": true,
+  "homepage": "https://luciofreitas.github.io",
   "description": "Web UI (React + Vite) para catálogo de peças automotivas; use `npm run dev:chrome` para abrir o site automaticamente no Google Chrome sem alterar o navegador padrão do sistema.",
   "scripts": {
     "dev": "vite",
     "dev:chrome": "concurrently \"npm run dev\" \"wait-on http://localhost:5174 && .\\open-chrome.bat\"",
     "build": "vite build",
     "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "test-db": "node scripts/test-db.js",
     "seed": "node scripts/seed.js"
   },
@@ -27,6 +30,7 @@
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",
     "dotenv": "^16.6.1",
+    "gh-pages": "^6.3.0",
     "open-cli": "^8.0.0",
     "pg": "^8.16.3",
     "postcss": "^8.5.6",
