@@ -2,7 +2,7 @@
   "name": "pecas-automotivas-compativeis",
   "version": "0.0.1",
   "private": true,
-  "homepage": "https://luciofreitas.github.io",
+  "homepage": "https://luciofreitas.github.io/pecas-automotivas-compativeis",
   "description": "Web UI (React + Vite) para catálogo de peças automotivas; use `npm run dev:chrome` para abrir o site automaticamente no Google Chrome sem alterar o navegador padrão do sistema.",
   "scripts": {
     "dev": "vite",
