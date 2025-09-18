@@ -50,7 +50,6 @@ export default function Login() {
   const [showPasswordRegister, setShowPasswordRegister] = useState(false);
   const [showPasswordConfirmRegister, setShowPasswordConfirmRegister] = useState(false);
   const [localStorageAvailable, setLocalStorageAvailable] = useState(true);
-  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
 
   const navigate = useNavigate();
   const { setUsuarioLogado } = useContext(AuthContext || {});
@@ -78,7 +77,6 @@ export default function Login() {
     
     if (!lsAvailable) {
       console.warn('[Debug] localStorage não disponível - usando apenas contas demo');
-      setShowDemoAccounts(true);
     }
     
     console.log('[Debug] Usuários iniciais:', getUsuarios().length);
@@ -346,47 +344,35 @@ export default function Login() {
             </div>
           )}
 
-          {/* Botão para mostrar/ocultar contas demo */}
-          <div className="text-center mb-4">
-            <button 
-              onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-              className="text-blue-600 hover:text-blue-800 underline text-sm"
-            >
-              {showDemoAccounts ? 'Ocultar' : 'Mostrar'} Contas Demo para Teste
-            </button>
-          </div>
-
-          {/* Lista de contas demo */}
-          {showDemoAccounts && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
-              <h3 className="text-lg font-semibold text-blue-800 mb-3">🧪 Contas Demo Disponíveis:</h3>
-              <div className="space-y-2">
-                {usuariosDemoGlobais.map((user, index) => (
-                  <div key={user.id} className="bg-white p-3 rounded border text-sm">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <strong>{user.nome}</strong><br />
-                        <span className="text-gray-600">E-mail: {user.email}</span><br />
-                        <span className="text-gray-600">Senha: {user.senha}</span>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          setEmail(user.email);
-                          setSenha(user.senha);
-                        }}
-                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                      >
-                        Usar Esta Conta
-                      </button>
+          {/* Lista de contas demo - sempre visível */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">🧪 Contas Demo Disponíveis:</h3>
+            <div className="space-y-2">
+              {usuariosDemoGlobais.map((user, index) => (
+                <div key={user.id} className="bg-white p-3 rounded border text-sm">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <strong>{user.nome}</strong><br />
+                      <span className="text-gray-600">E-mail: {user.email}</span><br />
+                      <span className="text-gray-600">Senha: {user.senha}</span>
                     </div>
+                    <button 
+                      onClick={() => {
+                        setEmail(user.email);
+                        setSenha(user.senha);
+                      }}
+                      className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                    >
+                      Usar Esta Conta
+                    </button>
                   </div>
-                ))}
-              </div>
-              <p className="text-xs text-gray-600 mt-3">
-                💡 <strong>Dica:</strong> Essas contas funcionam em qualquer navegador/dispositivo e são ideais para demonstrações!
-              </p>
+                </div>
+              ))}
             </div>
-          )}
+            <p className="text-xs text-gray-600 mt-3">
+              💡 <strong>Dica:</strong> Essas contas funcionam em qualquer navegador/dispositivo e são ideais para demonstrações!
+            </p>
+          </div>
           
           <div className="login-forms-row">
             <div className="login-form-card">
