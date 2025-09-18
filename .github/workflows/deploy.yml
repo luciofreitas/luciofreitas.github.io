@@ -3,8 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 permissions:
   contents: read
@@ -37,6 +35,9 @@ jobs:
       
     - name: Add .nojekyll file
       run: touch dist/.nojekyll
+      
+    - name: List dist contents (debug)
+      run: ls -la dist/
       
     - name: Setup Pages
       uses: actions/configure-pages@v4
