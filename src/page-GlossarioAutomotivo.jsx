@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Menu from './components/Menu';
+import { apiService } from './utils/apiService';
 import './page-GlossarioAutomotivo.css';
 
 function PageGlossarioAutomotivo() {
@@ -49,15 +50,11 @@ function PageGlossarioAutomotivo() {
   useEffect(() => {
     const fetchLuzes = async () => {
       try {
-        const response = await fetch('/api/luzes-painel');
-        if (!response.ok) {
-          throw new Error('Erro ao carregar dados das luzes do painel');
-        }
-        const data = await response.json();
-        setLuzes(data.luzes);
-        setLuzesFiltered(data.luzes);
+        const data = await apiService.getLuzesPainel();
+        setLuzes(data.luzes || data);
+        setLuzesFiltered(data.luzes || data);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || 'Erro ao carregar dados das luzes do painel');
         console.error('Erro:', err);
       } finally {
         setLoading(false);

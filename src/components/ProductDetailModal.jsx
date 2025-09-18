@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiService } from '../utils/apiService';
 import './ProductDetailModal.css';
 
 function ProductDetailModal({ isOpen, onClose, productId }) {
@@ -16,12 +17,10 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   const loadProductDetails = async (id) => {
     setLoading(true);
     try {
-      // Usar endpoint do backend
-      const response = await fetch(`/api/pecas/${id}`);
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      const product = await apiService.getPecaById(id);
+      if (product.error) {
+        throw new Error(product.error);
       }
-      const product = await response.json();
       setProductDetails(product);
       setSelectedImage(0);
     } catch (error) {

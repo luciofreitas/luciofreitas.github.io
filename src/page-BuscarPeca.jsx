@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Menu from './components/Menu';
 import { AuthContext } from './App';
+import { apiService } from './utils/apiService';
 import CompatibilityModal from './CompatibilityModal';
 import ProductDetailModal from './components/ProductDetailModal';
 import SearchForm from './components/SearchForm';
@@ -41,9 +42,7 @@ export default function BuscarPeca() {
   useEffect(() => {
     const loadMeta = async () => {
       try {
-        const res = await fetch('/api/pecas/meta');
-        if (!res.ok) throw new Error(`Servidor retornou ${res.status}`);
-        const data = await res.json();
+        const data = await apiService.getPecasMeta();
         setGrupos(data.grupos || []);
         setTodasPecas(data.pecas || []);
         setMarcas(data.marcas || []);
@@ -51,7 +50,7 @@ export default function BuscarPeca() {
         setAnos(data.anos || []);
         setFabricantes(data.fabricantes || []);
       } catch (err) {
-        console.warn('Failed to load /api/pecas/meta:', err && err.message ? err.message : err);
+        console.warn('Failed to load metadata:', err && err.message ? err.message : err);
         setError('Não foi possível carregar os dados iniciais. Tente recarregar a página.');
       }
     };
@@ -303,17 +302,12 @@ export default function BuscarPeca() {
       fabricante: selectedFabricante 
     };
     try {
-      const res = await fetch('/api/pecas/filtrar', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(filtros) 
-      });
-      const data = await res.json();
-      const pecasFiltradas = data.pecas || [];
+      const data = await apiService.filtrarPecas(filtros);
+      const pecasFiltradas = data.results || [];
   console.debug('[BuscarPeca] search result count=', pecasFiltradas.length, 'sample=', pecasFiltradas.slice(0,5));
       setPecas(pecasFiltradas);
       if (pecasFiltradas.length === 0) {
-        setError(data.mensagem || 'Nenhuma peça encontrada para os filtros selecionados.');
+        setError('Nenhuma peça encontrada para os filtros selecionados.');
       } else {
         setModalTitle(`Encontradas ${pecasFiltradas.length} peça(s)`);
         setModalContent(renderPecasModal(pecasFiltradas));

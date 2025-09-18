@@ -3,6 +3,7 @@ import Menu from './components/Menu';
 import ComponenteEstrelas from './components/ComponenteEstrelas';
 import GlossarioExpandido from './components/GlossarioExpandido';
 import { useAvaliacoes } from './hooks/useAvaliacoes';
+import { apiService } from './utils/apiService';
 import { glossarioMockData, outrosGuias } from './data/glossarioData';
 import './page-Guias.css';
 
@@ -27,13 +28,8 @@ function PageGuias() {
   useEffect(() => {
     const carregarGlossario = async () => {
       try {
-        const response = await fetch('/api/glossario-dashboard');
-        if (!response.ok) {
-          setGlossarioData(glossarioMockData);
-        } else {
-          const data = await response.json();
-          setGlossarioData(data);
-        }
+        const data = await apiService.getGlossarioDashboard();
+        setGlossarioData(data || glossarioMockData);
       } catch (error) {
         console.error('Erro ao carregar glossário:', error);
         setGlossarioData(glossarioMockData);
