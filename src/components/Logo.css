@@ -142,7 +142,11 @@
 
 /* Ajustes para header com fundo azul - texto branco */
 .site-header .logo-title {
-  color: #ffffff;
+  color: #ffffff !important;
+  /* Forçar preenchimento de texto para navegadores Chromium (Opera GX, Edge) */
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-text-stroke: 0px transparent !important;
+  text-shadow: none !important;
 }
 
 .site-header .logo-subtitle {
