@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import MenuLogin from './components/MenuLogin';
 // Removido import './components/Menu.css' - não é necessário e causa conflito de cores
 import './page-Login.css';
@@ -25,36 +25,92 @@ export default function Login() {
   const navigate = useNavigate();
   const { setUsuarioLogado } = useContext(AuthContext || {});
 
+  // Função para testar localStorage
+  function testLocalStorage() {
+    try {
+      const test = '__test_localStorage__';
+      localStorage.setItem(test, 'test');
+      localStorage.removeItem(test);
+      return true;
+    } catch (e) {
+      console.error('[Debug] localStorage não disponível:', e);
+      return false;
+    }
+  }
+
+  // Testar localStorage na inicialização do componente
+  useEffect(() => {
+    console.log('[Debug] Login component mounted');
+    console.log('[Debug] localStorage disponível?', testLocalStorage());
+    console.log('[Debug] Usuários iniciais:', getUsuarios().length);
+  }, []);
+
   function getUsuarios() {
+    console.log('[Debug] getUsuarios iniciado');
+    
     try {
       const raw = localStorage.getItem('usuarios');
-      if (raw) return JSON.parse(raw);
+      console.log('[Debug] localStorage raw data:', !!raw);
+      
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        console.log('[Debug] Usuários do localStorage:', parsed.length);
+        return parsed;
+      }
     } catch (e) {
-      // ignore
+      console.error('[Debug] Erro ao ler localStorage:', e);
     }
+    
     // Seed from usuarios.json if available
     try {
-      return (usuariosData || []).map(u => ({
+      const seedData = (usuariosData || []).map(u => ({
         id: u.id,
         nome: u.nome || '',
         celular: String(u.celular || '').replace(/\D/g, ''),
         email: String(u.email || '').trim().toLowerCase(),
         senha: String(u.senha || '')
       }));
+      console.log('[Debug] Usando seed data:', seedData.length, 'usuários');
+      return seedData;
     } catch (e) {
+      console.error('[Debug] Erro ao processar seed data:', e);
       return [];
     }
   }
 
   function saveUsuario(novoUsuario) {
+    console.log('[Debug] saveUsuario iniciado');
+    
     const usuarios = getUsuarios();
+    console.log('[Debug] Usuários atuais antes de salvar:', usuarios.length);
+    
     const normalized = {
       ...novoUsuario,
       email: String(novoUsuario.email || '').trim().toLowerCase(),
       celular: String(novoUsuario.celular || '').replace(/\D/g, '')
     };
+    
     const updated = [...usuarios, normalized];
-    try { localStorage.setItem('usuarios', JSON.stringify(updated)); } catch (e) {}
+    console.log('[Debug] Lista atualizada com novo usuário:', updated.length);
+    
+    try { 
+      const serialized = JSON.stringify(updated);
+      localStorage.setItem('usuarios', serialized);
+      console.log('[Debug] Dados salvos no localStorage com sucesso');
+      
+      // Verificar se realmente foi salvo
+      const verification = localStorage.getItem('usuarios');
+      if (verification) {
+        const parsed = JSON.parse(verification);
+        console.log('[Debug] Verificação - usuários salvos:', parsed.length);
+      } else {
+        console.warn('[Debug] Falha na verificação - dados não encontrados no localStorage');
+      }
+    } catch (e) {
+      console.error('[Debug] Erro ao salvar no localStorage:', e);
+      throw e;
+    }
+    
     return normalized;
   }
 
@@ -75,39 +131,71 @@ export default function Login() {
 
   function handleRegister(e) {
     e.preventDefault();
+    console.log('[Debug] Iniciando registro:', { regNome, regEmail, regCelular: regCelular.replace(/\D/g, '') });
+    
     if (!regNome || !regSenha || !regEmail || !regCelular || !regConfirmSenha) {
+      console.log('[Debug] Campos em branco:', { regNome, regEmail, regCelular, regSenha: !!regSenha, regConfirmSenha: !!regConfirmSenha });
       setRegError('Preencha todos os campos.');
       return;
     }
-    if (!/^\S+@\S+\.\S+$/.test(regEmail)) {
-      setRegError('E-mail inválido.');
+    
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(regEmail)) {
+      console.log('[Debug] E-mail inválido:', regEmail);
+      setRegError('E-mail inválido. Use o formato: exemplo@dominio.com');
       return;
     }
-    if (!/^\d{8,}$/.test(regCelular.replace(/\D/g, ''))) {
-      setRegError('Celular inválido.');
+    
+    const cleanCelular = regCelular.replace(/\D/g, '');
+    console.log('[Debug] Celular limpo:', cleanCelular, 'Válido?', /^\d{10,11}$/.test(cleanCelular));
+    if (!/^\d{10,11}$/.test(cleanCelular)) {
+      setRegError('Celular inválido (deve ter 10 ou 11 dígitos).');
       return;
     }
+    
+    if (regSenha.length < 4) {
+      console.log('[Debug] Senha muito curta:', regSenha.length);
+      setRegError('A senha deve ter pelo menos 4 caracteres.');
+      return;
+    }
+    
     if (regSenha !== regConfirmSenha) {
+      console.log('[Debug] Senhas não coincidem');
       setRegError('As senhas não coincidem.');
       return;
     }
+    
     const normalizedRegEmail = String(regEmail || '').trim().toLowerCase();
-    if (getUsuarios().some(u => String(u.email || '').trim().toLowerCase() === normalizedRegEmail)) {
+    const existingUsers = getUsuarios();
+    console.log('[Debug] Usuários existentes:', existingUsers.length);
+    
+    if (existingUsers.some(u => String(u.email || '').trim().toLowerCase() === normalizedRegEmail)) {
+      console.log('[Debug] E-mail já existe:', normalizedRegEmail);
       setRegError('Já existe um usuário com este e-mail.');
       return;
     }
+    
     const id = Date.now();
     const novoUsuario = {
       id,
       nome: regNome,
-      celular: regCelular.replace(/\D/g, ''),
+      celular: cleanCelular,
       email: normalizedRegEmail,
       senha: regSenha
     };
-    saveUsuario(novoUsuario);
-    setRegError('');
-    setRegNome(''); setRegCelular(''); setRegEmail(''); setRegSenha(''); setRegConfirmSenha('');
-    alert('Registro realizado com sucesso! Agora faça login com suas credenciais.');
+    
+    console.log('[Debug] Criando novo usuário:', { ...novoUsuario, senha: '***' });
+    
+    try {
+      const savedUser = saveUsuario(novoUsuario);
+      console.log('[Debug] Usuário salvo com sucesso:', { ...savedUser, senha: '***' });
+      
+      setRegError('');
+      setRegNome(''); setRegCelular(''); setRegEmail(''); setRegSenha(''); setRegConfirmSenha('');
+      alert('Registro realizado com sucesso! Agora faça login com suas credenciais.');
+    } catch (error) {
+      console.error('[Debug] Erro ao salvar usuário:', error);
+      setRegError('Erro ao salvar usuário. Tente novamente.');
+    }
   }
 
   function formatCelular(value) {
