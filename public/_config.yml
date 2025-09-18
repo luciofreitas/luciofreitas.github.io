@@ -3,6 +3,8 @@ plugins:
 
 include:
   - .nojekyll
+  - "*.js"
+  - "*.mjs"
 
 defaults:
   - scope:
@@ -12,3 +14,8 @@ defaults:
 
 kramdown:
   input: GFM
+
+# Ensure proper MIME types for JavaScript files
+mime_types:
+  .js: "text/javascript"
+  .mjs: "text/javascript"
