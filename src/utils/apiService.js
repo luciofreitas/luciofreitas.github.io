@@ -53,8 +53,8 @@ class ApiService {
   async getGlossarioDashboard() {
     // Import local data as fallback
     try {
-      const { glossarioData } = await import('../data/glossarioData.js');
-      return this.fetchWithFallback('/api/glossario-dashboard', glossarioData);
+      const { glossarioMockData } = await import('../data/glossarioData.js');
+      return this.fetchWithFallback('/api/glossario-dashboard', glossarioMockData);
     } catch {
       return this.fetchWithFallback('/api/glossario-dashboard');
     }
