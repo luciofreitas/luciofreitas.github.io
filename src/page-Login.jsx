@@ -6,6 +6,34 @@ import usuariosData from './usuarios.json';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './App';
 
+// Contas demo que funcionam para todos os usuários (não dependem de localStorage)
+const usuariosDemoGlobais = [
+  {
+    id: 'demo1',
+    nome: 'Usuário Demo',
+    email: 'demo@pecafacil.com',
+    senha: '123456',
+    celular: '11999999999',
+    isDemo: true
+  },
+  {
+    id: 'admin1', 
+    nome: 'Admin Demo',
+    email: 'admin@pecafacil.com',
+    senha: 'admin123',
+    celular: '11888888888',
+    isDemo: true
+  },
+  {
+    id: 'teste1',
+    nome: 'Teste Público',
+    email: 'teste@pecafacil.com', 
+    senha: 'teste123',
+    celular: '11777777777',
+    isDemo: true
+  }
+];
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -21,6 +49,8 @@ export default function Login() {
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
   const [showPasswordRegister, setShowPasswordRegister] = useState(false);
   const [showPasswordConfirmRegister, setShowPasswordConfirmRegister] = useState(false);
+  const [localStorageAvailable, setLocalStorageAvailable] = useState(true);
+  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
 
   const navigate = useNavigate();
   const { setUsuarioLogado } = useContext(AuthContext || {});
@@ -30,8 +60,9 @@ export default function Login() {
     try {
       const test = '__test_localStorage__';
       localStorage.setItem(test, 'test');
+      const retrieved = localStorage.getItem(test);
       localStorage.removeItem(test);
-      return true;
+      return retrieved === 'test';
     } catch (e) {
       console.error('[Debug] localStorage não disponível:', e);
       return false;
@@ -41,13 +72,29 @@ export default function Login() {
   // Testar localStorage na inicialização do componente
   useEffect(() => {
     console.log('[Debug] Login component mounted');
-    console.log('[Debug] localStorage disponível?', testLocalStorage());
+    const lsAvailable = testLocalStorage();
+    console.log('[Debug] localStorage disponível?', lsAvailable);
+    setLocalStorageAvailable(lsAvailable);
+    
+    if (!lsAvailable) {
+      console.warn('[Debug] localStorage não disponível - usando apenas contas demo');
+      setShowDemoAccounts(true);
+    }
+    
     console.log('[Debug] Usuários iniciais:', getUsuarios().length);
+    console.log('[Debug] Contas demo disponíveis:', usuariosDemoGlobais.length);
   }, []);
 
   function getUsuarios() {
     console.log('[Debug] getUsuarios iniciado');
     
+    let usuarios = [];
+    
+    // Sempre incluir contas demo (funcionam para todos)
+    usuarios = [...usuariosDemoGlobais];
+    console.log('[Debug] Contas demo adicionadas:', usuarios.length);
+    
+    // Tentar adicionar usuários do localStorage se disponível
     try {
       const raw = localStorage.getItem('usuarios');
       console.log('[Debug] localStorage raw data:', !!raw);
@@ -55,7 +102,7 @@ export default function Login() {
       if (raw) {
         const parsed = JSON.parse(raw);
         console.log('[Debug] Usuários do localStorage:', parsed.length);
-        return parsed;
+        usuarios = usuarios.concat(parsed);
       }
     } catch (e) {
       console.error('[Debug] Erro ao ler localStorage:', e);
@@ -70,19 +117,37 @@ export default function Login() {
         email: String(u.email || '').trim().toLowerCase(),
         senha: String(u.senha || '')
       }));
-      console.log('[Debug] Usando seed data:', seedData.length, 'usuários');
-      return seedData;
+      console.log('[Debug] Seed data disponível:', seedData.length);
+      usuarios = usuarios.concat(seedData);
     } catch (e) {
       console.error('[Debug] Erro ao processar seed data:', e);
-      return [];
     }
+    
+    console.log('[Debug] Total de usuários disponíveis:', usuarios.length);
+    return usuarios;
   }
 
   function saveUsuario(novoUsuario) {
     console.log('[Debug] saveUsuario iniciado');
     
-    const usuarios = getUsuarios();
-    console.log('[Debug] Usuários atuais antes de salvar:', usuarios.length);
+    if (!localStorageAvailable) {
+      console.warn('[Debug] localStorage não disponível - registro temporário apenas');
+      alert('⚠️ Seu navegador não permite salvar dados.\nSeu registro será temporário. Use uma das contas demo para testes permanentes.');
+      return novoUsuario;
+    }
+    
+    // Obter apenas usuários do localStorage (excluir demos e seeds)
+    let usuariosLS = [];
+    try {
+      const raw = localStorage.getItem('usuarios');
+      if (raw) {
+        usuariosLS = JSON.parse(raw);
+      }
+    } catch (e) {
+      console.error('[Debug] Erro ao ler localStorage existente:', e);
+    }
+    
+    console.log('[Debug] Usuários do localStorage antes de salvar:', usuariosLS.length);
     
     const normalized = {
       ...novoUsuario,
@@ -90,7 +155,7 @@ export default function Login() {
       celular: String(novoUsuario.celular || '').replace(/\D/g, '')
     };
     
-    const updated = [...usuarios, normalized];
+    const updated = [...usuariosLS, normalized];
     console.log('[Debug] Lista atualizada com novo usuário:', updated.length);
     
     try { 
@@ -261,6 +326,68 @@ export default function Login() {
       <div className="page-wrapper login-page-wrapper">
         <div className="page-content login-content-container">
           <h2 className="page-heading login-heading page-title">Faça o Login ou Cadastro</h2>
+          
+          {/* Alerta sobre localStorage e contas demo */}
+          {!localStorageAvailable && (
+            <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    <strong>Modo Limitado:</strong> Seu navegador não permite salvar dados localmente. 
+                    Use uma das contas demo abaixo para testar o sistema!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Botão para mostrar/ocultar contas demo */}
+          <div className="text-center mb-4">
+            <button 
+              onClick={() => setShowDemoAccounts(!showDemoAccounts)}
+              className="text-blue-600 hover:text-blue-800 underline text-sm"
+            >
+              {showDemoAccounts ? 'Ocultar' : 'Mostrar'} Contas Demo para Teste
+            </button>
+          </div>
+
+          {/* Lista de contas demo */}
+          {showDemoAccounts && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">🧪 Contas Demo Disponíveis:</h3>
+              <div className="space-y-2">
+                {usuariosDemoGlobais.map((user, index) => (
+                  <div key={user.id} className="bg-white p-3 rounded border text-sm">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <strong>{user.nome}</strong><br />
+                        <span className="text-gray-600">E-mail: {user.email}</span><br />
+                        <span className="text-gray-600">Senha: {user.senha}</span>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setEmail(user.email);
+                          setSenha(user.senha);
+                        }}
+                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                      >
+                        Usar Esta Conta
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-600 mt-3">
+                💡 <strong>Dica:</strong> Essas contas funcionam em qualquer navegador/dispositivo e são ideais para demonstrações!
+              </p>
+            </div>
+          )}
+          
           <div className="login-forms-row">
             <div className="login-form-card">
               <div><h2 className="login-section-title">Entrar</h2></div>
