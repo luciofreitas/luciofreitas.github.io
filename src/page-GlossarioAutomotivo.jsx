@@ -51,11 +51,17 @@ function PageGlossarioAutomotivo() {
     const fetchLuzes = async () => {
       try {
         const data = await apiService.getLuzesPainel();
-        setLuzes(data.luzes || data);
-        setLuzesFiltered(data.luzes || data);
+        const luzesData = data.luzes || data;
+        // Garantir que sempre seja um array
+        const arrayData = Array.isArray(luzesData) ? luzesData : (luzesData ? [luzesData] : []);
+        setLuzes(arrayData);
+        setLuzesFiltered(arrayData);
       } catch (err) {
         setError(err.message || 'Erro ao carregar dados das luzes do painel');
         console.error('Erro:', err);
+        // Definir arrays vazios em caso de erro
+        setLuzes([]);
+        setLuzesFiltered([]);
       } finally {
         setLoading(false);
       }
@@ -66,31 +72,34 @@ function PageGlossarioAutomotivo() {
 
   // Aplicar filtros
   useEffect(() => {
-    let filtered = luzes;
+    let filtered = Array.isArray(luzes) ? luzes : [];
 
     // Filtrar por categoria
     if (filtros.categoria) {
-      filtered = filtered.filter(luz => luz.categoria === filtros.categoria);
+      filtered = filtered.filter(luz => luz && luz.categoria === filtros.categoria);
     }
 
     // Filtrar por prioridade
     if (filtros.prioridade) {
-      filtered = filtered.filter(luz => luz.prioridade === filtros.prioridade);
+      filtered = filtered.filter(luz => luz && luz.prioridade === filtros.prioridade);
     }
 
     // Filtrar por cor
     if (filtros.cor) {
-      filtered = filtered.filter(luz => luz.cor === filtros.cor);
+      filtered = filtered.filter(luz => luz && luz.cor === filtros.cor);
     }
 
     // Busca por texto
     if (filtros.busca) {
       const busca = filtros.busca.toLowerCase();
-      filtered = filtered.filter(luz => 
-        luz.nome.toLowerCase().includes(busca) ||
-        luz.descricao.toLowerCase().includes(busca) ||
-        luz.causas_comuns.some(causa => causa.toLowerCase().includes(busca))
-      );
+      filtered = filtered.filter(luz => {
+        if (!luz) return false;
+        return (luz.nome && luz.nome.toLowerCase().includes(busca)) ||
+               (luz.descricao && luz.descricao.toLowerCase().includes(busca)) ||
+               (Array.isArray(luz.causas_comuns) && luz.causas_comuns.some(causa => 
+                 causa && causa.toLowerCase().includes(busca)
+               ));
+      });
     }
 
     setLuzesFiltered(filtered);

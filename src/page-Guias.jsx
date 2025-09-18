@@ -29,10 +29,12 @@ function PageGuias() {
     const carregarGlossario = async () => {
       try {
         const data = await apiService.getGlossarioDashboard();
-        setGlossarioData(data || glossarioMockData);
+        // Garantir que sempre seja um array
+        const arrayData = Array.isArray(data) ? data : (data ? [data] : glossarioMockData);
+        setGlossarioData(arrayData);
       } catch (error) {
         console.error('Erro ao carregar glossário:', error);
-        setGlossarioData(glossarioMockData);
+        setGlossarioData(Array.isArray(glossarioMockData) ? glossarioMockData : []);
         setError(null);
       } finally {
         setLoading(false);
@@ -74,10 +76,12 @@ function PageGuias() {
   };
 
   // Filtrar dados do glossário
-  const dadosFiltrados = glossarioData.filter(item => {
+  const dadosFiltrados = (Array.isArray(glossarioData) ? glossarioData : []).filter(item => {
+    if (!item) return false;
+    
     const matchBusca = !filtros.busca || 
-      item.nome.toLowerCase().includes(filtros.busca.toLowerCase()) ||
-      item.descricao.toLowerCase().includes(filtros.busca.toLowerCase());
+      (item.nome && item.nome.toLowerCase().includes(filtros.busca.toLowerCase())) ||
+      (item.descricao && item.descricao.toLowerCase().includes(filtros.busca.toLowerCase()));
     
     const matchPrioridade = !filtros.prioridade || item.prioridade === filtros.prioridade;
     const matchCor = !filtros.cor || item.cor === filtros.cor;

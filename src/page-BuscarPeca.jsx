@@ -133,31 +133,33 @@ export default function BuscarPeca() {
   };
 
   const getFilteredFabricantes = () => {
+    if (!Array.isArray(todasPecas)) return [];
     let filtered = todasPecas;
     if (selectedGrupo) {
-      filtered = filtered.filter(p => p.category === selectedGrupo);
+      filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
     if (selectedCategoria) {
-      filtered = filtered.filter(p => p.name === selectedCategoria);
+      filtered = filtered.filter(p => p && p.name === selectedCategoria);
     }
-    return Array.from(new Set(filtered.map(p => p.manufacturer).filter(Boolean)));
+    return Array.from(new Set(filtered.map(p => p && p.manufacturer).filter(Boolean)));
   };
 
   const getFilteredMarcas = () => {
+    if (!Array.isArray(todasPecas)) return [];
     let filtered = todasPecas;
     if (selectedGrupo) {
-      filtered = filtered.filter(p => p.category === selectedGrupo);
+      filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
     if (selectedCategoria) {
-      filtered = filtered.filter(p => p.name === selectedCategoria);
+      filtered = filtered.filter(p => p && p.name === selectedCategoria);
     }
     if (selectedFabricante) {
-      filtered = filtered.filter(p => p.manufacturer === selectedFabricante);
+      filtered = filtered.filter(p => p && p.manufacturer === selectedFabricante);
     }
     
     const marcasSet = new Set();
     filtered.forEach(peca => {
-      if (peca.applications) {
+      if (peca && peca.applications && Array.isArray(peca.applications)) {
         peca.applications.forEach(app => {
           const appStr = String(app).toLowerCase();
           // Extract brand names from application strings
@@ -174,24 +176,25 @@ export default function BuscarPeca() {
   };
 
   const getFilteredModelos = () => {
-    if (!selectedMarca) return modelos;
+    if (!selectedMarca) return Array.isArray(modelos) ? modelos : [];
+    if (!Array.isArray(todasPecas)) return [];
     
     let filtered = todasPecas;
     if (selectedGrupo) {
-      filtered = filtered.filter(p => p.category === selectedGrupo);
+      filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
     if (selectedCategoria) {
-      filtered = filtered.filter(p => p.name === selectedCategoria);
+      filtered = filtered.filter(p => p && p.name === selectedCategoria);
     }
     if (selectedFabricante) {
-      filtered = filtered.filter(p => p.manufacturer === selectedFabricante);
+      filtered = filtered.filter(p => p && p.manufacturer === selectedFabricante);
     }
     
     const modelosSet = new Set();
     const marcaLower = selectedMarca.toLowerCase();
     
     filtered.forEach(peca => {
-      if (peca.applications) {
+      if (peca && peca.applications && Array.isArray(peca.applications)) {
         peca.applications.forEach(app => {
           const appStr = String(app).toLowerCase();
           if (appStr.includes(marcaLower)) {
@@ -212,17 +215,18 @@ export default function BuscarPeca() {
   };
 
   const getFilteredAnos = () => {
-    if (!selectedMarca && !selectedModelo) return anos;
+    if (!selectedMarca && !selectedModelo) return Array.isArray(anos) ? anos : [];
+    if (!Array.isArray(todasPecas)) return [];
     
     let filtered = todasPecas;
     if (selectedGrupo) {
-      filtered = filtered.filter(p => p.category === selectedGrupo);
+      filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
     if (selectedCategoria) {
-      filtered = filtered.filter(p => p.name === selectedCategoria);
+      filtered = filtered.filter(p => p && p.name === selectedCategoria);
     }
     if (selectedFabricante) {
-      filtered = filtered.filter(p => p.manufacturer === selectedFabricante);
+      filtered = filtered.filter(p => p && p.manufacturer === selectedFabricante);
     }
     
     const anosSet = new Set();
@@ -230,7 +234,7 @@ export default function BuscarPeca() {
     const modeloLower = selectedModelo?.toLowerCase();
     
     filtered.forEach(peca => {
-      if (peca.applications) {
+      if (peca && peca.applications && Array.isArray(peca.applications)) {
         peca.applications.forEach(app => {
           const appStr = String(app).toLowerCase();
           const matchesMarca = !marcaLower || appStr.includes(marcaLower);
