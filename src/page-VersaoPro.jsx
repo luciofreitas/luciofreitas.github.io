@@ -18,7 +18,6 @@ export default function VersaoPro() {
             <div className="versaoPro-features">
               <h3 className="versaoPro-features-title">Recursos incluídos</h3>
               <ul className="versaoPro-list">
-                  <li> Acesso ao buscador de peças.</li>
                   <li> Acesso ao endereço das lojas que vendem as peças.</li>
                   <li> Suporte via email.</li>
                   <li> Suporte via whatsapp.</li>
