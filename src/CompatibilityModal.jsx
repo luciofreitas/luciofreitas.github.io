@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import './app.css';
+import './App.css';
 
 export default function CompatibilityModal({ show, onClose, title, titleIcon, children }) {
 	useEffect(() => {
