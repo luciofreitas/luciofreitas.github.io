@@ -22,13 +22,7 @@ function Menu() {
     {
       id: 'buscar',
       label: 'Buscar Peças',
-      onClick: () => {
-        if (window.location.pathname === '/') {
-          window.location.reload();
-        } else {
-          navigate('/');
-        }
-      }
+      onClick: () => navigate('/buscar-pecas')
     },
     { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
     { id: 'guias', label: 'Guias', onClick: () => navigate('/guias') },

@@ -54,6 +54,11 @@ export default function App() {
                 <BuscarPeca />
               </ProtectedRoute>
             } />
+            <Route path="/buscar-pecas" element={
+              <ProtectedRoute>
+                <BuscarPeca />
+              </ProtectedRoute>
+            } />
 
             <Route path="/login" element={<Login />} />
             <Route path="/inicio" element={<PageInicio />} />
