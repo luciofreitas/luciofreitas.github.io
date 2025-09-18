@@ -2,21 +2,38 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Peças Automotivas Compatíveis</title>
     <script type="text/javascript">
         // Single Page Apps for GitHub Pages
+        // MIT License
         // https://github.com/rafgraph/spa-github-pages
-        var pathSegmentsToKeep = 0;
+        var segmentCount = 0;
         var l = window.location;
         l.replace(
             l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-            l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-            l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+            l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?/' +
+            l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
             (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
             l.hash
         );
     </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .loading {
+            margin-top: 50px;
+        }
+    </style>
 </head>
 <body>
+    <div class="loading">
+        <h2>Redirecionando...</h2>
+        <p>Se você não for redirecionado automaticamente, <a href="/">clique aqui</a>.</p>
+    </div>
 </body>
 </html>
