@@ -1,0 +1,14 @@
+plugins:
+  - jekyll-optional-front-matter
+
+include:
+  - .nojekyll
+
+defaults:
+  - scope:
+      path: "assets"
+    values:
+      sitemap: false
+
+kramdown:
+  input: GFM
