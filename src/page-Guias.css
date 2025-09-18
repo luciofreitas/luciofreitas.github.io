@@ -294,7 +294,7 @@
 }
 
 .error-container h2 {
-  color: #dc2626;
+  color: #2563eb !important;
   margin-bottom: 1rem;
 }
 

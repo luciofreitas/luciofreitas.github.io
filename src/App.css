@@ -1241,9 +1241,16 @@ select { -webkit-appearance: none; appearance: none; }
 
 /* ===== COMPATIBILIDADE CROSS-BROWSER ===== */
 /* Força cor de texto consistente em todos os navegadores */
-h1, h2, h3, h4, h5, h6 {
+h1, h3, h4, h5, h6 {
   color: var(--text-primary) !important;
   -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-text-stroke: none !important;
+}
+
+/* Força todos os h2 para serem azuis */
+h2 {
+  color: var(--color-primary) !important;
+  -webkit-text-fill-color: var(--color-primary) !important;
   -webkit-text-stroke: none !important;
 }
 
