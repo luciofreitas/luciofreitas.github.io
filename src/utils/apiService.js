@@ -89,15 +89,39 @@ class ApiService {
         const marcas = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
         
         console.log('Processed data:', { grupos: grupos.length, pecas: pecas.length, marcas: marcas.length });
+        console.log('Sample grupos:', grupos.slice(0, 5));
+        console.log('Sample pecas:', pecas.slice(0, 5));
+        console.log('Sample marcas:', marcas.slice(0, 5));
         
-        // Extract years and models from applications if they exist
-        const modelos = [];
-        const anos = [];
+        // Extract years and models from applications (they are strings like "Fiat Uno 2010-2011-2012-2013-2014-2015")
+        const modelos = new Set();
+        const anos = new Set();
+        const todasMarcasVeiculos = new Set();
+        
         partsData.forEach(part => {
-          if (part.applications) {
+          if (part.applications && Array.isArray(part.applications)) {
             part.applications.forEach(app => {
-              if (app.model) modelos.push(app.model);
-              if (app.year) anos.push(app.year);
+              if (typeof app === 'string') {
+                // Parse string like "Fiat Uno 2010-2011-2012-2013-2014-2015"
+                const parts = app.trim().split(/\s+/);
+                if (parts.length >= 2) {
+                  const marca = parts[0]; // "Fiat"
+                  const modelo = parts[1]; // "Uno"
+                  todasMarcasVeiculos.add(marca);
+                  modelos.add(`${marca} ${modelo}`);
+                  
+                  // Extract years - look for numbers that could be years (4 digits starting with 19 or 20)
+                  const yearsMatch = app.match(/\b(19|20)\d{2}\b/g);
+                  if (yearsMatch) {
+                    yearsMatch.forEach(year => anos.add(year));
+                  }
+                }
+              } else if (typeof app === 'object') {
+                // Handle object format if it exists
+                if (app.model) modelos.add(app.model);
+                if (app.year) anos.add(app.year);
+                if (app.make) todasMarcasVeiculos.add(app.make);
+              }
             });
           }
         });
@@ -105,10 +129,10 @@ class ApiService {
         const result = { 
           grupos: grupos, 
           pecas: pecas, 
-          marcas: marcas, 
-          modelos: [...new Set(modelos)].sort(), 
-          anos: [...new Set(anos)].sort(), 
-          fabricantes: marcas // fabricantes same as marcas for now
+          marcas: [...todasMarcasVeiculos].sort(), // Use vehicle brands for "marcas" dropdown
+          modelos: [...modelos].sort(), 
+          anos: [...anos].sort(), 
+          fabricantes: marcas // fabricantes are the part manufacturers
         };
         
         console.log('Final result:', result);
@@ -152,22 +176,40 @@ class ApiService {
           filtered = filtered.filter(p => p.name === filtros.peca);
         }
         if (filtros.marca) {
+          // Filter by vehicle brand (extracted from applications)
           filtered = filtered.filter(p => 
-            p.manufacturer && p.manufacturer.toLowerCase().includes(filtros.marca.toLowerCase())
+            p.applications && p.applications.some(app => {
+              if (typeof app === 'string') {
+                return app.toLowerCase().includes(filtros.marca.toLowerCase());
+              }
+              return false;
+            })
           );
         }
         if (filtros.modelo) {
           filtered = filtered.filter(p => 
-            p.applications && p.applications.some(app => 
-              app.model && app.model.toLowerCase().includes(filtros.modelo.toLowerCase())
-            )
+            p.applications && p.applications.some(app => {
+              if (typeof app === 'string') {
+                return app.toLowerCase().includes(filtros.modelo.toLowerCase());
+              }
+              return false;
+            })
           );
         }
         if (filtros.ano) {
           filtered = filtered.filter(p => 
-            p.applications && p.applications.some(app => 
-              app.year && String(app.year) === String(filtros.ano)
-            )
+            p.applications && p.applications.some(app => {
+              if (typeof app === 'string') {
+                return app.includes(filtros.ano);
+              }
+              return false;
+            })
+          );
+        }
+        if (filtros.fabricante) {
+          // Filter by part manufacturer
+          filtered = filtered.filter(p => 
+            p.manufacturer && p.manufacturer.toLowerCase().includes(filtros.fabricante.toLowerCase())
           );
         }
 
