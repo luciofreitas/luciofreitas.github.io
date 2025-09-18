@@ -74,20 +74,45 @@ class ApiService {
   async getPecasMeta() {
     // Load parts_db.json as fallback
     try {
+      console.log('Trying to fetch /data/parts_db.json...');
       const response = await fetch('/data/parts_db.json');
+      console.log('Response status:', response.status, response.ok);
+      
       if (response.ok) {
         const partsData = await response.json();
-        // Process data to match API format
-        const grupos = [...new Set(partsData.map(p => p.grupo).filter(Boolean))].sort();
-        const pecas = [...new Set(partsData.map(p => p.nome).filter(Boolean))].sort();
-        const marcas = [...new Set(partsData.flatMap(p => 
-          (p.applications || []).map(app => {
-            if (typeof app === 'string') return app.split(/\s+/)[0];
-            return app.vehicle ? String(app.vehicle).split(/\s+/)[0] : null;
-          }).filter(Boolean)
-        ))].sort();
+        console.log('Parts data loaded:', partsData.length, 'items');
+        console.log('Sample item:', partsData[0]);
         
-        return { grupos, pecas, marcas, modelos: [], anos: [], fabricantes: [] };
+        // Process data to match API format - map English fields to Portuguese
+        const grupos = [...new Set(partsData.map(p => p.category).filter(Boolean))].sort();
+        const pecas = [...new Set(partsData.map(p => p.name).filter(Boolean))].sort();
+        const marcas = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
+        
+        console.log('Processed data:', { grupos: grupos.length, pecas: pecas.length, marcas: marcas.length });
+        
+        // Extract years and models from applications if they exist
+        const modelos = [];
+        const anos = [];
+        partsData.forEach(part => {
+          if (part.applications) {
+            part.applications.forEach(app => {
+              if (app.model) modelos.push(app.model);
+              if (app.year) anos.push(app.year);
+            });
+          }
+        });
+        
+        const result = { 
+          grupos: grupos, 
+          pecas: pecas, 
+          marcas: marcas, 
+          modelos: [...new Set(modelos)].sort(), 
+          anos: [...new Set(anos)].sort(), 
+          fabricantes: marcas // fabricantes same as marcas for now
+        };
+        
+        console.log('Final result:', result);
+        return result;
       }
     } catch (error) {
       console.warn('Error loading parts_db.json:', error);
@@ -119,21 +144,30 @@ class ApiService {
         const partsData = await response.json();
         let filtered = partsData;
 
-        // Apply filters
+        // Apply filters - map Portuguese terms to English fields
         if (filtros.grupo) {
-          filtered = filtered.filter(p => p.grupo === filtros.grupo);
+          filtered = filtered.filter(p => p.category === filtros.grupo);
         }
         if (filtros.peca) {
-          filtered = filtered.filter(p => p.nome === filtros.peca);
+          filtered = filtered.filter(p => p.name === filtros.peca);
         }
         if (filtros.marca) {
           filtered = filtered.filter(p => 
-            (p.applications || []).some(app => {
-              const brand = typeof app === 'string' ? 
-                app.split(/\s+/)[0] : 
-                String(app.vehicle || '').split(/\s+/)[0];
-              return brand.toLowerCase().includes(filtros.marca.toLowerCase());
-            })
+            p.manufacturer && p.manufacturer.toLowerCase().includes(filtros.marca.toLowerCase())
+          );
+        }
+        if (filtros.modelo) {
+          filtered = filtered.filter(p => 
+            p.applications && p.applications.some(app => 
+              app.model && app.model.toLowerCase().includes(filtros.modelo.toLowerCase())
+            )
+          );
+        }
+        if (filtros.ano) {
+          filtered = filtered.filter(p => 
+            p.applications && p.applications.some(app => 
+              app.year && String(app.year) === String(filtros.ano)
+            )
           );
         }
 
@@ -164,7 +198,7 @@ class ApiService {
       const response = await fetch('/data/parts_db.json');
       if (response.ok) {
         const partsData = await response.json();
-        const piece = partsData.find(p => p.id === id || p.id === parseInt(id));
+        const piece = partsData.find(p => p.id === id || p.id === parseInt(id) || p.id === String(id));
         return piece || { error: 'Peça não encontrada' };
       }
     } catch (error) {
