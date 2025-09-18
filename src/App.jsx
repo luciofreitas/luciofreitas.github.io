@@ -1,5 +1,5 @@
 import React, { useState, createContext, useContext, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './page-Login';
 import PageInicio from './page-Inicio';
 import QuemSomos from './page-QuemSomos';
@@ -46,7 +46,7 @@ export default function App() {
 
   return (
     <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
-      <BrowserRouter>
+      <HashRouter>
         <div className="app">
           <Routes>
             <Route path="/" element={
@@ -79,7 +79,7 @@ export default function App() {
             <Route path="/perfil-teste" element={<Navigate to="/perfil" replace />} />
           </Routes>
         </div>
-      </BrowserRouter>
+      </HashRouter>
     </AuthContext.Provider>
   );
 }
