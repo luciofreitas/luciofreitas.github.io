@@ -85,13 +85,12 @@ class ApiService {
         
         // Process data to match API format - map English fields to Portuguese
         const grupos = [...new Set(partsData.map(p => p.category).filter(Boolean))].sort();
-        const pecas = [...new Set(partsData.map(p => p.name).filter(Boolean))].sort();
-        const marcas = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
+        const fabricantes = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
         
-        console.log('Processed data:', { grupos: grupos.length, pecas: pecas.length, marcas: marcas.length });
+        console.log('Processed data:', { grupos: grupos.length, pecas: partsData.length, fabricantes: fabricantes.length });
         console.log('Sample grupos:', grupos.slice(0, 5));
-        console.log('Sample pecas:', pecas.slice(0, 5));
-        console.log('Sample marcas:', marcas.slice(0, 5));
+        console.log('Sample peça names:', partsData.slice(0, 5).map(p => p.name));
+        console.log('Sample fabricantes:', fabricantes.slice(0, 5));
         
         // Extract years and models from applications (they are strings like "Fiat Uno 2010-2011-2012-2013-2014-2015")
         const modelos = new Set();
@@ -137,11 +136,11 @@ class ApiService {
         
         const result = { 
           grupos: grupos, 
-          pecas: pecas, 
+          pecas: partsData, // Return full objects, not just names
           marcas: [...todasMarcasVeiculos].sort(), // Use vehicle brands for "marcas" dropdown
           modelos: [...modelos].sort(), 
           anos: [...anos].sort(), 
-          fabricantes: marcas // fabricantes are the part manufacturers
+          fabricantes: fabricantes // fabricantes are the part manufacturers
         };
         
         console.log('Final result:', result);
