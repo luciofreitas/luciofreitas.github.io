@@ -22,7 +22,7 @@
   align-items: center;
   border-bottom: 0.125rem solid #f3f4f6;
   font-weight: 700;
-  color: #111827;
+  color: #172B4D;
   background: #f8fafc;
   border-radius: 0.375rem;
 }
@@ -65,7 +65,7 @@
   overflow-wrap: break-word;
   word-break: break-word;
   font-weight: 500;
-  color: #111827;
+  color: #172B4D;
   line-height: 1.4;
 }
 
@@ -75,7 +75,7 @@
 
 .compatibility-years-text {
   white-space: normal;
-  color: #374151;
+  color: #172B4D;
   font-size: 0.9rem;
   line-height: 1.3;
 }

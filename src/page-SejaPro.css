@@ -72,7 +72,7 @@
 }
 
 .seja-pro-card-lead {
-  color: #111827;
+  color: #172B4D;
   margin: 1rem 0;
   font-size: 1.15rem;
   font-weight: 600;
@@ -91,7 +91,7 @@
 
 .seja-pro-features li {
   font-size: 0.98rem;
-  color: #374151;
+  color: #172B4D;
   padding-left: 1rem;
   position: relative;
 }
@@ -154,11 +154,11 @@
   }
 
   /* SejaPro */
-  .sejaPro-intro { color: #374151; line-height: 1.6; }
+  .sejaPro-intro { color: #172B4D; line-height: 1.6; }
   .sejaPro-cards { display: flex; gap: 0.6rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; align-items: stretch; }
   .sejaPro-card { background: #F4F5F7; border: 0.062rem solid #d1d5db; border-radius: 0.75rem; padding: 0.5rem; width: 22.5rem; max-width: 100%; display: flex; flex-direction: column; min-height: 20rem; box-sizing: border-box; }
   .sejaPro-card-title { color: #0052CC !important; margin: 0; font-size: 1.25rem; }
-  .sejaPro-card-lead { color: #111827; margin: 1rem 0; font-size: 1.15rem; font-weight: 600; }
+  .sejaPro-card-lead { color: #172B4D; margin: 1rem 0; font-size: 1.15rem; font-weight: 600; }
   .sejaPro-features { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; text-align: left; }
   .sejaPro-features li { font-size: 0.98rem; }
 }

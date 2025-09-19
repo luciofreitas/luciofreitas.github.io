@@ -48,7 +48,7 @@
 
 .form-group label {
   font-weight: 600;
-  color: #374151;
+  color: #172B4D;
   font-size: 0.875rem;
   text-align: left; /* ensure label text is left-aligned */
   display: block;
@@ -63,7 +63,7 @@
   font-size: 1rem;
   background: #FFFFFF;
   transition: border-color 0.2s, box-shadow 0.2s;
-  color: #111827;
+  color: #172B4D;
 }
 
 .form-input:focus {
@@ -108,7 +108,7 @@
 }
 
 .toggle-pw:hover {
-  color: #374151;
+  color: #172B4D;
   background-color: #f3f4f6;
 }
 
@@ -149,7 +149,7 @@
 .btn-cancel {
   padding: 0.75rem 2rem;
   background: #f3f4f6;
-  color: #111827;
+  color: #172B4D;
   border: 0.062rem solid #d1d5db;
   border-radius: 0.5rem;
   cursor: pointer;

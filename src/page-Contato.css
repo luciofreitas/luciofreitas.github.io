@@ -43,7 +43,7 @@
 */
 
 .contato-intro {
-  color: #374151;
+  color: #172B4D;
   line-height: 1.6;
   text-align: center !important;
   margin-bottom: 2rem;
@@ -57,7 +57,7 @@
 }
 
 .contato-info h3 {
-  color: #111827;
+  color: #172B4D;
   margin-bottom: 0.5rem;
 }
 
@@ -78,5 +78,5 @@
   .contato-info { margin-top: 1.75rem; color: #555; }
   
   /* Title styles now handled by .page-title class */
-  .contato-intro { color: #374151; line-height: 1.6; }
+  .contato-intro { color: #172B4D; line-height: 1.6; }
 }

@@ -12,7 +12,7 @@
 }
 
 .versaoPro_Assinado-intro {
-  color: #374151;
+  color: #172B4D;
   margin-bottom: 2rem;
   line-height: 1.6;
 }
@@ -43,7 +43,7 @@
 .versaoPro_Assinado-btnSecondary {
   padding: 0.75rem 1.5rem;
   background: #f3f4f6;
-  color: #111827;
+  color: #172B4D;
   border: 0.062rem solid #d1d5db;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -64,7 +64,7 @@
 }
 
 .versaoPro_Assinado-benefits-title {
-  color: #111827;
+  color: #172B4D;
   font-size: 1.1rem;
   margin-bottom: 1rem;
 }
@@ -73,7 +73,7 @@
   margin: 0;
   padding-left: 1.5rem;
   line-height: 1.6;
-  color: #374151;
+  color: #172B4D;
 }
 
 .versaoPro_Assinado-benefits-list li {
@@ -120,12 +120,12 @@
   /* VersaoPro_Assinado */
   .versaoPro_Assinado-section { padding: 0 1rem; background: #FFFFFF; }
   .versaoPro_Assinado-container { max-width: 56.25rem; margin: 0 auto; text-align: center; }
-  .versaoPro_Assinado-intro { color: #374151; margin-top: 0; }
+  .versaoPro_Assinado-intro { color: #172B4D; margin-top: 0; }
   .versaoPro_Assinado-actions { margin-top: 1.125rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
   .versaoPro_Assinado-btnPrimary { padding: 0.625rem 1rem; background: #0052CC; color: #fff; border: none; border-radius: 0.5rem; cursor: pointer; }
-  .versaoPro_Assinado-btnSecondary { padding: 0.625rem 1rem; background: #f3f4f6; color: #111827; border: none; border-radius: 0.5rem; cursor: pointer; }
+  .versaoPro_Assinado-btnSecondary { padding: 0.625rem 1rem; background: #f3f4f6; color: #172B4D; border: none; border-radius: 0.5rem; cursor: pointer; }
   .versaoPro_Assinado-benefits { margin-top: 1.5rem; text-align: left; max-width: 45rem; margin-left: auto; margin-right: auto; }
-  .versaoPro_Assinado-benefits-title { color: #111827; font-size: 1.1rem; }
+  .versaoPro_Assinado-benefits-title { color: #172B4D; font-size: 1.1rem; }
   .versaoPro_Assinado-benefits-list { margin-top: 0.5rem; line-height: 1.6; }
   .versaoPro_Assinado-empty { color: #6b7280; }
   .versaoPro_Assinado-note { margin-top: 0.75rem; color: #6b7280; font-size: 0.812rem; }

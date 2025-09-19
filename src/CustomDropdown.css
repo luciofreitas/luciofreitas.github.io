@@ -48,7 +48,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.9rem;
-  color: #444;
+  color: #172B4D;
   pointer-events: none;
 }
 
@@ -107,7 +107,7 @@
 .dropdown-item.selected {
   background: #e0e7ff;
   font-weight: 600;
-  color: #222;
+  color: #172B4D;
 }
 
 .dropdown-item.disabled {

@@ -2,7 +2,7 @@
 
 .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
 
-.form-group label { font-weight: 600; color: #374151; font-size: 0.85rem; text-transform: uppercase; }
+.form-group label { font-weight: 600; color: #172B4D; font-size: 0.85rem; text-transform: uppercase; }
 
 .form-input { padding: 0.75rem; border: 0.062rem solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; }
 

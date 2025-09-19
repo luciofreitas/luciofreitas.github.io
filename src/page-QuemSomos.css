@@ -41,7 +41,7 @@
   max-width: 50rem;
   margin: 0 auto;
   line-height: 1.6;
-  color: #374151;
+  color: #172B4D;
   text-align: left;
 }
 
@@ -63,6 +63,6 @@
   /* QuemSomos */
   #quem-somos { padding: 0 1rem; background: #FFFFFF; } /* Removed top padding to match other pages */
   /* Title styles now handled by .page-title class */
-  .quem-somos__content { max-width: 45rem; margin: 0 auto; line-height: 1.6; color: #374151; text-align: center; }
+  .quem-somos__content { max-width: 45rem; margin: 0 auto; line-height: 1.6; color: #172B4D; text-align: center; }
   .quem-somos__paragraph { margin-bottom: 0.5rem; }
 }

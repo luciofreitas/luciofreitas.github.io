@@ -55,7 +55,7 @@
 
 .product-modal-close:hover {
   background: #e5e7eb;
-  color: #374151;
+  color: #172B4D;
 }
 
 .product-modal-content {
@@ -279,7 +279,7 @@
 }
 
 .tab-buttons button:hover {
-  color: #374151;
+  color: #172B4D;
   background: rgba(59, 130, 246, 0.05);
 }
 
@@ -302,7 +302,7 @@
   margin: 0 0 1rem 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111827;
+  color: #172B4D;
 }
 
 .tab-panel p {
@@ -366,7 +366,7 @@
 
 .spec-label {
   font-weight: 500;
-  color: #374151;
+  color: #172B4D;
   text-transform: capitalize;
 }
 
@@ -396,7 +396,7 @@
 }
 
 .app-main strong {
-  color: #111827;
+  color: #172B4D;
 }
 
 .app-main span {
@@ -411,7 +411,7 @@
 }
 
 .app-details span {
-  color: #374151;
+  color: #172B4D;
   font-size: 0.875rem;
 }
 
@@ -441,7 +441,7 @@
 .install-requirements ul,
 .install-precautions ul {
   margin: 0.5rem 0 0 1.5rem;
-  color: #374151;
+  color: #172B4D;
 }
 
 .reviews {
@@ -477,7 +477,7 @@
 
 .review-item p {
   margin: 0;
-  color: #374151;
+  color: #172B4D;
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -496,13 +496,13 @@
 
 .faq-item strong {
   display: block;
-  color: #111827;
+  color: #172B4D;
   margin-bottom: 0.5rem;
 }
 
 .faq-item p {
   margin: 0;
-  color: #374151;
+  color: #172B4D;
   font-size: 0.875rem;
 }
 

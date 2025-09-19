@@ -47,7 +47,7 @@
 
 .search-field label {
   font-weight: 600;
-  color: #374151;
+  color: #172B4D;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
@@ -58,7 +58,7 @@
   border-radius: 0.5rem;
   font-size: 1rem;
   background: #FFFFFF;
-  color: #111827;
+  color: #172B4D;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -85,7 +85,7 @@
 
 .recalls-btn-secondary {
   background: #f3f4f6;
-  color: #111827;
+  color: #172B4D;
   border: 1px solid #d1d5db;
 }
 
@@ -105,7 +105,7 @@
 }
 
 .results-header h3 {
-  color: #374151;
+  color: #172B4D;
   font-size: 1.25rem;
   margin: 0;
 }
@@ -142,7 +142,7 @@
 .recall-title h4 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111827;
+  color: #172B4D;
   margin: 0 0 0.25rem 0;
 }
 
@@ -213,12 +213,12 @@
 }
 
 .recall-component, .recall-date {
-  color: #374151;
+  color: #172B4D;
   font-size: 0.9rem;
 }
 
 .recall-component strong, .recall-date strong {
-  color: #111827;
+  color: #172B4D;
 }
 
 /* Descrições */
@@ -227,7 +227,7 @@
 }
 
 .recall-description h5, .recall-action h5 {
-  color: #374151;
+  color: #172B4D;
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
@@ -249,7 +249,7 @@
 }
 
 .recall-vin, .recall-source {
-  color: #374151;
+  color: #172B4D;
   margin-bottom: 0.5rem;
 }
 
@@ -258,7 +258,7 @@
 }
 
 .recall-vin strong, .recall-source strong {
-  color: #111827;
+  color: #172B4D;
 }
 
 /* ID do recall */
@@ -302,7 +302,7 @@
 }
 
 .important-info h3 {
-  color: #374151;
+  color: #172B4D;
   font-size: 1.25rem;
   margin: 0 0 1.5rem 0;
   font-weight: 600;
@@ -332,7 +332,7 @@
 }
 
 .important-info li strong {
-  color: #111827;
+  color: #172B4D;
 }
 
 /* Responsividade */

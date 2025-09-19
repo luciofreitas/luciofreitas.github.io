@@ -14,7 +14,7 @@
   align-items: center;
   background-color: transparent !important;
   border: none;
-  color: #374151 !important; /* Force correct color */
+  color: #172B4D !important; /* Force correct color */
   font-weight: 500;
   font-size: 1rem;
   padding: 0.35em 0.9em;
@@ -161,7 +161,7 @@
 
 .user-menu-root .user-button:hover {
   background-color: transparent !important;
-  color: #374151 !important; /* Force correct hover color */
+  color: #172B4D !important; /* Force correct hover color */
 }
 
 .user-menu-root .user-button:hover::after {
@@ -260,7 +260,7 @@
   padding: 0.5rem 0.75rem !important;
   border: none !important;
   background-color: transparent !important;
-  color: #374151 !important; /* Force correct text color */
+  color: #172B4D !important; /* Force correct text color */
   font-size: 0.875rem !important;
   border-radius: 0.375rem !important;
   cursor: pointer !important;
@@ -298,7 +298,7 @@
 
 .user-menu-root .user-dropdown .dropdown-item:hover {
   background-color: rgba(0, 0, 0, 0.03) !important;
-  color: #374151 !important; /* Force correct hover color */
+  color: #172B4D !important; /* Force correct hover color */
 }
 
 /* EXCEÇÃO ESPECÍFICA: O header NUNCA tem hover effect */
@@ -333,7 +333,7 @@
   border-top: none !important;
   margin-top: 0 !important;
   padding-top: 0 !important;
-  color: #374151 !important; /* same as other items */
+  color: #172B4D !important; /* same as other items */
 }
 
 /* Linha amarela também para o item de logout */
