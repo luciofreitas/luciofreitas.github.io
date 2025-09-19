@@ -1,9 +1,9 @@
 /* Inputs DaisyUI delicados e limpos no login - compatibilidade cross-browser */
 .input {
-  background-color: #FFFFFF !important;
-  color: #111 !important;
+  background-color: var(--form-background) !important;
+  color: var(--text-primary) !important;
   /* default border: claro (removendo borda preta) */
-  border: 0.062rem solid #d1d5db !important;
+  border: 0.062rem solid var(--form-border) !important;
   border-radius: 0.625rem !important;
   box-shadow: none !important;
   font-size: 1em;
@@ -20,23 +20,23 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* Força cor de texto para todos os navegadores */
-  -webkit-text-fill-color: #111 !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
 }
 
 /* Inputs DaisyUI sempre claros no login */
 .input {
-  background-color: #FFFFFF !important;
-  color: #111 !important;
+  background-color: var(--form-background) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Focus state: stronger blue outline without changing layout */
 .input:focus {
   outline: none !important;
-  border-color: #1d4ed8 !important;
-  box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08) !important;
+  border-color: var(--form-border-focus) !important;
+  box-shadow: 0 0 0 0.25rem rgba(0, 82, 204, 0.08) !important;
   /* Compatibilidade cross-browser para focus */
-  -webkit-box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08) !important;
-  -moz-box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08) !important;
+  -webkit-box-shadow: 0 0 0 0.25rem rgba(0, 82, 204, 0.08) !important;
+  -moz-box-shadow: 0 0 0 0.25rem rgba(0, 82, 204, 0.08) !important;
 }
 
 /* Títulos dos cards Entrar/Registrar - compatibilidade cross-browser */

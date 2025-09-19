@@ -47,25 +47,25 @@
 
 .search-field label {
   font-weight: 600;
-  color: #172B4D;
+  color: var(--form-label-color);
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
 
 .recalls-input, .recalls-select {
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--form-border);
   border-radius: 0.5rem;
   font-size: 1rem;
-  background: #FFFFFF;
-  color: #172B4D;
+  background: var(--form-background);
+  color: var(--text-primary);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .recalls-input:focus, .recalls-select:focus {
   outline: none;
-  border-color: #0052CC;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
 }
 
 .search-actions {

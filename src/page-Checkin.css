@@ -26,7 +26,7 @@
 .checkin-label {
   display: block;
   margin-bottom: var(--space-sm);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
 }

@@ -48,7 +48,7 @@
 
 .form-group label {
   font-weight: 600;
-  color: #172B4D;
+  color: var(--form-label-color);
   font-size: 0.875rem;
   text-align: left; /* ensure label text is left-aligned */
   display: block;
@@ -58,18 +58,18 @@
   width: 100%;
   padding: 0.75rem;
   border-radius: 0.5rem;
-  border: 0.062rem solid #d1d5db;
+  border: 0.062rem solid var(--form-border);
   box-sizing: border-box;
   font-size: 1rem;
-  background: #FFFFFF;
+  background: var(--form-background);
   transition: border-color 0.2s, box-shadow 0.2s;
-  color: #172B4D;
+  color: var(--text-primary);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #0052CC;
-  box-shadow: 0 0 0 0.188rem rgba(37, 99, 235, 0.1);
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 0.188rem rgba(0, 82, 204, 0.1);
 }
 
 .form-input.error {
