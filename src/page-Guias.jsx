@@ -94,14 +94,14 @@ function PageGuias() {
       <Menu />
       <div className="page-wrapper menu-page">
         <div className="page-content">
-          <div className="subtitle-container">
-            <h2 className="page-title">Guias</h2>
-          </div>
+          <h2 className="page-title">Guias</h2>
           
-          <div className="guias-intro">
-            <p>
-              Encontre guias completos sobre manutenção, diagnóstico, peças e tudo relacionado ao seu veículo.
-            </p>
+          <div className="guias-intro-wrapper">
+            <div className="guias-intro">
+              <p>
+                Encontre guias completos sobre manutenção, diagnóstico, peças e tudo relacionado ao seu veículo.
+              </p>
+            </div>
           </div>
 
           {/* Grid de Cards dos Guias */}
