@@ -31,6 +31,7 @@
   
   /* Background Colors */
   --bg-white: #ffffff;
+  --bg-gray-neutral: #F4F5F7;
   --bg-gray-50: #f9fafb;
   --bg-gray-100: #f3f4f6;
   --bg-gray-200: #e5e7eb;
@@ -579,7 +580,7 @@ html {
 .results,
 .results-container .card,
 .bg-white.bordered-card {
-  background: #ffffff;
+  background: #F4F5F7;
   border: 0.062rem solid #e5e7eb;
   border-radius: 0.75rem;
   padding: 1.25rem;
@@ -922,7 +923,7 @@ select { -webkit-appearance: none; appearance: none; }
   border-radius: var(--radius-base);
   box-shadow: var(--shadow-base);
   padding: var(--space-md);
-  background: var(--bg-white);
+  background: var(--bg-gray-neutral);
   border: 1px solid var(--border-gray);
   transition: box-shadow var(--transition-base);
 }
