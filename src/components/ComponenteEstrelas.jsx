@@ -13,8 +13,8 @@ const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAv
   const renderEstrela = (indice) => {
     const estrelaBrilhante = indice <= (hoverEstrela || mediaAtual);
     const corEstrela = jaVotou 
-      ? (indice <= votosUsuario[guiaId] ? '#fbbf24' : '#d1d5db')
-      : (estrelaBrilhante ? '#fbbf24' : '#d1d5db');
+      ? (indice <= votosUsuario[guiaId] ? '#FFAB00' : '#d1d5db')
+      : (estrelaBrilhante ? '#FFAB00' : '#d1d5db');
 
     return (
       <span
@@ -45,7 +45,7 @@ const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAv
       </div>
       {jaVotou && (
         <div className="voto-confirmado">
-          Sua avaliação: {votosUsuario[guiaId]} ⭐
+          Sua avaliação: {votosUsuario[guiaId]} ★
         </div>
       )}
     </div>

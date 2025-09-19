@@ -169,18 +169,18 @@
 }
 
 .risk-high {
-  background: #fecaca;
-  color: #b91c1c;
+  background: #DE350B;
+  color: #FFFFFF;
 }
 
 .risk-medium {
-  background: #fed7aa;
-  color: #c2410c;
+  background: #FFAB00;
+  color: #FFFFFF;
 }
 
 .risk-low {
-  background: #bbf7d0;
-  color: #059669;
+  background: #FFAB00;
+  color: #FFFFFF;
 }
 
 /* Badges de status */
