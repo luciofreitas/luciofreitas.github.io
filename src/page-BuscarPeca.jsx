@@ -60,6 +60,12 @@ export default function BuscarPeca() {
           anos: data.anos?.length || 0,
           fabricantes: data.fabricantes?.length || 0
         });
+
+        // Fazer uma busca inicial sem filtros para mostrar todas as peças
+        if (data.pecas && data.pecas.length > 0) {
+          console.log('Making initial search with all parts...');
+          setPecas(data.pecas);
+        }
       } catch (err) {
         console.warn('Failed to load metadata:', err && err.message ? err.message : err);
         setError('Não foi possível carregar os dados iniciais. Tente recarregar a página.');

@@ -212,8 +212,18 @@ app.post('/api/pecas/filtrar', (req, res) => {
   const modelo = (data.modelo || '').toLowerCase();
   const ano = (data.ano || '').toLowerCase();
   const fabricante = (data.fabricante || '').toLowerCase();
-  if(![categoria, peca, marca, modelo, ano, fabricante].some(v=>v && v.length)){
-    return res.json({ pecas: [], total: 0, mensagem: 'Selecione ao menos um filtro para buscar peças.'});
+  
+  // Se nenhum filtro foi fornecido, retorna todas as peças
+  const hasFilters = [categoria, peca, marca, modelo, ano, fabricante].some(v=>v && v.length);
+  
+  if(!hasFilters) {
+    try {
+      const partsData = JSON.parse(fs.readFileSync(path.join(__dirname, 'parts_db.json'), 'utf8'));
+      return res.json({ results: partsData, total: partsData.length, mensagem: `${partsData.length} peças encontradas`});
+    } catch (err) {
+      console.error('Error loading parts_db.json:', err);
+      return res.json({ results: [], total: 0, mensagem: 'Erro ao carregar dados'});
+    }
   }
 
   function matches(part){

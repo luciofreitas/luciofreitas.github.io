@@ -153,16 +153,23 @@ class ApiService {
   }
 
   async filtrarPecas(filtros) {
+    console.log('ApiService: filtrarPecas called with:', filtros);
+    
     // Try API first
     if (this.isLocal) {
       try {
+        console.log('ApiService: Trying API call...');
         const response = await fetch('/api/pecas/filtrar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(filtros)
         });
         if (response.ok) {
-          return await response.json();
+          const result = await response.json();
+          console.log('ApiService: API response:', result);
+          return result;
+        } else {
+          console.log('ApiService: API response not ok:', response.status);
         }
       } catch (error) {
         console.warn('API filter call failed, using local data:', error);
@@ -170,20 +177,29 @@ class ApiService {
     }
 
     // Fallback: filter local data
+    console.log('ApiService: Using local data fallback...');
     try {
       const response = await fetch('/data/parts_db.json');
       if (response.ok) {
         const partsData = await response.json();
+        console.log('ApiService: Loaded local parts data:', partsData.length, 'items');
         let filtered = partsData;
 
         // Apply filters - map Portuguese terms to English fields
         if (filtros.grupo) {
+          console.log('ApiService: Filtering by grupo:', filtros.grupo);
+          const beforeCount = filtered.length;
           filtered = filtered.filter(p => p.category === filtros.grupo);
+          console.log('ApiService: After grupo filter:', filtered.length, 'items (was', beforeCount, ')');
         }
         if (filtros.peca) {
+          console.log('ApiService: Filtering by peca:', filtros.peca);
+          const beforeCount = filtered.length;
           filtered = filtered.filter(p => p.name === filtros.peca);
+          console.log('ApiService: After peca filter:', filtered.length, 'items (was', beforeCount, ')');
         }
         if (filtros.marca) {
+          console.log('ApiService: Filtering by marca:', filtros.marca);
           // Filter by vehicle brand (extracted from applications)
           filtered = filtered.filter(p => 
             p.applications && p.applications.some(app => {
@@ -195,6 +211,7 @@ class ApiService {
           );
         }
         if (filtros.modelo) {
+          console.log('ApiService: Filtering by modelo:', filtros.modelo);
           filtered = filtered.filter(p => 
             p.applications && p.applications.some(app => {
               if (typeof app === 'string') {
@@ -205,6 +222,7 @@ class ApiService {
           );
         }
         if (filtros.ano) {
+          console.log('ApiService: Filtering by ano:', filtros.ano);
           filtered = filtered.filter(p => 
             p.applications && p.applications.some(app => {
               if (typeof app === 'string') {
@@ -215,13 +233,18 @@ class ApiService {
           );
         }
         if (filtros.fabricante) {
+          console.log('ApiService: Filtering by fabricante:', filtros.fabricante);
           // Filter by part manufacturer
           filtered = filtered.filter(p => 
             p.manufacturer && p.manufacturer.toLowerCase().includes(filtros.fabricante.toLowerCase())
           );
         }
 
+        console.log('ApiService: Final filtered result:', filtered.length, 'items');
+        console.log('ApiService: Sample results:', filtered.slice(0, 3));
         return { results: filtered };
+      } else {
+        console.error('ApiService: Failed to load /data/parts_db.json:', response.status);
       }
     } catch (error) {
       console.warn('Error filtering local data:', error);
