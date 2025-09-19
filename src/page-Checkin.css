@@ -197,7 +197,7 @@
 @media (min-width: 118.75rem) and (max-width: 121.25rem) {
   /* Checkin */
   /* Keep same padding as default to avoid extra top spacing under the fixed header */
-  .checkin-section { padding: 0 1rem; background: #fff; }
+  .checkin-section { padding: 0 1rem; background: #FFFFFF; }
   .checkin-container { max-width: 28rem; margin: 0 auto; } /* Reduzido de 45rem para 28rem */
   /* .checkin-title removed - H2 uses global .page-title to ensure consistent spacing */
   .checkin-intro { color: #374151; margin-top: 0; }

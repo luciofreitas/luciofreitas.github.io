@@ -2,7 +2,7 @@
 
 .recalls-section {
   padding: 0 1rem;
-  background: #fff;
+  background: #FFFFFF;
   max-width: 75rem;
   margin: 0 auto;
 }
@@ -25,7 +25,7 @@
 
 /* Área de busca e filtros */
 .recalls-search {
-  background: #ffffff;
+  background: #FFFFFF;
   border: 1px solid #e5e7eb;
   border-radius: 0.75rem;
   padding: 1.5rem;
@@ -57,7 +57,7 @@
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   font-size: 1rem;
-  background: #fff;
+  background: #FFFFFF;
   color: #111827;
   transition: border-color 0.2s, box-shadow 0.2s;
 }

@@ -4,7 +4,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: #FFFFFF;
 }
 
 .inicio-main {
@@ -79,7 +79,7 @@
 /* Full HD - 1920x1080 */
 @media (min-width: 118.75rem) and (max-width: 121.25rem) {
   /* Inicio */
-  .page-inicio { min-height: 100vh; display: flex; flex-direction: column; background: #ffffff; }
+  .page-inicio { min-height: 100vh; display: flex; flex-direction: column; background: #FFFFFF; }
   .inicio-main { flex: 1; width: 100%; max-width: 68.75rem; margin: 0 auto; box-sizing: border-box; }
   .inicio-hero { padding: 0 !important; text-align: center; }
   /* Title styles now handled by .page-title class */

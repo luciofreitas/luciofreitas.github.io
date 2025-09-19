@@ -3,7 +3,7 @@
 #quem-somos {
   /* Remove excessive top and bottom padding per request; keep horizontal padding */
   padding: 0 1rem 0 1rem !important;
-  background: #fff;
+  background: #FFFFFF;
   margin-top: 0;
 }
 
@@ -61,7 +61,7 @@
 /* Full HD - 1920x1080 */
 @media (min-width: 118.75rem) and (max-width: 121.25rem) {
   /* QuemSomos */
-  #quem-somos { padding: 0 1rem; background: #fff; } /* Removed top padding to match other pages */
+  #quem-somos { padding: 0 1rem; background: #FFFFFF; } /* Removed top padding to match other pages */
   /* Title styles now handled by .page-title class */
   .quem-somos__content { max-width: 45rem; margin: 0 auto; line-height: 1.6; color: #374151; text-align: center; }
   .quem-somos__paragraph { margin-bottom: 0.5rem; }

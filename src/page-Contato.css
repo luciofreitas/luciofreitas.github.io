@@ -3,7 +3,7 @@
 #contato {
   /* match QuemSomos spacing so title distance is identical */
   padding: 0 1rem 0rem 1rem; /* top padding removed per user request */
-  background: #fff;
+  background: #FFFFFF;
 }
 
 .contato-intro {

@@ -2,7 +2,7 @@
 
 .nosso-projeto-section {
   padding: 0 1rem 2rem 1rem; /* top padding removed per user request */
-  background: #fff;
+  background: #FFFFFF;
 }
 
 .nosso-projeto-container {
@@ -61,7 +61,7 @@
 /* Full HD - 1920x1080 */
 @media (min-width: 118.75rem) and (max-width: 121.25rem) {
   /* NossoProjeto spacing */
-  .nossoProjeto-section { padding: 0 1rem; background: #fff; }
+  .nossoProjeto-section { padding: 0 1rem; background: #FFFFFF; }
   .nossoProjeto-container { max-width: 62.5rem; margin: 0 auto; text-align: center; }
   .nossoProjeto-paragraph { margin-top: 0.75rem; }
 }

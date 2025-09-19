@@ -2,7 +2,7 @@
 
 .versaoPro_Assinado-section {
   padding: 0 1rem;
-  background: #fff;
+  background: #FFFFFF;
 }
 
 .versaoPro_Assinado-container {
@@ -118,7 +118,7 @@
 /* Full HD - 1920x1080 */
 @media (min-width: 118.75rem) and (max-width: 121.25rem) {
   /* VersaoPro_Assinado */
-  .versaoPro_Assinado-section { padding: 0 1rem; background: #fff; }
+  .versaoPro_Assinado-section { padding: 0 1rem; background: #FFFFFF; }
   .versaoPro_Assinado-container { max-width: 56.25rem; margin: 0 auto; text-align: center; }
   .versaoPro_Assinado-intro { color: #374151; margin-top: 0; }
   .versaoPro_Assinado-actions { margin-top: 1.125rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
