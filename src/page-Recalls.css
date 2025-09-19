@@ -64,7 +64,7 @@
 
 .recalls-input:focus, .recalls-select:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #0052CC;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -324,7 +324,7 @@
 
 .important-info li::before {
   content: "•";
-  color: #2563eb;
+  color: #0052CC;
   position: absolute;
   left: 0;
   font-weight: bold;

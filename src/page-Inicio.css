@@ -25,7 +25,7 @@
   font-size: 2rem;
   line-height: 1.15;
   margin: 0 0 1.5rem 0;
-  color: #2563eb;
+  color: #0052CC;
   font-weight: 600;
 }
 */
@@ -43,7 +43,7 @@
 }
 
 .btn-primary {
-  background: #2563eb;
+  background: #0052CC;
   color: white;
   border: none;
   padding: 0.625rem 1.125rem;
@@ -53,7 +53,7 @@
 
 .btn-secondary {
   background: transparent;
-  color: #2563eb;
+  color: #0052CC;
   border: 0.062rem solid #c7d2fe;
   padding: 0.625rem 1.125rem;
   border-radius: 0.5rem;
@@ -85,8 +85,8 @@
   /* Title styles now handled by .page-title class */
   .inicio-subtitle { color: #475569; margin: 0 0 1rem 0; }
   .inicio-actions { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.125rem; }
-  .btn-primary { background: #2563eb; color: white; border: none; padding: 0.625rem 1.125rem; border-radius: 0.5rem; cursor: pointer; }
-  .btn-secondary { background: transparent; color: #2563eb; border: 0.062rem solid #c7d2fe; padding: 0.625rem 1.125rem; border-radius: 0.5rem; cursor: pointer; }
+  .btn-primary { background: #0052CC; color: white; border: none; padding: 0.625rem 1.125rem; border-radius: 0.5rem; cursor: pointer; }
+  .btn-secondary { background: transparent; color: #0052CC; border: 0.062rem solid #c7d2fe; padding: 0.625rem 1.125rem; border-radius: 0.5rem; cursor: pointer; }
   .inicio-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(13.75rem, 1fr)); gap: 1rem; margin-top: 1.875rem; }
   .card { background: #f8fafc; border-radius: 0.5rem; padding: 1.125rem; box-shadow: 0 0.375rem 1.125rem rgba(2,6,23,0.04); color: #0f172a; text-align: center; }
 }

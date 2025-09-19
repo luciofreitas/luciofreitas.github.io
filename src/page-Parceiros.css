@@ -62,7 +62,7 @@
 
 .parceiros-card-contact {
   padding: 0.5rem 1rem;
-  background: #2563eb;
+  background: #0052CC;
   color: #fff;
   border: none;
   border-radius: 0.375rem;
@@ -74,7 +74,7 @@
 }
 
 .parceiros-card-contact:hover {
-  background: #1e40af;
+  background: #003A99;
 }
 
 .parceiros-cta {
@@ -165,8 +165,8 @@
   .parceiros-card:hover { transform: translateY(-4px); box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1); }
   .parceiros-card-title { color: #111827; font-size: 1.25rem; margin-bottom: 0.5rem; }
   .parceiros-card-description { color: #6b7280; line-height: 1.5; margin-bottom: 0.75rem; }
-  .parceiros-card-contact { padding: 0.5rem 0.75rem; background: #2563eb; color: #fff; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; transition: background 0.2s ease; }
-  .parceiros-card-contact:hover { background: #1e40af; }
+  .parceiros-card-contact { padding: 0.5rem 0.75rem; background: #0052CC; color: #fff; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; transition: background 0.2s ease; }
+  .parceiros-card-contact:hover { background: #003A99; }
   .parceiros-cta { margin-top: 1.5rem; display: flex; justify-content: center; }
   .parceiros-cta-btn { min-width: 12.5rem; padding: 0.75rem 1.125rem; background: #10b981; color: #fff; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; font-size: 1.1rem; transition: background 0.2s ease; }
   .parceiros-cta-btn:hover { background: #059669; }

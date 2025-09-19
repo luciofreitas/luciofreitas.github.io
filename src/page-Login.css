@@ -104,7 +104,7 @@
 }
 .login-page-header h2 {
   /* Match the global `page-heading` appearance used across the site */
-  color: #2563eb !important;
+  color: #0052CC !important;
   font-weight: 400 !important;
   font-size: 2rem !important;
   margin-bottom: 0.5em;
@@ -116,7 +116,7 @@
 
 /* Login page title now uses global .page-title class for consistency
 .page-heading.login-heading.page-title {
-  color: #2563eb !important;
+  color: #0052CC !important;
   text-align: center !important;
   margin-bottom: 1.5rem !important;
   margin-top: 0 !important;
@@ -175,7 +175,7 @@
   margin-bottom: 0.5rem;
 }
 .login-forgot-link {
-  color: #2563eb;
+  color: #0052CC;
   font-size: 0.9rem;
   text-decoration: none;
 }

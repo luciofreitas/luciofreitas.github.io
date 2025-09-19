@@ -13,7 +13,7 @@
   align-items: center;
   width: 100%;
   overflow: hidden;
-  background: #2563eb !important; /* Fundo azul padrão para todas as resoluções */
+  background: #0052CC !important; /* Fundo azul padrão para todas as resoluções */
   z-index: 1000;
   box-shadow: 0 0.125rem 0.375rem rgba(0,0,0,0.08);
   margin: 0 !important;
@@ -252,7 +252,7 @@
 }
 
 /* NOTE: All menu colors are now applied globally at the base level.
-   The menu uses blue background (#2563eb) with white text (#ffffff) as the default for all resolutions.
+   The menu uses blue background (#0052CC) with white text (#ffffff) as the default for all resolutions.
    No conditional overrides needed - consistent styling everywhere.
 */
 
@@ -388,7 +388,7 @@
 
 /* Ensure the grouped menu + logo container uses the same blue background as header */
 .menu-login-container {
-  background: #2563eb !important; /* Mesmo azul do header */
+  background: #0052CC !important; /* Mesmo azul do header */
   width: 100%;
   overflow-x: hidden;
   overflow-y: visible;
@@ -454,7 +454,7 @@
 
 /* Defensive rule: ensure MenuLogin stays blue even if other global CSS attempts to override it */
 .site-header {
-  background: #2563eb !important;
+  background: #0052CC !important;
 }
 
 .menu-login-right {

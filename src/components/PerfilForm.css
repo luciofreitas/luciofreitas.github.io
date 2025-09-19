@@ -8,7 +8,7 @@
 
 .password-field { display: flex; align-items: center; gap: 0.5rem; }
 
-.toggle-pw { background: transparent; border: none; color: #2563eb; cursor: pointer; padding: 0.25rem 0.5rem; }
+.toggle-pw { background: transparent; border: none; color: #0052CC; cursor: pointer; padding: 0.25rem 0.5rem; }
 
 .form-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
 

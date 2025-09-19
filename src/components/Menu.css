@@ -27,7 +27,7 @@
 .menu-logo {
   font-size: 1.5em;
   font-weight: bold;
-  color: #2563eb;
+  color: #0052CC;
   letter-spacing: 0.062rem;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .menu-links li a:hover {
-  color: #2563eb;
+  color: #0052CC;
   background: #f3f4f6;
 }
 
@@ -98,8 +98,8 @@
 
 .auth-btn {
   background: #fff;
-  color: #2563eb;
-  border: 0.094rem solid #2563eb;
+  color: #0052CC;
+  border: 0.094rem solid #0052CC;
   border-radius: 0.5rem;
   padding: 0.45em 1.2em;
   font-size: 1em;
@@ -109,7 +109,7 @@
 }
 
 .auth-btn:hover {
-  background: #2563eb;
+  background: #0052CC;
   color: #fff;
 }
 

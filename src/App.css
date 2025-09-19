@@ -15,9 +15,9 @@
   --space-3xl: 4rem;     /* 64px */
   
   /* Colors */
-  --color-primary: #2563eb;
-  --color-primary-dark: #1e40af;
-  --color-primary-light: #3b82f6;
+  --color-primary: #0052CC;
+  --color-primary-dark: #003A99;
+  --color-primary-light: #1A66FF;
   --color-secondary: #64748b;
   --color-success: #16a34a;
   --color-error: #dc2626;
@@ -40,7 +40,7 @@
   
   /* Border Colors */
   --border-gray: #d1d5db;
-  --border-primary: #2563eb;
+  --border-primary: #0052CC;
   --border-success: #bbf7d0;
   --border-error: #fecaca;
   
@@ -620,7 +620,7 @@ select:focus,
 textarea:focus,
 .input:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #0052CC;
   box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08);
 }
 
@@ -642,7 +642,7 @@ textarea:focus,
 .checkin-btnPrimary,
 .search-btn,
 .results-container .btn {
-  background: #2563eb !important;
+  background: #0052CC !important;
   color: #ffffff !important;
   border: none !important;
   border-radius: 0.5rem !important;
@@ -651,7 +651,7 @@ textarea:focus,
   box-shadow: 0 0.375rem 0.875rem rgba(37,99,235,0.12) !important;
   font-weight: 600 !important;
 }
-.btn:hover { background: #1e40af !important; }
+.btn:hover { background: #003A99 !important; }
 .btn[disabled],
 .results-container .btn[disabled] { opacity: 0.6 !important; cursor: default !important; box-shadow: none !important; }
 
@@ -811,7 +811,7 @@ select { -webkit-appearance: none; appearance: none; }
     width: 100% !important;
     z-index: 1000;
     /* background removed here to avoid overriding MenuLogin.css on narrow 1366px breakpoints
-       MenuLogin.css defines the intended blue background (#2563eb) and should take precedence. */
+       MenuLogin.css defines the intended blue background (#0052CC) and should take precedence. */
     box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.1) !important;
   }
   

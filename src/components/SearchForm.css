@@ -73,7 +73,7 @@
 
 .search-form-field select:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #0052CC;
   box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08);
 }
 
@@ -95,13 +95,13 @@
 }
 
 .search-form-btn-primary {
-  background: #2563eb;
+  background: #0052CC;
   color: #ffffff;
   box-shadow: 0 0.25rem 0.75rem rgba(37,99,235,0.15);
 }
 
 .search-form-btn-primary:hover:not(:disabled) {
-  background: #1e40af;
+  background: #003A99;
   transform: translateY(-1px);
 }
 

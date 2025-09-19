@@ -26,7 +26,7 @@
 }
 
 .dropdown-btn.open {
-  border-color: #3b82f6;
+  border-color: #1A66FF;
 }
 
 .dropdown-btn:disabled {
@@ -38,7 +38,7 @@
 .dropdown-btn:focus,
 .dropdown-btn:focus-visible {
   outline: none;
-  border-color: #2563eb; /* blue underline/border on focus */
+  border-color: #0052CC; /* blue underline/border on focus */
   box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08);
 }
 

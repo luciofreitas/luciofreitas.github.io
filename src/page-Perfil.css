@@ -68,7 +68,7 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #0052CC;
   box-shadow: 0 0 0 0.188rem rgba(37, 99, 235, 0.1);
 }
 
@@ -113,7 +113,7 @@
 }
 
 .toggle-pw.on {
-  color: #2563eb;
+  color: #0052CC;
 }
 
 .form-actions {
@@ -126,7 +126,7 @@
 
 .btn-save {
   padding: 0.75rem 2rem;
-  background: #2563eb;
+  background: #0052CC;
   color: #fff;
   border: none;
   border-radius: 0.5rem;
@@ -138,7 +138,7 @@
 }
 
 .btn-save:hover {
-  background: #1e40af;
+  background: #003A99;
 }
 
 .btn-save:disabled {

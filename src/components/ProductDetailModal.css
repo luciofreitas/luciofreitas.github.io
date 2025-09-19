@@ -40,7 +40,7 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2563eb !important;
+  color: #0052CC !important;
 }
 
 .product-modal-close {
@@ -79,7 +79,7 @@
   width: 2rem;
   height: 2rem;
   border: 3px solid #e5e7eb;
-  border-top: 3px solid #3b82f6;
+  border-top: 3px solid #1A66FF;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -137,12 +137,12 @@
 }
 
 .image-thumbnails img:hover {
-  border-color: #3b82f6;
+  border-color: #1A66FF;
 }
 
 .image-thumbnails img.active {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
+  border-color: #1A66FF;
+  box-shadow: 0 0 0 1px #1A66FF;
 }
 
 .product-basic-info {
@@ -196,7 +196,7 @@
   background: #eff6ff;
   border: 1px solid #bfdbfe;
   border-radius: 0.5rem;
-  color: #1e40af;
+  color: #003A99;
   font-size: 0.875rem;
 }
 
@@ -284,8 +284,8 @@
 }
 
 .tab-buttons button.active {
-  color: #3b82f6;
-  border-bottom-color: #3b82f6;
+  color: #1A66FF;
+  border-bottom-color: #1A66FF;
   background: rgba(59, 130, 246, 0.05);
 }
 
@@ -347,7 +347,7 @@
   padding: 0.75rem;
   background: #f9fafb;
   border-radius: 0.375rem;
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid #1A66FF;
 }
 
 .specs-grid {
@@ -455,7 +455,7 @@
   padding: 1rem;
   background: #f9fafb;
   border-radius: 0.5rem;
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid #1A66FF;
 }
 
 .review-header {

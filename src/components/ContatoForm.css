@@ -33,7 +33,7 @@
 .contato-input:focus,
 .contato-textarea:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #0052CC;
   box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08);
 }
 
@@ -42,7 +42,7 @@
   min-width: 12.5rem; /* smaller button width */
   width: auto;
   padding: 0.65rem 1.25rem;
-  background: #2563eb;
+  background: #0052CC;
   color: #fff;
   border: none;
   border-radius: 0.5rem;
@@ -52,7 +52,7 @@
 }
 
 .contato-submit:hover {
-  background: #1e40af;
+  background: #003A99;
 }
 
 /* Responsividade */

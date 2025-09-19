@@ -8,7 +8,7 @@
 /* Center heading and intro paragraph; use site blue for H2 */
 /* Title now uses .page-title class from App.css - keeping this for reference
 .seja-pro__title {
-  color: #2563eb;
+  color: #0052CC;
   text-align: center;
   margin-bottom: 1.5rem;
   margin-top: 0;
@@ -66,7 +66,7 @@
 }
 
 .seja-pro-card-title {
-  color: #2563eb;
+  color: #0052CC;
   margin: 0 0 1rem 0;
   font-size: 1.25rem;
 }
@@ -116,7 +116,7 @@
 .seja-pro-cta {
   margin-top: auto;
   padding: 0.75rem 1.5rem;
-  background: #2563eb;
+  background: #0052CC;
   color: #fff;
   border: none;
   border-radius: 0.5rem;
@@ -126,7 +126,7 @@
 }
 
 .seja-pro-cta:hover {
-  background: #1e40af;
+  background: #003A99;
 }
 
 /* Responsividade */
@@ -157,7 +157,7 @@
   .sejaPro-intro { color: #374151; line-height: 1.6; }
   .sejaPro-cards { display: flex; gap: 0.6rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; align-items: stretch; }
   .sejaPro-card { background: white; border: 0.062rem solid #d1d5db; border-radius: 0.75rem; padding: 0.5rem; width: 22.5rem; max-width: 100%; display: flex; flex-direction: column; min-height: 20rem; box-sizing: border-box; }
-  .sejaPro-card-title { color: #2563eb !important; margin: 0; font-size: 1.25rem; }
+  .sejaPro-card-title { color: #0052CC !important; margin: 0; font-size: 1.25rem; }
   .sejaPro-card-lead { color: #111827; margin: 1rem 0; font-size: 1.15rem; font-weight: 600; }
   .sejaPro-features { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; text-align: left; }
   .sejaPro-features li { font-size: 0.98rem; }

@@ -27,7 +27,7 @@
 
 .versaoPro_Assinado-btnPrimary {
   padding: 0.75rem 1.5rem;
-  background: #2563eb;
+  background: #0052CC;
   color: #fff;
   border: none;
   border-radius: 0.5rem;
@@ -37,7 +37,7 @@
 }
 
 .versaoPro_Assinado-btnPrimary:hover {
-  background: #1e40af;
+  background: #003A99;
 }
 
 .versaoPro_Assinado-btnSecondary {
@@ -122,7 +122,7 @@
   .versaoPro_Assinado-container { max-width: 56.25rem; margin: 0 auto; text-align: center; }
   .versaoPro_Assinado-intro { color: #374151; margin-top: 0; }
   .versaoPro_Assinado-actions { margin-top: 1.125rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
-  .versaoPro_Assinado-btnPrimary { padding: 0.625rem 1rem; background: #2563eb; color: #fff; border: none; border-radius: 0.5rem; cursor: pointer; }
+  .versaoPro_Assinado-btnPrimary { padding: 0.625rem 1rem; background: #0052CC; color: #fff; border: none; border-radius: 0.5rem; cursor: pointer; }
   .versaoPro_Assinado-btnSecondary { padding: 0.625rem 1rem; background: #f3f4f6; color: #111827; border: none; border-radius: 0.5rem; cursor: pointer; }
   .versaoPro_Assinado-benefits { margin-top: 1.5rem; text-align: left; max-width: 45rem; margin-left: auto; margin-right: auto; }
   .versaoPro_Assinado-benefits-title { color: #111827; font-size: 1.1rem; }
