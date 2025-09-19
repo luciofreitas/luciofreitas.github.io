@@ -126,16 +126,19 @@
 }
 
 .btn-save {
-  padding: 0.75rem 2rem;
-  background: #0052CC;
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: background 0.2s ease;
-  min-width: 7.5rem;
+  padding: 0.5rem 1rem !important;
+  background: #0052CC !important;
+  color: #fff !important;
+  border: 0.062rem solid transparent !important;
+  border-radius: 0.5rem !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: background 0.2s ease !important;
+  min-width: 7.5rem !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+  line-height: normal !important;
 }
 
 .btn-save:hover {
@@ -147,21 +150,33 @@
   cursor: not-allowed;
 }
 
-.btn-cancel {
-  padding: 0.75rem 2rem;
-  background: #f3f4f6;
-  color: #172B4D;
-  border: 0.062rem solid #d1d5db;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: background 0.2s ease;
-  min-width: 7.5rem;
+button.btn-cancel,
+button.btn.btn-cancel,
+.btn-cancel,
+.btn.btn-cancel {
+  padding: 0.5rem 1rem !important;
+  background: #f3f4f6 !important;
+  color: #172B4D !important;
+  border: 0.062rem solid #d1d5db !important;
+  border-radius: 0.5rem !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: background 0.2s ease !important;
+  min-width: 7.5rem !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+  line-height: normal !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.btn-cancel:hover {
-  background: #e5e7eb;
+button.btn-cancel:hover,
+button.btn.btn-cancel:hover,
+.btn-cancel:hover,
+.btn.btn-cancel:hover {
+  background: #e5e7eb !important;
 }
 
 /* Responsividade */

@@ -12,8 +12,57 @@
 
 .form-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
 
-.btn-save { background: #10b981; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; }
-.btn-cancel { background: #6b7280; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; }
+/* Botão Salvar - mantém o estilo primário */
+.btn-save,
+button.btn-save,
+.login-submit,
+button.login-submit { 
+  background: #0052CC !important;
+  color: #fff !important;
+  padding: 0.75rem 2rem !important;
+  border-radius: 0.5rem !important;
+  border: 0.062rem solid transparent !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: background 0.2s ease !important;
+  min-width: 7.5rem !important;
+  box-sizing: border-box !important;
+}
+
+.btn-save:hover,
+button.btn-save:hover,
+.login-submit:hover,
+button.login-submit:hover {
+  background: #003A99 !important;
+}
+
+/* Botão Cancelar - precisa sobrescrever os estilos globais de .btn */
+.btn-cancel,
+button.btn-cancel,
+.btn.btn-cancel,
+button.btn.btn-cancel { 
+  background: #f3f4f6 !important;
+  color: #172B4D !important;
+  padding: 0.75rem 2rem !important;
+  border-radius: 0.5rem !important;
+  border: 0.062rem solid #d1d5db !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: background 0.2s ease !important;
+  min-width: 7.5rem !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important; /* Remove o box-shadow dos botões primários */
+}
+
+.btn-cancel:hover,
+button.btn-cancel:hover,
+.btn.btn-cancel:hover,
+button.btn.btn-cancel:hover {
+  background: #e5e7eb !important;
+  color: #172B4D !important;
+}
 
 /* Estilos para mensagens de erro */
 .error-message {

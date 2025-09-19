@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
-import './PerfilForm.css';
 import './ContatoForm.css';
 import '../page-Login.css';
+import './PerfilForm.css'; // Importado por último para ter precedência
 
 export default function PerfilForm({
   formData = {},
@@ -385,7 +385,7 @@ export default function PerfilForm({
 
           <div className="form-actions">
             <button type="button" className="btn w-full login-submit" onClick={handleSave}>Salvar</button>
-            <button type="button" className="btn-cancel" onClick={handleCancel}>Cancelar</button>
+            <button type="button" className="btn w-full btn-cancel" onClick={handleCancel}>Cancelar</button>
           </div>
       </form>
     </div>
