@@ -66,9 +66,9 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
               <div className="product-images">
                 <div className="main-image">
                   <img 
-                    src={productDetails.imagens?.[selectedImage] || '/assets/placeholder-part.jpg'} 
+                    src={productDetails.imagens?.[selectedImage] || './assets/placeholder-part.jpg'} 
                     alt={productDetails.nome}
-                    onError={(e) => { e.target.src = '/assets/placeholder-part.jpg'; }}
+                    onError={(e) => { e.target.src = './assets/placeholder-part.jpg'; }}
                   />
                 </div>
                 {productDetails.imagens && productDetails.imagens.length > 1 && (
@@ -80,7 +80,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                         alt={`${productDetails.nome} - ${index + 1}`}
                         className={selectedImage === index ? 'active' : ''}
                         onClick={() => setSelectedImage(index)}
-                        onError={(e) => { e.target.src = '/assets/placeholder-part.jpg'; }}
+                        onError={(e) => { e.target.src = './assets/placeholder-part.jpg'; }}
                       />
                     ))}
                   </div>

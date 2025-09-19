@@ -396,7 +396,7 @@ export default function BuscarPeca() {
         show={showModal} 
         onClose={() => setShowModal(false)} 
         title={modalTitle}
-        titleIcon={modalTitle === 'Compatibilidade' ? '/check.png' : null}
+        titleIcon={modalTitle === 'Compatibilidade' ? './check.png' : null}
       >
         {modalContent}
       </CompatibilityModal>

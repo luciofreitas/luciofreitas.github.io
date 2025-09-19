@@ -25,7 +25,7 @@ function WhatsAppButton({ vehicle, isPro }) {
       {!isPro && (
         <div className="whatsapp-tooltip">
           <div className="whatsapp-tooltip-icon">
-            <img src="/padlock.png" alt="Cadeado" className="whatsapp-padlock" />
+            <img src="./padlock.png" alt="Cadeado" className="whatsapp-padlock" />
           </div>
           <div className="whatsapp-tooltip-text">
             Seja Pro, para liberar o contato da oficina
