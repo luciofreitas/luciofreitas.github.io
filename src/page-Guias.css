@@ -7,8 +7,7 @@
   padding: 1.5rem;
   margin: 0 auto 2rem auto;
   text-align: center;
-  display: block;
-  max-width: 500px;
+  display: inline-block;
 }
 
 .guias-intro p {
@@ -17,8 +16,6 @@
   font-size: 1.1rem;
   line-height: 1.6;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Grid de Cards dos Guias */
