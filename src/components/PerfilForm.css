@@ -14,3 +14,17 @@
 
 .btn-save { background: #10b981; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; }
 .btn-cancel { background: #6b7280; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; }
+
+/* Estilos para mensagens de erro */
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.form-input.error,
+.input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 0.125rem rgba(239, 68, 68, 0.1);
+}

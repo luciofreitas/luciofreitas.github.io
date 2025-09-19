@@ -25,8 +25,15 @@ export default defineConfig({
   },
   server: {
     port: 5174,
-    strictPort: true,
-    open: true,
+    strictPort: false,
+    open: false,
+    host: 'localhost',
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+    },
     proxy: {
       '/api': {
         // use explicit loopback IP to avoid potential localhost resolution issues
@@ -36,6 +43,16 @@ export default defineConfig({
         // increase proxy timeout slightly
         timeout: 120000,
       },
+    },
+  },
+  esbuild: {
+    loader: 'jsx',
+    include: /src\/.*\.[jt]sx?$/,
+    exclude: [],
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: { '.js': 'jsx' },
     },
   },
 });

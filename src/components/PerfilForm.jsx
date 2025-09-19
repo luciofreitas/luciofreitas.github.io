@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import './PerfilForm.css';
 import './ContatoForm.css';
+import '../page-Login.css';
 
 export default function PerfilForm({
   formData = {},
@@ -175,54 +176,52 @@ export default function PerfilForm({
   }
 
   return (
-    <div className="perfil-card single-card">
-      <div className="perfil-form">
-        <div className="perfil-card-header">
-          <h2 className="login-section-title">Informações Pessoais</h2>
-        </div>
-
-          <div className="form-group">
-            <label htmlFor="nome">Nome completo</label>
+    <div className="login-form-card">
+      <div><h2 className="login-section-title">Informações Pessoais</h2></div>
+      <form className="login-form">
+          <div className="form-control w-full login-form-control">
             <input 
               id="nome" 
               name="nome" 
+              type="text"
               value={local.nome} 
               onChange={handleChange} 
-              className={`form-input ${errors.nome ? 'error' : ''}`}
-              placeholder="Nome completo" 
+              className={`input input-bordered w-full bg-white text-black ${errors.nome ? 'error' : ''}`}
+              placeholder="Nome Completo" 
+              autoComplete="name"
             />
             {errors.nome && <span className="error-message">{errors.nome}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="celular">Celular</label>
+          <div className="form-control w-full Login-form-control">
             <input 
               id="celular" 
               name="celular" 
+              type="tel"
               value={local.celular} 
               onChange={handleChange} 
-              className={`form-input ${errors.celular ? 'error' : ''}`}
-              placeholder="(11) 91234-5678" 
+              className={`input input-bordered w-full bg-white text-black ${errors.celular ? 'error' : ''}`}
+              placeholder="Celular" 
+              autoComplete="tel"
             />
             {errors.celular && <span className="error-message">{errors.celular}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">E-mail</label>
+          <div className="form-control w-full Login-form-control">
             <input 
               id="email" 
               name="email" 
               type="email"
               value={local.email} 
               onChange={handleChange} 
-              className={`form-input ${errors.email ? 'error' : ''}`}
-              placeholder="seu@email.com" 
+              className={`input input-bordered w-full bg-white text-black ${errors.email ? 'error' : ''}`}
+              placeholder="E-mail" 
+              autoComplete="email"
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="senhaAtual">Senha atual</label>
+          <div className="form-control w-full Login-form-control">
             <div className="password-field">
               <input 
                 id="senhaAtual" 
@@ -230,8 +229,9 @@ export default function PerfilForm({
                 type={showSenhaAtual ? 'text' : 'password'} 
                 value={local.senhaAtual} 
                 onChange={handleChange} 
-                className={`form-input ${errors.senhaAtual ? 'error' : ''} password-input`}
-                placeholder="Digite sua senha atual" 
+                className={`form-input password-input ${errors.senhaAtual ? 'error' : ''}`}
+                placeholder="Senha atual" 
+                autoComplete="current-password"
               />
               <span
                 className={`car-toggle ${showSenhaAtual ? 'headlight-on' : 'headlight-off'}`}
@@ -275,8 +275,7 @@ export default function PerfilForm({
             {errors.senhaAtual && <span className="error-message">{errors.senhaAtual}</span>}
           </div>
 
-          <div className="form-group password-group">
-            <label htmlFor="novaSenha">Nova senha</label>
+          <div className="form-control w-full Login-form-control">
             <div className="password-field">
               <input 
                 id="novaSenha" 
@@ -285,7 +284,8 @@ export default function PerfilForm({
                 value={local.novaSenha} 
                 onChange={handleChange} 
                 className={`form-input password-input ${errors.novaSenha ? 'error' : ''}`}
-                placeholder="Digite a nova senha" 
+                placeholder="Nova senha" 
+                autoComplete="new-password"
               />
               <span
                 className={`car-toggle ${showPasswordState ? 'headlight-on' : 'headlight-off'}`}
@@ -329,8 +329,7 @@ export default function PerfilForm({
             {errors.novaSenha && <span className="error-message">{errors.novaSenha}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="confirmNovaSenha">Confirme a nova senha</label>
+          <div className="form-control w-full Login-form-control">
             <div className="password-field">
               <input 
                 id="confirmNovaSenha" 
@@ -338,8 +337,9 @@ export default function PerfilForm({
                 type={showConfirmNova ? 'text' : 'password'} 
                 value={local.confirmNovaSenha} 
                 onChange={handleChange} 
-                className={`form-input ${errors.confirmNovaSenha ? 'error' : ''} password-input`}
-                placeholder="Confirme a nova senha" 
+                className={`form-input password-input ${errors.confirmNovaSenha ? 'error' : ''}`}
+                placeholder="Confirmar nova senha" 
+                autoComplete="new-password"
               />
               <span
                 className={`car-toggle ${showConfirmNova ? 'headlight-on' : 'headlight-off'}`}
@@ -384,10 +384,10 @@ export default function PerfilForm({
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn-save" onClick={handleSave}>Salvar</button>
+            <button type="button" className="btn w-full login-submit" onClick={handleSave}>Salvar</button>
             <button type="button" className="btn-cancel" onClick={handleCancel}>Cancelar</button>
           </div>
-      </div>
+      </form>
     </div>
   );
 }
