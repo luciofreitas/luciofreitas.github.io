@@ -976,7 +976,7 @@
     opacity: 0 !important;
     visibility: hidden !important;
     transition: all 0.3s ease !important;
-    z-index: 20000 !important; /* Same z-index as user dropdown */
+    z-index: 99999 !important; /* Very high z-index to ensure it stays above modals */
     margin-top: 0.25rem !important; /* Same margin as user dropdown */
     pointer-events: auto !important; /* Ensure it's clickable */
   }
