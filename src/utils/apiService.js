@@ -231,6 +231,8 @@ class ApiService {
   }
 
   async getPecaById(id) {
+    console.log('ApiService: getPecaById called with ID:', id, typeof id);
+    
     // Try API first
     if (this.isLocal) {
       try {
@@ -243,12 +245,34 @@ class ApiService {
       }
     }
 
-    // Fallback: find in local data
+    // Fallback: find in local detailed data first, then basic data
     try {
+      console.log('ApiService: Trying to fetch /data/parts_detailed.json...');
+      // Try detailed data first
+      const detailedResponse = await fetch('/data/parts_detailed.json');
+      console.log('ApiService: Detailed response status:', detailedResponse.status);
+      if (detailedResponse.ok) {
+        const detailedData = await detailedResponse.json();
+        console.log('ApiService: Detailed data loaded, items count:', detailedData.length);
+        console.log('ApiService: Looking for ID:', id, 'in detailed data...');
+        const detailedPiece = detailedData.find(p => {
+          const match = p.id === id || p.id === parseInt(id) || p.id === String(id);
+          console.log('ApiService: Checking piece ID:', p.id, 'against', id, '- Match:', match);
+          return match;
+        });
+        if (detailedPiece) {
+          console.log('ApiService: Found detailed piece:', detailedPiece);
+          return detailedPiece;
+        }
+        console.log('ApiService: No detailed piece found, trying basic data...');
+      }
+      
+      // Fallback to basic data if not found in detailed
       const response = await fetch('/data/parts_db.json');
       if (response.ok) {
         const partsData = await response.json();
         const piece = partsData.find(p => p.id === id || p.id === parseInt(id) || p.id === String(id));
+        console.log('ApiService: Found basic piece:', piece);
         return piece || { error: 'Peça não encontrada' };
       }
     } catch (error) {

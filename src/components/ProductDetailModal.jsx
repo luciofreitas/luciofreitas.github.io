@@ -15,10 +15,13 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   }, [isOpen, productId]);
 
   const loadProductDetails = async (id) => {
+    console.log('ProductDetailModal: Loading details for ID:', id);
     setLoading(true);
     try {
       const product = await apiService.getPecaById(id);
+      console.log('ProductDetailModal: Received product data:', product);
       if (product.error) {
+        console.error('ProductDetailModal: Error from API:', product.error);
         throw new Error(product.error);
       }
       setProductDetails(product);
