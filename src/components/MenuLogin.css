@@ -220,25 +220,6 @@
   white-space: nowrap;
 }
 
-/* Destaque especial para o item Entrar/Registrar com contorno branco neve */
-.menu-login-item.entrar-registrar {
-  border: 2px solid #FFFFFF !important;
-  border-radius: 0.5rem !important;
-  padding: 0.25em 0.75em !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-}
-
-.menu-login-item.entrar-registrar:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border-color: #FFFFFF !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
-}
-
 /* ===== RESPONSIVIDADE DO MENU ===== */
 
 /* Versão responsiva para resolução 1366x768 e similares */
@@ -405,25 +386,6 @@
   background: transparent;
 }
 
-/* Destaque especial para o item Entrar/Registrar no dropdown mobile */
-.dropdown-item.entrar-registrar {
-  border: 2px solid #0052CC !important;
-  border-radius: 0.5rem !important;
-  margin: 0.25rem !important;
-  padding: 0.5rem 0.75rem !important;
-  background: rgba(0, 82, 204, 0.1) !important;
-  color: #0052CC !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-}
-
-.dropdown-item.entrar-registrar:hover {
-  background: rgba(0, 82, 204, 0.2) !important;
-  border-color: #0052CC !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.2);
-}
-
 /* Ensure the grouped menu + logo container uses the same blue background as header */
 .menu-login-container {
   background: #0052CC !important; /* Mesmo azul do header */
@@ -588,14 +550,6 @@
   font-size: 0.812rem !important;
   padding: 0.25em 0.5em !important;
   white-space: nowrap !important;
-}
-
-/* Destaque especial para o item Entrar/Registrar no menu compacto */
-.menu-compact .menu-login-item.entrar-registrar {
-  border: 1.5px solid #FFFFFF !important;
-  padding: 0.2em 0.4em !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
 }
 
 /* Regras específicas para resolução pequena - SEMPRE APLICADAS em 85.375rem */
