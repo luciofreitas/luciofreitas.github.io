@@ -29,6 +29,9 @@
   --text-muted: #6b7280;
   --text-inverse: #FFFFFF;
   
+  /* Section Titles */
+  --color-section-title: #172B4D;
+  
   /* Background Colors */
   --bg-white: #FFFFFF;
   --bg-gray-neutral: #F4F5F7;
@@ -377,7 +380,7 @@ html {
   margin-top: 0 !important; /* No top margin - container controls top spacing */
   margin-bottom: var(--space-lg) !important; /* Consistent bottom spacing using token */
   font-size: 2.5rem !important; /* Increased from var(--font-size-2xl) to match glossário size */
-  color: var(--color-primary) !important; /* Using design token for color */
+  color: var(--color-section-title) !important; /* Using design token for section titles */
   display: block !important;
   text-align: center !important;
   scroll-margin-top: calc(var(--header-height) + var(--space-sm)) !important; /* Using tokens */
@@ -1248,10 +1251,10 @@ h1, h3, h4, h5, h6 {
   -webkit-text-stroke: none !important;
 }
 
-/* Força todos os h2 para serem azuis */
+/* Força todos os h2 (títulos de seção) para serem cinza escuro */
 h2 {
-  color: var(--color-primary) !important;
-  -webkit-text-fill-color: var(--color-primary) !important;
+  color: var(--color-section-title) !important;
+  -webkit-text-fill-color: var(--color-section-title) !important;
   -webkit-text-stroke: none !important;
 }
 
