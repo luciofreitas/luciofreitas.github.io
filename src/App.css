@@ -23,6 +23,11 @@
   --color-error: #dc2626;
   --color-warning: #d97706;
   
+  /* Seja Pro Colors */
+  --color-highlight: #FFAB00;
+  --color-success-icon: #36B37E;
+  --color-error-icon: #DE350B;
+  
   /* Text Colors */
   --text-primary: #172B4D;
   --text-secondary: #172B4D;

@@ -31,7 +31,7 @@ export default function SejaPro() {
               </div>
             </div>
 
-            <div className="seja-pro-card">
+            <div className="seja-pro-card seja-pro-card-pro">
               <h3 className="seja-pro-card-title">Pro</h3>
               <p className="seja-pro-card-lead">Todos os benefícios da versão Pro.</p>
               <div className="seja-pro-card-body">
