@@ -7,6 +7,12 @@
   margin: 0 auto;
 }
 
+/* Wrapper para centralizar .recalls-intro */
+.recalls-intro-wrapper {
+  width: 100%;
+  text-align: center;
+}
+
 .recalls-intro {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -14,6 +20,7 @@
   padding: 1.5rem;
   margin-bottom: 2rem;
   text-align: center;
+  display: inline-block;
 }
 
 .recalls-intro p {

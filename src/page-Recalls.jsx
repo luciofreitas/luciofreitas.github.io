@@ -72,11 +72,12 @@ function PageRecalls() {
         <div className="page-content recalls-section">
           <h2 className="page-title">Recalls por Modelo</h2>
           
-          <div className="recalls-intro">
-            <p>
-              Consulte recalls oficiais por marca, modelo e ano do seu veículo. 
-              Mantenha-se informado sobre questões de segurança.
-            </p>
+          <div className="recalls-intro-wrapper">
+            <div className="recalls-intro">
+              <p>
+                Consulte recalls oficiais por marca, modelo e ano do seu veículo. Mantenha-se informado sobre questões de segurança.
+              </p>
+            </div>
           </div>
 
           {/* Filtros de busca */}
