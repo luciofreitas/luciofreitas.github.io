@@ -1,15 +1,28 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../App';
 import './MenuLogin.css';
 import Logo from './Logo';
 import GetStartedButton from './GetStartedButton';
+import MenuUsuario from './MenuUsuario';
+import Toast from './Toast';
+import './Toast.css';
+import AriaLive from './AriaLive';
+import './AriaLive.css';
+import Skeleton from './Skeleton';
+import './Skeleton.css';
 
 const MenuLogin = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileMenuPosition, setMobileMenuPosition] = useState({ top: 0, left: 0 });
+  const [toast, setToast] = useState(null);
+  const [ariaMessage, setAriaMessage] = useState('');
   const mobileMenuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
+  
+  // Authentication context
+  const { usuarioLogado, setUsuarioLogado, authLoaded } = useContext(AuthContext) || {};
 
   // menu items to render in desktop nav and mobile dropdown
   const menuItems = [
@@ -19,6 +32,56 @@ const MenuLogin = () => {
     { id: 'seja-pro', label: 'Seja Pro', onClick: () => navigate('/seja-pro') },
     { id: 'contato', label: 'Contato', onClick: () => navigate('/contato') }
   ];
+
+  // Toast helper functions
+  const showToast = (type, title, message) => {
+    setToast({ type, title, message, id: Date.now() });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const setAriaAlert = (message) => {
+    setAriaMessage(message);
+    setTimeout(() => setAriaMessage(''), 100);
+  };
+
+  // User menu handlers
+  const handleLogout = () => {
+    setUsuarioLogado(null);
+    localStorage.removeItem('usuarioLogado');
+    showToast('success', 'Logout realizado', 'Você foi desconectado com sucesso');
+    setAriaAlert('Logout realizado com sucesso');
+    navigate('/inicio');
+  };
+
+  const handleProfileClick = () => {
+    navigate('/perfil');
+  };
+
+  const handleProClick = () => {
+    if (usuarioLogado?.isPro) {
+      navigate('/versao-pro-assinado');
+    } else {
+      navigate('/seja-pro');
+    }
+  };
+
+  const handleConfiguracoesClick = () => {
+    navigate('/perfil'); // For now, redirect to profile as settings
+  };
+
+  const handleLoginSuccess = () => {
+    showToast('success', 'Login realizado', 'Bem-vindo de volta!');
+    setAriaAlert('Login realizado com sucesso');
+  };
+
+  // Effect to handle successful login (when usuarioLogado changes from null to user)
+  const prevUsuarioLogado = useRef();
+  useEffect(() => {
+    if (prevUsuarioLogado.current === null && usuarioLogado) {
+      handleLoginSuccess();
+    }
+    prevUsuarioLogado.current = usuarioLogado;
+  }, [usuarioLogado]);
 
   // Função para calcular a posição do menu mobile
   const calculateMobileMenuPosition = () => {
@@ -153,12 +216,49 @@ const MenuLogin = () => {
             </nav>
           </div>
 
-          {/* Botão "Comece agora" alinhado à direita */}
+          {/* Botão "Comece agora" ou Menu de Usuário à direita */}
           <div className="menu-login-right">
-            <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+            {!authLoaded ? (
+              // Loading skeleton while checking authentication
+              <Skeleton 
+                width="120px" 
+                height="40px" 
+                borderRadius="0.5rem"
+                animate={true}
+                aria-label="Carregando informações do usuário"
+              />
+            ) : usuarioLogado ? (
+              // User menu when logged in
+              <MenuUsuario
+                nome={usuarioLogado.nome || usuarioLogado.email}
+                isPro={usuarioLogado.isPro || false}
+                onPerfil={handleProfileClick}
+                onPro={handleProClick}
+                onConfiguracoes={handleConfiguracoesClick}
+                onLogout={handleLogout}
+              />
+            ) : (
+              // "Comece agora" button when not logged in
+              <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+            )}
           </div>
         </div>
       </header>
+      
+      {/* Toast notifications */}
+      {toast && (
+        <Toast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast(null)}
+          autoClose={true}
+          duration={4000}
+        />
+      )}
+      
+      {/* Accessibility announcements */}
+      <AriaLive message={ariaMessage} />
     </>
   );
 };

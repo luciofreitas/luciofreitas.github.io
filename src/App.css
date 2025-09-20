@@ -196,7 +196,7 @@ html, body {
   align-items: flex-start; /* Align to top instead of center */
   justify-content: center;
   z-index: var(--z-modal-backdrop); /* Using design token */
-  padding: var(--space-xl) var(--space-md) var(--space-md); /* Using design tokens */
+  padding: var(--space-xl) var(--space-md) var(--space-xl); /* Padding igual em cima e embaixo */
 }
 
 .modal-content {
@@ -216,10 +216,10 @@ html, body {
   border-radius: 0.75rem;
   overflow: visible;
   box-shadow: none;
-  max-height: calc(100vh - 5rem);
+  max-height: calc(100vh - 8rem); /* Reduzindo altura para dar mais espaço */
   max-width: 57.5rem;
   width: calc(100% - 2rem);
-  margin: 1.5rem auto;
+  margin: 1.5rem auto 2rem; /* Adicionando margin-bottom maior */
   box-sizing: border-box;
 }
 
@@ -275,12 +275,12 @@ html, body {
 
 .app-compat-body {
   padding: 1rem;
+  padding-bottom: 1.5rem; /* Adiciona espaço inferior para evitar corte */
   overflow-y: auto;
   overflow-x: hidden;
   max-height: calc(100vh - 10rem);
   position: relative;
   z-index: 1;
-  padding-bottom: 0; /* Remove padding extra no final */
 }
 
 /* Subtle scroll indicator shadow at the bottom when content overflows */
@@ -551,7 +551,7 @@ html {
   align-items: flex-start; /* Align to top instead of center */
   justify-content: center;
   z-index: 10000;
-  padding: 2rem 1rem 1rem; /* Extra top padding for visual spacing */
+  padding: 2rem 1rem 2rem; /* Padding igual em cima e embaixo para evitar corte */
 }
 
 /* modal-content should be centered and constrained */
