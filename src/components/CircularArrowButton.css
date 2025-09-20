@@ -143,6 +143,10 @@
     min-width: 3rem;
     min-height: 3rem;
     margin-left: auto; /* Alinha à direita */
+    margin-right: 0; /* Remove margem direita para ficar mais próximo da borda */
+    flex-shrink: 0; /* Não encolhe em mobile */
+    z-index: 40; /* Acima de todos outros elementos */
+    position: relative; /* Garante posicionamento correto */
   }
   
   .circular-arrow-button .circular-button-arrow {
@@ -173,5 +177,21 @@
   .circular-arrow-button.large .circular-button-arrow {
     width: 24px;
     height: 24px;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 25rem) {
+  .circular-arrow-button {
+    width: 2.75rem; /* 44px em telas muito pequenas */
+    height: 2.75rem; /* 44px em telas muito pequenas */
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+  
+  .circular-arrow-button .circular-button-arrow {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
   }
 }

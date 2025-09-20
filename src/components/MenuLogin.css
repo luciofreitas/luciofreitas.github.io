@@ -836,17 +836,29 @@ a.menu-login-item {
     align-self: center !important;
   }
 
+  /* Hamburger menu container positioning */
+  .hamburger-menu-root {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-shrink: 0 !important;
+    z-index: 25 !important;
+    order: 1 !important; /* First element - leftmost */
+  }
+
   /* Reduce padding on mobile and ensure proper layout for logo centrada */
   .menu-login-root {
-    padding: 1rem 0.5rem !important; /* Aumenta padding vertical para dar mais espaço */
-    justify-content: flex-start !important; /* Alinhamento à esquerda para controle preciso */
-    min-height: 140px !important; /* Altura maior para acomodar logo completa de 88px + padding aumentado */
+    padding: 0 0.5rem 0 0.5rem !important; /* Padding horizontal apenas, sem excesso vertical */
+    justify-content: space-between !important; /* Distribui hamburger/logo à esquerda e botão circular à direita */
+    min-height: 4.5rem !important; /* Altura padrão do header */
+    height: 4.5rem !important; /* Altura fixa */
     align-items: center !important;
     position: relative !important;
     flex-wrap: nowrap !important;
-    overflow: visible !important; /* Permite que a logo seja visível mesmo se sair um pouco do container */
+    overflow: visible !important; /* Permite que os elementos sejam visíveis */
     display: flex !important;
-    gap: 0 !important; /* Remove gaps padrão */
+    gap: 0.5rem !important; /* Espaçamento mínimo entre elementos */
   }
 
   /* Evita que a navegação central se comporte como barra horizontal no topo */
@@ -953,8 +965,13 @@ a.menu-login-item {
     display: flex !important; /* Show user menu in mobile */
     flex-shrink: 0 !important; /* Não encolhe */
     align-items: center !important;
-    z-index: 20 !important; /* Acima da logo */
+    justify-content: flex-end !important; /* Força alinhamento à direita */
+    z-index: 30 !important; /* Acima de tudo inclusive logo */
     margin-left: auto !important; /* Empurra para a direita */
+    min-width: 3rem !important; /* Largura mínima para o botão circular */
+    height: 4.5rem !important; /* Altura total do header */
+    order: 3 !important; /* Last element - rightmost */
+    padding-right: 0.5rem !important; /* Espaço da borda direita */
   }
 
   /* Hide desktop navigation by default on mobile - show as dropdown popup EXACTLY like user menu */
@@ -1072,6 +1089,7 @@ a.menu-login-item {
   margin-top: 0 !important;
   order: 3 !important; /* Garante que fica depois do centro */
   flex-shrink: 0 !important;
+  min-height: 4.5rem !important; /* Altura total do header */
 }
 
 /* GARANTIR FONT-WEIGHT 600 PARA ITENS DO MENU */
