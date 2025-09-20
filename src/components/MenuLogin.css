@@ -168,7 +168,7 @@
 }
 
 /* Estilo para indicador acima do item do menu ao hover */
-.menu-login-item {
+a.menu-login-item {
   color: #ffffff !important; /* Branco para contrastar com fundo azul - aplicado globalmente */
   font-weight: 600 !important;
   font-size: 1rem;
