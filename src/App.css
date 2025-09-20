@@ -1277,11 +1277,12 @@ input, textarea, button, select {
   appearance: none !important;
 }
 
-/* Força rendering consistente */
+/* Força rendering consistente e fonte Roboto global */
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-family: var(--font-family) !important;
 }
 
 /* Compatibilidade com navegadores antigos */
