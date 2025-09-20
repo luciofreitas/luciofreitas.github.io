@@ -19,26 +19,30 @@
   font-weight: 600;
   color: #ffffff !important; /* Fonte branca */
   
-  /* Cor de fundo com degradê usando #FFAB00 como base */
-  background: linear-gradient(135deg, #FFAB00 0%, #FF8F00 100%);
+  /* Degradê forte com múltiplas cores baseado em #FFAB00 */
+  background: linear-gradient(135deg, #FFD700 0%, #FFAB00 25%, #FF8F00 75%, #E67E00 100%);
   
-  /* Sombra com a cor base */
-  box-shadow: 0 2px 8px rgba(255, 171, 0, 0.3);
+  /* Sombra mais intensa e colorida + brilho interno */
+  box-shadow: 0 4px 15px rgba(255, 171, 0, 0.5), 
+              0 2px 8px rgba(230, 126, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
   
   /* Transições suaves */
   transition: all 0.3s ease;
 }
 
-/* Efeito hover */
+/* Efeito hover com degradê reverso mais intenso */
 .get-started-button:hover {
-  /* Inverte o degradê no hover */
-  background: linear-gradient(135deg, #FF8F00 0%, #FFAB00 100%);
+  /* Degradê reverso com cores mais vibrantes */
+  background: linear-gradient(135deg, #E67E00 0%, #FF8F00 25%, #FFAB00 75%, #FFD700 100%);
   
   /* Eleva o botão */
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   
-  /* Intensifica a sombra */
-  box-shadow: 0 4px 12px rgba(255, 171, 0, 0.4);
+  /* Sombra muito mais intensa no hover + brilho interno mais forte */
+  box-shadow: 0 8px 25px rgba(255, 171, 0, 0.7), 
+              0 4px 15px rgba(230, 126, 0, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 /* Efeito active (quando pressionado) */
