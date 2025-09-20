@@ -4,6 +4,7 @@ import { AuthContext } from '../App';
 import './MenuLogin.css';
 import Logo from './Logo';
 import MenuUsuario from './MenuUsuario';
+import GetStartedButton from './GetStartedButton';
 
 function Menu() {
   const [hideMenu, setHideMenu] = useState(false);
@@ -180,7 +181,7 @@ function Menu() {
 
         <div className="menu-login-right">
         {!usuarioLogado ? (
-            <a href="#entrar/registrar" className="menu-login-item text-lg md:text-xl" onClick={handleNavigation(() => navigate('/login'))}>Entrar/Registrar</a>
+            <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
           ) : (
             <MenuUsuario
               nome={usuarioLogado.nome}
