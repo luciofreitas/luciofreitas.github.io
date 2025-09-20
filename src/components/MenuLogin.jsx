@@ -244,7 +244,7 @@ const MenuLogin = () => {
                 aria-label="Carregando informações do usuário"
               />
             ) : usuarioLogado ? (
-              // User menu when logged in - mobile vs desktop
+              // User menu when logged in - always show CircularArrowButton on mobile
               isMobile ? (
                 <CircularArrowButton onClick={handleNavigation(() => navigate('/perfil'))} />
               ) : (
@@ -258,7 +258,7 @@ const MenuLogin = () => {
                 />
               )
             ) : (
-              // "Comece agora" button when not logged in - mobile vs desktop
+              // "Comece agora" button when not logged in - always show CircularArrowButton on mobile
               isMobile ? (
                 <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
               ) : (
