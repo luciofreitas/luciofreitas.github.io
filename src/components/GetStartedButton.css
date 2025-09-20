@@ -81,13 +81,6 @@
   box-shadow: 0 2px 4px rgba(255, 171, 0, 0.2);
 }
 
-/* Responsividade - esconder em telas pequenas se necessário */
-@media (max-width: 48rem) {
-  .get-started-button {
-    display: none;
-  }
-}
-
 /* Variação pequena do botão (caso necessário) */
 .get-started-button.small {
   padding: 0.5rem 1rem;
