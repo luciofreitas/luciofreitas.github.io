@@ -326,7 +326,7 @@ html, body {
 
 
 body {
-  background-color: #FFFFFF !important;
+  /* background-color: #FFFFFF !important; */ /* Removido para permitir backgrounds específicos por página */
   color: var(--text-primary) !important;
   margin: 0;
   padding: 0;
@@ -357,7 +357,7 @@ html {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background: #FFFFFF;
+  /* background: #FFFFFF; */ /* Removido para permitir backgrounds específicos por página */
 }
 
 /* Global page offset: always push page content below the fixed header.
@@ -451,7 +451,7 @@ html {
     display: flex;
     justify-content: center; /* center the inner content horizontally */
     align-items: flex-start; /* default: start near top; pages can override */
-    background: transparent;
+    /* background: #FFFFFF; */ /* Removido para permitir backgrounds específicos por página */
   }
   .page-content {
     width: 100%;
@@ -782,6 +782,46 @@ select { -webkit-appearance: none; appearance: none; }
   padding-top: 0.85rem !important; /* small internal padding for visual gap */
 }
 
+/* IMPORTANTE: CSS para background da página inicial - máxima prioridade */
+/* Aplica imagem de fundo APENAS na página page-inicio com especificidade máxima */
+
+/* Background para o elemento body quando page-inicio está ativa */
+body .page-wrapper.page-inicio,
+html body .page-wrapper.page-inicio,
+.page-wrapper.page-inicio.page-inicio,
+div.page-wrapper.page-inicio {
+  background: url('/fundo.png') center center / cover no-repeat !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  min-height: 100vh !important;
+}
+
+/* Força transparência no body para mostrar o background do container */
+body.inicio-page,
+html body.inicio-page,
+body:has(.page-inicio) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Fallback: se o seletor :has() não funcionar, usa classe manual */
+body.page-inicio-body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Ensure other pages keep white background */
+.page-wrapper:not(.page-inicio) {
+  background: #FFFFFF !important;
+}
+
+/* Default white background for body on non-inicio pages */
+body:not(:has(.page-inicio)) {
+  background: #FFFFFF !important;
+}
+
 /* Ensure legacy selectors that targeted .page-heading don't reintroduce gaps */
 .page-offset .page-heading,
 .menu-page .page-heading {
@@ -916,7 +956,36 @@ select { -webkit-appearance: none; appearance: none; }
   padding-top: 0 !important;
 }
 
-/* ===== UTILITY CLASSES BASED ON DESIGN TOKENS ===== */
+/* ===== OVERRIDE FINAL PARA PAGE-INICIO BACKGROUND ===== */
+/* Esta regra deve vir por último para garantir máxima prioridade */
+/* Especificidade máxima para garantir que a imagem apareça */
+
+html body div.page-wrapper.page-inicio,
+html body .page-wrapper.page-inicio.page-inicio,
+body div.page-wrapper.page-inicio,
+div.page-wrapper.page-inicio {
+  background-image: url('/fundo.png') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  background-color: transparent !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+}
+
+/* Força body transparente quando page-inicio está ativa */
+html body:has(.page-inicio),
+body:has(div.page-inicio),
+html body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Override para qualquer regra de background branco que ainda reste */
+.page-wrapper.page-inicio * {
+  background-color: initial !important;
+}
 
 /* Card Components */
 .card {

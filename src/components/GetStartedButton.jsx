@@ -11,8 +11,8 @@ const GetStartedButton = ({ onClick, className = '' }) => {
       <span className="button-text">Comece agora - É grátis</span>
       <svg 
         className="button-arrow" 
-        width="16" 
-        height="16" 
+        width="20" 
+        height="20" 
         viewBox="0 0 24 24" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
@@ -20,7 +20,7 @@ const GetStartedButton = ({ onClick, className = '' }) => {
         <path 
           d="M5 12h14m-7-7l7 7-7 7" 
           stroke="currentColor" 
-          strokeWidth="2" 
+          strokeWidth="2.5" 
           strokeLinecap="round" 
           strokeLinejoin="round"
         />
