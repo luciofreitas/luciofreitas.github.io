@@ -4,6 +4,7 @@ import { AuthContext } from '../App';
 import './MenuLogin.css';
 import Logo from './Logo';
 import GetStartedButton from './GetStartedButton';
+import CircularArrowButton from './CircularArrowButton';
 import MenuUsuario from './MenuUsuario';
 import Toast from './Toast';
 import './Toast.css';
@@ -17,6 +18,7 @@ const MenuLogin = () => {
   const [mobileMenuPosition, setMobileMenuPosition] = useState({ top: 0, left: 0 });
   const [toast, setToast] = useState(null);
   const [ariaMessage, setAriaMessage] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const mobileMenuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
@@ -82,6 +84,15 @@ const MenuLogin = () => {
     }
     prevUsuarioLogado.current = usuarioLogado;
   }, [usuarioLogado]);
+
+  // Monitor screen size changes for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Função para calcular a posição do menu mobile
   const calculateMobileMenuPosition = () => {
@@ -239,7 +250,11 @@ const MenuLogin = () => {
               />
             ) : (
               // "Comece agora" button when not logged in
-              <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+              isMobile ? (
+                <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
+              ) : (
+                <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+              )
             )}
           </div>
         </div>

@@ -5,12 +5,14 @@ import './MenuLogin.css';
 import Logo from './Logo';
 import MenuUsuario from './MenuUsuario';
 import GetStartedButton from './GetStartedButton';
+import CircularArrowButton from './CircularArrowButton';
 
 function Menu() {
   const [hideMenu, setHideMenu] = useState(false);
   const [lastScroll, setLastScroll] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileMenuPosition, setMobileMenuPosition] = useState({ top: 0, left: 0 });
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const mobileMenuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
@@ -44,6 +46,15 @@ function Menu() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScroll]);
+
+  // Monitor screen size changes for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Função para calcular a posição do menu mobile EXATAMENTE como MenuUsuario
   const calculateMobileMenuPosition = () => {
@@ -181,7 +192,11 @@ function Menu() {
 
         <div className="menu-login-right">
         {!usuarioLogado ? (
-            <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+            isMobile ? (
+              <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
+            ) : (
+              <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+            )
           ) : (
             <MenuUsuario
               nome={usuarioLogado.nome}
