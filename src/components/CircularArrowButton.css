@@ -1,0 +1,171 @@
+/* CircularArrowButton.css - Botão circular com seta */
+
+.circular-arrow-button {
+  /* Layout circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem; /* 56px */
+  height: 3.5rem; /* 56px */
+  min-width: 3.5rem;
+  min-height: 3.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%; /* Círculo perfeito */
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  
+  /* Fonte e cor */
+  color: #ffffff !important; /* Seta branca */
+  
+  /* Degradê forte com múltiplas cores baseado em #FFAB00 (igual ao GetStartedButton) */
+  background: linear-gradient(135deg, #FFD700 0%, #FFAB00 25%, #FF8F00 75%, #E67E00 100%);
+  
+  /* Sombra mais intensa e colorida + brilho interno */
+  box-shadow: 0 4px 15px rgba(255, 171, 0, 0.5), 
+              0 2px 8px rgba(230, 126, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  
+  /* Transições suaves */
+  transition: all 0.3s ease;
+}
+
+/* Efeito hover com degradê reverso mais intenso */
+.circular-arrow-button:hover {
+  /* Degradê reverso com cores mais vibrantes */
+  background: linear-gradient(135deg, #E67E00 0%, #FF8F00 25%, #FFAB00 75%, #FFD700 100%);
+  
+  /* Sombra muito mais intensa no hover + brilho interno mais forte */
+  box-shadow: 0 8px 25px rgba(255, 171, 0, 0.8), 
+              0 4px 15px rgba(230, 126, 0, 0.6),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  
+  /* Leve elevação e escala no hover */
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* Efeito active (quando pressionado) */
+.circular-arrow-button:active {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 2px 6px rgba(255, 171, 0, 0.4);
+}
+
+/* Efeito focus para acessibilidade */
+.circular-arrow-button:focus-visible {
+  outline: 2px solid rgba(255, 171, 0, 0.6);
+  outline-offset: 2px;
+}
+
+/* Estilização da seta */
+.circular-button-arrow {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.5;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+/* Animação da seta no hover */
+.circular-arrow-button:hover .circular-button-arrow {
+  transform: translateX(2px);
+}
+
+/* Estados disabled */
+.circular-arrow-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(255, 171, 0, 0.2);
+}
+
+.circular-arrow-button:disabled:hover {
+  transform: none;
+  background: linear-gradient(135deg, #FFAB00 0%, #FF8F00 100%);
+  box-shadow: 0 2px 4px rgba(255, 171, 0, 0.2);
+}
+
+.circular-arrow-button:disabled .circular-button-arrow {
+  transform: none;
+}
+
+/* Variações de tamanho */
+.circular-arrow-button.small {
+  width: 2.5rem; /* 40px */
+  height: 2.5rem; /* 40px */
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+}
+
+.circular-arrow-button.small .circular-button-arrow {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+}
+
+.circular-arrow-button.large {
+  width: 4rem; /* 64px */
+  height: 4rem; /* 64px */
+  min-width: 4rem;
+  min-height: 4rem;
+}
+
+.circular-arrow-button.large .circular-button-arrow {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2.5;
+}
+
+.circular-arrow-button.extra-large {
+  width: 5rem; /* 80px */
+  height: 5rem; /* 80px */
+  min-width: 5rem;
+  min-height: 5rem;
+}
+
+.circular-arrow-button.extra-large .circular-button-arrow {
+  width: 32px;
+  height: 32px;
+  stroke-width: 3;
+}
+
+/* Responsividade - ajustar tamanhos para mobile e alinhar à direita */
+@media (max-width: 48rem) {
+  .circular-arrow-button {
+    width: 3rem; /* 48px em mobile */
+    height: 3rem; /* 48px em mobile */
+    min-width: 3rem;
+    min-height: 3rem;
+    margin-left: auto; /* Alinha à direita */
+  }
+  
+  .circular-arrow-button .circular-button-arrow {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+  }
+  
+  .circular-arrow-button.small {
+    width: 2.25rem; /* 36px */
+    height: 2.25rem; /* 36px */
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+  
+  .circular-arrow-button.small .circular-button-arrow {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .circular-arrow-button.large {
+    width: 3.5rem; /* 56px */
+    height: 3.5rem; /* 56px */
+    min-width: 3.5rem;
+    min-height: 3.5rem;
+  }
+  
+  .circular-arrow-button.large .circular-button-arrow {
+    width: 24px;
+    height: 24px;
+  }
+}
