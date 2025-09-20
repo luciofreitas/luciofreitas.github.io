@@ -36,9 +36,6 @@
   /* Degradê reverso com cores mais vibrantes */
   background: linear-gradient(135deg, #E67E00 0%, #FF8F00 25%, #FFAB00 75%, #FFD700 100%);
   
-  /* Eleva o botão */
-  transform: translateY(-2px);
-  
   /* Sombra muito mais intensa no hover + brilho interno mais forte */
   box-shadow: 0 8px 25px rgba(255, 171, 0, 0.7), 
               0 4px 15px rgba(230, 126, 0, 0.5),
