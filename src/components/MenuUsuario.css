@@ -15,7 +15,7 @@
   background-color: transparent !important;
   border: none;
   color: #172B4D !important; /* Force correct color */
-  font-weight: 600;
+  font-weight: 600 !important;
   font-size: 1rem;
   padding: 0.35em 0.9em;
   border-radius: 0.5rem;

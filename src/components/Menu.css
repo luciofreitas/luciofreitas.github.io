@@ -47,7 +47,7 @@
 .menu-links li a {
   text-decoration: none;
   color: #172B4D;
-  font-weight: 600;
+  font-weight: 600 !important;
   font-size: 1em;
   transition: color 0.2s;
   padding: 0.3em 0.7em;
