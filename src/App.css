@@ -196,7 +196,7 @@ html, body {
   align-items: flex-start; /* Align to top instead of center */
   justify-content: center;
   z-index: var(--z-modal-backdrop); /* Using design token */
-  padding: var(--space-xl) var(--space-md) var(--space-xl); /* Padding igual em cima e embaixo */
+  padding: var(--space-md) var(--space-md) var(--space-xl); /* Menos padding em cima, mais embaixo */
 }
 
 .modal-content {
@@ -219,7 +219,7 @@ html, body {
   max-height: calc(100vh - 8rem); /* Reduzindo altura para dar mais espaço */
   max-width: 57.5rem;
   width: calc(100% - 2rem);
-  margin: 1.5rem auto 2rem; /* Adicionando margin-bottom maior */
+  margin: 0.5rem auto 2rem; /* Reduzindo margin-top para subir o modal */
   box-sizing: border-box;
 }
 
@@ -535,7 +535,7 @@ html {
 .app-compat-modal {
   max-width: 57.5rem; /* comfortable desktop width */
   width: calc(100% - 2rem);
-  margin: 1.5rem auto !important; /* center and give vertical spacing */
+  margin: 0.5rem auto !important; /* Subindo o modal com margin-top menor */
   box-sizing: border-box !important;
 }
 
@@ -551,7 +551,7 @@ html {
   align-items: flex-start; /* Align to top instead of center */
   justify-content: center;
   z-index: 10000;
-  padding: 2rem 1rem 2rem; /* Padding igual em cima e embaixo para evitar corte */
+  padding: 1rem 1rem 3rem; /* Menos padding em cima, mais embaixo para dar folga */
 }
 
 /* modal-content should be centered and constrained */
