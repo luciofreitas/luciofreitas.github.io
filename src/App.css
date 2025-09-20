@@ -59,7 +59,7 @@
   --border-success: #bbf7d0;
   --border-error: #fecaca;
   
-  /* Typography */
+  /* Typography - Roboto como fonte principal */
   --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --font-size-xs: 0.75rem;   /* 12px */
   --font-size-sm: 0.875rem;  /* 14px */
