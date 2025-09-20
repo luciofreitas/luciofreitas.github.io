@@ -196,7 +196,7 @@ html, body {
   align-items: flex-start; /* Align to top instead of center */
   justify-content: center;
   z-index: var(--z-modal-backdrop); /* Using design token */
-  padding: var(--space-md) var(--space-md) var(--space-xl); /* Menos padding em cima, mais embaixo */
+  padding: 0.5rem 1rem 3rem; /* Pouco padding em cima, muito embaixo para dar folga */
 }
 
 .modal-content {
@@ -275,10 +275,10 @@ html, body {
 
 .app-compat-body {
   padding: 1rem;
-  padding-bottom: 1.5rem; /* Adiciona espaço inferior para evitar corte */
+  padding-bottom: 2.5rem; /* Aumentar ainda mais o espaço inferior */
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(100vh - 10rem);
+  max-height: calc(100vh - 8rem); /* Reduzir altura para dar mais folga embaixo */
   position: relative;
   z-index: 1;
 }
@@ -537,21 +537,6 @@ html {
   width: calc(100% - 2rem);
   margin: 0.5rem auto !important; /* Subindo o modal com margin-top menor */
   box-sizing: border-box !important;
-}
-
-/* Generic overlay for custom modals */
-.modal-overlay {
-  position: fixed;
-  top: 4.5rem; /* Start below fixed header */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5); /* Fundo cinza semi-transparente */
-  display: flex;
-  align-items: flex-start; /* Align to top instead of center */
-  justify-content: center;
-  z-index: 10000;
-  padding: 1rem 1rem 3rem; /* Menos padding em cima, mais embaixo para dar folga */
 }
 
 /* modal-content should be centered and constrained */
