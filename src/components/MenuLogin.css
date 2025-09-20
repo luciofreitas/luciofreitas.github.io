@@ -212,8 +212,7 @@
 }
 
 /* Ajuste para itens específicos que podem ser mais longos - removido max-width para permitir espaçamento natural */
-.menu-login-item.nosso-projeto,
-.menu-login-item.entrar-registrar {
+.menu-login-item.nosso-projeto {
   /* max-width removido para permitir espaçamento igual entre todos os itens */
   text-overflow: ellipsis;
   overflow: hidden;
