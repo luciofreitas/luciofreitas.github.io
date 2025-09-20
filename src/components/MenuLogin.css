@@ -1060,50 +1060,12 @@
   }
 
   /* Hide get started button on mobile */
-  .get-started-btn {
+  .get-started-button {
     display: none !important;
   }
 }
 
-/* ===== BOTÃO "COMECE AGORA" ===== */
-
-/* Botão estilizado com degradê #FFAB00 */
-.get-started-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #FFAB00 0%, #FF8F00 100%); /* Degradê usando #FFAB00 como base */
-  color: #ffffff !important; /* Fonte branca */
-  border: none;
-  border-radius: 2rem; /* Bordas arredondadas como o botão da imagem */
-  font-family: inherit; /* Mantém a fonte do menu */
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(255, 171, 0, 0.3);
-}
-
-.get-started-btn:hover {
-  background: linear-gradient(135deg, #FF8F00 0%, #FFAB00 100%); /* Inverte o degradê no hover */
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 171, 0, 0.4);
-}
-
-.get-started-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(255, 171, 0, 0.3);
-}
-
-/* Ícone da seta */
-.get-started-btn svg {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2;
-}
+/* ===== POSICIONAMENTO DO MENU DIREITO ===== */
 
 /* Posicionamento no menu-login-right */
 .menu-login-right {

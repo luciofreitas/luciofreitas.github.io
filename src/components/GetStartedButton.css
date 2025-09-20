@@ -1,0 +1,111 @@
+/* GetStartedButton.css - Botão "Comece agora - É grátis" */
+
+.get-started-button {
+  /* Layout e estrutura */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 2rem; /* Bordas bem arredondadas como na imagem */
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  
+  /* Fonte */
+  font-family: inherit; /* Mantém a fonte do menu */
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff !important; /* Fonte branca */
+  
+  /* Cor de fundo com degradê usando #FFAB00 como base */
+  background: linear-gradient(135deg, #FFAB00 0%, #FF8F00 100%);
+  
+  /* Sombra com a cor base */
+  box-shadow: 0 2px 8px rgba(255, 171, 0, 0.3);
+  
+  /* Transições suaves */
+  transition: all 0.3s ease;
+}
+
+/* Efeito hover */
+.get-started-button:hover {
+  /* Inverte o degradê no hover */
+  background: linear-gradient(135deg, #FF8F00 0%, #FFAB00 100%);
+  
+  /* Eleva o botão */
+  transform: translateY(-1px);
+  
+  /* Intensifica a sombra */
+  box-shadow: 0 4px 12px rgba(255, 171, 0, 0.4);
+}
+
+/* Efeito active (quando pressionado) */
+.get-started-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 171, 0, 0.3);
+}
+
+/* Efeito focus para acessibilidade */
+.get-started-button:focus-visible {
+  outline: 2px solid rgba(255, 171, 0, 0.6);
+  outline-offset: 2px;
+}
+
+/* Estilização do texto */
+.button-text {
+  font-weight: inherit;
+  color: inherit;
+}
+
+/* Estilização da seta */
+.button-arrow {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  flex-shrink: 0; /* Impede que a seta encolha */
+}
+
+/* Estados disabled (caso necessário no futuro) */
+.get-started-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(255, 171, 0, 0.2);
+}
+
+.get-started-button:disabled:hover {
+  transform: none;
+  background: linear-gradient(135deg, #FFAB00 0%, #FF8F00 100%);
+  box-shadow: 0 2px 4px rgba(255, 171, 0, 0.2);
+}
+
+/* Responsividade - esconder em telas pequenas se necessário */
+@media (max-width: 48rem) {
+  .get-started-button {
+    display: none;
+  }
+}
+
+/* Variação pequena do botão (caso necessário) */
+.get-started-button.small {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.get-started-button.small .button-arrow {
+  width: 14px;
+  height: 14px;
+}
+
+/* Variação grande do botão (caso necessário) */
+.get-started-button.large {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+.get-started-button.large .button-arrow {
+  width: 18px;
+  height: 18px;
+}

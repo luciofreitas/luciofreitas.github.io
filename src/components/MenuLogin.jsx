@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MenuLogin.css';
 import Logo from './Logo';
+import GetStartedButton from './GetStartedButton';
 
 const MenuLogin = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -155,15 +156,7 @@ const MenuLogin = () => {
 
           {/* Botão "Comece agora" alinhado à direita */}
           <div className="menu-login-right">
-            <button 
-              className="get-started-btn"
-              onClick={handleNavigation(() => navigate('/login'))}
-            >
-              Comece agora - É grátis
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
+            <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
           </div>
         </div>
       </header>
