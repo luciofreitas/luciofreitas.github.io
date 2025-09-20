@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.5rem; /* Diminuído padding vertical de 0.75rem para 0.6rem */
+  padding: 1rem 1.5rem; /* Diminuído padding vertical de 0.75rem para 0.6rem */
   border: none;
   border-radius: 2rem; /* Bordas bem arredondadas como na imagem */
   cursor: pointer;
@@ -15,7 +15,7 @@
   
   /* Fonte */
   font-family: inherit; /* Mantém a fonte do menu */
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #ffffff !important; /* Fonte branca */
   
