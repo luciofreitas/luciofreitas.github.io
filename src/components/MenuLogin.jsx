@@ -18,7 +18,12 @@ const MenuLogin = () => {
   const [mobileMenuPosition, setMobileMenuPosition] = useState({ top: 0, left: 0 });
   const [toast, setToast] = useState(null);
   const [ariaMessage, setAriaMessage] = useState('');
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 768;
+    }
+    return false;
+  });
   const mobileMenuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();

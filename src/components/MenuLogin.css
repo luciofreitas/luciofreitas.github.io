@@ -1057,11 +1057,6 @@ a.menu-login-item {
     padding: 0.5rem !important;
     white-space: nowrap;
   }
-
-  /* Hide get started button on mobile */
-  .get-started-button {
-    display: none !important;
-  }
 }
 
 /* ===== POSICIONAMENTO DO MENU DIREITO ===== */
