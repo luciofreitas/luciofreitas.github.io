@@ -17,8 +17,7 @@ const MenuLogin = () => {
     { id: 'quem-somos', label: 'Quem Somos', onClick: () => navigate('/quem-somos') },
     { id: 'nosso-projeto', label: 'Nosso Projeto', onClick: () => navigate('/nosso-projeto') },
     { id: 'seja-pro', label: 'Seja Pro', onClick: () => navigate('/seja-pro') },
-    { id: 'contato', label: 'Contato', onClick: () => navigate('/contato') },
-    { id: 'entrar-registrar', label: 'Entrar/Registrar', onClick: () => navigate('/login') }
+    { id: 'contato', label: 'Contato', onClick: () => navigate('/contato') }
   ];
 
   // Função para calcular a posição do menu mobile
@@ -139,7 +138,7 @@ const MenuLogin = () => {
           <div className="menu-login-center">
             <nav className="menu-nav">
               <ul className="menu-list">
-                {menuItems.slice(0, -1).map(item => (
+                {menuItems.map(item => (
                   <li key={item.id}>
                     <a 
                       href={`#${item.id}`} 
