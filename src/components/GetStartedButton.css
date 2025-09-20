@@ -78,42 +78,52 @@
 /* ===== RESPONSIVIDADE MOBILE - BOTÃO CIRCULAR ===== */
 /* Tablets e dispositivos menores que 768px */
 @media (max-width: 48rem) {
-  .get-started-button {
+  .get-started-button,
+  .menu-login-right .get-started-button {
     /* Transformar em círculo */
-    width: 3.5rem; /* 56px */
-    height: 3.5rem; /* 56px */
-    min-width: 3.5rem;
-    min-height: 3.5rem;
-    padding: 0;
+    width: 3.5rem !important; /* 56px */
+    height: 3.5rem !important; /* 56px */
+    min-width: 3.5rem !important;
+    min-height: 3.5rem !important;
+    padding: 0 !important;
     border-radius: 50% !important; /* Círculo perfeito */
-    gap: 0;
+    gap: 0 !important;
     
     /* Manter degradê e sombras */
-    background: linear-gradient(135deg, #FFD700 0%, #FFAB00 25%, #FF8F00 75%, #E67E00 100%);
+    background: linear-gradient(135deg, #FFD700 0%, #FFAB00 25%, #FF8F00 75%, #E67E00 100%) !important;
     box-shadow: 0 4px 15px rgba(255, 171, 0, 0.5), 
                 0 2px 8px rgba(230, 126, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    
+    /* Garantir visibilidade */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
   }
   
   /* Esconder o texto no mobile */
-  .button-text {
-    display: none;
+  .get-started-button .button-text,
+  .menu-login-right .get-started-button .button-text {
+    display: none !important;
   }
   
   /* Ajustar seta para centralizar no círculo */
-  .button-arrow {
-    width: 24px;
-    height: 24px;
-    stroke-width: 2.5;
-    margin: 0;
+  .get-started-button .button-arrow,
+  .menu-login-right .get-started-button .button-arrow {
+    width: 24px !important;
+    height: 24px !important;
+    stroke-width: 2.5 !important;
+    margin: 0 !important;
   }
   
   /* Hover específico para mobile circular */
-  .get-started-button:hover {
-    transform: translateY(-3px) scale(1.05);
+  .get-started-button:hover,
+  .menu-login-right .get-started-button:hover {
+    transform: translateY(-3px) scale(1.05) !important;
     box-shadow: 0 8px 25px rgba(255, 171, 0, 0.8), 
                 0 4px 15px rgba(230, 126, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   }
 }
 

@@ -1058,9 +1058,18 @@ a.menu-login-item {
     white-space: nowrap;
   }
 
-  /* Hide get started button on mobile */
+  /* Show get started button as circular on mobile */
   .get-started-button {
-    display: none !important;
+    display: flex !important;
+    /* Garantir que o botão circular funcione no contexto do menu mobile */
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Posicionamento específico no menu-login-right para mobile */
+  .menu-login-right .get-started-button {
+    flex-shrink: 0 !important;
+    margin-left: 0.5rem !important;
   }
 }
 
