@@ -76,8 +76,8 @@
 }
 
 /* ===== RESPONSIVIDADE MOBILE - BOTÃO CIRCULAR ===== */
-/* Tablets e dispositivos menores que 768px */
-@media (max-width: 48rem) {
+/* Tablets e dispositivos menores que 768px - incluindo 768px */
+@media (max-width: 48.1rem) {
   .get-started-button,
   .menu-login-right .get-started-button {
     /* Transformar em círculo */
@@ -127,8 +127,37 @@
   }
 }
 
+/* Regra específica para tablets 768px - forçar formato circular */
+@media (max-width: 768px) {
+  .get-started-button,
+  .menu-login-right .get-started-button {
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+    min-width: 3.5rem !important;
+    min-height: 3.5rem !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .get-started-button .button-text,
+  .menu-login-right .get-started-button .button-text {
+    display: none !important;
+  }
+  
+  .get-started-button .button-arrow,
+  .menu-login-right .get-started-button .button-arrow {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
+
 /* Smartphones pequenos */
-@media (max-width: 30rem) {
+@media (max-width: 30.1rem) {
   .get-started-button {
     width: 3rem; /* 48px */
     height: 3rem; /* 48px */
@@ -169,7 +198,7 @@
 }
 
 /* No mobile, variação small também fica circular */
-@media (max-width: 48rem) {
+@media (max-width: 48.1rem) {
   .get-started-button.small {
     width: 3rem;
     height: 3rem;
@@ -196,7 +225,7 @@
 }
 
 /* No mobile, variação large também fica circular */
-@media (max-width: 48rem) {
+@media (max-width: 48.1rem) {
   .get-started-button.large {
     width: 4rem;
     height: 4rem;
