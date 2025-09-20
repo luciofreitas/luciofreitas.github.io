@@ -244,17 +244,21 @@ const MenuLogin = () => {
                 aria-label="Carregando informações do usuário"
               />
             ) : usuarioLogado ? (
-              // User menu when logged in
-              <MenuUsuario
-                nome={usuarioLogado.nome || usuarioLogado.email}
-                isPro={usuarioLogado.isPro || false}
-                onPerfil={handleProfileClick}
-                onPro={handleProClick}
-                onConfiguracoes={handleConfiguracoesClick}
-                onLogout={handleLogout}
-              />
+              // User menu when logged in - mobile vs desktop
+              isMobile ? (
+                <CircularArrowButton onClick={handleNavigation(() => navigate('/perfil'))} />
+              ) : (
+                <MenuUsuario
+                  nome={usuarioLogado.nome || usuarioLogado.email}
+                  isPro={usuarioLogado.isPro || false}
+                  onPerfil={handleProfileClick}
+                  onPro={handleProClick}
+                  onConfiguracoes={handleConfiguracoesClick}
+                  onLogout={handleLogout}
+                />
+              )
             ) : (
-              // "Comece agora" button when not logged in
+              // "Comece agora" button when not logged in - mobile vs desktop
               isMobile ? (
                 <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
               ) : (
