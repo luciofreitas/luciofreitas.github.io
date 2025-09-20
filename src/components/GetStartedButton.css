@@ -1,4 +1,4 @@
-/* GetStartedButton.css - Botão "Comece agora - É grátis" responsivo */
+/* GetStartedButton.css - Botão "Comece agora - É grátis" */
 
 .get-started-button {
   /* Layout e estrutura */
@@ -6,14 +6,12 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 1rem 1.5rem; /* Padding padrão para desktop */
+  padding: 1rem 1.5rem; /* Diminuído padding vertical de 0.75rem para 0.6rem */
   border: none;
   border-radius: 2rem; /* Bordas bem arredondadas como na imagem */
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  position: relative;
-  overflow: hidden;
   
   /* Fonte */
   font-family: inherit; /* Mantém a fonte do menu */
@@ -42,9 +40,6 @@
   box-shadow: 0 8px 25px rgba(255, 171, 0, 0.7), 
               0 4px 15px rgba(230, 126, 0, 0.5),
               inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  
-  /* Leve elevação no hover */
-  transform: translateY(-2px);
 }
 
 /* Efeito active (quando pressionado) */
@@ -63,113 +58,14 @@
 .button-text {
   font-weight: inherit;
   color: inherit;
-  transition: all 0.3s ease;
 }
 
 /* Estilização da seta */
 .button-arrow {
-  width: 20px;
-  height: 20px;
-  stroke-width: 2.5;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
   flex-shrink: 0; /* Impede que a seta encolha */
-  transition: all 0.3s ease;
-}
-
-/* ===== RESPONSIVIDADE MOBILE - BOTÃO CIRCULAR ===== */
-/* Tablets e dispositivos menores que 768px - incluindo 768px */
-@media (max-width: 48.1rem) {
-  .get-started-button,
-  .menu-login-right .get-started-button {
-    /* Transformar em círculo */
-    width: 3.5rem !important; /* 56px */
-    height: 3.5rem !important; /* 56px */
-    min-width: 3.5rem !important;
-    min-height: 3.5rem !important;
-    padding: 0 !important;
-    border-radius: 50% !important; /* Círculo perfeito */
-    gap: 0 !important;
-    
-    /* Manter degradê e sombras */
-    background: linear-gradient(135deg, #FFD700 0%, #FFAB00 25%, #FF8F00 75%, #E67E00 100%) !important;
-    box-shadow: 0 4px 15px rgba(255, 171, 0, 0.5), 
-                0 2px 8px rgba(230, 126, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-    
-    /* Garantir visibilidade */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0 !important;
-  }
-  
-  /* Esconder o texto no mobile */
-  .get-started-button .button-text,
-  .menu-login-right .get-started-button .button-text {
-    display: none !important;
-  }
-  
-  /* Ajustar seta para centralizar no círculo */
-  .get-started-button .button-arrow,
-  .menu-login-right .get-started-button .button-arrow {
-    width: 24px !important;
-    height: 24px !important;
-    stroke-width: 2.5 !important;
-    margin: 0 !important;
-  }
-  
-  /* Hover específico para mobile circular */
-  .get-started-button:hover,
-  .menu-login-right .get-started-button:hover {
-    transform: translateY(-3px) scale(1.05) !important;
-    box-shadow: 0 8px 25px rgba(255, 171, 0, 0.8), 
-                0 4px 15px rgba(230, 126, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-  }
-}
-
-/* Regra específica para tablets 768px - forçar formato circular */
-@media (max-width: 768px) {
-  .get-started-button,
-  .menu-login-right .get-started-button {
-    width: 3.5rem !important;
-    height: 3.5rem !important;
-    min-width: 3.5rem !important;
-    min-height: 3.5rem !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  
-  .get-started-button .button-text,
-  .menu-login-right .get-started-button .button-text {
-    display: none !important;
-  }
-  
-  .get-started-button .button-arrow,
-  .menu-login-right .get-started-button .button-arrow {
-    width: 24px !important;
-    height: 24px !important;
-  }
-}
-
-/* Smartphones pequenos */
-@media (max-width: 30.1rem) {
-  .get-started-button {
-    width: 3rem; /* 48px */
-    height: 3rem; /* 48px */
-    min-width: 3rem;
-    min-height: 3rem;
-  }
-  
-  .button-arrow {
-    width: 20px;
-    height: 20px;
-    stroke-width: 2;
-  }
 }
 
 /* Estados disabled (caso necessário no futuro) */
@@ -186,57 +82,24 @@
   box-shadow: 0 2px 4px rgba(255, 171, 0, 0.2);
 }
 
-/* Variações de tamanho (mantidas para compatibilidade) */
+/* Variação pequena do botão (caso necessário) */
 .get-started-button.small {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .get-started-button.small .button-arrow {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
-/* No mobile, variação small também fica circular */
-@media (max-width: 48.1rem) {
-  .get-started-button.small {
-    width: 3rem;
-    height: 3rem;
-    min-width: 3rem;
-    min-height: 3rem;
-    padding: 0;
-    border-radius: 50% !important;
-  }
-  
-  .get-started-button.small .button-arrow {
-    width: 18px;
-    height: 18px;
-  }
-}
-
+/* Variação grande do botão (caso necessário) */
 .get-started-button.large {
   padding: 1rem 2rem;
-  font-size: 1.125rem;
+  font-size: 1rem;
 }
 
 .get-started-button.large .button-arrow {
-  width: 22px;
-  height: 22px;
-}
-
-/* No mobile, variação large também fica circular */
-@media (max-width: 48.1rem) {
-  .get-started-button.large {
-    width: 4rem;
-    height: 4rem;
-    min-width: 4rem;
-    min-height: 4rem;
-    padding: 0;
-    border-radius: 50% !important;
-  }
-  
-  .get-started-button.large .button-arrow {
-    width: 26px;
-    height: 26px;
-  }
+  width: 18px;
+  height: 18px;
 }
