@@ -1078,3 +1078,12 @@ a.menu-login-item {
   order: 3 !important; /* Garante que fica depois do centro */
   flex-shrink: 0 !important;
 }
+
+/* GARANTIR FONT-WEIGHT 600 PARA ITENS DO MENU */
+.menu-login-item {
+  font-weight: 600 !important;
+}
+
+a.menu-login-item {
+  font-weight: 600 !important;
+}

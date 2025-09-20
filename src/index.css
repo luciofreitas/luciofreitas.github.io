@@ -146,3 +146,9 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Forçar font-weight 600 para itens do menu com máxima especificidade */
+html body .site-header .menu-login-root .menu-nav .menu-list .menu-login-item,
+html body .site-header .menu-login-root .menu-nav .menu-list a.menu-login-item {
+  font-weight: 600 !important;
+}
