@@ -246,39 +246,11 @@ const MenuLogin = () => {
           </div>
 
           {/* Botão "Comece agora" ou Menu de Usuário à direita */}
-          <div className="menu-login-right" style={{ minWidth: '60px', minHeight: '60px', backgroundColor: 'red' }}>
-            {/* DEBUG: Elemento de teste sempre visível */}
-            <div style={{ width: '50px', height: '50px', backgroundColor: 'green', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              →
+          <div className="menu-login-right" style={{ minWidth: '60px', minHeight: '60px', backgroundColor: 'red', position: 'fixed', top: '10px', right: '10px', zIndex: 9999 }}>
+            {/* TESTE SEMPRE RENDERIZADO */}
+            <div style={{ width: '50px', height: '50px', backgroundColor: 'green', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '24px' }}>
+              ✓
             </div>
-            {(isMobile || (typeof window !== 'undefined' && window.innerWidth <= 768)) ? (
-              // Sempre mostra o CircularArrowButton no mobile
-              <CircularArrowButton 
-                onClick={handleNavigation(() => navigate(usuarioLogado ? '/perfil' : '/login'))} 
-                className="mobile-circular-button"
-              />
-            ) : (
-              !authLoaded ? (
-                <Skeleton 
-                  width="120px" 
-                  height="40px" 
-                  borderRadius="0.5rem"
-                  animate={true}
-                  aria-label="Carregando informações do usuário"
-                />
-              ) : usuarioLogado ? (
-                <MenuUsuario
-                  nome={usuarioLogado.nome || usuarioLogado.email}
-                  isPro={usuarioLogado.isPro || false}
-                  onPerfil={handleProfileClick}
-                  onPro={handleProClick}
-                  onConfiguracoes={handleConfiguracoesClick}
-                  onLogout={handleLogout}
-                />
-              ) : (
-                <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
-              )
-            )}
           </div>
         </div>
       </header>
