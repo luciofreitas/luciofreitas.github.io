@@ -194,6 +194,11 @@ const MenuLogin = () => {
 
   return (
     <>
+      {/* TESTE EXTREMO: DIV VISÍVEL SEMPRE */}
+      <div style={{ position: 'fixed', top: '0px', left: '0px', width: '100vw', height: '100px', backgroundColor: 'blue', color: 'white', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+        MENULOGIN RENDERIZADO! ✅
+      </div>
+      
       <header className="site-header">
         <div className="menu-login-root menu-responsive">
           <Logo />
