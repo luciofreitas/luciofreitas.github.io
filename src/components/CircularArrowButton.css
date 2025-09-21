@@ -137,7 +137,9 @@
 
 /* Responsividade - ajustar tamanhos para mobile e alinhar à direita */
 @media (max-width: 48rem) {
-  .circular-arrow-button {
+  .circular-arrow-button,
+  .mobile-circular-button {
+    display: flex !important; /* Force display */
     width: 3rem; /* 48px em mobile */
     height: 3rem; /* 48px em mobile */
     min-width: 3rem;

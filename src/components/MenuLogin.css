@@ -976,6 +976,15 @@ a.menu-login-item {
     pointer-events: auto !important; /* Garante interatividade */
   }
 
+  /* Force circular button visibility in mobile */
+  .menu-login-right .circular-arrow-button,
+  .menu-login-right .mobile-circular-button {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 70 !important;
+  }
+
   /* Hide desktop navigation by default on mobile - show as dropdown popup EXACTLY like user menu */
   .menu-login-center {
     display: none !important; /* Esconde completamente no estado fechado */

@@ -24,6 +24,19 @@ const MenuLogin = () => {
     }
     return false;
   });
+
+  // Force mobile detection on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    // Set initial value
+    handleResize();
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const mobileMenuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
@@ -234,9 +247,12 @@ const MenuLogin = () => {
 
           {/* Botão "Comece agora" ou Menu de Usuário à direita */}
           <div className="menu-login-right">
-            {isMobile ? (
+            {(isMobile || (typeof window !== 'undefined' && window.innerWidth <= 768)) ? (
               // Sempre mostra o CircularArrowButton no mobile
-              <CircularArrowButton onClick={handleNavigation(() => navigate(usuarioLogado ? '/perfil' : '/login'))} />
+              <CircularArrowButton 
+                onClick={handleNavigation(() => navigate(usuarioLogado ? '/perfil' : '/login'))} 
+                className="mobile-circular-button"
+              />
             ) : (
               !authLoaded ? (
                 <Skeleton 
