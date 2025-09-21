@@ -14,6 +14,8 @@ import Skeleton from './Skeleton';
 import './Skeleton.css';
 
 const MenuLogin = () => {
+  console.log('🔍 MenuLogin está sendo renderizado!', { window: typeof window !== 'undefined' ? window.innerWidth : 'undefined' });
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileMenuPosition, setMobileMenuPosition] = useState({ top: 0, left: 0 });
   const [toast, setToast] = useState(null);
