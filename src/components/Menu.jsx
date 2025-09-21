@@ -4,7 +4,6 @@ import { AuthContext } from '../App';
 import './MenuLogin.css';
 import Logo from './Logo';
 import MenuUsuario from './MenuUsuario';
-import GetStartedButton from './GetStartedButton';
 import CircularArrowButton from './CircularArrowButton';
 
 function Menu() {
