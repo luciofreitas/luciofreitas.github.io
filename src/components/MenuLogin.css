@@ -859,6 +859,7 @@ a.menu-login-item {
     overflow: visible !important; /* Permite que os elementos sejam visíveis */
     display: flex !important;
     gap: 0.5rem !important; /* Espaçamento mínimo entre elementos */
+    width: 100% !important; /* Largura total */
   }
 
   /* Evita que a navegação central se comporte como barra horizontal no topo */
@@ -966,12 +967,13 @@ a.menu-login-item {
     flex-shrink: 0 !important; /* Não encolhe */
     align-items: center !important;
     justify-content: flex-end !important; /* Força alinhamento à direita */
-    z-index: 30 !important; /* Acima de tudo inclusive logo */
+    z-index: 50 !important; /* Prioridade máxima acima de tudo */
     margin-left: auto !important; /* Empurra para a direita */
     min-width: 3rem !important; /* Largura mínima para o botão circular */
     height: 4.5rem !important; /* Altura total do header */
     order: 3 !important; /* Last element - rightmost */
     padding-right: 0.5rem !important; /* Espaço da borda direita */
+    pointer-events: auto !important; /* Garante interatividade */
   }
 
   /* Hide desktop navigation by default on mobile - show as dropdown popup EXACTLY like user menu */

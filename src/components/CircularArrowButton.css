@@ -145,8 +145,11 @@
     margin-left: auto; /* Alinha à direita */
     margin-right: 0; /* Remove margem direita para ficar mais próximo da borda */
     flex-shrink: 0; /* Não encolhe em mobile */
-    z-index: 40; /* Acima de todos outros elementos */
+    z-index: 60; /* Prioridade máxima, acima de todos os elementos */
     position: relative; /* Garante posicionamento correto */
+    pointer-events: auto; /* Garante que seja clicável */
+    visibility: visible; /* Força visibilidade */
+    opacity: 1; /* Garante opacidade total */
   }
   
   .circular-arrow-button .circular-button-arrow {
