@@ -1,19 +1,31 @@
-import React, { useEffect, useLayoutEffect, useState, useRef, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../App';
-import './MenuLogin.css';
-import Logo from './Logo';
-import GetStartedButton from './GetStartedButton';
+import React from 'react';
 import CircularArrowButton from './CircularArrowButton';
-import MenuUsuario from './MenuUsuario';
-import Toast from './Toast';
-import './Toast.css';
-import AriaLive from './AriaLive';
-import './AriaLive.css';
-import Skeleton from './Skeleton';
-import './Skeleton.css';
 
 const MenuLogin = () => {
+  console.log('🔍 MenuLogin SIMPLIFICADO renderizando!');
+  
+  return (
+    <>
+      {/* Barra azul de confirmação */}
+      <div style={{ position: 'fixed', top: '0px', left: '0px', width: '100vw', height: '80px', backgroundColor: 'blue', color: 'white', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+        MENULOGIN FUNCIONANDO! ✅
+      </div>
+      
+      {/* Header simplificado */}
+      <header className="site-header" style={{ backgroundColor: '#0052CC', height: '72px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1rem', marginTop: '80px' }}>
+        {/* Logo simples */}
+        <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
+          🚗 Peça Fácil
+        </div>
+        
+        {/* Botão circular sempre visível no mobile */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <CircularArrowButton onClick={() => window.location.href = '/login'} />
+        </div>
+      </header>
+    </>
+  );
+};
   console.log('🔍 MenuLogin está sendo renderizado!', { window: typeof window !== 'undefined' ? window.innerWidth : 'undefined' });
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
