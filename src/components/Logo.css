@@ -96,6 +96,8 @@
   .logo-subtitle {
     display: block !important; /* Mostrar "Compatibilidade e Economia" em telas médias */
     font-size: 0.75rem; /* Reduzir tamanho em telas médias */
+    visibility: visible !important; /* Força visibilidade */
+    opacity: 1 !important; /* Força opacidade */
   }
   
   .logo-container {
