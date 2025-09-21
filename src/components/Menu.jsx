@@ -8,6 +8,7 @@ import GetStartedButton from './GetStartedButton';
 import CircularArrowButton from './CircularArrowButton';
 
 function Menu() {
+  console.log('🚨 MENU.JSX RENDERIZANDO - NÃO DEVERIA ESTAR AQUI NA PÁGINA LOGIN!');
   const [hideMenu, setHideMenu] = useState(false);
   const [lastScroll, setLastScroll] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -197,11 +198,8 @@ function Menu() {
 
         <div className="menu-login-right">
         {!usuarioLogado ? (
-            isMobile ? (
-              <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
-            ) : (
-              <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
-            )
+            // SEMPRE CircularArrowButton - tanto mobile quanto desktop
+            <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
           ) : (
             <MenuUsuario
               nome={usuarioLogado.nome}
