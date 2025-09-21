@@ -36,6 +36,8 @@
   justify-content: center;
   line-height: 1.2;
   margin-left: -12px; /* aproximar o texto ainda mais - sem espaçamento */
+  width: fit-content; /* width acompanha o tamanho máximo do conteúdo */
+  max-width: max-content; /* sem largura desnecessária */
 }
 
 .logo-title {
@@ -92,7 +94,8 @@
   }
   
   .logo-subtitle {
-    display: none !important; /* Esconder "Compatibilidade e Economia" em mobile */
+    display: block !important; /* Mostrar "Compatibilidade e Economia" em telas médias */
+    font-size: 0.75rem; /* Reduzir tamanho em telas médias */
   }
   
   .logo-container {
