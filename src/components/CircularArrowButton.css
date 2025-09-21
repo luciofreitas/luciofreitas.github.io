@@ -140,18 +140,21 @@
   .circular-arrow-button,
   .mobile-circular-button {
     display: flex !important; /* Force display */
-    width: 3rem; /* 48px em mobile */
-    height: 3rem; /* 48px em mobile */
-    min-width: 3rem;
-    min-height: 3rem;
+    width: 3rem !important; /* 48px em mobile - força largura */
+    height: 3rem !important; /* 48px em mobile - força altura */
+    min-width: 3rem !important;
+    min-height: 3rem !important;
+    max-width: 3rem !important; /* Força largura máxima */
+    max-height: 3rem !important; /* Força altura máxima */
     margin-left: auto; /* Alinha à direita */
     margin-right: 0; /* Remove margem direita para ficar mais próximo da borda */
-    flex-shrink: 0; /* Não encolhe em mobile */
-    z-index: 60; /* Prioridade máxima, acima de todos os elementos */
-    position: relative; /* Garante posicionamento correto */
-    pointer-events: auto; /* Garante que seja clicável */
-    visibility: visible; /* Força visibilidade */
-    opacity: 1; /* Garante opacidade total */
+    flex-shrink: 0 !important; /* Não encolhe em mobile */
+    z-index: 60 !important; /* Prioridade máxima, acima de todos os elementos */
+    position: relative !important; /* Garante posicionamento correto */
+    pointer-events: auto !important; /* Garante que seja clicável */
+    visibility: visible !important; /* Força visibilidade */
+    opacity: 1 !important; /* Garante opacidade total */
+    background: rgba(0, 255, 0, 0.2) !important; /* DEBUG: fundo verde temporário */
   }
   
   .circular-arrow-button .circular-button-arrow {

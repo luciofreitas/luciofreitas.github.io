@@ -969,11 +969,14 @@ a.menu-login-item {
     justify-content: flex-end !important; /* Força alinhamento à direita */
     z-index: 50 !important; /* Prioridade máxima acima de tudo */
     margin-left: auto !important; /* Empurra para a direita */
-    min-width: 3rem !important; /* Largura mínima para o botão circular */
+    min-width: 3.5rem !important; /* Força largura mínima */
+    min-height: 3.5rem !important; /* Força altura mínima */
+    width: auto !important; /* Largura automática baseada no conteúdo */
     height: 4.5rem !important; /* Altura total do header */
     order: 3 !important; /* Last element - rightmost */
     padding-right: 0.5rem !important; /* Espaço da borda direita */
     pointer-events: auto !important; /* Garante interatividade */
+    background: rgba(255, 0, 0, 0.1) !important; /* DEBUG: fundo vermelho temporário */
   }
 
   /* Force circular button visibility in mobile */
