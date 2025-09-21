@@ -234,20 +234,19 @@ const MenuLogin = () => {
 
           {/* Botão "Comece agora" ou Menu de Usuário à direita */}
           <div className="menu-login-right">
-            {!authLoaded ? (
-              // Loading skeleton while checking authentication
-              <Skeleton 
-                width="120px" 
-                height="40px" 
-                borderRadius="0.5rem"
-                animate={true}
-                aria-label="Carregando informações do usuário"
-              />
-            ) : usuarioLogado ? (
-              // User menu when logged in - always show CircularArrowButton on mobile
-              isMobile ? (
-                <CircularArrowButton onClick={handleNavigation(() => navigate('/perfil'))} />
-              ) : (
+            {isMobile ? (
+              // Sempre mostra o CircularArrowButton no mobile
+              <CircularArrowButton onClick={handleNavigation(() => navigate(usuarioLogado ? '/perfil' : '/login'))} />
+            ) : (
+              !authLoaded ? (
+                <Skeleton 
+                  width="120px" 
+                  height="40px" 
+                  borderRadius="0.5rem"
+                  animate={true}
+                  aria-label="Carregando informações do usuário"
+                />
+              ) : usuarioLogado ? (
                 <MenuUsuario
                   nome={usuarioLogado.nome || usuarioLogado.email}
                   isPro={usuarioLogado.isPro || false}
@@ -256,11 +255,6 @@ const MenuLogin = () => {
                   onConfiguracoes={handleConfiguracoesClick}
                   onLogout={handleLogout}
                 />
-              )
-            ) : (
-              // "Comece agora" button when not logged in - always show CircularArrowButton on mobile
-              isMobile ? (
-                <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
               ) : (
                 <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
               )
