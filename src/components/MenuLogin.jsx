@@ -246,7 +246,11 @@ const MenuLogin = () => {
           </div>
 
           {/* Botão "Comece agora" ou Menu de Usuário à direita */}
-          <div className="menu-login-right">
+          <div className="menu-login-right" style={{ minWidth: '60px', minHeight: '60px', backgroundColor: 'red' }}>
+            {/* DEBUG: Elemento de teste sempre visível */}
+            <div style={{ width: '50px', height: '50px', backgroundColor: 'green', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              →
+            </div>
             {(isMobile || (typeof window !== 'undefined' && window.innerWidth <= 768)) ? (
               // Sempre mostra o CircularArrowButton no mobile
               <CircularArrowButton 
