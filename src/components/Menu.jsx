@@ -196,27 +196,28 @@ function Menu() {
         {/* NOTE: mobile dropdown uses the replicated user-dropdown earlier; no separate mobile-menu-dropdown required */}
 
         <div className="menu-login-right">
-        {!usuarioLogado ? (
-            isMobile ? (
-              <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
-            ) : (
+        {/* SEMPRE mostra CircularArrowButton no mobile */}
+        {isMobile ? (
+          <CircularArrowButton onClick={handleNavigation(() => navigate(usuarioLogado ? '/perfil' : '/login'))} />
+        ) : (
+          !usuarioLogado ? (
               <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+            ) : (
+              <MenuUsuario
+                nome={usuarioLogado.nome}
+                isPro={proActive}
+                onPerfil={handleNavigation(() => navigate('/perfil'))}
+                onPro={handleNavigation(() => navigate(proActive ? '/versao-pro-assinado' : '/versao-pro'))}
+                onConfiguracoes={handleNavigation(() => navigate('/configuracoes'))}
+                onLogout={handleNavigation(() => {
+                  // limpa estado/localStorage e redireciona para a tela de login
+                  setUsuarioLogado(null);
+                  localStorage.removeItem('usuarioLogado');
+                  navigate('/login');
+                })}
+              />
             )
-          ) : (
-            <MenuUsuario
-              nome={usuarioLogado.nome}
-              isPro={proActive}
-              onPerfil={handleNavigation(() => navigate('/perfil'))}
-              onPro={handleNavigation(() => navigate(proActive ? '/versao-pro-assinado' : '/versao-pro'))}
-              onConfiguracoes={handleNavigation(() => navigate('/configuracoes'))}
-              onLogout={handleNavigation(() => {
-                // limpa estado/localStorage e redireciona para a tela de login
-                setUsuarioLogado(null);
-                localStorage.removeItem('usuarioLogado');
-                navigate('/login');
-              })}
-            />
-          )}
+        )}
         </div>
       </div>
     </header>
