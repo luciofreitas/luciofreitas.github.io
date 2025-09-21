@@ -820,6 +820,19 @@ a.menu-login-item {
 
 /* Mobile responsive styles */
 @media (max-width: 48rem) {
+  /* FORÇA BRUTA: Container sempre visível */
+  .menu-login-right {
+    position: fixed !important; /* Posição fixa para forçar aparecimento */
+    top: 10px !important; /* No topo da tela */
+    right: 10px !important; /* Na direita da tela */
+    width: 60px !important; /* Largura fixa */
+    height: 60px !important; /* Altura fixa */
+    background: red !important; /* Fundo vermelho para ver */
+    z-index: 9999 !important; /* Z-index máximo */
+    display: block !important; /* Display forçado */
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
   /* Show hamburger button on mobile - alinhado verticalmente */
   .mobile-menu-toggle {
     display: flex !important; 
