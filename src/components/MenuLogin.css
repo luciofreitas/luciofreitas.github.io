@@ -820,19 +820,7 @@ a.menu-login-item {
 
 /* Mobile responsive styles */
 @media (max-width: 48rem) {
-  /* FORÇA BRUTA: Container sempre visível */
-  .menu-login-right {
-    position: fixed !important; /* Posição fixa para forçar aparecimento */
-    top: 10px !important; /* No topo da tela */
-    right: 10px !important; /* Na direita da tela */
-    width: 60px !important; /* Largura fixa */
-    height: 60px !important; /* Altura fixa */
-    background: red !important; /* Fundo vermelho para ver */
-    z-index: 9999 !important; /* Z-index máximo */
-    display: block !important; /* Display forçado */
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
+  /* Removed debug fixed positioning to avoid duplicate/conflicting rules. */
   /* Show hamburger button on mobile - alinhado verticalmente */
   .mobile-menu-toggle {
     display: flex !important; 
@@ -849,15 +837,46 @@ a.menu-login-item {
     align-self: center !important;
   }
 
-  /* Hamburger menu container positioning */
+  /* Hamburger menu container positioning - align with compiled/global CSS */
+  /* Position hamburger so it sits inside the centered logo box on mobile.
+     The centered logo container is forced to 300.52px wide; we position the
+     hamburger relative to the viewport so its left edge aligns with the
+     left edge of that centered box (center - half width).
+  */
   .hamburger-menu-root {
-    position: relative !important;
+    position: absolute !important;
+    /* place at (50% - halfBoxWidth - halfHamburgerWidthOffset)
+       halfBoxWidth = 300.52px / 2 = 150.26px
+       We want the hamburger to sit inside the left padding of the box, so
+       we offset a few pixels to the left: calc(50% - 150.26px - 20px)
+    */
+    left: calc(50% - 150.26px - 20px) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 1015 !important; /* above logo box but below user-controls */
+    order: -1 !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
     flex-shrink: 0 !important;
-    z-index: 25 !important;
-    order: 1 !important; /* First element - leftmost */
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Extra-specific rule: when hamburger is a child of the centered logo container,
+     place it inside the logo box and ensure sizing/alignment. This overrides
+     other rules because it's more specific. */
+  .menu-login-logo .hamburger-menu-root {
+    position: absolute !important;
+    left: 12px !important; /* small offset from left edge of logo box */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 48px !important;
+    height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 1020 !important;
   }
 
   /* Reduce padding on mobile and ensure proper layout for logo centrada */
@@ -974,7 +993,7 @@ a.menu-login-item {
   }
 
   /* User menu à direita - posição fixa */
-  .menu-login-right {
+    .menu-login-right {
     position: relative !important;
     display: flex !important; /* Show user menu in mobile */
     flex-shrink: 0 !important; /* Não encolhe */
@@ -989,7 +1008,7 @@ a.menu-login-item {
     order: 3 !important; /* Last element - rightmost */
     padding-right: 0.5rem !important; /* Espaço da borda direita */
     pointer-events: auto !important; /* Garante interatividade */
-    background: rgba(255, 0, 0, 0.1) !important; /* DEBUG: fundo vermelho temporário */
+    background: transparent !important;
   }
 
   /* Force circular button visibility in mobile */
