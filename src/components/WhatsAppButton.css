@@ -52,6 +52,8 @@
 .whatsapp-tooltip {
   display: inline-block;
   position: relative;
+  /* Ensure tooltip container creates a high stacking context so children can appear above modals */
+  z-index: 200000 !important;
 }
 
 .whatsapp-tooltip-icon {
@@ -84,7 +86,8 @@
   padding: 0.5rem 0.75rem;
   font-size: 0.8rem;
   white-space: nowrap;
-  z-index: 10;
+  /* Very high z-index to override modal overlays from compiled/bundled CSS */
+  z-index: 200001 !important;
   transition: all 0.2s ease;
 }
 
