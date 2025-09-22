@@ -904,8 +904,9 @@ a.menu-login-item {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 300.52px !important;
-    height: 88px !important;
+    width: auto !important;
+    /* make the logo container match the header height so it aligns vertically */
+    height: 4.5rem !important; /* same as header */
     gap: 0.5rem !important; /* Espaço entre imagem e texto */
     overflow: visible !important; /* Garante que nada seja cortado */
   }
@@ -913,7 +914,8 @@ a.menu-login-item {
   /* Logo image com dimensões proporcionais */
   .menu-login-logo .logo-image {
     width: auto !important;
-    height: 88px !important; /* Altura total disponível */
+    /* fit the logo image into the header height with some breathing room */
+    height: calc(4.5rem - 0.75rem) !important; /* ~3.75rem */
     max-width: 150px !important; /* Limita largura para deixar espaço para texto */
     object-fit: contain !important;
     border: none !important;

@@ -102,22 +102,24 @@
   
   .logo-container {
     gap: 0rem;
-    /* Force horizontal centering inside the fixed header on mobile
-       Use the .site-header parent to increase specificity and !important
-       so this overrides other compiled styles in assets. */
-    justify-content: center;
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: fit-content !important;
+    /* Keep logo vertically centered inside header rather than absolute centering
+       This aligns logo with hamburger and right controls */
+    justify-content: flex-start; /* let MenuLogin control horizontal placement */
+    position: relative !important;
+    left: auto !important;
+    top: 0 !important;
+    transform: none !important;
+    width: auto !important;
+    height: 4.5rem !important; /* match header height */
     margin: 0 !important;
     z-index: 15 !important;
+    align-items: center !important;
   }
 
   .logo-text-container {
     margin-left: -15px; /* aproximar ainda mais para telas pequenas */
     justify-content: center; /* Centralizar o texto verticalmente */
+    height: 100% !important; /* fill header height so text centers vertically */
   }
 }
 
