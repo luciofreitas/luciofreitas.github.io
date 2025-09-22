@@ -1,17 +1,23 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import './WhatsAppButton.css';
+import TooltipPortal from './TooltipPortal';
 
 function WhatsAppButton({ vehicle, isPro }) {
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent('Olá, tenho interesse na peça para: ' + (vehicle || ''))}`;
-  
+  const padlockRef = useRef(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
+  const showTooltip = () => setTooltipVisible(true);
+  const hideTooltip = () => setTooltipVisible(false);
+
   return (
     <div className="whatsapp-button-container">
       <div className="whatsapp-button-wrapper">
-        <a 
-          className="whatsapp-button" 
-          href={whatsappUrl} 
-          target="_blank" 
-          rel="noopener noreferrer" 
+        <a
+          className="whatsapp-button"
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           aria-label={`Contato via WhatsApp: ${vehicle || ''}`}
         >
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -21,15 +27,21 @@ function WhatsAppButton({ vehicle, isPro }) {
         </a>
         {!isPro && <div className="whatsapp-button-blur" />}
       </div>
-      
+
       {!isPro && (
-        <div className="whatsapp-tooltip">
-          <div className="whatsapp-tooltip-icon">
+        <div
+          className="whatsapp-tooltip"
+          onMouseEnter={showTooltip}
+          onMouseLeave={hideTooltip}
+        >
+          <div className="whatsapp-tooltip-icon" ref={padlockRef} onFocus={showTooltip} onBlur={hideTooltip} tabIndex={0}>
             <img src="./padlock.png" alt="Cadeado" className="whatsapp-padlock" />
           </div>
-          <div className="whatsapp-tooltip-text">
+
+          {/* Render tooltip into document.body via portal to escape stacking contexts */}
+          <TooltipPortal anchorRef={padlockRef} visible={tooltipVisible}>
             Seja Pro, para liberar o contato da oficina
-          </div>
+          </TooltipPortal>
         </div>
       )}
     </div>
