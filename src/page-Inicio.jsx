@@ -13,7 +13,7 @@ export default function PageInicio() {
       <div className="page-content inicio-main">
   <div className="inicio-hero">
           <div className="inicio-hero-inner">
-                    <h2 className="page-title">Bem Vindo ao Peça Fácil</h2>
+                    <h1 className="page-title">Seja um entendedor automotivo agora mesmo</h1>
             <p className="inicio-subtitle">Encontre peças compatíveis com economia e confiança.</p>
 
             <div className="inicio-actions">
