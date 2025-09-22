@@ -90,7 +90,7 @@ h1.page-title {
 .pf-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(23,43,77,0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,7 +198,7 @@ h1.page-title {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.6);
+  background: rgba(23,43,77,0.7);
   z-index: 2000;
 }
 .pf-zoom-image {
