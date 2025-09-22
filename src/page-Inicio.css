@@ -38,7 +38,7 @@
 
 /* Specific title sizing for the homepage main title */
 h1.page-title {
-  font-size: 5rem; /* requested */
+  font-size: 4rem; /* adjusted to match provided image */
   line-height: 1.05;
   margin: 0 0 1rem 0;
   color: #0052CC;
