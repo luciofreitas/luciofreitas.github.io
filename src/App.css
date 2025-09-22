@@ -787,14 +787,15 @@ select { -webkit-appearance: none; appearance: none; }
 
 /* Background para o elemento body quando page-inicio está ativa */
 body .page-wrapper.page-inicio,
-html body .page-wrapper.page-inicio,
-.page-wrapper.page-inicio.page-inicio,
-div.page-wrapper.page-inicio {
-  background: url('/fundo.png') center center / cover no-repeat !important;
-  background-attachment: fixed !important;
-  background-size: cover !important;
-  background-position: center center !important;
-  background-repeat: no-repeat !important;
+/* Removed page-inicio background image to match other pages (use white background)
+   The original rules used /fundo.png which created a blue background on the home page.
+   We'll keep the selectors but force a white background so it matches the rest of the site. */
+html body div.page-wrapper.page-inicio,
+html body .page-wrapper.page-inicio.page-inicio,
+.page-wrapper.page-inicio.page-inicio,div.page-wrapper.page-inicio{
+  background: #ffffff !important; /* force white like other pages */
+  background-color: #ffffff !important;
+  background-image: none !important;
   min-height: 100vh !important;
 }
 
@@ -960,16 +961,14 @@ body:not(:has(.page-inicio)) {
 /* Esta regra deve vir por último para garantir máxima prioridade */
 /* Especificidade máxima para garantir que a imagem apareça */
 
+/* Final override for page-inicio: ensure white background (removed fundo.png) */
 html body div.page-wrapper.page-inicio,
 html body .page-wrapper.page-inicio.page-inicio,
 body div.page-wrapper.page-inicio,
 div.page-wrapper.page-inicio {
-  background-image: url('/fundo.png') !important;
-  background-size: cover !important;
-  background-position: center center !important;
-  background-repeat: no-repeat !important;
-  background-attachment: fixed !important;
-  background-color: transparent !important;
+  background-image: none !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
   min-height: 100vh !important;
   width: 100% !important;
 }
