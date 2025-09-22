@@ -43,7 +43,7 @@ export default function BuscarPeca() {
     const loadMeta = async () => {
       try {
         const data = await apiService.getPecasMeta();
-        console.log('Data received in component:', data);
+  // metadata loaded
         
         setGrupos(data.grupos || []);
         setTodasPecas(data.pecas || []);
@@ -52,18 +52,11 @@ export default function BuscarPeca() {
         setAnos(data.anos || []);
         setFabricantes(data.fabricantes || []);
         
-        console.log('States set:', {
-          grupos: data.grupos?.length || 0,
-          pecas: data.pecas?.length || 0,
-          marcas: data.marcas?.length || 0,
-          modelos: data.modelos?.length || 0,
-          anos: data.anos?.length || 0,
-          fabricantes: data.fabricantes?.length || 0
-        });
+        // states initialized from metadata
 
         // Fazer uma busca inicial sem filtros para mostrar todas as peças
         if (data.pecas && data.pecas.length > 0) {
-          console.log('Making initial search with all parts...');
+          // make initial search with all parts
           setPecas(data.pecas);
         }
       } catch (err) {
@@ -290,8 +283,7 @@ export default function BuscarPeca() {
   };
 
   const openModal = (pecaOrId) => {
-    const peca = typeof pecaOrId === 'object' && pecaOrId ? pecaOrId : pecas.find(p => p.id === pecaOrId);
-    console.debug('[BuscarPeca] openModal called for', pecaOrId, 'resolved=', !!peca);
+  const peca = typeof pecaOrId === 'object' && pecaOrId ? pecaOrId : pecas.find(p => p.id === pecaOrId);
     setModalTitle('Compatibilidade');
     if (!peca || !peca.applications) {
       console.debug('[BuscarPeca] no applications for peca', peca);
@@ -323,9 +315,8 @@ export default function BuscarPeca() {
       fabricante: selectedFabricante 
     };
     try {
-      const data = await apiService.filtrarPecas(filtros);
-      const pecasFiltradas = data.results || [];
-  console.debug('[BuscarPeca] search result count=', pecasFiltradas.length, 'sample=', pecasFiltradas.slice(0,5));
+    const data = await apiService.filtrarPecas(filtros);
+    const pecasFiltradas = data.results || [];
       setPecas(pecasFiltradas);
       if (pecasFiltradas.length === 0) {
         setError('Nenhuma peça encontrada para os filtros selecionados.');

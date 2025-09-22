@@ -84,7 +84,6 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
     try {
       if (typeof onSubmit === 'function') await onSubmit(formData);
       else {
-        console.log('Dados do formulário:', formData);
         alert('Mensagem enviada com sucesso!');
       }
   setFormData({ nome: '', email: '', mensagem: '', ...initialValues });

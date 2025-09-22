@@ -7,7 +7,7 @@ import MenuUsuario from './MenuUsuario';
 import CircularArrowButton from './CircularArrowButton';
 
 function Menu() {
-  console.log('🚨 MENU.JSX RENDERIZANDO - NÃO DEVERIA ESTAR AQUI NA PÁGINA LOGIN!');
+  // debug log removed
   const [hideMenu, setHideMenu] = useState(false);
   const [lastScroll, setLastScroll] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

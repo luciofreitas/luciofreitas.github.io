@@ -69,30 +69,19 @@ export default function Login() {
 
   // Testar localStorage na inicialização do componente
   useEffect(() => {
-    console.log('[Debug] Login component mounted');
     const lsAvailable = testLocalStorage();
-    console.log('[Debug] localStorage disponível?', lsAvailable);
-    
-    console.log('[Debug] Usuários iniciais:', getUsuarios().length);
   }, []);
 
   function getUsuarios() {
-    console.log('[Debug] getUsuarios iniciado');
-    
     let usuarios = [];
-    
     // Sempre incluir contas demo (funcionam para todos)
     usuarios = [...usuariosDemoGlobais];
-    console.log('[Debug] Contas demo adicionadas:', usuarios.length);
     
     // Tentar adicionar usuários do localStorage se disponível
     try {
       const raw = localStorage.getItem('usuarios');
-      console.log('[Debug] localStorage raw data:', !!raw);
-      
       if (raw) {
         const parsed = JSON.parse(raw);
-        console.log('[Debug] Usuários do localStorage:', parsed.length);
         usuarios = usuarios.concat(parsed);
       }
     } catch (e) {
@@ -108,18 +97,15 @@ export default function Login() {
         email: String(u.email || '').trim().toLowerCase(),
         senha: String(u.senha || '')
       }));
-      console.log('[Debug] Seed data disponível:', seedData.length);
-      usuarios = usuarios.concat(seedData);
+  usuarios = usuarios.concat(seedData);
     } catch (e) {
       console.error('[Debug] Erro ao processar seed data:', e);
     }
     
-    console.log('[Debug] Total de usuários disponíveis:', usuarios.length);
     return usuarios;
   }
 
   function saveUsuario(novoUsuario) {
-    console.log('[Debug] saveUsuario iniciado');
     
     // Obter apenas usuários do localStorage (excluir demos e seeds)
     let usuariosLS = [];
@@ -133,7 +119,7 @@ export default function Login() {
       return novoUsuario; // Falha silenciosa
     }
     
-    console.log('[Debug] Usuários do localStorage antes de salvar:', usuariosLS.length);
+    
     
     const normalized = {
       ...novoUsuario,
@@ -142,23 +128,14 @@ export default function Login() {
     };
     
     const updated = [...usuariosLS, normalized];
-    console.log('[Debug] Lista atualizada com novo usuário:', updated.length);
+    
     
     try { 
       const serialized = JSON.stringify(updated);
       localStorage.setItem('usuarios', serialized);
-      console.log('[Debug] Dados salvos no localStorage com sucesso');
-      
-      // Verificar se realmente foi salvo
-      const verification = localStorage.getItem('usuarios');
-      if (verification) {
-        const parsed = JSON.parse(verification);
-        console.log('[Debug] Verificação - usuários salvos:', parsed.length);
-      } else {
-        console.warn('[Debug] Falha na verificação - dados não encontrados no localStorage');
-      }
+      // Verificação opcional.
     } catch (e) {
-      console.error('[Debug] Erro ao salvar no localStorage:', e);
+      console.error('Erro ao salvar no localStorage:', e);
       throw e;
     }
     
@@ -182,45 +159,37 @@ export default function Login() {
 
   function handleRegister(e) {
     e.preventDefault();
-    console.log('[Debug] Iniciando registro:', { regNome, regEmail, regCelular: regCelular.replace(/\D/g, '') });
     
     if (!regNome || !regSenha || !regEmail || !regCelular || !regConfirmSenha) {
-      console.log('[Debug] Campos em branco:', { regNome, regEmail, regCelular, regSenha: !!regSenha, regConfirmSenha: !!regConfirmSenha });
       setRegError('Preencha todos os campos.');
       return;
     }
     
     if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(regEmail)) {
-      console.log('[Debug] E-mail inválido:', regEmail);
       setRegError('E-mail inválido. Use o formato: exemplo@dominio.com');
       return;
     }
     
     const cleanCelular = regCelular.replace(/\D/g, '');
-    console.log('[Debug] Celular limpo:', cleanCelular, 'Válido?', /^\d{10,11}$/.test(cleanCelular));
     if (!/^\d{10,11}$/.test(cleanCelular)) {
       setRegError('Celular inválido (deve ter 10 ou 11 dígitos).');
       return;
     }
     
     if (regSenha.length < 4) {
-      console.log('[Debug] Senha muito curta:', regSenha.length);
       setRegError('A senha deve ter pelo menos 4 caracteres.');
       return;
     }
     
     if (regSenha !== regConfirmSenha) {
-      console.log('[Debug] Senhas não coincidem');
       setRegError('As senhas não coincidem.');
       return;
     }
     
     const normalizedRegEmail = String(regEmail || '').trim().toLowerCase();
-    const existingUsers = getUsuarios();
-    console.log('[Debug] Usuários existentes:', existingUsers.length);
+  const existingUsers = getUsuarios();
     
     if (existingUsers.some(u => String(u.email || '').trim().toLowerCase() === normalizedRegEmail)) {
-      console.log('[Debug] E-mail já existe:', normalizedRegEmail);
       setRegError('Já existe um usuário com este e-mail.');
       return;
     }
@@ -234,17 +203,15 @@ export default function Login() {
       senha: regSenha
     };
     
-    console.log('[Debug] Criando novo usuário:', { ...novoUsuario, senha: '***' });
     
     try {
-      const savedUser = saveUsuario(novoUsuario);
-      console.log('[Debug] Usuário salvo com sucesso:', { ...savedUser, senha: '***' });
+  const savedUser = saveUsuario(novoUsuario);
       
       setRegError('');
       setRegNome(''); setRegCelular(''); setRegEmail(''); setRegSenha(''); setRegConfirmSenha('');
       alert('Registro realizado com sucesso! Agora faça login com suas credenciais.');
     } catch (error) {
-      console.error('[Debug] Erro ao salvar usuário:', error);
+      console.error('Erro ao salvar usuário:', error);
       setRegError('Erro ao salvar usuário. Tente novamente.');
     }
   }

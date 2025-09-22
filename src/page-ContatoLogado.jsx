@@ -9,7 +9,6 @@ export default function ContatoLogado() {
 
   const handleSubmit = async (data) => {
     // aqui você pode enviar para a sua API
-    console.log('[ContatoLogado] enviado:', data);
     alert('Mensagem enviada com sucesso (usuário logado)!');
   };
 
