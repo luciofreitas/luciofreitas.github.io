@@ -877,30 +877,26 @@ a.menu-login-item {
     left: 50% !important;
     top: 50% !important; /* Alinha com o centro vertical do container, igual ao hamburguer */
     transform: translate(-50%, -50%) !important;
-    /* Ajusta o deslocamento para considerar o hamburger como limite esquerdo */
-    margin-left: 20px !important; /* Compensa metade da largura do hamburger (40px/2) */
-    width: 300.52px !important; /* Força largura exata */
-    height: 88px !important; /* Força altura exata */
-    padding: 0 !important;
-    margin: 0 !important;
-    margin-left: 20px !important; /* Reforça a compensação do hamburger */
-    margin-top: 0 !important;
-    margin-right: 0 !important;
-    margin-bottom: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 10 !important; /* Garante que fique acima de outros elementos, mas abaixo do hamburger e user menu */
-    min-width: 300.52px !important;
-    max-width: 300.52px !important;
-    min-height: 88px !important;
-    max-height: 88px !important;
-    /* Garante que não seja cortada */
-    overflow: visible !important;
-    /* OVERRIDE regras anteriores */
-    order: unset !important;
-    flex-shrink: unset !important;
-    justify-self: unset !important;
+      /* Ajusta o deslocamento para considerar o hamburger como limite esquerdo
+         Use largura responsiva (max-width) para permitir centralização dinâmica
+         e evitar cortes em telas pequenas. Reservamos espaço para o hamburger
+         (40px) e o menu de usuário (~80px) usando calc(). */
+      width: auto !important;
+      max-width: calc(100% - 120px) !important; /* deixa 120px de folga para ícones à esquerda/direita */
+      height: auto !important;
+      padding: 0 !important;
+      margin: 0 auto !important; /* centraliza no espaço disponível */
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      z-index: 10 !important; /* Garante que fique acima de outros elementos, mas abaixo do hamburger e user menu */
+      min-width: 0 !important;
+      min-height: 48px !important;
+      overflow: visible !important;
+      /* OVERRIDE regras anteriores */
+      order: unset !important;
+      flex-shrink: 0 !important;
+      justify-self: center !important;
   }
 
   /* Logo container interno - deve manter toda a estrutura */

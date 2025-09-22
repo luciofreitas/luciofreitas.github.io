@@ -102,13 +102,17 @@
   
   .logo-container {
     gap: 0rem;
-    justify-content: center; /* Centralizar a logo no mobile */
-    position: absolute; /* Posicionamento absoluto para controle preciso */
-    left: 60px; /* Distância fixa do hamburger */
-    right: 80px; /* Aumentar distância do ícone do usuário para não ficar colado */
-    transform: none; /* Remover centralização absoluta */
-    width: fit-content; /* Largura baseada no conteúdo real */
-    margin: 0 auto; /* Centralizar dentro do espaço disponível entre os ícones */
+    /* Force horizontal centering inside the fixed header on mobile
+       Use the .site-header parent to increase specificity and !important
+       so this overrides other compiled styles in assets. */
+    justify-content: center;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: fit-content !important;
+    margin: 0 !important;
+    z-index: 15 !important;
   }
 
   .logo-text-container {
