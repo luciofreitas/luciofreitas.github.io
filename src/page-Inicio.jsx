@@ -32,10 +32,10 @@ export default function PageInicio() {
         <div className="page-content inicio-main">
           <div className="inicio-hero">
             <div className="inicio-hero-inner">
-              <h1 className="page-title">Seja um entendedor automotivo, agora mesmo</h1>
+              <h1 className="page-title">Seja um entendedor automotivo, agora mesmo!</h1>
               <p className="inicio-subtitle">
                 No PeçasFácil você conseguirá se virar sozinho, aprenderá a identificar e comprar as peças certas para o  <br />
-                seu carro com confiança e economia, sobre manutenção preventiva, instalação de peças e muito mais.
+                seu carro com confiança e economia, aprenderá sobre manutenção preventiva, instalação de peças e muito mais.
                 
               </p>
             </div>
