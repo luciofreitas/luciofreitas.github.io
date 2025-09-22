@@ -1,4 +1,5 @@
 // API utility with JSON fallback for GitHub Pages
+import { glossarioMockData } from '../data/glossarioData.js';
 class ApiService {
   constructor() {
     this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -42,7 +43,7 @@ class ApiService {
 
   getJsonFallbackPath(apiPath) {
     const pathMap = {
-      '/api/glossario-dashboard': '/src/data/glossarioData.js',
+      '/api/glossario-dashboard': null,
       '/api/luzes-painel': '/data/luzes_painel.json',
       '/api/pecas/meta': '/data/parts_db.json',
     };
@@ -51,13 +52,8 @@ class ApiService {
 
   // Specific methods for each API endpoint
   async getGlossarioDashboard() {
-    // Import local data as fallback
-    try {
-      const { glossarioMockData } = await import('../data/glossarioData.js');
-      return this.fetchWithFallback('/api/glossario-dashboard', glossarioMockData);
-    } catch {
-      return this.fetchWithFallback('/api/glossario-dashboard');
-    }
+    // Use statically imported local data as fallback
+    return this.fetchWithFallback('/api/glossario-dashboard', glossarioMockData);
   }
 
   async getLuzesPainel() {
