@@ -843,41 +843,10 @@ a.menu-login-item {
      hamburger relative to the viewport so its left edge aligns with the
      left edge of that centered box (center - half width).
   */
-  .hamburger-menu-root {
-    position: absolute !important;
-    /* place at (50% - halfBoxWidth - halfHamburgerWidthOffset)
-       halfBoxWidth = 300.52px / 2 = 150.26px
-       We want the hamburger to sit inside the left padding of the box, so
-       we offset a few pixels to the left: calc(50% - 150.26px - 20px)
-    */
-    left: calc(50% - 150.26px - 20px) !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    z-index: 1015 !important; /* above logo box but below user-controls */
-    order: -1 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0 !important;
-    width: 40px !important;
-    height: 40px !important;
-  }
-
-  /* Extra-specific rule: when hamburger is a child of the centered logo container,
-     place it inside the logo box and ensure sizing/alignment. This overrides
-     other rules because it's more specific. */
-  .menu-login-logo .hamburger-menu-root {
-    position: absolute !important;
-    left: 12px !important; /* small offset from left edge of logo box */
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    width: 48px !important;
-    height: 48px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 1020 !important;
-  }
+  /* Note: rules for the hamburger element were removed to avoid reliance on
+    the legacy class name `hamburger-menu-root`. Mobile menu positioning is
+    handled via the button (`.mobile-menu-toggle`) and the dropdown
+    (`.user-dropdown`) which remain styled below. */
 
   /* Reduce padding on mobile and ensure proper layout for logo centrada */
   .menu-login-root {

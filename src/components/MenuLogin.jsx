@@ -174,7 +174,7 @@ const MenuLogin = () => {
           <Logo />
 
           {/* Mobile hamburger button */}
-          <div className="user-menu-root hamburger-menu-root">
+          <div className="user-menu-root">
             <button
               ref={mobileMenuButtonRef}
               className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}

@@ -150,8 +150,8 @@ function Menu() {
       <div className="menu-login-root menu-responsive">
         <Logo />
 
-        {/* Mobile hamburger button - replicate MenuUsuario structure */}
-        <div className="user-menu-root hamburger-menu-root">
+  {/* Mobile hamburger button - replicate MenuUsuario structure */}
+  <div className="user-menu-root">
           <button
             ref={mobileMenuButtonRef}
             className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
