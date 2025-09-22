@@ -154,7 +154,8 @@
     pointer-events: auto !important; /* Garante que seja clicável */
     visibility: visible !important; /* Força visibilidade */
     opacity: 1 !important; /* Garante opacidade total */
-    background: rgba(0, 255, 0, 0.2) !important; /* DEBUG: fundo verde temporário */
+    /* Match the golden/orange gradient from the design (same as GetStartedButton) */
+    background: linear-gradient(135deg, #FFD700 0%, #FFAB00 25%, #FF8F00 75%, #E67E00 100%) !important;
   }
   
   .circular-arrow-button .circular-button-arrow {
