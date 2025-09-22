@@ -129,6 +129,11 @@ h1.page-title {
 .pf-modal .pf-modal-title {
   font-weight: 600; /* semi-bold */
 }
+/* Match modal title color to menu blue */
+.pf-modal h3,
+.pf-modal .pf-modal-title {
+  color: #0052CC;
+}
 
 .catalog-images {
   display: flex;
