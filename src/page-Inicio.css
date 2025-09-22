@@ -128,11 +128,7 @@ h1.page-title {
 .pf-modal h3,
 .pf-modal .pf-modal-title {
   font-weight: 600; /* semi-bold */
-}
-/* Match modal title color to menu blue */
-.pf-modal h3,
-.pf-modal .pf-modal-title {
-  color: #0052CC;
+  color: #0052CC !important; 
 }
 
 .catalog-images {
@@ -210,7 +206,7 @@ h1.page-title {
   max-height: calc(100vh - 4rem);
   width: auto;
   height: auto;
-  transform: scale(1.4);
+  transform: scale(1.05); /* ~5% zoom */
   transition: transform 200ms ease;
   box-shadow: 0 1rem 3rem rgba(2,6,23,0.5);
   border-radius: 0.5rem;
@@ -218,7 +214,8 @@ h1.page-title {
 }
 
 @media (max-width: 40rem) {
-  .pf-zoom-image { transform: scale(1.25); }
+  /* Very small zoom on mobile to avoid overflow */
+  .pf-zoom-image { transform: scale(1.02); }
 }
 
 /* Full HD - 1920x1080 */

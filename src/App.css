@@ -1317,7 +1317,7 @@ html body {
 /* Força cor de texto consistente em todos os navegadores */
 h1, h3, h4, h5, h6 {
   color: var(--text-primary) !important;
-  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-text-fill-color: #0052CC !important;
   -webkit-text-stroke: none !important;
 }
 

@@ -4,6 +4,10 @@ import MenuLogin from './components/MenuLogin';
 import './page-Inicio.css';
 import catalogo1 from '../imagens pagina Inicial/catalogo-1.jpg';
 import catalogo2 from '../imagens pagina Inicial/catalogo-2.jpg';
+import recall1 from '../imagens pagina Inicial/recall-1.jpg';
+import recall2 from '../imagens pagina Inicial/recall-2.jpg';
+import guias1 from '../imagens pagina Inicial/guias-1.jpg';
+import guias2 from '../imagens pagina Inicial/guias-2.jpg';
 
 export default function PageInicio() {
   const navigate = useNavigate();
@@ -45,22 +49,39 @@ export default function PageInicio() {
         <div className="pf-modal-overlay" onClick={closeModal}>
           <div className="pf-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <button className="pf-modal-close" onClick={closeModal} aria-label="Fechar">×</button>
-            {modalContent === 'Catálogo de Peças' ? (
-              <>
-                <h3>{modalContent}</h3>
-                <div className="catalog-images">
-                  <img src={catalogo1} alt="Catálogo 1" onClick={() => setZoomImage(catalogo1)} style={{cursor: 'zoom-in'}} />
-                  <img src={catalogo2} alt="Catálogo 2" onClick={() => setZoomImage(catalogo2)} style={{cursor: 'zoom-in'}} />
-                </div>
-              </>
-            ) : (
-              <>
-                <p>Conteúdo do modal para a seção "{modalContent}". Aqui você pode adicionar links, descrições ou ações.</p>
-                <div style={{textAlign: 'right'}}>
-                  <button className="btn-primary" onClick={() => { closeModal(); navigate('/buscar-pecas'); }}>Ir para catálogo</button>
-                </div>
-              </>
-            )}
+            {
+              /* Map card titles to image arrays so Recalls and Guias replicate the catalog gallery */
+            }
+            {(() => {
+              const cardImages = {
+                'Catálogo de Peças': [catalogo1, catalogo2],
+                'Recalls': [recall1, recall2],
+                'Guias': [guias1, guias2],
+              };
+
+              const imgs = cardImages[modalContent];
+              if (imgs && imgs.length) {
+                return (
+                  <>
+                    <h3>{modalContent}</h3>
+                    <div className="catalog-images">
+                      {imgs.map((src, idx) => (
+                        <img key={idx} src={src} alt={`${modalContent} ${idx + 1}`} onClick={() => setZoomImage(src)} style={{ cursor: 'zoom-in' }} />
+                      ))}
+                    </div>
+                  </>
+                );
+              }
+
+              return (
+                <>
+                  <p>Conteúdo do modal para a seção "{modalContent}". Aqui você pode adicionar links, descrições ou ações.</p>
+                  <div style={{ textAlign: 'right' }}>
+                    <button className="btn-primary" onClick={() => { closeModal(); navigate('/buscar-pecas'); }}>Ir para catálogo</button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
