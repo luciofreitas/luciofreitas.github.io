@@ -124,6 +124,12 @@ h1.page-title {
   color: #0f172a;
 }
 
+/* Ensure modal H3 headings are semi-bold for better emphasis */
+.pf-modal h3,
+.pf-modal .pf-modal-title {
+  font-weight: 600; /* semi-bold */
+}
+
 .catalog-images {
   display: flex;
   gap: 1rem;
