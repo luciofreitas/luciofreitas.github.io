@@ -400,6 +400,11 @@ html {
   width: 100% !important; /* Full width for center alignment */
 }
 
+/* Ensure all top-level h2 page titles use the same blue as the menus */
+h2.page-title {
+  color: #0052CC !important;
+}
+
 /* Keep a specific rule for pages with .menu-page to avoid double spacing on some breakpoints. */
 .menu-page .page-title { padding-top: 0 !important; }
 
