@@ -17,8 +17,10 @@
 }
 
 .inicio-hero {
-  padding: 0 0 2.5rem 0; /* removed top padding since main already has it */
+  padding: 0 0 2.5rem 0; /* keep bottom spacing for hero content */
   text-align: center;
+  /* Ensure the hero title aligns with other pages using the same page-title spacing */
+  --homepage-title-top-padding: 0.85rem; /* matches global .page-title */
 }
 
 /* Title now uses .page-title class from App.css - keeping this for reference
@@ -40,9 +42,10 @@
 h1.page-title {
   font-size: 4rem; /* adjusted to match provided image */
   line-height: 1.05;
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--space-lg, 1.5rem) 0; /* use the global spacing token if available */
   color: #0052CC;
   font-weight: 700;
+  padding-top: var(--homepage-title-top-padding);
 }
 
 .inicio-actions {
@@ -237,3 +240,77 @@ h1.page-title {
 @media (min-width: 85.312rem) and (max-width: 85.375rem) {
   /* No forced margin-top here to allow global section spacing */
 }
+
+/* React-controlled carousel styles (center slide larger) */
+.inicio-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.inicio-carousel .carousel-control {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #0f172a;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+  background: rgba(255,255,255,0.9);
+}
+.inicio-carousel .carousel-track {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 70%;
+  justify-content: center;
+  overflow: visible;
+}
+.inicio-carousel .carousel-item {
+  flex: 0 0 18%;
+  max-width: 18%;
+  opacity: 0.95;
+  transform: scale(0.85);
+  transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 240ms ease;
+  cursor: pointer;
+  height: 200px; /* uniform height for thumbs */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inicio-carousel .carousel-item.is-center {
+  flex: 0 0 50%;
+  max-width: 50%;
+  transform: scale(1);
+  opacity: 1;
+  height: 320px; /* larger center height */
+}
+.inicio-carousel .carousel-item img {
+  /* Use contain to avoid cropping; images will letterbox if aspect ratios differ */
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain; /* do not crop images */
+  object-position: center;
+  border-radius: 8px;
+  display: block;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.08);
+  background: #ffffff; /* neutral background for letterboxing */
+  padding: 6px; /* small inner padding so edges don't touch */
+}
+
+/* Thumb specifics */
+.inicio-carousel .carousel-item.is-thumb { opacity: 0.95; transform: scale(0.85); }
+
+@media (max-width: 900px) {
+  .inicio-carousel .carousel-track { width: 100%; }
+  .inicio-carousel .carousel-item { display: none; }
+  .inicio-carousel .carousel-item.is-center { display: block; flex: 0 0 100%; max-width: 100%; transform: none; height: 240px; }
+}
+

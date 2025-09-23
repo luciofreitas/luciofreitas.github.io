@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MenuLogin from './components/MenuLogin';
 import './page-Inicio.css';
@@ -25,6 +25,24 @@ export default function PageInicio() {
     setModalContent('');
   };
 
+  // --- Carousel using local imported images
+  const images = [catalogo1, catalogo2, recall1, recall2, guias1, guias2];
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const trackRef = useRef(null);
+
+  const prevSlide = () => setCarouselIndex(i => (i - 1 + images.length) % images.length);
+  const nextSlide = () => setCarouselIndex(i => (i + 1) % images.length);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft') prevSlide();
+      if (e.key === 'ArrowRight') nextSlide();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <>
       <MenuLogin />
@@ -42,9 +60,35 @@ export default function PageInicio() {
           </div>
 
           <div className="inicio-cards">
-            <button className="card" id="catalogo-peca" onClick={() => openCardModal('Catálogo de Peças')}>Catálogo de Peças</button>
-            <button className="card" id="recalls" onClick={() => openCardModal('Recalls')}>Recalls</button>
-            <button className="card" id="guias" onClick={() => openCardModal('Guias')}>Guias</button>
+            <div className="inicio-carousel" aria-roledescription="carousel">
+              <button className="carousel-control prev" aria-label="Anterior" onClick={prevSlide}>❮</button>
+              <div className="carousel-track" ref={trackRef}>
+                {(() => {
+                  const n = images.length;
+                  const prevIdx = (carouselIndex - 1 + n) % n;
+                  const nextIdx = (carouselIndex + 1) % n;
+                  const visible = [prevIdx, carouselIndex, nextIdx];
+                  return visible.map((idx, pos) => {
+                    const src = images[idx];
+                    const isCenter = pos === 1;
+                    const cls = isCenter ? 'carousel-item is-center' : 'carousel-item is-thumb';
+                    return (
+                      <div
+                        key={idx}
+                        className={cls}
+                        onClick={() => { if (!isCenter) setCarouselIndex(idx); else setZoomImage(src); }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { if (!isCenter) setCarouselIndex(idx); else setZoomImage(src); } }}
+                      >
+                        <img src={src} alt={`Slide ${idx + 1}`} />
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+              <button className="carousel-control next" aria-label="Próximo" onClick={nextSlide}>❯</button>
+            </div>
           </div>
         </div>
       </div>
