@@ -284,6 +284,23 @@ h1.page-title {
 }
 
 @media (max-width: 48rem) {
-  .inicio-band { min-height: 140px; margin-top: 1.5rem; }
+  .inicio-band { min-height: 120px; margin-top: 1.25rem; }
+
+  /* Make carousel less tall on mobile devices */
+  .inicio-carousel { margin-top: 1rem; }
+  .inicio-carousel .carousel-track { width: 92%; }
+  .inicio-carousel .carousel-item { height: 120px; }
+  .inicio-carousel .carousel-item.is-center { height: 220px; }
+  .inicio-carousel .carousel-item img { padding: 4px; }
+
+  /* Reduce control size on mobile so they don't dominate the layout */
+  .inicio-carousel .carousel-control { width: 48px; height: 48px; font-size: 1.1rem; }
+}
+
+/* Even smaller devices - tighten further */
+@media (max-width: 30rem) {
+  .inicio-carousel .carousel-item { height: 100px; }
+  .inicio-carousel .carousel-item.is-center { height: 180px; }
+  .inicio-carousel .carousel-control { width: 44px; height: 44px; font-size: 1rem; }
 }
 
