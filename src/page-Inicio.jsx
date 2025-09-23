@@ -11,19 +11,7 @@ import guias2 from '../imagens pagina Inicial/guias-2.jpg';
 
 export default function PageInicio() {
   const navigate = useNavigate();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState('');
   const [zoomImage, setZoomImage] = useState(null);
-
-  const openCardModal = (title) => {
-    setModalContent(title);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setModalContent('');
-  };
 
   // --- Carousel using local imported images
   const images = [catalogo1, catalogo2, recall1, recall2, guias1, guias2];
@@ -60,7 +48,7 @@ export default function PageInicio() {
             </div>
           </div>
 
-          <div className="inicio-carousel" aria-roledescription="carousel">
+      <div className="inicio-carousel" aria-roledescription="carousel">
               <button className="carousel-control prev" aria-label="Anterior" onClick={prevSlide}>❮</button>
               <div className="carousel-track" ref={trackRef}>
                 {(() => {
@@ -89,51 +77,11 @@ export default function PageInicio() {
               </div>
               <button className="carousel-control next" aria-label="Próximo" onClick={nextSlide}>❯</button>
             </div>
+            {/* Full-width blue band under the carousel to match menu color */}
+            <div className="inicio-band" aria-hidden="true"></div>
         </div>
       </div>
-
-      {modalOpen && (
-        <div className="pf-modal-overlay" onClick={closeModal}>
-          <div className="pf-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <button className="pf-modal-close" onClick={closeModal} aria-label="Fechar">×</button>
-            {
-              /* Map card titles to image arrays so Recalls and Guias replicate the catalog gallery */
-            }
-            {(() => {
-              const cardImages = {
-                'Catálogo de Peças': [catalogo1, catalogo2],
-                'Recalls': [recall1, recall2],
-                'Guias': [guias1, guias2],
-              };
-
-              const imgs = cardImages[modalContent];
-              if (imgs && imgs.length) {
-                return (
-                  <>
-                    <h3>{modalContent}</h3>
-                    <div className="catalog-images">
-                      {imgs.map((src, idx) => (
-                        <img key={idx} src={src} alt={`${modalContent} ${idx + 1}`} onClick={() => setZoomImage(src)} style={{ cursor: 'zoom-in' }} />
-                      ))}
-                    </div>
-                    {/* Full-width blue band under the carousel to match menu color */}
-                    <div className="inicio-band" aria-hidden="true"></div>
-                  </>
-                );
-              }
-
-              return (
-                <>
-                  <p>Conteúdo do modal para a seção "{modalContent}". Aqui você pode adicionar links, descrições ou ações.</p>
-                  <div style={{ textAlign: 'right' }}>
-                    <button className="btn-primary" onClick={() => { closeModal(); navigate('/buscar-pecas'); }}>Ir para catálogo</button>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+      {/* modal removed: replaced by direct band below carousel; detailed modal was unused after cards → carousel refactor */}
       {zoomImage && (
         <div className="pf-zoom-overlay" onClick={() => setZoomImage(null)}>
           <img className="pf-zoom-image" src={zoomImage} alt="Zoom" onClick={(e) => e.stopPropagation()} />
@@ -142,3 +90,4 @@ export default function PageInicio() {
     </>
   );
 }
+
