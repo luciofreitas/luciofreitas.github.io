@@ -23,19 +23,33 @@
   --homepage-title-top-padding: 0.85rem; /* matches global .page-title */
 }
 
-/* Title now uses .page-title class from App.css - keeping this for reference
-.inicio-title {
-  font-size: 2rem;
-  line-height: 1.15;
-  margin: 0 0 1.5rem 0;
-  color: #0052CC;
-  font-weight: 600;
-}
-*/
-
 .inicio-subtitle {
   color: #475569;
   margin: 0 0 1rem 0;
+}
+
+/* Subtitle container that replicates the screenshot: centered, rounded, light background */
+.inicio-subtitle-container {
+  background: #f8fafc; /* white background like screenshot */
+  border: 1px solid rgba(2,6,23,0.06); /* subtle border */
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+  max-width: 50rem; /* Match quem-somos content width */
+}
+.inicio-subtitle-container .inicio-subtitle {
+  color: #64748b;
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Specific override to defeat global reset in App.css which sets
+   `.page-wrapper.page-inicio * { background-color: initial !important; }` */
+.page-wrapper.page-inicio .inicio-subtitle-container {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
 }
 
 /* Specific title sizing for the homepage main title */
