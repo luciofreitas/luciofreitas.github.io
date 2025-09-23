@@ -29,7 +29,7 @@
 }
 
 /* Subtitle container that replicates the screenshot: centered, rounded, light background */
-.inicio-subtitle-container {
+.inicio-intro {
   background: #f8fafc; /* white background like screenshot */
   border: 1px solid rgba(2,6,23,0.06); /* subtle border */
   border-radius: 0.75rem;
@@ -38,7 +38,7 @@
   text-align: center;
   max-width: 50rem; /* Match quem-somos content width */
 }
-.inicio-subtitle-container .inicio-subtitle {
+.inicio-intro .inicio-subtitle {
   color: #64748b;
   margin: 0;
   font-size: 1.1rem;
@@ -47,7 +47,7 @@
 
 /* Specific override to defeat global reset in App.css which sets
    `.page-wrapper.page-inicio * { background-color: initial !important; }` */
-.page-wrapper.page-inicio .inicio-subtitle-container {
+.page-wrapper.page-inicio .inicio-intro {
   background: #f8fafc !important;
   background-color: #f8fafc !important;
 }
