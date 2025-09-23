@@ -264,6 +264,11 @@ h1.page-title {
   box-shadow: 0 6px 18px rgba(2,6,23,0.06);
   background: rgba(255,255,255,0.9);
 }
+/* Remove default focus outline for mouse interactions but keep visible focus for keyboard users */
+.inicio-carousel .carousel-control:focus { outline: none; }
+.inicio-carousel .carousel-control:active { box-shadow: 0 4px 12px rgba(2,6,23,0.04); }
+.inicio-carousel .carousel-control:hover { background: rgba(0,0,0,0.06); color: #0b1220; }
+.inicio-carousel .carousel-control:focus-visible { box-shadow: 0 0 0 3px rgba(15,23,42,0.08); }
 .inicio-carousel .carousel-track {
   display: flex;
   align-items: center;
@@ -304,13 +309,32 @@ h1.page-title {
   background: #ffffff; /* neutral background for letterboxing */
   padding: 6px; /* small inner padding so edges don't touch */
 }
+.inicio-carousel .carousel-item.is-center {
+  flex: 0 0 50%;
+  max-width: 50%;
+  transform: scale(1);
+  opacity: 1;
+  height: 320px; /* larger center height */
+  padding: 6px; /* spacing so border doesn't touch edges */
+  border-radius: 12px;
+}
+.inicio-carousel .carousel-item img {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain; /* do not crop images */
+  object-position: center;
+  border-radius: 8px;
+  display: block;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.08);
+  background: #ffffff; /* neutral background for letterboxing */
+  padding: 6px; /* small inner padding so edges don't touch */
+}
 
-/* Thumb specifics */
-.inicio-carousel .carousel-item.is-thumb { opacity: 0.95; transform: scale(0.85); }
-
-@media (max-width: 900px) {
-  .inicio-carousel .carousel-track { width: 100%; }
-  .inicio-carousel .carousel-item { display: none; }
-  .inicio-carousel .carousel-item.is-center { display: block; flex: 0 0 100%; max-width: 100%; transform: none; height: 240px; }
+/* Yellow border + shadow for center image to match visual spec */
+.inicio-carousel .carousel-item.is-center img {
+  border: 2px solid #f59e0b; /* thinner warm yellow/orange border */
+  padding: 4px; /* small inner padding so the thin border sits nicely */
+  box-shadow: 0 18px 40px rgba(245,158,11,0.12), 0 6px 18px rgba(2,6,23,0.06);
 }
 
