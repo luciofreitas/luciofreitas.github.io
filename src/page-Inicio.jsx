@@ -60,8 +60,7 @@ export default function PageInicio() {
             </div>
           </div>
 
-          <div className="inicio-cards">
-            <div className="inicio-carousel" aria-roledescription="carousel">
+          <div className="inicio-carousel" aria-roledescription="carousel">
               <button className="carousel-control prev" aria-label="Anterior" onClick={prevSlide}>❮</button>
               <div className="carousel-track" ref={trackRef}>
                 {(() => {
@@ -90,7 +89,6 @@ export default function PageInicio() {
               </div>
               <button className="carousel-control next" aria-label="Próximo" onClick={nextSlide}>❯</button>
             </div>
-          </div>
         </div>
       </div>
 
@@ -118,6 +116,8 @@ export default function PageInicio() {
                         <img key={idx} src={src} alt={`${modalContent} ${idx + 1}`} onClick={() => setZoomImage(src)} style={{ cursor: 'zoom-in' }} />
                       ))}
                     </div>
+                    {/* Full-width blue band under the carousel to match menu color */}
+                    <div className="inicio-band" aria-hidden="true"></div>
                   </>
                 );
               }
