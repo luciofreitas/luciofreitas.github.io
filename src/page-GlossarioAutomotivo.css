@@ -94,11 +94,19 @@
   transition: border-color 0.2s;
 }
 
-.filtro-group input:focus,
-.filtro-group select:focus {
+.filtro-group input:focus:not(:focus-visible),
+.filtro-group select:focus:not(:focus-visible) {
   outline: none;
   border-color: #1A66FF;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filtro-group input:focus-visible,
+.filtro-group select:focus-visible {
+  border-color: #1A66FF;
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
+  outline: 2px solid rgba(59,130,246,0.18);
+  outline-offset: 3px;
 }
 
 .busca-input {
