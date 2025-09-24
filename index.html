@@ -19,22 +19,45 @@
     (function(){
   // Use relative paths (no leading slash) so the page works on GitHub Pages project pages
   // where the site is served under a subpath like /<user>/<repo>/
-  var bundlePath = 'assets/index-DBjcVaFQ.js';
+      // Candidate script paths (ordered). We try each with a HEAD request and load the first that exists.
+      var candidates = [
+        'assets/index-DBjcVaFQ.js', // local known build
+        'assets/main.js',
+        'assets/index.js',
+        'index.js',
+        'main.js'
+      ];
       function loadScript(src){
         var s = document.createElement('script');
         s.type = 'module';
         s.crossOrigin = 'anonymous';
         s.src = src;
         document.head.appendChild(s);
+        console.info('Loading script:', src);
       }
-      // Try to probe the bundle with HEAD request; if successful, load bundle.
-      try{
-        var xhr = new XMLHttpRequest();
-        xhr.open('HEAD', bundlePath, true);
-  xhr.onload = function(){ if (xhr.status >= 200 && xhr.status < 300) loadScript(bundlePath); else loadScript('src/main.jsx'); };
-  xhr.onerror = function(){ loadScript('src/main.jsx'); };
-        xhr.send();
-      }catch(e){ loadScript('/src/main.jsx'); }
+
+      (function tryCandidates(list, onNone){
+        var i = 0;
+        function next(){
+          if(i>=list.length){ onNone(); return; }
+          var path = list[i++];
+          var xhr = new XMLHttpRequest();
+          try{
+            xhr.open('HEAD', path, true);
+            xhr.onreadystatechange = function(){
+              if(xhr.readyState!==xhr.DONE) return;
+              if(xhr.status>=200 && xhr.status<300){ loadScript(path); }
+              else { next(); }
+            };
+            xhr.onerror = function(){ next(); };
+            xhr.send();
+          }catch(err){ next(); }
+        }
+        next();
+      })(candidates, function(){
+        // As a last resort in dev environments, try the source entry (Vite dev server)
+        loadScript('src/main.jsx');
+      });
     })();
   </script>
   </head>
