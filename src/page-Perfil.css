@@ -67,10 +67,17 @@
   color: var(--text-primary);
 }
 
-.form-input:focus {
+.form-input:focus:not(:focus-visible) {
   outline: none;
   border-color: var(--form-border-focus);
   box-shadow: 0 0 0 0.188rem rgba(0, 82, 204, 0.1);
+}
+
+.form-input:focus-visible {
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 0.3rem rgba(0,82,204,0.12);
+  outline: 2px solid rgba(0,82,204,0.18);
+  outline-offset: 3px;
 }
 
 .form-input.error {
