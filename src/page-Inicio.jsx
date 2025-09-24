@@ -113,7 +113,7 @@ export default function PageInicio() {
       {/* modal removed: replaced by direct band below carousel; detailed modal was unused after cards → carousel refactor */}
       {zoomImage && (
         <div className="pf-zoom-overlay" onClick={() => setZoomImage(null)}>
-          <img className="pf-zoom-image" src={zoomImage} alt="Zoom" onClick={(e) => e.stopPropagation()} />
+          <img className="pf-zoom-image" src={zoomImage} alt="Imagem ampliada" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </>
