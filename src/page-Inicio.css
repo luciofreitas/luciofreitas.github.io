@@ -198,10 +198,10 @@ h1.page-title {
   transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
 }
 /* Keep keyboard accessibility focus visible */
-.inicio-carousel .carousel-control:focus { outline: none; }
+.inicio-carousel .carousel-control:focus:not(:focus-visible) { outline: none; }
 .inicio-carousel .carousel-control:active { transform: scale(0.98); box-shadow: 0 8px 18px rgba(2,6,23,0.10); }
 .inicio-carousel .carousel-control:hover { transform: translateY(-2px); filter: brightness(1.02); }
-.inicio-carousel .carousel-control:focus-visible { box-shadow: 0 0 0 6px rgba(245,158,11,0.14); }
+.inicio-carousel .carousel-control:focus-visible { box-shadow: 0 0 0 6px rgba(245,158,11,0.14); outline: 2px solid rgba(245,158,11,0.2); outline-offset: 3px; }
 
 /* Slightly adjust arrow glyph to be visually centered and bold */
 .inicio-carousel .carousel-control { font-weight: 700; }
