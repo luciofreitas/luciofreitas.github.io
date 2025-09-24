@@ -69,6 +69,9 @@
     left: auto !important;
     transform: none !important;
     order: 1 !important; /* First item - leftmost */
+    /* make the logo visually closer to the center without breaking nav centering */
+    min-width: 8rem !important;
+    margin-left: 0.5rem !important;
   }
 }
 
