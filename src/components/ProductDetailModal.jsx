@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiService } from '../utils/apiService';
 import './ProductDetailModal.css';
+import useFocusTrap from '../hooks/useFocusTrap';
 
 function ProductDetailModal({ isOpen, onClose, productId }) {
   const [productDetails, setProductDetails] = useState(null);
@@ -13,6 +14,22 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
       loadProductDetails(productId);
     }
   }, [isOpen, productId]);
+
+  const modalRef = useRef(null);
+  // dynamic import to avoid circular issues if any; local hook
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  // but this is a local hook
+  // import at top would be fine; keeping inline for clarity
+  // use hook to trap focus and restore previous focus on close
+  // require path relative to this file
+  // We import normally
+  // eslint-disable-next-line no-unused-vars
+  
+  // Note: moved import to top-level would be cleaner, but keep here to avoid altering other files
+  // We'll import the hook at top by updating imports
+
+  // trap focus while modal is open
+  useFocusTrap(isOpen, modalRef);
 
   const loadProductDetails = async (id) => {
     setLoading(true);
@@ -42,7 +59,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
 
   return (
     <div className="product-modal-overlay" onClick={handleOverlayClick}>
-      <div className="product-modal">
+      <div ref={modalRef} className="product-modal" role="dialog" aria-modal="true" aria-label={productDetails?.nome || 'Detalhes da peça'}>
         <div className="product-modal-header">
           <h2>{productDetails?.nome || 'Carregando...'}</h2>
           <button className="product-modal-close" onClick={onClose}>

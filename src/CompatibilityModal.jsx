@@ -1,6 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import useFocusTrap from './hooks/useFocusTrap';
 
 export default function CompatibilityModal({ show, onClose, title, titleIcon, children }) {
+	const modalRef = useRef(null);
+
+	useFocusTrap(show, modalRef);
+
 	useEffect(() => {
 		if (show) {
 			// Lock background scroll when modal is open
@@ -21,7 +26,7 @@ export default function CompatibilityModal({ show, onClose, title, titleIcon, ch
 
 	return (
 		<div className="modal-overlay" onClick={handleOverlayClick}>
-			<div className="compat-modal" role="dialog" aria-modal="true" aria-label={title || 'Modal'}>
+			<div ref={modalRef} className="compat-modal" role="dialog" aria-modal="true" aria-label={title || 'Modal'}>
 				<div className="app-compat-header">
 					<div className="app-compat-title-wrapper">
 						{titleIcon && <img src={titleIcon} alt="Ícone" className="app-compat-title-icon" />}
