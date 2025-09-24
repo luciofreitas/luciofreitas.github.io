@@ -12,8 +12,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <!-- Montserrat for MenuLogin -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Vite entry module - do not hardcode /dist paths so build can inject correct assets -->
-  <script type="module" crossorigin src="/src/main.jsx"></script>
+  <!-- Vite dev server uses /src/main.jsx; on static hosting use built bundle in /assets -->
+  <!-- Prefer dynamic selection: if assets exist use compiled bundle, otherwise fall back to source. -->
+  <script>
+    // If the compiled JS bundle exists under /assets, load it as a module to avoid server sending text/jsx.
+    (function(){
+      var bundlePath = '/assets/index-DBjcVaFQ.js';
+      function loadScript(src){
+        var s = document.createElement('script');
+        s.type = 'module';
+        s.crossOrigin = 'anonymous';
+        s.src = src;
+        document.head.appendChild(s);
+      }
+      // Try to probe the bundle with HEAD request; if successful, load bundle.
+      try{
+        var xhr = new XMLHttpRequest();
+        xhr.open('HEAD', bundlePath, true);
+        xhr.onload = function(){ if (xhr.status >= 200 && xhr.status < 300) loadScript(bundlePath); else loadScript('/src/main.jsx'); };
+        xhr.onerror = function(){ loadScript('/src/main.jsx'); };
+        xhr.send();
+      }catch(e){ loadScript('/src/main.jsx'); }
+    })();
+  </script>
   </head>
   <body>
     <div id="root"></div>
