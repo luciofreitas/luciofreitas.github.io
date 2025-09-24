@@ -152,3 +152,11 @@ html body .site-header .menu-login-root .menu-nav .menu-list .menu-login-item,
 html body .site-header .menu-login-root .menu-nav .menu-list a.menu-login-item {
   font-weight: 600 !important;
 }
+
+/* Accessible focus styles: keep the visual indicator for keyboard users.
+   Use :focus-visible so mouse users aren't affected; do not use !important
+   so existing explicit overrides remain in control. Adjust color/offset as needed. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid #2563eb; /* Tailwind 'blue-600' — clear contrast */
+  outline-offset: 3px;
+}
