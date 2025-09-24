@@ -92,7 +92,7 @@ export default function PageInicio() {
                       <ol className="reasons-col">
                         <li><span className="reason-number">1</span>Conexão Simplificada com Oficinas.</li>
                         <li><span className="reason-number">2</span>Busca Inteligente de Peças.</li>
-                        <li><span className="reason-number">3</span>Especificação completa das peças.</li>
+                        <li><span className="reason-number">3</span>Especificação Completa das Peças.</li>
                         <li><span className="reason-number">4</span>Informações Essenciais sobre Recalls.</li>
                         <li><span className="reason-number">5</span>Guias Automotivos Abrangentes.</li>
                       </ol>
