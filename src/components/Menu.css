@@ -19,6 +19,17 @@
   transition: top 0.3s, opacity 0.3s;
 }
 
+/* Use Montserrat for main menu items */
+.main-menu,
+.menu-links,
+.menu-links li a,
+.menu-auth,
+.auth-menu,
+.auth-menu-links,
+.auth-btn {
+  font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
 .main-menu.hide-on-scroll {
   transform: translateY(-100%);
   transition: transform 0.3s ease;

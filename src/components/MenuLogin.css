@@ -36,6 +36,15 @@
   margin: 0 !important;
 }
 
+/* Use Montserrat for the MenuLogin component items */
+.menu-login-root,
+.menu-login-root *,
+.menu-login-item,
+.menu-login .user-button,
+.menu-login .user-logout-button {
+  font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
 /* Área da logo - sempre à esquerda */
 .menu-login-logo {
   display: flex !important;

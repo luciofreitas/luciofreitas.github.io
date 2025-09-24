@@ -78,7 +78,33 @@ export default function PageInicio() {
               <button className="carousel-control next" aria-label="Próximo" onClick={nextSlide}>❯</button>
             </div>
             {/* Full-width blue band under the carousel to match menu color */}
-            <div className="inicio-band" aria-hidden="true"></div>
+            <div className="inicio-band">
+              <div className="inicio-band-inner">
+                <div className="inicio-band-left">
+                  <h1 className="inicio-band-title">10 motivos para que você escolha o Peça Fácil</h1>
+                </div>
+                <div className="inicio-band-right">
+                  <div className="inicio-reasons">
+                    <div className="reasons-grid">
+                      <ol className="reasons-col">
+                        <li><span className="reason-number">1</span>Conexão Simplificada com Oficinas.</li>
+                        <li><span className="reason-number">2</span>Busca Inteligente de Peças.</li>
+                        <li><span className="reason-number">3</span>Especificação completa das peças.</li>
+                        <li><span className="reason-number">4</span>Informações Essenciais sobre Recalls.</li>
+                        <li><span className="reason-number">5</span>Guias Automotivos Abrangentes.</li>
+                      </ol>
+                      <ol className="reasons-col">
+                        <li><span className="reason-number">6</span>Economia de Tempo e Esforço.</li>
+                        <li><span className="reason-number">7</span>Decisões de Manutenção Informadas.</li>
+                        <li><span className="reason-number">8</span>Histórico de Manutenção Organizado.</li>
+                        <li><span className="reason-number">9</span>Segurança e Confiabilidade.</li>
+                        <li><span className="reason-number">10</span>Comunidade e Suporte.</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
         </div>
       </div>
       {/* modal removed: replaced by direct band below carousel; detailed modal was unused after cards → carousel refactor */}

@@ -8,6 +8,15 @@
   margin-top: 0 !important;
 }
 
+/* Use Montserrat for user menu items */
+.user-menu-root,
+.user-menu-root .user-button,
+.user-menu-root .dropdown-user-name,
+.user-dropdown,
+.user-menu-root .dropdown-item {
+  font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
 /* Botão principal com o nome do usuário - stronger specificity */
 .user-menu-root .user-button {
   display: flex;
