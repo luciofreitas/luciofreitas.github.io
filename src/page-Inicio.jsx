@@ -70,6 +70,9 @@ export default function PageInicio() {
                         onKeyDown={(e) => { if (e.key === 'Enter') { if (!isCenter) setCarouselIndex(idx); else setZoomImage(src); } }}
                       >
                         <img src={src} alt={`Slide ${idx + 1}`} />
+                        {isCenter && (
+                          <span className="carousel-zoom-icon" aria-hidden="true" title="Ver imagem ampliada">🔍</span>
+                        )}
                       </div>
                     );
                   });
