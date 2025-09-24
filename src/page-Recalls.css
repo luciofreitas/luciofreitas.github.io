@@ -69,10 +69,17 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.recalls-input:focus, .recalls-select:focus {
+.recalls-input:focus:not(:focus-visible), .recalls-select:focus:not(:focus-visible) {
   outline: none;
   border-color: var(--form-border-focus);
   box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+}
+
+.recalls-input:focus-visible, .recalls-select:focus-visible {
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 4px rgba(0,82,204,0.12);
+  outline: 2px solid rgba(0,82,204,0.18);
+  outline-offset: 3px;
 }
 
 .search-actions {
