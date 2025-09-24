@@ -1,15 +1,20 @@
 import { useEffect } from 'react';
 
-// Lightweight focus trap hook
-// - active: boolean that indicates whether the trap should be enabled
-// - containerRef: ref to the modal container element
+// Focus-trap with support for stacked modals.
+// Maintains a global stack so only the topmost modal traps focus and
+// focus is restored correctly when modals are closed in LIFO order.
+
+const globalModalStack = [];
+
 export default function useFocusTrap(active, containerRef) {
   useEffect(() => {
-    if (!active) return undefined;
+    const container = containerRef?.current;
+    if (!active || !container) return undefined;
 
     const prevActive = document.activeElement;
-    const container = containerRef?.current;
-    if (!container) return undefined;
+
+    // push to stack
+    globalModalStack.push({ container, prevActive });
 
     const focusableSelector = [
       'a[href]',
@@ -27,30 +32,32 @@ export default function useFocusTrap(active, containerRef) {
 
     function getFocusableElements() {
       return Array.from(container.querySelectorAll(focusableSelector)).filter((el) => {
-        // filter out elements that are visually hidden or not in the layout
         return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
       });
     }
 
-    const focusable = getFocusableElements();
+    function focusInitial() {
+      const focusable = getFocusableElements();
+      if (focusable.length) {
+        focusable[0].focus();
+      } else {
+        if (!container.hasAttribute('tabindex')) container.setAttribute('tabindex', '-1');
+        container.focus();
+      }
+    }
 
-    // If there's at least one focusable element, focus the first; otherwise focus the container
-    if (focusable.length) {
-      focusable[0].focus();
-    } else if (container.tabIndex < 0) {
-      // ensure container is focusable so keyboard users can reach it
-      container.tabIndex = -1;
-      container.focus();
-    } else {
-      container.focus();
+    // Only the top of the stack should trap keys
+    function isTopModal() {
+      const top = globalModalStack[globalModalStack.length - 1];
+      return top && top.container === container;
     }
 
     function onKeyDown(e) {
+      if (!isTopModal()) return;
       if (e.key !== 'Tab') return;
 
       const items = getFocusableElements();
       if (items.length === 0) {
-        // no focusable elements, nothing to do
         e.preventDefault();
         return;
       }
@@ -71,16 +78,25 @@ export default function useFocusTrap(active, containerRef) {
       }
     }
 
+    focusInitial();
     document.addEventListener('keydown', onKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      // restore previous focus if possible
-      try {
-        if (prevActive && typeof prevActive.focus === 'function') prevActive.focus();
-      } catch (err) {
-        // ignore
+      // remove from stack (only the first matching container from top)
+      for (let i = globalModalStack.length - 1; i >= 0; i--) {
+        if (globalModalStack[i].container === container) {
+          const removed = globalModalStack.splice(i, 1)[0];
+          // try restore focus from the removed entry
+          try {
+            if (removed.prevActive && typeof removed.prevActive.focus === 'function') removed.prevActive.focus();
+          } catch (err) {
+            // ignore
+          }
+          break;
+        }
       }
+
+      document.removeEventListener('keydown', onKeyDown);
     };
   }, [active, containerRef]);
 }
