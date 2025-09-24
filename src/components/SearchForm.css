@@ -71,10 +71,17 @@
   text-overflow: ellipsis;
 }
 
-.search-form-field select:focus {
+.search-form-field select:focus:not(:focus-visible) {
   outline: none;
   border-color: #0052CC;
   box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08);
+}
+
+.search-form-field select:focus-visible {
+  border-color: #0052CC;
+  box-shadow: 0 0 0 0.35rem rgba(37,99,235,0.12);
+  outline: 2px solid rgba(37,99,235,0.18);
+  outline-offset: 3px;
 }
 
 .search-form-actions {
