@@ -274,6 +274,7 @@ a.menu-login-item {
 /* Remove default focus outline / black border on user buttons - context specific */
 .menu-login .user-button, 
 .menu-login .user-logout-button {
+  /* keep mouse-click appearance unchanged but preserve keyboard focus via :focus-visible */
   outline: none;
   box-shadow: none;
   border: none;
@@ -284,11 +285,20 @@ a.menu-login-item {
   text-decoration: none;
 }
 
-.menu-login .user-button:focus, 
-.menu-login .user-logout-button:focus {
+/* Do not remove the focus outline for keyboard users — only suppress when not focus-visible (mouse) */
+.menu-login .user-button:focus:not(:focus-visible), 
+.menu-login .user-logout-button:focus:not(:focus-visible) {
   outline: none;
   box-shadow: none;
   text-decoration: none;
+}
+
+/* Ensure keyboard users get a visible focus indicator */
+.menu-login .user-button:focus-visible,
+.menu-login .user-logout-button:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.9) !important;
+  outline-offset: 3px;
+  border-radius: 0.5rem;
 }
 
 /* Dropdown items should use the same hover selection effect as top menu links */
