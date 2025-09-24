@@ -15,18 +15,8 @@
   <!-- Vite dev server uses /src/main.jsx; on static hosting use built bundle in /assets -->
   <!-- Prefer dynamic selection: if assets exist use compiled bundle, otherwise fall back to source. -->
   <script>
-    // If the compiled JS bundle exists under /assets, load it as a module to avoid server sending text/jsx.
+    // Loader: prefer the Vite dev entry when on localhost (dev server), otherwise try compiled bundles.
     (function(){
-  // Use relative paths (no leading slash) so the page works on GitHub Pages project pages
-  // where the site is served under a subpath like /<user>/<repo>/
-      // Candidate script paths (ordered). We try each with a HEAD request and load the first that exists.
-      var candidates = [
-        'assets/index-DBjcVaFQ.js', // local known build
-        'assets/main.js',
-        'assets/index.js',
-        'index.js',
-        'main.js'
-      ];
       function loadScript(src){
         var s = document.createElement('script');
         s.type = 'module';
@@ -35,6 +25,26 @@
         document.head.appendChild(s);
         console.info('Loading script:', src);
       }
+
+      // If we're running on a dev server (localhost, 127.0.0.1, or typical Vite port), prefer the source entry.
+      try{
+        var hostname = location.hostname;
+        var port = String(location.port||'');
+        if(hostname === 'localhost' || hostname === '127.0.0.1' || port === '5174' || port === '5173'){
+          console.info('Detected dev server; loading Vite entry src/main.jsx');
+          loadScript('src/main.jsx');
+          return;
+        }
+      }catch(e){ /* ignore and fall back to bundle probing */ }
+
+      // Candidate script paths (ordered). Try each with a HEAD request and load the first that exists.
+      var candidates = [
+        'assets/index-DBjcVaFQ.js', // known build
+        'assets/main.js',
+        'assets/index.js',
+        'index.js',
+        'main.js'
+      ];
 
       (function tryCandidates(list, onNone){
         var i = 0;
@@ -55,7 +65,7 @@
         }
         next();
       })(candidates, function(){
-        // As a last resort in dev environments, try the source entry (Vite dev server)
+        // As a last resort, try the Vite dev entry (safe fallback)
         loadScript('src/main.jsx');
       });
     })();
