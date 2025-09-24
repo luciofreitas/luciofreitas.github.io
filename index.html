@@ -17,7 +17,9 @@
   <script>
     // If the compiled JS bundle exists under /assets, load it as a module to avoid server sending text/jsx.
     (function(){
-      var bundlePath = '/assets/index-DBjcVaFQ.js';
+  // Use relative paths (no leading slash) so the page works on GitHub Pages project pages
+  // where the site is served under a subpath like /<user>/<repo>/
+  var bundlePath = 'assets/index-DBjcVaFQ.js';
       function loadScript(src){
         var s = document.createElement('script');
         s.type = 'module';
@@ -29,8 +31,8 @@
       try{
         var xhr = new XMLHttpRequest();
         xhr.open('HEAD', bundlePath, true);
-        xhr.onload = function(){ if (xhr.status >= 200 && xhr.status < 300) loadScript(bundlePath); else loadScript('/src/main.jsx'); };
-        xhr.onerror = function(){ loadScript('/src/main.jsx'); };
+  xhr.onload = function(){ if (xhr.status >= 200 && xhr.status < 300) loadScript(bundlePath); else loadScript('src/main.jsx'); };
+  xhr.onerror = function(){ loadScript('src/main.jsx'); };
         xhr.send();
       }catch(e){ loadScript('/src/main.jsx'); }
     })();
