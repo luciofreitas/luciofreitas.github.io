@@ -35,11 +35,17 @@
   cursor: not-allowed;
 }
 
-.dropdown-btn:focus,
-.dropdown-btn:focus-visible {
+.dropdown-btn:focus:not(:focus-visible) {
   outline: none;
   border-color: #0052CC; /* blue underline/border on focus */
   box-shadow: 0 0 0 0.25rem rgba(37,99,235,0.08);
+}
+
+.dropdown-btn:focus-visible {
+  border-color: #0052CC;
+  box-shadow: 0 0 0 0.35rem rgba(37,99,235,0.12);
+  outline: 2px solid rgba(37,99,235,0.18);
+  outline-offset: 3px;
 }
 
 .dropdown-arrow {
