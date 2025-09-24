@@ -945,6 +945,13 @@ a.menu-login-item {
     flex-shrink: 0 !important;
   }
 
+  /* If the logo image is focusable (inside a link), ensure keyboard users see a focus ring */
+  .menu-login-logo .logo-image:focus-visible {
+    outline: 2px solid rgba(255,255,255,0.9) !important;
+    outline-offset: 3px !important;
+    border-radius: 50% !important;
+  }
+
   /* SHOW logo text in mobile - texto ao lado da imagem */
   .menu-login-logo .logo-text-container {
     display: flex !important; /* Mostra o texto da logo */
