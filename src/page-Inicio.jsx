@@ -41,7 +41,7 @@ export default function PageInicio() {
               <h1 className="page-title">Seja um entendedor automotivo, agora mesmo!</h1>
               <div className="inicio-intro">
                 <p className="inicio-subtitle">
-                  No PeçasFácil você conseguirá se virar sozinho, aprenderá a identificar e comprar as peças certas para o
+                  No PeçaFácil você conseguirá se virar sozinho, aprenderá a identificar e comprar as peças certas para o
                   seu carro com confiança e economia, aprenderá sobre manutenção preventiva, instalação de peças e muito mais.
                 </p>
               </div>
