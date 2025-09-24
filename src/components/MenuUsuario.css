@@ -355,10 +355,18 @@
   display: none !important; 
 }
 
-.user-menu-root .user-dropdown .dropdown-item-logout:focus, 
+.user-menu-root .user-dropdown .dropdown-item-logout:focus:not(:focus-visible), 
 .user-menu-root .user-dropdown .dropdown-item-logout:active { 
+  /* keep mouse/active appearance unchanged but preserve keyboard focus indicator */
   outline: none !important; 
   box-shadow: none !important; 
+}
+
+/* visible focus for keyboard users on logout item */
+.user-menu-root .user-dropdown .dropdown-item-logout:focus-visible {
+  outline: 2px solid rgba(251,191,36,0.6) !important; /* yellow-ish ring consistent with dropdown */
+  outline-offset: 2px !important;
+  border-radius: 0.375rem !important;
 }
 
 /* Force dropdown background white (override other themes) */
