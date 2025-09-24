@@ -44,10 +44,17 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.checkin-input:focus {
+.checkin-input:focus:not(:focus-visible) {
   outline: none;
   border-color: var(--border-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.checkin-input:focus-visible {
+  border-color: var(--border-primary);
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+  outline: 2px solid rgba(37,99,235,0.18);
+  outline-offset: 3px;
 }
 
 .checkin-row {
