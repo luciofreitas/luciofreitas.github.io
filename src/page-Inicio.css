@@ -283,6 +283,21 @@ h1.page-title {
   box-shadow: inset 0 6px 18px rgba(2,6,23,0.06);
 }
 
+/* Ensure the band spans the entire viewport (full-bleed) even when inside the centered .page-content.
+   Also force the background color to defeat global reset rules that may set background-color: initial !important. */
+.page-wrapper.page-inicio .inicio-band {
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  width: 100vw;
+  box-sizing: border-box;
+  background: #0052CC !important;
+  background-color: #0052CC !important;
+  z-index: 0; /* sit behind floating controls if needed */
+}
+
 @media (max-width: 48rem) {
   .inicio-band { min-height: 120px; margin-top: 1.25rem; }
 
