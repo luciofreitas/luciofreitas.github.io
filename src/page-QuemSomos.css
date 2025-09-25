@@ -7,7 +7,7 @@
   margin-top: 0;
 }
 
-.quemsomos-intro {
+.quem-somos-intro {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
@@ -17,7 +17,7 @@
   max-width: 50rem; /* Match quem-somos content width */
 }
 
-.quemsomos-intro p {
+.quem-somos-intro p {
   color: #64748b;
   margin: 0;
   font-size: 1.1rem;
@@ -25,7 +25,7 @@
 }
 
 /* Title now uses .page-title class from App.css - keeping this for reference
-.quem-somos__title {
+.quem-somos-title {
   color: #0052CC;
   text-align: center;
   margin-bottom: 1.5rem;
@@ -37,15 +37,14 @@
 }
 */
 
-.quem-somos__content {
+.quem-somos-content {
   max-width: 50rem;
   margin: 0 auto;
   line-height: 1.6;
   color: #172B4D;
   text-align: left;
 }
-
-.quem-somos__paragraph {
+.quem-somos-paragraph {
   margin-bottom: 1.5rem;
 }
 
@@ -63,6 +62,6 @@
   /* QuemSomos */
   #quem-somos { padding: 0 1rem; background: #FFFFFF; } /* Removed top padding to match other pages */
   /* Title styles now handled by .page-title class */
-  .quem-somos__content { max-width: 45rem; margin: 0 auto; line-height: 1.6; color: #172B4D; text-align: center; }
-  .quem-somos__paragraph { margin-bottom: 0.5rem; }
+  .quem-somos-content { max-width: 45rem; margin: 0 auto; line-height: 1.6; color: #172B4D; text-align: center; }
+  .quem-somos-paragraph { margin-bottom: 0.5rem; }
 }
