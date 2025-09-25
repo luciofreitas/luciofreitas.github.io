@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Peças Automotivas Compatíveis</title>
+  <!-- deploy-timestamp: 2025-09-24T00:12:00Z -->
+  <meta name="deploy-timestamp" content="2025-09-24T00:12:00Z">
   <link rel="icon" type="image/x-icon" href="/assets/favicon-CraCCFKW.ico" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon-CSI8IsYn.svg" />
   <link rel="apple-touch-icon" href="/assets/logo--vDu1vj9.png" />
@@ -12,88 +14,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <!-- Montserrat for MenuLogin -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Vite dev server uses /src/main.jsx; on static hosting use built bundle in /assets -->
-  <!-- Prefer dynamic selection: if assets exist use compiled bundle, otherwise fall back to source. -->
-  <script>
-    // Loader: prefer the Vite dev entry when on localhost (dev server), otherwise try compiled bundles.
-    (function(){
-      function loadScript(src){
-        var s = document.createElement('script');
-        s.type = 'module';
-        s.crossOrigin = 'anonymous';
-        s.src = src;
-        document.head.appendChild(s);
-        console.info('Loading script:', src);
-      }
-
-      // If we're running on a dev server (localhost, 127.0.0.1, or typical Vite port), prefer the source entry.
-      try{
-        var hostname = location.hostname;
-        var port = String(location.port||'');
-        if(hostname === 'localhost' || hostname === '127.0.0.1' || port === '5174' || port === '5173'){
-          console.info('Detected dev server; loading Vite entry src/main.jsx');
-          loadScript('src/main.jsx');
-          return;
-        }
-      }catch(e){ /* ignore and fall back to bundle probing */ }
-
-      // Candidate script filenames (no base). We'll combine them with a small set of base prefixes
-      var filenames = [
-        'assets/index-DBjcVaFQ.js', // known build
-        'assets/main.js',
-        'assets/index.js',
-        'index.js',
-        'main.js'
-      ];
-
-      // Base prefixes to try. Order matters: prefer root-relative, then relative, then pathname-derived.
-      var bases = [];
-      try{
-        // root absolute
-        bases.push('/', '');
-        // relative to current document
-        bases.push('./');
-        // try the current pathname directory (useful if index.html is served from a subpath)
-        var p = location.pathname || '/';
-        if(!p.endsWith('/')) p = p.replace(/\/[^/]*$/, '/') ;
-        bases.push(p);
-      }catch(e){ bases.push('./'); }
-
-      // Build expanded list of candidate URLs to probe
-      var candidates = [];
-      for(var bi=0; bi<bases.length; bi++){
-        for(var fi=0; fi<filenames.length; fi++){
-          try{ candidates.push(new URL(filenames[fi], bases[bi] || location.href).href); }catch(err){ try{ candidates.push((bases[bi]||'') + filenames[fi]); }catch(e){} }
-        }
-      }
-
-      (function tryCandidates(list, onNone){
-        var i = 0;
-        function next(){
-          if(i>=list.length){ onNone(); return; }
-          var path = list[i++];
-          console.info('Probing for bundle:', path);
-          var xhr = new XMLHttpRequest();
-          try{
-            xhr.open('HEAD', path, true);
-            xhr.onreadystatechange = function(){
-              if(xhr.readyState!==xhr.DONE) return;
-              if(xhr.status>=200 && xhr.status<300){
-                console.info('Found bundle at', path);
-                loadScript(path);
-              } else { next(); }
-            };
-            xhr.onerror = function(){ next(); };
-            xhr.send();
-          }catch(err){ next(); }
-        }
-        next();
-      })(candidates, function(){
-        console.warn('No compiled bundle found via probing; falling back to src/main.jsx (may 404 on Pages).');
-        loadScript('src/main.jsx');
-      });
-    })();
-  </script>
+  <!-- Vite dev server uses /src/main.jsx; include the standard Vite entry so builds emit bundles correctly -->
+    <script type="module" crossorigin src="/assets/index-DoMlP83J.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-B_gg1Qjm.css">
   </head>
   <body>
     <div id="root"></div>
