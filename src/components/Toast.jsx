@@ -29,7 +29,7 @@ const Toast = ({ message, type = 'success', duration = 3000, onClose }) => {
     <div 
       className={`toast toast--${type} ${isVisible ? 'toast--visible' : ''} ${isLeaving ? 'toast--leaving' : ''}`}
       role="alert"
-      ariaLive="polite"
+  aria-live="polite"
     >
       <div className="toast-content">
         {type === 'success' && (
@@ -45,7 +45,7 @@ const Toast = ({ message, type = 'success', duration = 3000, onClose }) => {
           setIsLeaving(true);
           setTimeout(onClose, 300);
         }}
-        ariaLabel="Fechar notificação"
+  aria-label="Fechar notificação"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M11 3L3 11M3 3L11 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>

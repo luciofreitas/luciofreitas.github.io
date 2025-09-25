@@ -7,7 +7,7 @@ const CircularArrowButton = ({ onClick, className = '', size = 'medium' }) => {
       className={`circular-arrow-button ${size} ${className}`}
       onClick={onClick}
       type="button"
-      ariaLabel="Comece agora - É grátis"
+  aria-label="Comece agora - É grátis"
     >
       <svg 
         className="circular-button-arrow" 

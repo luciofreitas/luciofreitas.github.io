@@ -49,8 +49,8 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onConfiguracoes, on
         ref={buttonRef}
         className="user-button icon-only"
         onClick={() => setOpen(v => !v)}
-        ariaHaspopup="true"
-        ariaExpanded={open}
+  aria-haspopup="true"
+  aria-expanded={open}
       >
         {/* Desktop e Mobile: ambos mostram ícone, mas com tamanhos diferentes */}
         <span className="user-icon-desktop">

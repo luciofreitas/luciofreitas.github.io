@@ -179,9 +179,9 @@ const MenuLogin = () => {
               ref={mobileMenuButtonRef}
               className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
               onClick={toggleMobileMenu}
-              ariaLabel="Toggle mobile menu"
-              ariaHaspopup="true"
-              ariaExpanded={mobileMenuOpen}
+              aria-label="Toggle mobile menu"
+              aria-haspopup="true"
+              aria-expanded={mobileMenuOpen}
             >
               <span className="hamburger-line"></span>
               <span className="hamburger-line"></span>
@@ -193,7 +193,7 @@ const MenuLogin = () => {
               ref={mobileMenuRef}
               className={`user-dropdown ${mobileMenuOpen ? 'open' : 'closed'}`}
               role="menu"
-              ariaHidden={!mobileMenuOpen}
+              aria-hidden={!mobileMenuOpen}
             >
               {menuItems.map(item => (
                 <button key={item.id} className="dropdown-item" onClick={() => { setMobileMenuOpen(false); item.onClick(); }}>

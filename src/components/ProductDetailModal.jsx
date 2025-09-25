@@ -106,7 +106,9 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                 {productDetails.recall_relacionado && (
                   <div className="recall-alert">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M12 9V13M12 17H12.01-m21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2"/>
+                      {/* circle with exclamation mark icon (valid path) */}
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <path d="M11 7h2v6h-2zM11 15h2v2h-2z" fill="currentColor" />
                     </svg>
                     <div>
                       <strong>Recall Relacionado</strong>
@@ -148,35 +150,35 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
             </div>
 
             {/* Abas de Conteúdo */}
-            <div className="product-tabs">
+                <div className="product-tabs">
               <div className="tab-buttons">
                 <button 
                   className={activeTab === 'geral' ? 'active' : ''} 
-                  on-click={() => setActiveTab('geral')}
+                  onClick={() => setActiveTab('geral')}
                 >
                   Geral
                 </button>
                 <button 
                   className={activeTab === 'especificacoes' ? 'active' : ''} 
-                  on-click={() => setActiveTab('especificacoes')}
+                  onClick={() => setActiveTab('especificacoes')}
                 >
                   Especificações
                 </button>
                 <button 
                   className={activeTab === 'compatibilidade' ? 'active' : ''} 
-                  on-click={() => setActiveTab('compatibilidade')}
+                  onClick={() => setActiveTab('compatibilidade')}
                 >
                   Compatibilidade
                 </button>
                 <button 
                   className={activeTab === 'instalacao' ? 'active' : ''} 
-                  on-click={() => setActiveTab('instalacao')}
+                  onClick={() => setActiveTab('instalacao')}
                 >
                   Instalação
                 </button>
                 <button 
                   className={activeTab === 'avaliacoes' ? 'active' : ''} 
-                  on-click={() => setActiveTab('avaliacoes')}
+                  onClick={() => setActiveTab('avaliacoes')}
                 >
                   Avaliações
                 </button>

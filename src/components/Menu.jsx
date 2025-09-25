@@ -130,15 +130,17 @@ function Menu() {
   // Measure dropdown size and recalculate position precisely after it's mounted/updated
   useLayoutEffect(() => {
     if (mobileMenuOpen && mobileMenuRef.current && mobileMenuButtonRef.current) {
-      // Recalculate position like MenuUsuario.jsx does
-      const rect = mobileMenuButtonRef.current.get-bounding-client-rect();
+      // Recalculate position similar to MenuUsuario.jsx
+      const rect = mobileMenuButtonRef.current.getBoundingClientRect();
       const top = Math.round(rect.bottom + 4); // Position below button
       const left = Math.round(rect.left); // Align left edge with hamburger icon
 
       // Set CSS custom properties for positioning
-      if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.set-property('--dropdownTop', `${top}px`);
-        mobileMenuRef.current.style.set-property('--dropdownLeft', `${left}px`);
+      try {
+        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
+        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+      } catch (err) {
+        // ignore if style manipulation fails in some environments
       }
 
       setMobileMenuPosition({ top, left });
@@ -155,7 +157,7 @@ function Menu() {
           <button
             ref={mobileMenuButtonRef}
             className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
-            on-click={() => { setMobileMenuOpen(v => !v); if (!mobileMenuOpen) calculateMobileMenuPosition(); }}
+            onClick={() => { setMobileMenuOpen(v => !v); if (!mobileMenuOpen) calculateMobileMenuPosition(); }}
             aria-label="Toggle mobile menu"
             aria-haspopup="true"
             aria-expanded={mobileMenuOpen}
@@ -173,7 +175,7 @@ function Menu() {
             aria-hidden={!mobileMenuOpen}
           >
             {menuItems.map(item => (
-              <button key={item.id} className="dropdown-item" on-click={() => { setMobileMenuOpen(false); item.on-click(); }}>
+              <button key={item.id} className="dropdown-item" onClick={() => { setMobileMenuOpen(false); if (typeof item.onClick === 'function') item.onClick(); }}>
                 {item.label}
               </button>
             ))}
@@ -186,7 +188,7 @@ function Menu() {
             <ul className="menu-list">
               {menuItems.map(item => (
                 <li key={item.id}>
-                  <a href={`#${item.id}`} className="menu-login-item" on-click={handleNavigation(item.on-click)}>{item.label}</a>
+                  <a href={`#${item.id}`} className="menu-login-item" onClick={handleNavigation(item.onClick)}>{item.label}</a>
                 </li>
               ))}
             </ul>
@@ -196,20 +198,20 @@ function Menu() {
         {/* NOTE: mobile dropdown uses the replicated user-dropdown earlier; no separate mobile-menu-dropdown required */}
 
         <div className="menu-login-right">
-        {!usuario-logado ? (
+        {!usuarioLogado ? (
             // SEMPRE CircularArrowButton - tanto mobile quanto desktop
-            <CircularArrowButton on-click={handleNavigation(() => navigate('/login'))} />
+            <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
           ) : (
             <MenuUsuario
-              nome={usuario-logado.nome}
-              is-pro={proActive}
+              nome={usuarioLogado?.nome}
+              isPro={proActive}
               onPerfil={handleNavigation(() => navigate('/perfil'))}
               onPro={handleNavigation(() => navigate(proActive ? '/versaoProAssinado' : '/versaoPro'))}
               onConfiguracoes={handleNavigation(() => navigate('/configuracoes'))}
               onLogout={handleNavigation(() => {
                 // limpa estado/localStorage e redireciona para a tela de login
                 setUsuarioLogado(null);
-                localStorage.remove-item('usuarioLogado');
+                try { localStorage.removeItem('usuario-logado'); } catch (err) {}
                 navigate('/login');
               })}
             />

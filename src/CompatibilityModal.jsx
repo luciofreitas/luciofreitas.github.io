@@ -26,13 +26,13 @@ export default function CompatibilityModal({ show, onClose, title, titleIcon, ch
 
 	return (
 		<div className="modal-overlay" onClick={handleOverlayClick}>
-			<div ref={modalRef} className="compat-modal" role="dialog" ariaModal="true" ariaLabel={title || 'Modal'}>
+			<div ref={modalRef} className="compat-modal" role="dialog" aria-modal="true" aria-label={title || 'Modal'}>
 				<div className="app-compat-header">
 					<div className="app-compat-title-wrapper">
 						{titleIcon && <img src={titleIcon} alt="" className="app-compat-title-icon" />}
 						<span className="app-compat-title">{title}</span>
 					</div>
-					<button className="app-compat-close" ariaLabel="Fechar" onClick={onClose}>✕</button>
+					<button className="app-compat-close" aria-label="Fechar" onClick={onClose}>✕</button>
 				</div>
 				<div className="app-compat-body">
 					{children}

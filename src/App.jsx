@@ -44,7 +44,7 @@ export default function App() {
   }, []);
 
   return (
-    <AuthContext.provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
+    <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
       <HashRouter>
         <div className="app">
           <Routes>
@@ -84,6 +84,6 @@ export default function App() {
           </Routes>
         </div>
       </HashRouter>
-    </AuthContext.provider>
+  </AuthContext.Provider>
   );
 }

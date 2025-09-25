@@ -16,7 +16,7 @@ const Skeleton = ({
         height,
         borderRadius
       }}
-      ariaHidden="true"
+  aria-hidden="true"
     />
   );
 };

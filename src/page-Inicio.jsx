@@ -48,8 +48,8 @@ export default function PageInicio() {
             </div>
           </div>
 
-      <div className="inicio-carousel" ariaRoledescription="carousel">
-              <button className="carousel-control prev" ariaLabel="Anterior" onClick={prevSlide}>❮</button>
+      <div className="inicio-carousel" aria-roledescription="carousel">
+        <button className="carousel-control prev" aria-label="Anterior" onClick={prevSlide}>❮</button>
               <div className="carousel-track" ref={trackRef}>
                 {(() => {
                   const n = images.length;
@@ -71,14 +71,14 @@ export default function PageInicio() {
                       >
                         <img src={src} alt={`Slide ${idx + 1}`} />
                         {isCenter && (
-                          <span className="carousel-zoom-icon" ariaHidden="true" title="Ver imagem ampliada">🔍</span>
+                          <span className="carousel-zoom-icon" aria-hidden="true" title="Ver imagem ampliada">🔍</span>
                         )}
                       </div>
                     );
                   });
                 })()}
               </div>
-              <button className="carousel-control next" ariaLabel="Próximo" onClick={nextSlide}>❯</button>
+              <button className="carousel-control next" aria-label="Próximo" onClick={nextSlide}>❯</button>
             </div>
             {/* FullWidth blue band under the carousel to match menu color */}
             <div className="inicio-band">

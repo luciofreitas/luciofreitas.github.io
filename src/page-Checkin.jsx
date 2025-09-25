@@ -55,16 +55,16 @@ export default function Checkin() {
 
     setProcessing(true);
     // simula processamento de pagamento
-    setTimeout(() => {
-  setProcessing(false);
-  setSuccess(true);
-      // grava pagamento no localStorage (simulação de persistência)
-      try {
-  const payments = JSON.parse(localStorage.getItem('payments') || '[]');
-  const record = { id: Date.now(), user: usuarioLogado ? usuarioLogado.email || usuarioLogado.nome : 'guest', amount: 9.9, currency: 'BRL', date: new Date().toIsostring(), card: '**** **** **** ' + card.replace(/\s+/g, '').slice(-4) };
-        payments.push(record);
-        localStorage.setItem('payments', JSON.stringify(payments));
-      } catch (e) {}
+      setTimeout(() => {
+        setProcessing(false);
+        setSuccess(true);
+        // grava pagamento no localStorage (simulação de persistência)
+        try {
+          const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+          const record = { id: Date.now(), user: usuarioLogado ? usuarioLogado.email || usuarioLogado.nome : 'guest', amount: 9.9, currency: 'BRL', date: new Date().toISOString(), card: '**** **** **** ' + card.replace(/\s+/g, '').slice(-4) };
+          payments.push(record);
+          localStorage.setItem('payments', JSON.stringify(payments));
+        } catch (e) {}
 
       // atualiza usuário para Pro
       if (usuarioLogado && setUsuarioLogado) {

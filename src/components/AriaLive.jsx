@@ -19,8 +19,8 @@ const AriaLive = ({ message, priority = 'polite' }) => {
   return (
     <div
       ref={liveRef}
-      ariaLive={priority}
-      ariaAtomic="true"
+      aria-live={priority}
+      aria-atomic="true"
       className="aria-live-region"
     />
   );
@@ -56,14 +56,14 @@ export const AriaLiveContainer = () => {
     <>
       <div
         ref={politeRef}
-        ariaLive="polite"
-        ariaAtomic="true"
+        aria-live="polite"
+        aria-atomic="true"
         className="aria-live-region"
       />
       <div
         ref={assertiveRef}
-        ariaLive="assertive"
-        ariaAtomic="true"
+        aria-live="assertive"
+        aria-atomic="true"
         className="aria-live-region"
       />
     </>

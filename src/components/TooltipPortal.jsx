@@ -41,10 +41,10 @@ function TooltipPortal({ anchorRef, children, visible }) {
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update, true);
 
-    // also observe changes in the tooltip size
+    // also observe changes in the tooltip size (use ResizeObserver if available)
     let ro;
-    if (window.resizeObserver) {
-      ro = new resizeObserver(update);
+    if (typeof window.ResizeObserver !== 'undefined') {
+      ro = new window.ResizeObserver(update);
       ro.observe(document.body);
     }
 
@@ -62,7 +62,7 @@ function TooltipPortal({ anchorRef, children, visible }) {
       ref={tooltipRef}
       className="whatsapp-portal-tooltip-text"
       role="status"
-      ariaHidden={!visible}
+  aria-hidden={!visible}
       style={{ position: 'fixed', top: pos.top, left: pos.left }}
     >
       {children}
