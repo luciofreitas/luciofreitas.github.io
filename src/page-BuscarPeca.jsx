@@ -1,4 +1,4 @@
-import React, { useState, useContext, use-effect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Menu from './components/Menu';
 import { AuthContext } from './App';
 import { apiService } from './utils/apiService';
@@ -10,7 +10,7 @@ import CompatibilityGrid from './components/CompatibilityGrid';
 import './page-BuscarPeca.css';
 
 export default function BuscarPeca() {
-  const { usuario-logado } = useContext(AuthContext) || {};
+  const { usuarioLogado } = useContext(AuthContext) || {};
   
   // filters and data
   const [selectedGrupo, setSelectedGrupo] = useState('');
@@ -21,7 +21,7 @@ export default function BuscarPeca() {
   const [selectedFabricante, setSelectedFabricante] = useState('');
 
   const [grupos, setGrupos] = useState([]);
-  const [todas-pecas, setTodasPecas] = useState([]);
+  const [todasPecas, setTodasPecas] = useState([]);
   const [marcas, setMarcas] = useState([]);
   const [modelos, setModelos] = useState([]);
   const [anos, setAnos] = useState([]);
@@ -39,10 +39,10 @@ export default function BuscarPeca() {
   const [showProductDetailModal, setShowProductDetailModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
-  use-effect(() => {
+  useEffect(() => {
     const loadMeta = async () => {
       try {
-        const data = await apiService.get-pecas-meta();
+        const data = await apiService.getPecasMeta();
   // metadata loaded
         
         setGrupos(data.grupos || []);
@@ -68,12 +68,12 @@ export default function BuscarPeca() {
     loadMeta();
 
     const onRefresh = () => loadMeta();
-    window.add-event-listener('app-refresh', onRefresh);
-    return () => window.remove-event-listener('app-refresh', onRefresh);
+    window.addEventListener('app-refresh', onRefresh);
+    return () => window.removeEventListener('app-refresh', onRefresh);
   }, []);
 
   // Clear dependent selections when parent selections change
-  use-effect(() => {
+  useEffect(() => {
     // When grupo changes, clear categoria and fabricante
     setSelectedCategoria('');
     setSelectedFabricante('');
@@ -82,7 +82,7 @@ export default function BuscarPeca() {
     setSelectedAno('');
   }, [selectedGrupo]);
 
-  use-effect(() => {
+  useEffect(() => {
     // When categoria changes, clear fabricante
     setSelectedFabricante('');
     setSelectedMarca('');
@@ -90,20 +90,20 @@ export default function BuscarPeca() {
     setSelectedAno('');
   }, [selectedCategoria]);
 
-  use-effect(() => {
+  useEffect(() => {
     // When fabricante changes, clear marca, modelo, ano
     setSelectedMarca('');
     setSelectedModelo('');
     setSelectedAno('');
   }, [selectedFabricante]);
 
-  use-effect(() => {
+  useEffect(() => {
     // When marca changes, clear modelo and ano
     setSelectedModelo('');
     setSelectedAno('');
   }, [selectedMarca]);
 
-  use-effect(() => {
+  useEffect(() => {
     // When modelo changes, clear ano
     setSelectedAno('');
   }, [selectedModelo]);
@@ -111,19 +111,19 @@ export default function BuscarPeca() {
   // Filtrar opções de dropdown baseado nas seleções atuais
   const getFilteredPecas = () => {
     // Verificação de segurança - retorna vazio se dados não carregaram
-    if (!todas-pecas || todas-pecas.length === 0) {
+    if (!todasPecas || todasPecas.length === 0) {
       return [];
     }
     
     if (!selectedGrupo || selectedGrupo === '') {
-      const todasPecasNomes = Array.from(new Set(todas-pecas.map(p => p.name || '').filter(Boolean)));
+      const todasPecasNomes = Array.from(new Set(todasPecas.map(p => p.name || '').filter(Boolean)));
       return todasPecasNomes;
     }
     
     // Filtrar peças pelo grupo selecionado
-    const pecasFiltradas = todas-pecas.filter(p => {
+    const pecasFiltradas = todasPecas.filter(p => {
       if (!p.category) return false;
-      const match = p.category.to-lower-case().trim() === selectedGrupo.to-lower-case().trim();
+      const match = p.category.toLowerCase().trim() === selectedGrupo.toLowerCase().trim();
       return match;
     });
     
@@ -132,8 +132,8 @@ export default function BuscarPeca() {
   };
 
   const getFilteredFabricantes = () => {
-    if (!Array.is-array(todas-pecas)) return [];
-    let filtered = todas-pecas;
+    if (!Array.isArray(todasPecas)) return [];
+    let filtered = todasPecas;
     if (selectedGrupo) {
       filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
@@ -144,8 +144,8 @@ export default function BuscarPeca() {
   };
 
   const getFilteredMarcas = () => {
-    if (!Array.is-array(todas-pecas)) return [];
-    let filtered = todas-pecas;
+    if (!Array.isArray(todasPecas)) return [];
+    let filtered = todasPecas;
     if (selectedGrupo) {
       filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
@@ -157,15 +157,15 @@ export default function BuscarPeca() {
     }
     
     const marcasSet = new Set();
-    filtered.for-each(peca => {
-      if (peca && peca.applications && Array.is-array(peca.applications)) {
-        peca.applications.for-each(app => {
-          const appStr = String(app).to-lower-case();
+    filtered.forEach(peca => {
+      if (peca && peca.applications && Array.isArray(peca.applications)) {
+        peca.applications.forEach(app => {
+          const appStr = String(app).toLowerCase();
           // Extract brand names from application strings
           const commonBrands = ['ford', 'chevrolet', 'volkswagen', 'fiat', 'honda', 'toyota', 'hyundai', 'nissan', 'renault', 'peugeot', 'citroën', 'bmw', 'mercedes', 'audi', 'volvo', 'mitsubishi', 'kia', 'suzuki', 'jeep', 'land rover', 'jaguar'];
-          commonBrands.for-each(brand => {
+          commonBrands.forEach(brand => {
             if (appStr.includes(brand)) {
-              marcasSet.add(brand.char-at(0).to-upper-case() + brand.slice(1));
+              marcasSet.add(brand.charAt(0).toUpperCase() + brand.slice(1));
             }
           });
         });
@@ -175,10 +175,10 @@ export default function BuscarPeca() {
   };
 
   const getFilteredModelos = () => {
-    if (!selectedMarca) return Array.is-array(modelos) ? modelos : [];
-    if (!Array.is-array(todas-pecas)) return [];
+    if (!selectedMarca) return Array.isArray(modelos) ? modelos : [];
+    if (!Array.isArray(todasPecas)) return [];
     
-    let filtered = todas-pecas;
+    let filtered = todasPecas;
     if (selectedGrupo) {
       filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
@@ -190,20 +190,20 @@ export default function BuscarPeca() {
     }
     
     const modelosSet = new Set();
-    const marcaLower = selectedMarca.to-lower-case();
+    const marcaLower = selectedMarca.toLowerCase();
     
-    filtered.for-each(peca => {
-      if (peca && peca.applications && Array.is-array(peca.applications)) {
-        peca.applications.for-each(app => {
-          const appStr = String(app).to-lower-case();
+    filtered.forEach(peca => {
+      if (peca && peca.applications && Array.isArray(peca.applications)) {
+        peca.applications.forEach(app => {
+          const appStr = String(app).toLowerCase();
           if (appStr.includes(marcaLower)) {
             // Extract model from application string - this is a simplified approach
             const parts = appStr.split(' ');
-            const marcaIndex = parts.find-index(part => part.includes(marcaLower));
+            const marcaIndex = parts.findIndex(part => part.includes(marcaLower));
             if (marcaIndex >= 0 && marcaIndex < parts.length - 1) {
               const possibleModel = parts[marcaIndex + 1];
               if (possibleModel && possibleModel.length > 1) {
-                modelosSet.add(possibleModel.char-at(0).to-upper-case() + possibleModel.slice(1));
+                modelosSet.add(possibleModel.charAt(0).toUpperCase() + possibleModel.slice(1));
               }
             }
           }
@@ -214,10 +214,10 @@ export default function BuscarPeca() {
   };
 
   const getFilteredAnos = () => {
-    if (!selectedMarca && !selectedModelo) return Array.is-array(anos) ? anos : [];
-    if (!Array.is-array(todas-pecas)) return [];
+    if (!selectedMarca && !selectedModelo) return Array.isArray(anos) ? anos : [];
+    if (!Array.isArray(todasPecas)) return [];
     
-    let filtered = todas-pecas;
+    let filtered = todasPecas;
     if (selectedGrupo) {
       filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
@@ -229,13 +229,13 @@ export default function BuscarPeca() {
     }
     
     const anosSet = new Set();
-    const marcaLower = selectedMarca?.to-lower-case();
-    const modeloLower = selectedModelo?.to-lower-case();
+    const marcaLower = selectedMarca?.toLowerCase();
+    const modeloLower = selectedModelo?.toLowerCase();
     
-    filtered.for-each(peca => {
-      if (peca && peca.applications && Array.is-array(peca.applications)) {
-        peca.applications.for-each(app => {
-          const appStr = String(app).to-lower-case();
+    filtered.forEach(peca => {
+      if (peca && peca.applications && Array.isArray(peca.applications)) {
+        peca.applications.forEach(app => {
+          const appStr = String(app).toLowerCase();
           const matchesMarca = !marcaLower || appStr.includes(marcaLower);
           const matchesModelo = !modeloLower || appStr.includes(modeloLower);
           
@@ -243,7 +243,7 @@ export default function BuscarPeca() {
             // Extract years from application string
             const yearRegex = /\d{4}(?:-\d{4})?/g;
             const yearMatches = appStr.match(yearRegex) || [];
-            yearMatches.for-each(yearStr => {
+            yearMatches.forEach(yearStr => {
               if (yearStr.includes('-')) {
                 const [start, end] = yearStr.split('-').map(Number);
                 for (let y = start; y <= end; y++) {
@@ -294,7 +294,7 @@ export default function BuscarPeca() {
 
     const compatContent = (
       <div className="buscarpeca-compat-wrapper">
-        <CompatibilityGrid applications={peca.applications} usuario-logado={usuario-logado} />
+        <CompatibilityGrid applications={peca.applications} usuarioLogado={usuarioLogado} />
       </div>
     );
 
@@ -303,7 +303,7 @@ export default function BuscarPeca() {
   };
 
   const handleSearch = async (e) => {
-    if (e && e.prevent-default) e.prevent-default();
+    if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
     setError('');
     const filtros = { 
@@ -315,7 +315,7 @@ export default function BuscarPeca() {
       fabricante: selectedFabricante 
     };
     try {
-    const data = await apiService.filtrar-pecas(filtros);
+    const data = await apiService.filtrarPecas(filtros);
     const pecasFiltradas = data.results || [];
       setPecas(pecasFiltradas);
       if (pecasFiltradas.length === 0) {
@@ -370,7 +370,7 @@ export default function BuscarPeca() {
               selectedFabricante={selectedFabricante}
               setSelectedFabricante={setSelectedFabricante}
               grupos={grupos}
-              todas-pecas={getFilteredPecas()}
+              todasPecas={getFilteredPecas()}
               marcas={getFilteredMarcas()}
               modelos={getFilteredModelos()}
               anos={getFilteredAnos()}

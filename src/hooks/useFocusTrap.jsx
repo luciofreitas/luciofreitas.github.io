@@ -1,20 +1,20 @@
-import { use-effect } from 'react';
+import { useEffect } from 'react';
 
-// Focus-trap with support for stacked modals.
+// FocusTrap with support for stacked modals.
 // Maintains a global stack so only the topmost modal traps focus and
 // focus is restored correctly when modals are closed in LIFO order.
 
 const globalModalStack = [];
 
 export default function useFocusTrap(active, containerRef) {
-  use-effect(() => {
+  useEffect(() => {
     const container = containerRef?.current;
     if (!active || !container) return undefined;
 
-    const prev-active = document.active-element;
+    const prevActive = document.activeElement;
 
     // push to stack
-    globalModalStack.push({ container, prev-active });
+    globalModalStack.push({ container, prevActive });
 
     const focusableSelector = [
       'a[href]',
@@ -31,8 +31,8 @@ export default function useFocusTrap(active, containerRef) {
     ].join(',');
 
     function getFocusableElements() {
-      return Array.from(container.query-selector-all(focusableSelector)).filter((el) => {
-        return !!(el.offset-width || el.offset-height || el.get-client-rects().length);
+      return Array.from(container.querySelectorAll(focusableSelector)).filter((el) => {
+        return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
       });
     }
 
@@ -41,7 +41,7 @@ export default function useFocusTrap(active, containerRef) {
       if (focusable.length) {
         focusable[0].focus();
       } else {
-        if (!container.has-attribute('tabindex')) container.set-attribute('tabindex', '-1');
+        if (!container.hasAttribute('tabindex')) container.setAttribute('tabindex', '-1');
         container.focus();
       }
     }
@@ -58,28 +58,28 @@ export default function useFocusTrap(active, containerRef) {
 
       const items = getFocusableElements();
       if (items.length === 0) {
-        e.prevent-default();
+        e.preventDefault();
         return;
       }
 
       const first = items[0];
       const last = items[items.length - 1];
 
-      if (e.shift-key) {
-        if (document.active-element === first || document.active-element === container) {
-          e.prevent-default();
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === container) {
+          e.preventDefault();
           last.focus();
         }
       } else {
-        if (document.active-element === last) {
-          e.prevent-default();
+        if (document.activeElement === last) {
+          e.preventDefault();
           first.focus();
         }
       }
     }
 
     focusInitial();
-    document.add-event-listener('keydown', onKeyDown);
+    document.addEventListener('keydown', onKeyDown);
 
     return () => {
       // remove from stack (only the first matching container from top)
@@ -88,7 +88,7 @@ export default function useFocusTrap(active, containerRef) {
           const removed = globalModalStack.splice(i, 1)[0];
           // try restore focus from the removed entry
           try {
-            if (removed.prev-active && typeof removed.prev-active.focus === 'function') removed.prev-active.focus();
+            if (removed.prevActive && typeof removed.prevActive.focus === 'function') removed.prevActive.focus();
           } catch (err) {
             // ignore
           }
@@ -96,7 +96,7 @@ export default function useFocusTrap(active, containerRef) {
         }
       }
 
-      document.remove-event-listener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown);
     };
   }, [active, containerRef]);
 }

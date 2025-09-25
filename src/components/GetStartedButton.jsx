@@ -1,11 +1,11 @@
 import React from 'react';
 import './GetStartedButton.css';
 
-const GetStartedButton = ({ on-click, className = '' }) => {
+const GetStartedButton = ({ onClick, className = '' }) => {
   return (
     <button 
       className={`get-started-button ${className}`}
-      on-click={on-click}
+      onClick={onClick}
       type="button"
     >
       <span className="button-text">Comece agora - É grátis</span>

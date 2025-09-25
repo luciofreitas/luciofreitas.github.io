@@ -16,12 +16,12 @@ const Skeleton = ({
         height,
         borderRadius
       }}
-      aria-hidden="true"
+      ariaHidden="true"
     />
   );
 };
 
-// Pre-built skeleton components for common use cases
+// PreBuilt skeleton components for common use cases
 export const SkeletonText = ({ lines = 1, className = '' }) => (
   <div className={`skeleton-text ${className}`}>
     {Array.from({ length: lines }, (, i) => (
@@ -72,7 +72,7 @@ export const SkeletonCard = ({ className = '' }) => (
   </div>
 );
 
-// User menu skeleton for post-login loading
+// User menu skeleton for postLogin loading
 export const SkeletonUserMenu = ({ className = '' }) => (
   <div className={`skeleton-user-menu ${className}`}>
     <SkeletonAvatar size="2.25rem" />

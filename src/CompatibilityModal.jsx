@@ -1,4 +1,4 @@
-import React, { use-effect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import useFocusTrap from './hooks/useFocusTrap';
 
 export default function CompatibilityModal({ show, onClose, title, titleIcon, children }) {
@@ -6,7 +6,7 @@ export default function CompatibilityModal({ show, onClose, title, titleIcon, ch
 
 	useFocusTrap(show, modalRef);
 
-	use-effect(() => {
+	useEffect(() => {
 		if (show) {
 			// Lock background scroll when modal is open
 			const prev = document.body.style.overflow;
@@ -19,20 +19,20 @@ export default function CompatibilityModal({ show, onClose, title, titleIcon, ch
 	if (!show) return null;
 
 	const handleOverlayClick = (e) => {
-		if (e.target.class-list.contains('modal-overlay')) {
+		if (e.target.classList.contains('modal-overlay')) {
 			onClose();
 		}
 	};
 
 	return (
-		<div className="modal-overlay" on-click={handleOverlayClick}>
-			<div ref={modalRef} className="compat-modal" role="dialog" aria-modal="true" aria-label={title || 'Modal'}>
+		<div className="modal-overlay" onClick={handleOverlayClick}>
+			<div ref={modalRef} className="compat-modal" role="dialog" ariaModal="true" ariaLabel={title || 'Modal'}>
 				<div className="app-compat-header">
 					<div className="app-compat-title-wrapper">
 						{titleIcon && <img src={titleIcon} alt="" className="app-compat-title-icon" />}
 						<span className="app-compat-title">{title}</span>
 					</div>
-					<button className="app-compat-close" aria-label="Fechar" on-click={onClose}>✕</button>
+					<button className="app-compat-close" ariaLabel="Fechar" onClick={onClose}>✕</button>
 				</div>
 				<div className="app-compat-body">
 					{children}

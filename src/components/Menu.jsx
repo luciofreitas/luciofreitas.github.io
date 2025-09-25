@@ -1,4 +1,4 @@
-import React, { useContext, use-effect, useLayoutEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import './MenuLogin.css';
@@ -14,15 +14,15 @@ function Menu() {
   const [mobileMenuPosition, setMobileMenuPosition] = useState({ top: 0, left: 0 });
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window !== 'undefined') {
-      return window.inner-width <= 768;
+      return window.innerWidth <= 768;
     }
     return false;
   });
   const mobileMenuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
-  const { usuario-logado, setUsuarioLogado } = useContext(AuthContext);
-  const proActive = Boolean(usuario-logado && usuario-logado.is-pro) || localStorage.get-item('versaoProAtiva') === 'true';
+  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext);
+  const proActive = Boolean(usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true';
   const headerRef = useRef(null);
 
   // shared menu items to render in desktop nav and mobile dropdown
@@ -30,17 +30,17 @@ function Menu() {
     {
       id: 'buscar',
       label: 'Buscar Peças',
-      on-click: () => navigate('/buscar-pecas')
+      onClick: () => navigate('/buscar-pecas')
     },
-    { id: 'recalls', label: 'Recalls', on-click: () => navigate('/recalls') },
-    { id: 'guias', label: 'Guias', on-click: () => navigate('/guias') },
-    { id: 'parceiros', label: 'Parceiros', on-click: () => navigate('/parceiros') },
-    { id: 'contato', label: 'Contato', on-click: () => navigate('/contato-logado') }
+    { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
+    { id: 'guias', label: 'Guias', onClick: () => navigate('/guias') },
+    { id: 'parceiros', label: 'Parceiros', onClick: () => navigate('/parceiros') },
+    { id: 'contato', label: 'Contato', onClick: () => navigate('/contato-logado') }
   ];
 
-  use-effect(() => {
+  useEffect(() => {
     const handleScroll = () => {
-      const currentScroll = window.scroll-y;
+      const currentScroll = window.scrollY;
       if (currentScroll > lastScroll && currentScroll > 60) {
         setHideMenu(true);
       } else {
@@ -48,23 +48,23 @@ function Menu() {
       }
       setLastScroll(currentScroll);
     };
-    window.add-event-listener('scroll', handleScroll);
-    return () => window.remove-event-listener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScroll]);
 
   // Monitor screen size changes for mobile detection
-  use-effect(() => {
+  useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.inner-width <= 768);
+      setIsMobile(window.innerWidth <= 768);
     };
-    window.add-event-listener('resize', handleResize);
-    return () => window.remove-event-listener('resize', handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Função para calcular a posição do menu mobile EXATAMENTE como MenuUsuario
   const calculateMobileMenuPosition = () => {
     if (mobileMenuButtonRef.current) {
-      const rect = mobileMenuButtonRef.current.get-bounding-client-rect();
+      const rect = mobileMenuButtonRef.current.getBoundingClientRect();
 
       // Position below the button like MenuUsuario.jsx does
       const top = Math.round(rect.bottom + 4); // Small gap below the button
@@ -72,8 +72,8 @@ function Menu() {
 
       // Set CSS custom properties for positioning
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.set-property('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.set-property('--dropdown-left', `${left}px`);
+        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
+        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
       }
 
       setMobileMenuPosition({ top, left });
@@ -90,7 +90,7 @@ function Menu() {
     // If opening, calculate position after next paint (we measure in useLayoutEffect too)
     if (newState) {
       // slight delay to allow DOM updates; calculateMobileMenuPosition will also run in useLayoutEffect
-      window.request-animation-frame(() => calculateMobileMenuPosition());
+      window.requestAnimationFrame(() => calculateMobileMenuPosition());
     }
   };
 
@@ -101,8 +101,8 @@ function Menu() {
   const handleNavigation = (callback) => {
     return (e) => {
       // Suporta ser chamado com ou sem evento (ex.: MenuUsuario chama sem evento)
-      if (e && typeof e.prevent-default === 'function') {
-        e.prevent-default();
+      if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
       }
       closeMobileMenu();
       callback();
@@ -110,7 +110,7 @@ function Menu() {
   };
 
   // Fecha menu mobile ao clicar fora (similar ao MenuUsuario)
-  use-effect(() => {
+  useEffect(() => {
     function handleOutside(e) {
       if (mobileMenuOpen && 
           mobileMenuButtonRef.current && !mobileMenuButtonRef.current.contains(e.target) && 
@@ -119,11 +119,11 @@ function Menu() {
       }
     }
     
-    window.add-event-listener('mousedown', handleOutside);
-    window.add-event-listener('resize', calculateMobileMenuPosition);
+    window.addEventListener('mousedown', handleOutside);
+    window.addEventListener('resize', calculateMobileMenuPosition);
     return () => {
-      window.remove-event-listener('mousedown', handleOutside);
-      window.remove-event-listener('resize', calculateMobileMenuPosition);
+      window.removeEventListener('mousedown', handleOutside);
+      window.removeEventListener('resize', calculateMobileMenuPosition);
     };
   }, [mobileMenuOpen]);
 
@@ -137,8 +137,8 @@ function Menu() {
 
       // Set CSS custom properties for positioning
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.set-property('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.set-property('--dropdown-left', `${left}px`);
+        mobileMenuRef.current.style.set-property('--dropdownTop', `${top}px`);
+        mobileMenuRef.current.style.set-property('--dropdownLeft', `${left}px`);
       }
 
       setMobileMenuPosition({ top, left });
@@ -204,12 +204,12 @@ function Menu() {
               nome={usuario-logado.nome}
               is-pro={proActive}
               onPerfil={handleNavigation(() => navigate('/perfil'))}
-              onPro={handleNavigation(() => navigate(proActive ? '/versao-pro-assinado' : '/versao-pro'))}
+              onPro={handleNavigation(() => navigate(proActive ? '/versaoProAssinado' : '/versaoPro'))}
               onConfiguracoes={handleNavigation(() => navigate('/configuracoes'))}
               onLogout={handleNavigation(() => {
                 // limpa estado/localStorage e redireciona para a tela de login
                 setUsuarioLogado(null);
-                localStorage.remove-item('usuario-logado');
+                localStorage.remove-item('usuarioLogado');
                 navigate('/login');
               })}
             />

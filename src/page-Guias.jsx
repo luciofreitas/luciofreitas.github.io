@@ -1,4 +1,4 @@
-import React, { useState, use-effect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Menu from './components/Menu';
 import ComponenteEstrelas from './components/ComponenteEstrelas';
 import GlossarioExpandido from './components/GlossarioExpandido';
@@ -22,19 +22,19 @@ function PageGuias() {
   });
 
   // Hook customizado para avaliações
-  const { avaliacoes, votos-usuario, avaliarGuia } = useAvaliacoes();
+  const { avaliacoes, votosUsuario, avaliarGuia } = useAvaliacoes();
 
   // Carregar dados do glossário
-  use-effect(() => {
+  useEffect(() => {
     const carregarGlossario = async () => {
       try {
-        const data = await apiService.get-glossario-dashboard();
+        const data = await apiService.getGlossarioDashboard();
         // Garantir que sempre seja um array
-        const arrayData = Array.is-array(data) ? data : (data ? [data] : glossarioMockData);
+        const arrayData = Array.isArray(data) ? data : (data ? [data] : glossarioMockData);
         setGlossarioData(arrayData);
       } catch (error) {
         console.error('Erro ao carregar glossário:', error);
-        setGlossarioData(Array.is-array(glossarioMockData) ? glossarioMockData : []);
+        setGlossarioData(Array.isArray(glossarioMockData) ? glossarioMockData : []);
         setError(null);
       } finally {
         setLoading(false);
@@ -59,7 +59,7 @@ function PageGuias() {
       'média': '#f59e0b', 
       'baixa': '#16a34a'
     };
-    return cores[prioridade?.to-lower-case()] || '#6b7280';
+    return cores[prioridade?.toLowerCase()] || '#6b7280';
   };
 
   const getCorHex = (cor) => {
@@ -72,16 +72,16 @@ function PageGuias() {
       'branco': '#f8fafc',
       'roxo': '#7c3aed'
     };
-    return cores[cor?.to-lower-case()] || '#6b7280';
+    return cores[cor?.toLowerCase()] || '#6b7280';
   };
 
   // Filtrar dados do glossário
-  const dadosFiltrados = (Array.is-array(glossarioData) ? glossarioData : []).filter(item => {
+  const dadosFiltrados = (Array.isArray(glossarioData) ? glossarioData : []).filter(item => {
     if (!item) return false;
     
     const matchBusca = !filtros.busca || 
-      (item.nome && item.nome.to-lower-case().includes(filtros.busca.to-lower-case())) ||
-      (item.descricao && item.descricao.to-lower-case().includes(filtros.busca.to-lower-case()));
+      (item.nome && item.nome.toLowerCase().includes(filtros.busca.toLowerCase())) ||
+      (item.descricao && item.descricao.toLowerCase().includes(filtros.busca.toLowerCase()));
     
     const matchPrioridade = !filtros.prioridade || item.prioridade === filtros.prioridade;
     const matchCor = !filtros.cor || item.cor === filtros.cor;
@@ -109,7 +109,7 @@ function PageGuias() {
             
             {/* Card do Glossário Automotivo - Expandível */}
             <div className={`guia-card glossario-card ${expandedCard === 'glossario' ? 'expanded' : ''}`}>
-              <div className="guia-header" on-click={() => toggleCard('glossario')}>
+              <div className="guia-header" onClick={() => toggleCard('glossario')}>
                 <div className="guia-icone">⚠️</div>
                 <div className="guia-categoria">Diagnóstico</div>
               </div>
@@ -127,14 +127,14 @@ function PageGuias() {
                     guiaId="glossario-automotivo"
                     mediaAtual={avaliacoes['glossario-automotivo']?.media || 0}
                     totalVotos={avaliacoes['glossario-automotivo']?.total || 0}
-                    votos-usuario={votos-usuario}
+                    votosUsuario={votosUsuario}
                     onAvaliar={avaliarGuia}
                   />
                 </div>
                 
                 {expandedCard !== 'glossario' && (
                   <div className="guia-footer">
-                    <span className="guia-cta" on-click={() => toggleCard('glossario')}>
+                    <span className="guia-cta" onClick={() => toggleCard('glossario')}>
                       Ver Glossário Completo →
                     </span>
                   </div>
@@ -155,7 +155,7 @@ function PageGuias() {
                     />
                     
                     <div className="guia-footer">
-                      <span className="guia-cta" on-click={() => toggleCard('glossario')}>
+                      <span className="guia-cta" onClick={() => toggleCard('glossario')}>
                         ← Minimizar Glossário
                       </span>
                     </div>
@@ -183,7 +183,7 @@ function PageGuias() {
                       guiaId={guia.id}
                       mediaAtual={avaliacoes[guia.id]?.media || 0}
                       totalVotos={avaliacoes[guia.id]?.total || 0}
-                      votos-usuario={votos-usuario}
+                      votosUsuario={votosUsuario}
                       onAvaliar={avaliarGuia}
                     />
                   </div>

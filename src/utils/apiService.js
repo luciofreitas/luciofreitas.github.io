@@ -2,13 +2,13 @@
 import { glossarioMockData } from '../data/glossarioData.js';
 class ApiService {
   constructor() {
-    this.is-local = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    this.base-url = this.is-local ? '' : '';
+    this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    this.baseUrl = this.isLocal ? '' : '';
   }
 
-  async fetch-with-fallback(apiPath, fallbackData = null) {
+  async fetchWithFallback(apiPath, fallbackData = null) {
     // Try API first (works locally with backend)
-    if (this.is-local) {
+    if (this.isLocal) {
       try {
         const response = await fetch(apiPath);
         if (response.ok) {
@@ -26,7 +26,7 @@ class ApiService {
 
     // Try to load JSON file directly
     try {
-      const jsonPath = this.get-json-fallback-path(apiPath);
+      const jsonPath = this.getJsonFallbackPath(apiPath);
       if (jsonPath) {
         const response = await fetch(jsonPath);
         if (response.ok) {
@@ -41,7 +41,7 @@ class ApiService {
     return { data: [], message: 'No data available' };
   }
 
-  get-json-fallback-path(apiPath) {
+  getJsonFallbackPath(apiPath) {
     const pathMap = {
       '/api/glossario-dashboard': null,
       '/api/luzes-painel': '/data/luzes_painel.json',
@@ -51,23 +51,23 @@ class ApiService {
   }
 
   // Specific methods for each API endpoint
-  async get-glossario-dashboard() {
+  async getGlossarioDashboard() {
     // Use statically imported local data as fallback
-    return this.fetch-with-fallback('/api/glossario-dashboard', glossarioMockData);
+    return this.fetchWithFallback('/api/glossario-dashboard', glossarioMockData);
   }
 
-  async get-luzes-painel() {
+  async getLuzesPainel() {
     // Load luzes_painel.json as fallback
     try {
       const response = await fetch('/data/luzes_painel.json');
       const fallbackData = response.ok ? await response.json() : null;
-      return this.fetch-with-fallback('/api/luzes-painel', fallbackData);
+      return this.fetchWithFallback('/api/luzes-painel', fallbackData);
     } catch {
-      return this.fetch-with-fallback('/api/luzes-painel');
+      return this.fetchWithFallback('/api/luzes-painel');
     }
   }
 
-  async get-pecas-meta() {
+  async getPecasMeta() {
     // Load parts_db.json as fallback
       try {
       const response = await fetch('/data/parts_db.json');
@@ -81,28 +81,28 @@ class ApiService {
         // Extract years and models from applications (they are strings like "Fiat Uno 2010-2011-2012-2013-2014-2015")
         const modelos = new Set();
         const anos = new Set();
-        const todas-marcas-veiculos = new Set();
+        const todasMarcasVeiculos = new Set();
 
         let appCount = 0;
 
-        partsData.for-each(part => {
-          if (part.applications && Array.is-array(part.applications)) {
-            part.applications.for-each(app => {
+        partsData.forEach(part => {
+          if (part.applications && Array.isArray(part.applications)) {
+            part.applications.forEach(app => {
               appCount++;
               if (typeof app === 'string') {
                 const parts = app.trim().split(/\s+/);
                 if (parts.length >= 2) {
                   const marca = parts[0];
                   const modelo = parts[1];
-                  todas-marcas-veiculos.add(marca);
+                  todasMarcasVeiculos.add(marca);
                   modelos.add(`${marca} ${modelo}`);
                   const yearsMatch = app.match(/\b(19|20)\d{2}\b/g);
-                  if (yearsMatch) yearsMatch.for-each(year => anos.add(year));
+                  if (yearsMatch) yearsMatch.forEach(year => anos.add(year));
                 }
               } else if (typeof app === 'object') {
                 if (app.model) modelos.add(app.model);
                 if (app.year) anos.add(app.year);
-                if (app.make) todas-marcas-veiculos.add(app.make);
+                if (app.make) todasMarcasVeiculos.add(app.make);
               }
             });
           }
@@ -111,7 +111,7 @@ class ApiService {
         const result = {
           grupos: grupos,
           pecas: partsData,
-          marcas: [...todas-marcas-veiculos].sort(),
+          marcas: [...todasMarcasVeiculos].sort(),
           modelos: [...modelos].sort(),
           anos: [...anos].sort(),
           fabricantes: fabricantes
@@ -122,13 +122,13 @@ class ApiService {
     } catch (error) {
       console.warn('Error loading parts_db.json:', error);
     }
-    return this.fetch-with-fallback('/api/pecas/meta');
+    return this.fetchWithFallback('/api/pecas/meta');
   }
 
-  async filtrar-pecas(filtros) {
+  async filtrarPecas(filtros) {
   // filter called with provided filtros
     // Try API first
-    if (this.is-local) {
+    if (this.isLocal) {
       try {
         const response = await fetch('/api/pecas/filtrar', {
           method: 'POST',
@@ -165,7 +165,7 @@ class ApiService {
           filtered = filtered.filter(p => 
             p.applications && p.applications.some(app => {
               if (typeof app === 'string') {
-                return app.to-lower-case().includes(filtros.marca.to-lower-case());
+                return app.toLowerCase().includes(filtros.marca.toLowerCase());
               }
               return false;
             })
@@ -175,7 +175,7 @@ class ApiService {
           filtered = filtered.filter(p => 
             p.applications && p.applications.some(app => {
               if (typeof app === 'string') {
-                return app.to-lower-case().includes(filtros.modelo.to-lower-case());
+                return app.toLowerCase().includes(filtros.modelo.toLowerCase());
               }
               return false;
             })
@@ -194,7 +194,7 @@ class ApiService {
         if (filtros.fabricante) {
           // Filter by part manufacturer
           filtered = filtered.filter(p => 
-            p.manufacturer && p.manufacturer.to-lower-case().includes(filtros.fabricante.to-lower-case())
+            p.manufacturer && p.manufacturer.toLowerCase().includes(filtros.fabricante.toLowerCase())
           );
         }
         return { results: filtered };
@@ -208,11 +208,11 @@ class ApiService {
     return { results: [] };
   }
 
-  async get-peca-by-id(id) {
-  // get-peca-by-id called
+  async getPecaById(id) {
+  // getPecaById called
     
     // Try API first
-    if (this.is-local) {
+    if (this.isLocal) {
       try {
         const response = await fetch(`/api/pecas/${id}`);
         if (response.ok) {

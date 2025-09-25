@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, use-effect } from 'react';
+import React, { useState, createContext, useContext, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './page-Login';
 import PageInicio from './page-Inicio';
@@ -21,19 +21,19 @@ import './CustomDropdown.css';
 export const AuthContext = createContext(null);
 
 function ProtectedRoute({ children }) {
-  const { usuario-logado, authLoaded } = useContext(AuthContext) || {};
+  const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
   if (!authLoaded) return null;
-  if (!usuario-logado) return <Navigate to="/login" replace />;
+  if (!usuarioLogado) return <Navigate to="/login" replace />;
   return children;
 }
 
 export default function App() {
-  const [usuario-logado, setUsuarioLogado] = useState(null);
+  const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [authLoaded, setAuthLoaded] = useState(false);
 
-  React.use-effect(() => {
+  React.useEffect(() => {
     try {
-      const stored = localStorage.get-item('usuario-logado');
+      const stored = localStorage.getItem('usuario-logado');
       if (stored) {
         setUsuarioLogado(JSON.parse(stored));
       }
@@ -44,7 +44,7 @@ export default function App() {
   }, []);
 
   return (
-    <AuthContext.provider value={{ usuario-logado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
+    <AuthContext.provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
       <HashRouter>
         <div className="app">
           <Routes>

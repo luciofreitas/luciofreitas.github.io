@@ -6,8 +6,8 @@ import './page-VersaoPro_Assinado.css';
 
 export default function VersaoPro_Assinado() {
   const navigate = useNavigate();
-  const { usuario-logado } = useContext(AuthContext);
-  const is-pro = Boolean((usuario-logado && usuario-logado.is-pro) || localStorage.get-item('versaoProAtiva') === 'true');
+  const { usuarioLogado } = useContext(AuthContext);
+  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
 
   const btnPrimary = {
     padding: '10px 16px',
@@ -35,21 +35,21 @@ export default function VersaoPro_Assinado() {
         <div className="versao-pro-assinado-container">
           <h2 className="page-title">Assinatura Pro ativada</h2>
           <p className="versao-pro-assinado-intro">
-            Obrigado{usuario-logado && usuario-logado.nome ? `, ${usuario-logado.nome}` : ''} — sua assinatura Pro foi ativada com sucesso (simulada).
+            Obrigado{usuarioLogado && usuarioLogado.nome ? `, ${usuario-logado.nome}` : ''} — sua assinatura Pro foi ativada com sucesso (simulada).
           </p>
 
           <div className="versao-pro-assinado-actions">
-            <button className="versao-pro-assinado-btn-primary" on-click={() => navigate('/')}>Ir para a página inicial</button>
-            <button className="versao-pro-assinado-btn-secondary" on-click={() => navigate('/perfil')}>Ver meu perfil</button>
+            <button className="versao-pro-assinado-btn-primary" onClick={() => navigate('/')}>Ir para a página inicial</button>
+            <button className="versao-pro-assinado-btn-secondary" onClick={() => navigate('/perfil')}>Ver meu perfil</button>
           </div>
 
           <div className="versao-pro-assinado-benefits">
             <h3 className="versao-pro-assinado-benefits-title">Benefícios ativos</h3>
-            {is-pro ? (
+            {isPro ? (
               <ul className="versao-pro-assinado-benefits-list">
                 <li>✓ Acesso ao endereço das lojas que vendem as peças.</li>
                 <li>✓ Contato direto via WhatsApp dentro das compatibilidades.</li>
-                <li>✓ Suporte prioritário por e-mail e WhatsApp.</li>
+                <li>✓ Suporte prioritário por eMail e WhatsApp.</li>
                 <li>✓ Acesso à comunidade exclusiva (Discord).</li>
               </ul>
             ) : (

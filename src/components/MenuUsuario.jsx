@@ -1,7 +1,7 @@
-import React, { useState, useRef, use-effect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './MenuUsuario.css';
 
-function MenuUsuario({ nome, is-pro = false, onPerfil, onPro, onConfiguracoes, onLogout }) {
+function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onConfiguracoes, onLogout }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -10,23 +10,23 @@ function MenuUsuario({ nome, is-pro = false, onPerfil, onPro, onConfiguracoes, o
   // Função para calcular a posição do dropdown
   const calculatePosition = () => {
     if (buttonRef.current) {
-      const rect = buttonRef.current.get-bounding-client-rect();
+      const rect = buttonRef.current.getBoundingClientRect();
       setDropdownPosition({
         top: rect.bottom, // Posiciona abaixo do botão
-        right: window.inner-width - rect.right // Alinha à direita do botão
+        right: window.innerWidth - rect.right // Alinha à direita do botão
       });
     }
   };
 
   // Atualiza posição quando abre
-  use-effect(() => {
+  useEffect(() => {
     if (open) {
       calculatePosition();
     }
   }, [open]);
 
   // Fecha ao clicar fora
-  use-effect(() => {
+  useEffect(() => {
     function handleOutside(e) {
       if (open && 
           buttonRef.current && !buttonRef.current.contains(e.target) && 
@@ -35,11 +35,11 @@ function MenuUsuario({ nome, is-pro = false, onPerfil, onPro, onConfiguracoes, o
       }
     }
     
-    window.add-event-listener('mousedown', handleOutside);
-    window.add-event-listener('resize', calculatePosition);
+    window.addEventListener('mousedown', handleOutside);
+    window.addEventListener('resize', calculatePosition);
     return () => {
-      window.remove-event-listener('mousedown', handleOutside);
-      window.remove-event-listener('resize', calculatePosition);
+      window.removeEventListener('mousedown', handleOutside);
+      window.removeEventListener('resize', calculatePosition);
     };
   }, [open]);
 
@@ -48,9 +48,9 @@ function MenuUsuario({ nome, is-pro = false, onPerfil, onPro, onConfiguracoes, o
       <button
         ref={buttonRef}
         className="user-button icon-only"
-        on-click={() => setOpen(v => !v)}
-        aria-haspopup="true"
-        aria-expanded={open}
+        onClick={() => setOpen(v => !v)}
+        ariaHaspopup="true"
+        ariaExpanded={open}
       >
         {/* Desktop e Mobile: ambos mostram ícone, mas com tamanhos diferentes */}
         <span className="user-icon-desktop">
@@ -63,7 +63,7 @@ function MenuUsuario({ nome, is-pro = false, onPerfil, onPro, onConfiguracoes, o
             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
           </svg>
         </span>
-        {is-pro && (
+        {isPro && (
           <span className="pro-badge">PRO</span>
         )}
       </button>
@@ -79,10 +79,10 @@ function MenuUsuario({ nome, is-pro = false, onPerfil, onPro, onConfiguracoes, o
         >
           {/* Nome do usuário como primeiro item do dropdown (apenas no mobile) - não clicável */}
           <div className="dropdown-item dropdown-user-name dropdown-user-name-header">Olá, {nome}</div>
-          <button className="dropdown-item" on-click={() => { setOpen(false); onPerfil(); }}>Perfil</button>
-          <button className="dropdown-item" on-click={() => { setOpen(false); onPro(); }}>Versão Pro</button>
-          <button className="dropdown-item" on-click={() => { setOpen(false); onConfiguracoes(); }}>Configurações</button>
-          <button className="dropdown-item dropdown-item-logout" on-click={() => { setOpen(false); onLogout(); }}>Sair</button>
+          <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button>
+          <button className="dropdown-item" onClick={() => { setOpen(false); onPro(); }}>Versão Pro</button>
+          <button className="dropdown-item" onClick={() => { setOpen(false); onConfiguracoes(); }}>Configurações</button>
+          <button className="dropdown-item dropdown-item-logout" onClick={() => { setOpen(false); onLogout(); }}>Sair</button>
         </div>
       )}
     </div>

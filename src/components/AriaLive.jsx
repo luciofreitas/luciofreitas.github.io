@@ -1,16 +1,16 @@
-import React, { use-effect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './AriaLive.css';
 
 const AriaLive = ({ message, priority = 'polite' }) => {
   const liveRef = useRef(null);
 
-  use-effect(() => {
+  useEffect(() => {
     if (message && liveRef.current) {
       // Clear and set message to ensure screen readers announce it
-      liveRef.current.text-content = '';
+      liveRef.current.textContent = '';
       setTimeout(() => {
         if (liveRef.current) {
-          liveRef.current.text-content = message;
+          liveRef.current.textContent = message;
         }
       }, 10);
     }
@@ -19,8 +19,8 @@ const AriaLive = ({ message, priority = 'polite' }) => {
   return (
     <div
       ref={liveRef}
-      aria-live={priority}
-      aria-atomic="true"
+      ariaLive={priority}
+      ariaAtomic="true"
       className="aria-live-region"
     />
   );
@@ -31,24 +31,24 @@ export const AriaLiveContainer = () => {
   const politeRef = useRef(null);
   const assertiveRef = useRef(null);
 
-  use-effect(() => {
+  useEffect(() => {
     // Global function to announce messages
-    window.announce-to-screen-reader = (message, priority = 'polite') => {
+    window.announceToScreenReader = (message, priority = 'polite') => {
       const targetRef = priority === 'assertive' ? assertiveRef : politeRef;
       
       if (targetRef.current) {
         // Clear and announce
-        targetRef.current.text-content = '';
+        targetRef.current.textContent = '';
         setTimeout(() => {
           if (targetRef.current) {
-            targetRef.current.text-content = message;
+            targetRef.current.textContent = message;
           }
         }, 10);
       }
     };
 
     return () => {
-      delete window.announce-to-screen-reader;
+      delete window.announceToScreenReader;
     };
   }, []);
 
@@ -56,14 +56,14 @@ export const AriaLiveContainer = () => {
     <>
       <div
         ref={politeRef}
-        aria-live="polite"
-        aria-atomic="true"
+        ariaLive="polite"
+        ariaAtomic="true"
         className="aria-live-region"
       />
       <div
         ref={assertiveRef}
-        aria-live="assertive"
-        aria-atomic="true"
+        ariaLive="assertive"
+        ariaAtomic="true"
         className="aria-live-region"
       />
     </>

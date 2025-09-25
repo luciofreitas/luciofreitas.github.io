@@ -93,7 +93,7 @@ export const glossarioMockData = [
     icone: '🔵',
     cor: 'azul',
     prioridade: 'Baixa',
-    descricao: 'Farol alto ligado. Lembre-se de abaixar para não ofuscar outros motoristas.',
+    descricao: 'Farol alto ligado. LembreSe de abaixar para não ofuscar outros motoristas.',
     causas: ['Farol alto acionado pelo motorista', 'Alavanca puxada ou travada'],
     acoes: ['Abaixe o farol ao cruzar com outros veículos', 'Verifique se não está incomodando outros motoristas', 'Use apenas quando necessário']
   },
@@ -133,15 +133,15 @@ export const glossarioMockData = [
 
 // Dados iniciais das avaliações
 export const avaliacoesIniciais = {
-  'glossario-automotivo': { total: 847, soma: 3892, media: 4.6 },
-  'manutencao-preventiva': { total: 234, soma: 1053, media: 4.5 },
-  'pecas-originais': { total: 156, soma: 702, media: 4.5 }
+  'glossarioAutomotivo': { total: 847, soma: 3892, media: 4.6 },
+  'manutencaoPreventiva': { total: 234, soma: 1053, media: 4.5 },
+  'pecasOriginais': { total: 156, soma: 702, media: 4.5 }
 };
 
 // Lista dos outros guias
 export const outrosGuias = [
   {
-    id: 'manutencao-preventiva',
+    id: 'manutencaoPreventiva',
     titulo: 'Manutenção Preventiva',
     subtitulo: 'Cuidados essenciais para seu veículo',
     descricao: 'Guia completo sobre quando e como fazer a manutenção do seu carro.',
@@ -149,7 +149,7 @@ export const outrosGuias = [
     categoria: 'Manutenção'
   },
   {
-    id: 'pecas-originais',
+    id: 'pecasOriginais',
     titulo: 'Peças Originais vs Compatíveis',
     subtitulo: 'Entenda as diferenças e quando usar cada uma',
     descricao: 'Compare vantagens, desvantagens e quando optar por cada tipo de peça.',

@@ -8,7 +8,7 @@ function PecaCard({ peca, onViewCompatibility, onViewDetails }) {
       <h3 className="peca-card-title">{peca.name}</h3>
       <p className="peca-card-info"><strong>Categoria:</strong> {peca.category}</p>
       <p className="peca-card-info"><strong>Fabricante:</strong> {peca.manufacturer}</p>
-      <p className="peca-card-info"><strong>Código:</strong> {peca.part-number}</p>
+      <p className="peca-card-info"><strong>Código:</strong> {peca.partNumber}</p>
       <p className="peca-card-info"><strong>Descrição:</strong> {peca.description}</p>
       
       {peca.specifications && (
@@ -25,14 +25,14 @@ function PecaCard({ peca, onViewCompatibility, onViewDetails }) {
       <div className="peca-card-actions">
         <button 
           className="peca-card-compat-btn" 
-          on-click={() => onViewCompatibility(peca)}
+          onClick={() => onViewCompatibility(peca)}
         >
           Ver compatibilidade
         </button>
         
         <button 
           className="peca-card-details-btn" 
-          on-click={() => onViewDetails && onViewDetails(peca.id)}
+          onClick={() => onViewDetails && onViewDetails(peca.id)}
         >
           Ver ficha completa
         </button>

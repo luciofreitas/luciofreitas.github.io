@@ -1,13 +1,13 @@
 import React from 'react';
 import './CircularArrowButton.css';
 
-const CircularArrowButton = ({ on-click, className = '', size = 'medium' }) => {
+const CircularArrowButton = ({ onClick, className = '', size = 'medium' }) => {
   return (
     <button 
       className={`circular-arrow-button ${size} ${className}`}
-      on-click={on-click}
+      onClick={onClick}
       type="button"
-      aria-label="Comece agora - É grátis"
+      ariaLabel="Comece agora - É grátis"
     >
       <svg 
         className="circular-button-arrow" 

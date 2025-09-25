@@ -2,8 +2,8 @@ import React from 'react';
 import WhatsAppButton from './WhatsAppButton';
 import './CompatibilityGrid.css';
 
-function CompatibilityGrid({ applications, usuario-logado }) {
-  const is-pro = Boolean((usuario-logado && usuario-logado.is-pro) || localStorage.get-item('versaoProAtiva') === 'true');
+function CompatibilityGrid({ applications, usuarioLogado }) {
+  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
 
   return (
     <div className="compatibility-grid">
@@ -19,7 +19,7 @@ function CompatibilityGrid({ applications, usuario-logado }) {
         
         if (typeof app === 'string') {
           const matches = app.match(/\d{4}(?:-\d{4})?/g) || [];
-          matches.for-each(str => {
+          matches.forEach(str => {
             if (str.includes('-')) {
               const [start, end] = str.split('-').map(Number);
               for (let y = start; y <= end; y++) anosList.push(String(y));
@@ -42,7 +42,7 @@ function CompatibilityGrid({ applications, usuario-logado }) {
               </div>
             </div>
             <div className="compatibility-grid-contact">
-              <WhatsAppButton vehicle={veiculo} is-pro={is-pro} />
+              <WhatsAppButton vehicle={veiculo} isPro={isPro} />
             </div>
           </div>
         );

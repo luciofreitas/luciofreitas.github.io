@@ -1,6 +1,6 @@
 // Lightweight script that marks div[id] elements that contain a heading as accessible regions
-// Adds role="region" and aria-labelledby="heading-id" if not present.
-// Non-intrusive: only runs in browser, is idempotent and safe to include in SPA.
+// Adds role="region" and ariaLabelledby="heading-id" if not present.
+// NonIntrusive: only runs in browser, is idempotent and safe to include in SPA.
 
 (function addRegionRolesOnLoad() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -33,7 +33,7 @@
     } catch (err) {
       // Don't break the app if something goes wrong
       // eslint-disable-next-line no-console
-      console.warn('add-region-roles: failed to apply roles', err);
+      console.warn('addRegionRoles: failed to apply roles', err);
     }
   }
 

@@ -5,7 +5,7 @@ import { AuthContext } from './App';
 import './page-ContatoLogado.css';
 
 export default function ContatoLogado() {
-  const { usuario-logado } = useContext(AuthContext) || {};
+  const { usuarioLogado } = useContext(AuthContext) || {};
 
   const handleSubmit = async (data) => {
     // aqui você pode enviar para a sua API
@@ -25,11 +25,11 @@ export default function ContatoLogado() {
               </p>
             </div>
 
-            <ContatoForm requireAuth={true} user={usuario-logado} onSubmit={handleSubmit} />
+            <ContatoForm requireAuth={true} user={usuarioLogado} onSubmit={handleSubmit} />
 
             <div className="contato-logado-info">
               <p>Telefone: (00) 0000-0000</p>
-              <p>E-mail: suporte@pecafacil.com.br</p>
+              <p>EMail: suporte@pecafacil.com.br</p>
             </div>
   </div>
       </div>

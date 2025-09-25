@@ -1,43 +1,43 @@
-import React, { useState, use-effect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import './ContatoForm.css';
 import '../page-Login.css';
 import './PerfilForm.css'; // Importado por último para ter precedência
 
 export default function PerfilForm({
-  form-data = {},
+  formData = {},
   onChange = () => {},
   onSave = () => {},
   onCancel = () => {},
   showPassword = false,
   onToggleShowPassword = () => {}
 }) {
-  const { usuario-logado, setUsuarioLogado } = useContext(AuthContext);
+  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext);
   const [local, setLocal] = useState({
     nome: '',
     celular: '',
     email: '',
-    senha-atual: '',
-    nova-senha: '',
-    confirm-nova-senha: ''
+    senhaAtual: '',
+    novaSenha: '',
+    confirmNovaSenha: ''
   });
   const [showPasswordState, setShowPasswordState] = useState(false);
   const [showSenhaAtual, setShowSenhaAtual] = useState(false);
   const [showConfirmNova, setShowConfirmNova] = useState(false);
   const [errors, setErrors] = useState({});
 
-  use-effect(() => {
-    if (usuario-logado) {
+  useEffect(() => {
+    if (usuarioLogado) {
       setLocal({
-        nome: usuario-logado.nome || '',
-        celular: usuario-logado.celular || '',
-        email: usuario-logado.email || '',
-        senha-atual: '',
-        nova-senha: '',
-        confirm-nova-senha: ''
+        nome: usuarioLogado.nome || '',
+        celular: usuarioLogado.celular || '',
+        email: usuarioLogado.email || '',
+        senhaAtual: '',
+        novaSenha: '',
+        confirmNovaSenha: ''
       });
     }
-  }, [usuario-logado]);
+  }, [usuarioLogado]);
 
   function validateForm() {
     const newErrors = {};
@@ -59,21 +59,21 @@ export default function PerfilForm({
     }
 
     // Validação de senha (apenas se campos de senha estão preenchidos)
-    if (local.senha-atual || local.nova-senha || local.confirm-nova-senha) {
-      if (!local.senha-atual) {
-        newErrors.senha-atual = 'Senha atual é obrigatória para alterar senha';
-      } else if (usuario-logado && local.senha-atual !== usuario-logado.senha) {
-        newErrors.senha-atual = 'Senha atual incorreta';
+    if (local.senhaAtual || local.novaSenha || local.confirmNovaSenha) {
+      if (!local.senhaAtual) {
+        newErrors.senhaAtual = 'Senha atual é obrigatória para alterar senha';
+      } else if (usuarioLogado && local.senhaAtual !== usuarioLogado.senha) {
+        newErrors.senhaAtual = 'Senha atual incorreta';
       }
 
-      if (!local.nova-senha) {
-        newErrors.nova-senha = 'Nova senha é obrigatória';
-      } else if (local.nova-senha.length < 6) {
-        newErrors.nova-senha = 'Nova senha deve ter pelo menos 6 caracteres';
+      if (!local.novaSenha) {
+        newErrors.novaSenha = 'Nova senha é obrigatória';
+      } else if (local.novaSenha.length < 6) {
+        newErrors.novaSenha = 'Nova senha deve ter pelo menos 6 caracteres';
       }
 
-      if (local.nova-senha !== local.confirm-nova-senha) {
-        newErrors.confirm-nova-senha = 'Confirmação de senha não confere';
+      if (local.novaSenha !== local.confirmNovaSenha) {
+        newErrors.confirmNovaSenha = 'Confirmação de senha não confere';
       }
     }
 
@@ -117,34 +117,34 @@ export default function PerfilForm({
       return;
     }
 
-    if (!usuario-logado) {
+    if (!usuarioLogado) {
       alert('Erro: usuário não está logado');
       return;
     }
 
     try {
-      const updatedUser = { ...usuario-logado, ...local };
-      if (local.nova-senha) {
-        updatedUser.senha = local.nova-senha;
+      const updatedUser = { ...usuarioLogado, ...local };
+      if (local.novaSenha) {
+        updatedUser.senha = local.novaSenha;
       }
 
       // Atualizar contexto
       setUsuarioLogado(updatedUser);
       
       // Persistir no localStorage
-      localStorage.set-item('usuario-logado', JSON.stringify(updatedUser));
+      localStorage.setItem('usuario-logado', JSON.stringify(updatedUser));
       
       // Atualizar lista de usuários
-      const usuarios = JSON.parse(localStorage.get-item('usuarios') || '[]');
-      const updatedUsuarios = usuarios.map(u => u.id === usuario-logado.id ? updatedUser : u);
-      localStorage.set-item('usuarios', JSON.stringify(updatedUsuarios));
+      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+      const updatedUsuarios = usuarios.map(u => u.id === usuarioLogado.id ? updatedUser : u);
+      localStorage.setItem('usuarios', JSON.stringify(updatedUsuarios));
 
       // Limpar campos de senha
       setLocal(prev => ({
         ...prev,
-        senha-atual: '',
-        nova-senha: '',
-        confirm-nova-senha: ''
+        senhaAtual: '',
+        novaSenha: '',
+        confirmNovaSenha: ''
       }));
 
       alert('Dados salvos com sucesso!');
@@ -156,14 +156,14 @@ export default function PerfilForm({
   }
 
   function handleCancel() {
-    if (usuario-logado) {
+    if (usuarioLogado) {
       setLocal({
-        nome: usuario-logado.nome || '',
-        celular: usuario-logado.celular || '',
-        email: usuario-logado.email || '',
-        senha-atual: '',
-        nova-senha: '',
-        confirm-nova-senha: ''
+        nome: usuarioLogado.nome || '',
+        celular: usuarioLogado.celular || '',
+        email: usuarioLogado.email || '',
+        senhaAtual: '',
+        novaSenha: '',
+        confirmNovaSenha: ''
       });
     }
     setErrors({});
@@ -227,7 +227,7 @@ export default function PerfilForm({
                 id="senha-atual" 
                 name="senha-atual" 
                 type={showSenhaAtual ? 'text' : 'password'} 
-                value={local.senha-atual} 
+                value={local.senhaAtual} 
                 onChange={handleChange} 
                 className={`form-input password-input ${errors.senha-atual ? 'error' : ''}`}
                 placeholder="Senha atual" 
@@ -237,9 +237,9 @@ export default function PerfilForm({
                 className={`car-toggle ${showSenhaAtual ? 'headlight-on' : 'headlight-off'}`}
                 role="button"
                 tabIndex={0}
-                on-click={() => setShowSenhaAtual(s => !s)}
+                onClick={() => setShowSenhaAtual(s => !s)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowSenhaAtual(s => !s); }}
-                aria-label={showSenhaAtual ? 'Ocultar senha' : 'Mostrar senha'}
+                ariaLabel={showSenhaAtual ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5-h11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showSenhaAtual ? '#3B82F6' : '#4A5568'} className="car-body"/>
@@ -272,7 +272,7 @@ export default function PerfilForm({
                 </svg>
               </span>
             </div>
-            {errors.senha-atual && <span className="error-message">{errors.senha-atual}</span>}
+            {errors.senhaAtual && <span className="error-message">{errors.senhaAtual}</span>}
           </div>
 
           <div className="form-control w-full login-form-control">
@@ -281,7 +281,7 @@ export default function PerfilForm({
                 id="nova-senha" 
                 name="nova-senha" 
                 type={showPasswordState ? 'text' : 'password'} 
-                value={local.nova-senha} 
+                value={local.novaSenha} 
                 onChange={handleChange} 
                 className={`form-input password-input ${errors.nova-senha ? 'error' : ''}`}
                 placeholder="Nova senha" 
@@ -291,9 +291,9 @@ export default function PerfilForm({
                 className={`car-toggle ${showPasswordState ? 'headlight-on' : 'headlight-off'}`}
                 role="button"
                 tabIndex={0}
-                on-click={toggleShowPassword}
+                onClick={toggleShowPassword}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleShowPassword(); }}
-                aria-label={showPasswordState ? 'Ocultar senha' : 'Mostrar senha'}
+                ariaLabel={showPasswordState ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5-h11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showPasswordState ? '#3B82F6' : '#4A5568'} className="car-body"/>
@@ -326,7 +326,7 @@ export default function PerfilForm({
                 </svg>
               </span>
             </div>
-            {errors.nova-senha && <span className="error-message">{errors.nova-senha}</span>}
+            {errors.novaSenha && <span className="error-message">{errors.novaSenha}</span>}
           </div>
 
           <div className="form-control w-full login-form-control">
@@ -335,7 +335,7 @@ export default function PerfilForm({
                 id="confirm-nova-senha" 
                 name="confirm-nova-senha" 
                 type={showConfirmNova ? 'text' : 'password'} 
-                value={local.confirm-nova-senha} 
+                value={local.confirmNovaSenha} 
                 onChange={handleChange} 
                 className={`form-input password-input ${errors.confirm-nova-senha ? 'error' : ''}`}
                 placeholder="Confirmar nova senha" 
@@ -345,9 +345,9 @@ export default function PerfilForm({
                 className={`car-toggle ${showConfirmNova ? 'headlight-on' : 'headlight-off'}`}
                 role="button"
                 tabIndex={0}
-                on-click={() => setShowConfirmNova(s => !s)}
+                onClick={() => setShowConfirmNova(s => !s)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmNova(s => !s); }}
-                aria-label={showConfirmNova ? 'Ocultar senha' : 'Mostrar senha'}
+                ariaLabel={showConfirmNova ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5-h11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showConfirmNova ? '#3B82F6' : '#4A5568'} className="car-body"/>
@@ -380,12 +380,12 @@ export default function PerfilForm({
                 </svg>
               </span>
             </div>
-            {errors.confirm-nova-senha && <span className="error-message">{errors.confirm-nova-senha}</span>}
+            {errors.confirmNovaSenha && <span className="error-message">{errors.confirmNovaSenha}</span>}
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn w-full login-submit" on-click={handleSave}>Salvar</button>
-            <button type="button" className="btn w-full btn-cancel" on-click={handleCancel}>Cancelar</button>
+            <button type="button" className="btn w-full login-submit" onClick={handleSave}>Salvar</button>
+            <button type="button" className="btn w-full btn-cancel" onClick={handleCancel}>Cancelar</button>
           </div>
       </form>
     </div>

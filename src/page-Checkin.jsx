@@ -17,10 +17,10 @@ export default function Checkin() {
   const [expiryError, setExpiryError] = useState('');
   const [cvcError, setCvcError] = useState('');
 
-  const { usuario-logado, setUsuarioLogado } = useContext(AuthContext);
+  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext);
 
   function handleSubmit(e) {
-    e.prevent-default();
+    e.preventDefault();
     setError('');
     // validação final antes de processar
     let hasError = false;
@@ -60,25 +60,25 @@ export default function Checkin() {
   setSuccess(true);
       // grava pagamento no localStorage (simulação de persistência)
       try {
-  const payments = JSON.parse(localStorage.get-item('payments') || '[]');
-  const record = { id: Date.now(), user: usuario-logado ? usuario-logado.email || usuario-logado.nome : 'guest', amount: 9.9, currency: 'BRL', date: new Date().to-isostring(), card: '**** **** **** ' + card.replace(/\s+/g, '').slice(-4) };
+  const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+  const record = { id: Date.now(), user: usuarioLogado ? usuarioLogado.email || usuarioLogado.nome : 'guest', amount: 9.9, currency: 'BRL', date: new Date().toIsostring(), card: '**** **** **** ' + card.replace(/\s+/g, '').slice(-4) };
         payments.push(record);
-        localStorage.set-item('payments', JSON.stringify(payments));
+        localStorage.setItem('payments', JSON.stringify(payments));
       } catch (e) {}
 
       // atualiza usuário para Pro
-      if (usuario-logado && setUsuarioLogado) {
-        const updated = { ...usuario-logado, is-pro: true };
+      if (usuarioLogado && setUsuarioLogado) {
+        const updated = { ...usuarioLogado, isPro: true };
         setUsuarioLogado(updated);
-        localStorage.set-item('usuario-logado', JSON.stringify(updated));
+        localStorage.setItem('usuario-logado', JSON.stringify(updated));
       } else {
         // marca flag geral
-        try { localStorage.set-item('versaoProAtiva', 'true'); } catch (e) {}
+        try { localStorage.setItem('versaoProAtiva', 'true'); } catch (e) {}
       }
     }, 1200);
   }
 
-  // helpers for real-time formatting and validation
+  // helpers for realTime formatting and validation
   function handleNameChange(v) {
     setName(v);
     if (nameError && v.trim()) setNameError('');
@@ -169,7 +169,7 @@ export default function Checkin() {
               <button type="submit" disabled={processing} className="checkin-btn-primary">
                 {processing ? 'Processando...' : 'Pagar R$ 9,90'}
               </button>
-              <button type="button" on-click={() => { /* voltar */ window.history.back(); }} className="checkin-btn-secondary">
+              <button type="button" onClick={() => { /* voltar */ window.history.back(); }} className="checkin-btn-secondary">
                 Voltar
               </button>
             </div>

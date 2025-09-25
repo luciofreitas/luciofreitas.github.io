@@ -1,4 +1,4 @@
-import React, { useState, use-effect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiService } from '../utils/apiService';
 import './ProductDetailModal.css';
 import useFocusTrap from '../hooks/useFocusTrap';
@@ -9,7 +9,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   const [activeTab, setActiveTab] = useState('geral');
   const [selectedImage, setSelectedImage] = useState(0);
 
-  use-effect(() => {
+  useEffect(() => {
     if (isOpen && productId) {
       loadProductDetails(productId);
     }
@@ -17,15 +17,15 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
 
   const modalRef = useRef(null);
   // dynamic import to avoid circular issues if any; local hook
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  // eslintDisableNextLine import/noExtraneousDependencies
   // but this is a local hook
   // import at top would be fine; keeping inline for clarity
   // use hook to trap focus and restore previous focus on close
   // require path relative to this file
   // We import normally
-  // eslint-disable-next-line no-unused-vars
+  // eslintDisableNextLine noUnusedVars
   
-  // Note: moved import to top-level would be cleaner, but keep here to avoid altering other files
+  // Note: moved import to topLevel would be cleaner, but keep here to avoid altering other files
   // We'll import the hook at top by updating imports
 
   // trap focus while modal is open
@@ -81,9 +81,9 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
               <div className="product-images">
                 <div className="main-image">
                   <img 
-                    src={productDetails.imagens?.[selectedImage] || './assets/placeholder-part.jpg'} 
+                    src={productDetails.imagens?.[selectedImage] || './assets/placeholderPart.jpg'} 
                     alt={productDetails?.nome || ''}
-                    onError={(e) => { e.target.src = './assets/placeholder-part.jpg'; }}
+                    onError={(e) => { e.target.src = './assets/placeholderPart.jpg'; }}
                   />
                 </div>
                 {productDetails.imagens && productDetails.imagens.length > 1 && (
@@ -95,7 +95,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                         alt={productDetails?.nome ? `${productDetails.nome} - ${index + 1}` : ''}
                         className={selectedImage === index ? 'active' : ''}
                         on-click={() => setSelectedImage(index)}
-                        onError={(e) => { e.target.src = './assets/placeholder-part.jpg'; }}
+                        onError={(e) => { e.target.src = './assets/placeholderPart.jpg'; }}
                       />
                     ))}
                   </div>
@@ -283,18 +283,18 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                             <div className="review-rating">
                               {'★'.repeat(review.nota)}{'☆'.repeat(5-review.nota)}
                             </div>
-                            <span className="review-date">{new Date(review.data).to-locale-date-string('pt-BR')}</span>
+                            <span className="review-date">{new Date(review.data).to-locale-date-string('ptBR')}</span>
                           </div>
                           <p>{review.texto}</p>
                         </div>
                       ))}
                     </div>
 
-                    {productDetails.perguntas-frequentes && (
+                    {productDetails.perguntasFrequentes && (
                       <>
                         <h3>Perguntas Frequentes</h3>
                         <div className="faq">
-                          {productDetails.perguntas-frequentes.map((faq, index) => (
+                          {productDetails.perguntasFrequentes.map((faq, index) => (
                             <div key={index} className="faq-item">
                               <strong>Q: {faq.pergunta}</strong>
                               <p>R: {faq.resposta}</p>

@@ -5,9 +5,9 @@ import { AuthContext } from './App';
 import './page-Perfil.css';
 
 export default function PagePerfil() {
-  const { usuario-logado } = useContext(AuthContext);
+  const { usuarioLogado } = useContext(AuthContext);
 
-  if (!usuario-logado) {
+  if (!usuarioLogado) {
     return (
       <>
         <Menu />
@@ -27,7 +27,7 @@ export default function PagePerfil() {
       <div className="page-wrapper menu-page">
   <div className="page-content" id="perfil">
             <h2 className="page-title">Meu Perfil</h2>
-            <PerfilForm form-data={usuario-logado} />
+            <PerfilForm formData={usuarioLogado} />
   </div>
       </div>
     </>
