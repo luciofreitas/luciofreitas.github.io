@@ -34,7 +34,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   const loadProductDetails = async (id) => {
     setLoading(true);
     try {
-      const product = await apiService.get-peca-by-id(id);
+      const product = await apiService.getPecaById(id);
       if (product.error) {
         console.error('ProductDetailModal: Error from API:', product.error);
         throw new Error(product.error);
@@ -50,7 +50,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   };
 
   const handleOverlayClick = (e) => {
-    if (e.target === e.current-target) {
+    if (e.target === e.currentTarget) {
       onClose();
     }
   };
@@ -58,11 +58,11 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   if (!isOpen) return null;
 
   return (
-    <div className="product-modal-overlay" on-click={handleOverlayClick}>
+    <div className="product-modal-overlay" onClick={handleOverlayClick}>
       <div ref={modalRef} className="product-modal" role="dialog" aria-modal="true" aria-label={productDetails?.nome || 'Detalhes da peça'}>
         <div className="product-modal-header">
           <h2>{productDetails?.nome || 'Carregando...'}</h2>
-          <button className="product-modal-close" on-click={onClose}>
+          <button className="product-modal-close" onClick={onClose}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
@@ -94,7 +94,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                         src={img}
                         alt={productDetails?.nome ? `${productDetails.nome} - ${index + 1}` : ''}
                         className={selectedImage === index ? 'active' : ''}
-                        on-click={() => setSelectedImage(index)}
+                        onClick={() => setSelectedImage(index)}
                         onError={(e) => { e.target.src = './assets/placeholderPart.jpg'; }}
                       />
                     ))}
@@ -103,22 +103,22 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
               </div>
               
               <div className="product-basic-info">
-                {productDetails.recall-relacionado && (
+                {productDetails.recall_relacionado && (
                   <div className="recall-alert">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <path d="M12 9V13M12 17H12.01-m21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2"/>
                     </svg>
                     <div>
                       <strong>Recall Relacionado</strong>
-                      <p>{productDetails.recall-detalhes?.descricao}</p>
-                      <small>Ref: {productDetails.recall-detalhes?.numero}</small>
+                      <p>{productDetails.recall_detalhes?.descricao}</p>
+                      <small>Ref: {productDetails.recall_detalhes?.numero}</small>
                     </div>
                   </div>
                 )}
 
                 <div className="product-codes">
                   <div><strong>Fabricante:</strong> {productDetails.fabricante}</div>
-                  <div><strong>Código:</strong> {productDetails.numero-peca}</div>
+                  <div><strong>Código:</strong> {productDetails.numero_peca}</div>
                   {productDetails.codigos?.oem && (
                     <div><strong>Códigos OEM:</strong> {productDetails.codigos.oem.join(', ')}</div>
                   )}
@@ -127,7 +127,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                 <div className="installation-info">
                   <div className="install-difficulty">
                     <span className="label">Dificuldade:</span>
-                    <span className={`difficulty ${productDetails.instalacao?.dificuldade?.to-lower-case()}`}>
+                    <span className={`difficulty ${productDetails.instalacao?.dificuldade?.toLowerCase()}`}>
                       {productDetails.instalacao?.dificuldade}
                     </span>
                   </div>
@@ -136,7 +136,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                       <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2"/>
                     </svg>
-                    {productDetails.instalacao?.tempo-estimado-min} min
+                    {productDetails.instalacao?.tempo_estimado_min} min
                   </div>
                 </div>
 
@@ -214,10 +214,10 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                 {activeTab === 'especificacoes' && (
                   <div className="tab-panel">
                     <h3>Especificações Técnicas</h3>
-                    <div className="specs-grid">
-                      {productDetails.especificacoes-tecnicas && Object.entries(productDetails.especificacoes-tecnicas).map(([key, value]) => (
+                        <div className="specs-grid">
+                      {productDetails.especificacoes_tecnicas && Object.entries(productDetails.especificacoes_tecnicas).map(([key, value]) => (
                         <div key={key} className="spec-item">
-                          <span className="spec-label">{key.replace(//g, ' ')}:</span>
+                          <span className="spec-label">{key.replace(/_/g, ' ')}:</span>
                           <span className="spec-value">{value}</span>
                         </div>
                       ))}
@@ -229,11 +229,11 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                   <div className="tab-panel">
                     <h3>Aplicações Detalhadas</h3>
                     <div className="compatibility-table">
-                      {productDetails.aplicacoes-detalhadas?.map((app, index) => (
+                      {productDetails.aplicacoes_detalhadas?.map((app, index) => (
                         <div key={index} className="compatibility-row">
                           <div className="app-main">
                             <strong>{app.marca} {app.modelo}</strong>
-                            <span>{app.ano-inicio}-{app.ano-fim}</span>
+                            <span>{app.ano_inicio}-{app.ano_fim}</span>
                           </div>
                           <div className="app-details">
                             <span>Motor: {app.motor}</span>
