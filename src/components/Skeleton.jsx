@@ -24,7 +24,7 @@ const Skeleton = ({
 // PreBuilt skeleton components for common use cases
 export const SkeletonText = ({ lines = 1, className = '' }) => (
   <div className={`skeleton-text ${className}`}>
-    {Array.from({ length: lines }, (, i) => (
+    {Array.from({ length: lines }, (_, i) => (
       <Skeleton 
         key={i}
         height="1rem"
