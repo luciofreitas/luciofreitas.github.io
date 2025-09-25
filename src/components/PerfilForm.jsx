@@ -1,43 +1,43 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, use-effect, useContext } from 'react';
 import { AuthContext } from '../App';
 import './ContatoForm.css';
 import '../page-Login.css';
 import './PerfilForm.css'; // Importado por último para ter precedência
 
 export default function PerfilForm({
-  formData = {},
+  form-data = {},
   onChange = () => {},
   onSave = () => {},
   onCancel = () => {},
   showPassword = false,
   onToggleShowPassword = () => {}
 }) {
-  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext);
+  const { usuario-logado, setUsuarioLogado } = useContext(AuthContext);
   const [local, setLocal] = useState({
     nome: '',
     celular: '',
     email: '',
-    senhaAtual: '',
-    novaSenha: '',
-    confirmNovaSenha: ''
+    senha-atual: '',
+    nova-senha: '',
+    confirm-nova-senha: ''
   });
   const [showPasswordState, setShowPasswordState] = useState(false);
   const [showSenhaAtual, setShowSenhaAtual] = useState(false);
   const [showConfirmNova, setShowConfirmNova] = useState(false);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (usuarioLogado) {
+  use-effect(() => {
+    if (usuario-logado) {
       setLocal({
-        nome: usuarioLogado.nome || '',
-        celular: usuarioLogado.celular || '',
-        email: usuarioLogado.email || '',
-        senhaAtual: '',
-        novaSenha: '',
-        confirmNovaSenha: ''
+        nome: usuario-logado.nome || '',
+        celular: usuario-logado.celular || '',
+        email: usuario-logado.email || '',
+        senha-atual: '',
+        nova-senha: '',
+        confirm-nova-senha: ''
       });
     }
-  }, [usuarioLogado]);
+  }, [usuario-logado]);
 
   function validateForm() {
     const newErrors = {};
@@ -59,21 +59,21 @@ export default function PerfilForm({
     }
 
     // Validação de senha (apenas se campos de senha estão preenchidos)
-    if (local.senhaAtual || local.novaSenha || local.confirmNovaSenha) {
-      if (!local.senhaAtual) {
-        newErrors.senhaAtual = 'Senha atual é obrigatória para alterar senha';
-      } else if (usuarioLogado && local.senhaAtual !== usuarioLogado.senha) {
-        newErrors.senhaAtual = 'Senha atual incorreta';
+    if (local.senha-atual || local.nova-senha || local.confirm-nova-senha) {
+      if (!local.senha-atual) {
+        newErrors.senha-atual = 'Senha atual é obrigatória para alterar senha';
+      } else if (usuario-logado && local.senha-atual !== usuario-logado.senha) {
+        newErrors.senha-atual = 'Senha atual incorreta';
       }
 
-      if (!local.novaSenha) {
-        newErrors.novaSenha = 'Nova senha é obrigatória';
-      } else if (local.novaSenha.length < 6) {
-        newErrors.novaSenha = 'Nova senha deve ter pelo menos 6 caracteres';
+      if (!local.nova-senha) {
+        newErrors.nova-senha = 'Nova senha é obrigatória';
+      } else if (local.nova-senha.length < 6) {
+        newErrors.nova-senha = 'Nova senha deve ter pelo menos 6 caracteres';
       }
 
-      if (local.novaSenha !== local.confirmNovaSenha) {
-        newErrors.confirmNovaSenha = 'Confirmação de senha não confere';
+      if (local.nova-senha !== local.confirm-nova-senha) {
+        newErrors.confirm-nova-senha = 'Confirmação de senha não confere';
       }
     }
 
@@ -117,34 +117,34 @@ export default function PerfilForm({
       return;
     }
 
-    if (!usuarioLogado) {
+    if (!usuario-logado) {
       alert('Erro: usuário não está logado');
       return;
     }
 
     try {
-      const updatedUser = { ...usuarioLogado, ...local };
-      if (local.novaSenha) {
-        updatedUser.senha = local.novaSenha;
+      const updatedUser = { ...usuario-logado, ...local };
+      if (local.nova-senha) {
+        updatedUser.senha = local.nova-senha;
       }
 
       // Atualizar contexto
       setUsuarioLogado(updatedUser);
       
       // Persistir no localStorage
-      localStorage.setItem('usuarioLogado', JSON.stringify(updatedUser));
+      localStorage.set-item('usuario-logado', JSON.stringify(updatedUser));
       
       // Atualizar lista de usuários
-      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-      const updatedUsuarios = usuarios.map(u => u.id === usuarioLogado.id ? updatedUser : u);
-      localStorage.setItem('usuarios', JSON.stringify(updatedUsuarios));
+      const usuarios = JSON.parse(localStorage.get-item('usuarios') || '[]');
+      const updatedUsuarios = usuarios.map(u => u.id === usuario-logado.id ? updatedUser : u);
+      localStorage.set-item('usuarios', JSON.stringify(updatedUsuarios));
 
       // Limpar campos de senha
       setLocal(prev => ({
         ...prev,
-        senhaAtual: '',
-        novaSenha: '',
-        confirmNovaSenha: ''
+        senha-atual: '',
+        nova-senha: '',
+        confirm-nova-senha: ''
       }));
 
       alert('Dados salvos com sucesso!');
@@ -156,14 +156,14 @@ export default function PerfilForm({
   }
 
   function handleCancel() {
-    if (usuarioLogado) {
+    if (usuario-logado) {
       setLocal({
-        nome: usuarioLogado.nome || '',
-        celular: usuarioLogado.celular || '',
-        email: usuarioLogado.email || '',
-        senhaAtual: '',
-        novaSenha: '',
-        confirmNovaSenha: ''
+        nome: usuario-logado.nome || '',
+        celular: usuario-logado.celular || '',
+        email: usuario-logado.email || '',
+        senha-atual: '',
+        nova-senha: '',
+        confirm-nova-senha: ''
       });
     }
     setErrors({});
@@ -193,7 +193,7 @@ export default function PerfilForm({
             {errors.nome && <span className="error-message">{errors.nome}</span>}
           </div>
 
-          <div className="form-control w-full Login-form-control">
+          <div className="form-control w-full login-form-control">
             <input 
               id="celular" 
               name="celular" 
@@ -207,7 +207,7 @@ export default function PerfilForm({
             {errors.celular && <span className="error-message">{errors.celular}</span>}
           </div>
 
-          <div className="form-control w-full Login-form-control">
+          <div className="form-control w-full login-form-control">
             <input 
               id="email" 
               name="email" 
@@ -221,15 +221,15 @@ export default function PerfilForm({
             {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
-          <div className="form-control w-full Login-form-control">
+          <div className="form-control w-full login-form-control">
             <div className="password-field">
               <input 
-                id="senhaAtual" 
-                name="senhaAtual" 
+                id="senha-atual" 
+                name="senha-atual" 
                 type={showSenhaAtual ? 'text' : 'password'} 
-                value={local.senhaAtual} 
+                value={local.senha-atual} 
                 onChange={handleChange} 
-                className={`form-input password-input ${errors.senhaAtual ? 'error' : ''}`}
+                className={`form-input password-input ${errors.senha-atual ? 'error' : ''}`}
                 placeholder="Senha atual" 
                 autoComplete="current-password"
               />
@@ -237,14 +237,14 @@ export default function PerfilForm({
                 className={`car-toggle ${showSenhaAtual ? 'headlight-on' : 'headlight-off'}`}
                 role="button"
                 tabIndex={0}
-                onClick={() => setShowSenhaAtual(s => !s)}
+                on-click={() => setShowSenhaAtual(s => !s)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowSenhaAtual(s => !s); }}
                 aria-label={showSenhaAtual ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5H11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showSenhaAtual ? '#3B82F6' : '#4A5568'} className="car-body"/>
-                  <path d="M24 6H8l1.5-1.5c.3-.3.7-.5 1.1-.5h9.8c.4 0 .8.2 1.1.5L24 6z" fill={showSenhaAtual ? '#1E40AF' : '#2D3748'} className="car-roof"/>
-                  <path d="M10.5 4.5L9 6h3l1-1.5h-2.5z" fill="#63B3ED" opacity="0.3"/>
+                  <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5-h11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showSenhaAtual ? '#3B82F6' : '#4A5568'} className="car-body"/>
+                  <path d="M24 6H8l1.5-1.5c.3-.3.7-.5 1.1-.5h9.8c.4 0 .8.2 1.1.5-l24 6z" fill={showSenhaAtual ? '#1E40AF' : '#2D3748'} className="car-roof"/>
+                  <path d="M10.5 4.5-l9 6h3l1-1.5h-2.5z" fill="#63B3ED" opacity="0.3"/>
                   <circle cx="9" cy="16" r="2.5" fill="#2D3748"/>
                   <circle cx="9" cy="16" r="1.5" fill={showSenhaAtual ? '#60A5FA' : '#718096'} className="wheel-rim"/>
                   <circle cx="23" cy="16" r="2.5" fill="#2D3748"/>
@@ -272,18 +272,18 @@ export default function PerfilForm({
                 </svg>
               </span>
             </div>
-            {errors.senhaAtual && <span className="error-message">{errors.senhaAtual}</span>}
+            {errors.senha-atual && <span className="error-message">{errors.senha-atual}</span>}
           </div>
 
-          <div className="form-control w-full Login-form-control">
+          <div className="form-control w-full login-form-control">
             <div className="password-field">
               <input 
-                id="novaSenha" 
-                name="novaSenha" 
+                id="nova-senha" 
+                name="nova-senha" 
                 type={showPasswordState ? 'text' : 'password'} 
-                value={local.novaSenha} 
+                value={local.nova-senha} 
                 onChange={handleChange} 
-                className={`form-input password-input ${errors.novaSenha ? 'error' : ''}`}
+                className={`form-input password-input ${errors.nova-senha ? 'error' : ''}`}
                 placeholder="Nova senha" 
                 autoComplete="new-password"
               />
@@ -291,14 +291,14 @@ export default function PerfilForm({
                 className={`car-toggle ${showPasswordState ? 'headlight-on' : 'headlight-off'}`}
                 role="button"
                 tabIndex={0}
-                onClick={toggleShowPassword}
+                on-click={toggleShowPassword}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleShowPassword(); }}
                 aria-label={showPasswordState ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5H11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showPasswordState ? '#3B82F6' : '#4A5568'} className="car-body"/>
-                  <path d="M24 6H8l1.5-1.5c.3-.3.7-.5 1.1-.5h9.8c.4 0 .8.2 1.1.5L24 6z" fill={showPasswordState ? '#1E40AF' : '#2D3748'} className="car-roof"/>
-                  <path d="M10.5 4.5L9 6h3l1-1.5h-2.5z" fill="#63B3ED" opacity="0.3"/>
+                  <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5-h11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showPasswordState ? '#3B82F6' : '#4A5568'} className="car-body"/>
+                  <path d="M24 6H8l1.5-1.5c.3-.3.7-.5 1.1-.5h9.8c.4 0 .8.2 1.1.5-l24 6z" fill={showPasswordState ? '#1E40AF' : '#2D3748'} className="car-roof"/>
+                  <path d="M10.5 4.5-l9 6h3l1-1.5h-2.5z" fill="#63B3ED" opacity="0.3"/>
                   <circle cx="9" cy="16" r="2.5" fill="#2D3748"/>
                   <circle cx="9" cy="16" r="1.5" fill={showPasswordState ? '#60A5FA' : '#718096'} className="wheel-rim"/>
                   <circle cx="23" cy="16" r="2.5" fill="#2D3748"/>
@@ -326,18 +326,18 @@ export default function PerfilForm({
                 </svg>
               </span>
             </div>
-            {errors.novaSenha && <span className="error-message">{errors.novaSenha}</span>}
+            {errors.nova-senha && <span className="error-message">{errors.nova-senha}</span>}
           </div>
 
-          <div className="form-control w-full Login-form-control">
+          <div className="form-control w-full login-form-control">
             <div className="password-field">
               <input 
-                id="confirmNovaSenha" 
-                name="confirmNovaSenha" 
+                id="confirm-nova-senha" 
+                name="confirm-nova-senha" 
                 type={showConfirmNova ? 'text' : 'password'} 
-                value={local.confirmNovaSenha} 
+                value={local.confirm-nova-senha} 
                 onChange={handleChange} 
-                className={`form-input password-input ${errors.confirmNovaSenha ? 'error' : ''}`}
+                className={`form-input password-input ${errors.confirm-nova-senha ? 'error' : ''}`}
                 placeholder="Confirmar nova senha" 
                 autoComplete="new-password"
               />
@@ -345,14 +345,14 @@ export default function PerfilForm({
                 className={`car-toggle ${showConfirmNova ? 'headlight-on' : 'headlight-off'}`}
                 role="button"
                 tabIndex={0}
-                onClick={() => setShowConfirmNova(s => !s)}
+                on-click={() => setShowConfirmNova(s => !s)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmNova(s => !s); }}
                 aria-label={showConfirmNova ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5H11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showConfirmNova ? '#3B82F6' : '#4A5568'} className="car-body"/>
-                  <path d="M24 6H8l1.5-1.5c.3-.3.7-.5 1.1-.5h9.8c.4 0 .8.2 1.1.5L24 6z" fill={showConfirmNova ? '#1E40AF' : '#2D3748'} className="car-roof"/>
-                  <path d="M10.5 4.5L9 6h3l1-1.5h-2.5z" fill="#63B3ED" opacity="0.3"/>
+                  <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5-h11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={showConfirmNova ? '#3B82F6' : '#4A5568'} className="car-body"/>
+                  <path d="M24 6H8l1.5-1.5c.3-.3.7-.5 1.1-.5h9.8c.4 0 .8.2 1.1.5-l24 6z" fill={showConfirmNova ? '#1E40AF' : '#2D3748'} className="car-roof"/>
+                  <path d="M10.5 4.5-l9 6h3l1-1.5h-2.5z" fill="#63B3ED" opacity="0.3"/>
                   <circle cx="9" cy="16" r="2.5" fill="#2D3748"/>
                   <circle cx="9" cy="16" r="1.5" fill={showConfirmNova ? '#60A5FA' : '#718096'} className="wheel-rim"/>
                   <circle cx="23" cy="16" r="2.5" fill="#2D3748"/>
@@ -380,12 +380,12 @@ export default function PerfilForm({
                 </svg>
               </span>
             </div>
-            {errors.confirmNovaSenha && <span className="error-message">{errors.confirmNovaSenha}</span>}
+            {errors.confirm-nova-senha && <span className="error-message">{errors.confirm-nova-senha}</span>}
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn w-full login-submit" onClick={handleSave}>Salvar</button>
-            <button type="button" className="btn w-full btn-cancel" onClick={handleCancel}>Cancelar</button>
+            <button type="button" className="btn w-full login-submit" on-click={handleSave}>Salvar</button>
+            <button type="button" className="btn w-full btn-cancel" on-click={handleCancel}>Cancelar</button>
           </div>
       </form>
     </div>

@@ -24,12 +24,12 @@ const Skeleton = ({
 // Pre-built skeleton components for common use cases
 export const SkeletonText = ({ lines = 1, className = '' }) => (
   <div className={`skeleton-text ${className}`}>
-    {Array.from({ length: lines }, (_, i) => (
+    {Array.from({ length: lines }, (, i) => (
       <Skeleton 
         key={i}
         height="1rem"
         width={i === lines - 1 && lines > 1 ? '75%' : '100%'}
-        className="skeleton-text__line"
+        className="skeleton-text-line"
       />
     ))}
   </div>
@@ -55,17 +55,17 @@ export const SkeletonButton = ({ width = '6rem', className = '' }) => (
 
 export const SkeletonCard = ({ className = '' }) => (
   <div className={`skeleton-card ${className}`}>
-    <div className="skeleton-card__header">
+    <div className="skeleton-card-header">
       <SkeletonAvatar size="3rem" />
-      <div className="skeleton-card__header-text">
+      <div className="skeleton-card-header-text">
         <Skeleton width="8rem" height="1.25rem" />
         <Skeleton width="6rem" height="0.875rem" />
       </div>
     </div>
-    <div className="skeleton-card__content">
+    <div className="skeleton-card-content">
       <SkeletonText lines={3} />
     </div>
-    <div className="skeleton-card__actions">
+    <div className="skeleton-card-actions">
       <SkeletonButton width="5rem" />
       <SkeletonButton width="4rem" />
     </div>
@@ -76,7 +76,7 @@ export const SkeletonCard = ({ className = '' }) => (
 export const SkeletonUserMenu = ({ className = '' }) => (
   <div className={`skeleton-user-menu ${className}`}>
     <SkeletonAvatar size="2.25rem" />
-    <div className="skeleton-user-menu__info">
+    <div className="skeleton-user-menu-info">
       <Skeleton width="4rem" height="0.875rem" />
       <Skeleton width="3rem" height="0.75rem" />
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, use-effect, useRef } from 'react';
 import { apiService } from '../utils/apiService';
 import './ProductDetailModal.css';
 import useFocusTrap from '../hooks/useFocusTrap';
@@ -9,7 +9,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   const [activeTab, setActiveTab] = useState('geral');
   const [selectedImage, setSelectedImage] = useState(0);
 
-  useEffect(() => {
+  use-effect(() => {
     if (isOpen && productId) {
       loadProductDetails(productId);
     }
@@ -34,7 +34,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   const loadProductDetails = async (id) => {
     setLoading(true);
     try {
-      const product = await apiService.getPecaById(id);
+      const product = await apiService.get-peca-by-id(id);
       if (product.error) {
         console.error('ProductDetailModal: Error from API:', product.error);
         throw new Error(product.error);
@@ -50,7 +50,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   };
 
   const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.current-target) {
       onClose();
     }
   };
@@ -58,11 +58,11 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   if (!isOpen) return null;
 
   return (
-    <div className="product-modal-overlay" onClick={handleOverlayClick}>
+    <div className="product-modal-overlay" on-click={handleOverlayClick}>
       <div ref={modalRef} className="product-modal" role="dialog" aria-modal="true" aria-label={productDetails?.nome || 'Detalhes da peça'}>
         <div className="product-modal-header">
           <h2>{productDetails?.nome || 'Carregando...'}</h2>
-          <button className="product-modal-close" onClick={onClose}>
+          <button className="product-modal-close" on-click={onClose}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
@@ -94,7 +94,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                         src={img}
                         alt={productDetails?.nome ? `${productDetails.nome} - ${index + 1}` : ''}
                         className={selectedImage === index ? 'active' : ''}
-                        onClick={() => setSelectedImage(index)}
+                        on-click={() => setSelectedImage(index)}
                         onError={(e) => { e.target.src = './assets/placeholder-part.jpg'; }}
                       />
                     ))}
@@ -103,22 +103,22 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
               </div>
               
               <div className="product-basic-info">
-                {productDetails.recall_relacionado && (
+                {productDetails.recall-relacionado && (
                   <div className="recall-alert">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M12 9V13M12 17H12.01-m21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2"/>
                     </svg>
                     <div>
                       <strong>Recall Relacionado</strong>
-                      <p>{productDetails.recall_detalhes?.descricao}</p>
-                      <small>Ref: {productDetails.recall_detalhes?.numero}</small>
+                      <p>{productDetails.recall-detalhes?.descricao}</p>
+                      <small>Ref: {productDetails.recall-detalhes?.numero}</small>
                     </div>
                   </div>
                 )}
 
                 <div className="product-codes">
                   <div><strong>Fabricante:</strong> {productDetails.fabricante}</div>
-                  <div><strong>Código:</strong> {productDetails.numero_peca}</div>
+                  <div><strong>Código:</strong> {productDetails.numero-peca}</div>
                   {productDetails.codigos?.oem && (
                     <div><strong>Códigos OEM:</strong> {productDetails.codigos.oem.join(', ')}</div>
                   )}
@@ -127,7 +127,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                 <div className="installation-info">
                   <div className="install-difficulty">
                     <span className="label">Dificuldade:</span>
-                    <span className={`difficulty ${productDetails.instalacao?.dificuldade?.toLowerCase()}`}>
+                    <span className={`difficulty ${productDetails.instalacao?.dificuldade?.to-lower-case()}`}>
                       {productDetails.instalacao?.dificuldade}
                     </span>
                   </div>
@@ -136,7 +136,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                       <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2"/>
                     </svg>
-                    {productDetails.instalacao?.tempo_estimado_min} min
+                    {productDetails.instalacao?.tempo-estimado-min} min
                   </div>
                 </div>
 
@@ -152,31 +152,31 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
               <div className="tab-buttons">
                 <button 
                   className={activeTab === 'geral' ? 'active' : ''} 
-                  onClick={() => setActiveTab('geral')}
+                  on-click={() => setActiveTab('geral')}
                 >
                   Geral
                 </button>
                 <button 
                   className={activeTab === 'especificacoes' ? 'active' : ''} 
-                  onClick={() => setActiveTab('especificacoes')}
+                  on-click={() => setActiveTab('especificacoes')}
                 >
                   Especificações
                 </button>
                 <button 
                   className={activeTab === 'compatibilidade' ? 'active' : ''} 
-                  onClick={() => setActiveTab('compatibilidade')}
+                  on-click={() => setActiveTab('compatibilidade')}
                 >
                   Compatibilidade
                 </button>
                 <button 
                   className={activeTab === 'instalacao' ? 'active' : ''} 
-                  onClick={() => setActiveTab('instalacao')}
+                  on-click={() => setActiveTab('instalacao')}
                 >
                   Instalação
                 </button>
                 <button 
                   className={activeTab === 'avaliacoes' ? 'active' : ''} 
-                  onClick={() => setActiveTab('avaliacoes')}
+                  on-click={() => setActiveTab('avaliacoes')}
                 >
                   Avaliações
                 </button>
@@ -195,11 +195,11 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                       <div>� Garantia conforme política de cada oficina</div>
                     </div>
 
-                    {productDetails.pecas_relacionadas && (
+                    {productDetails.pecas-relacionadas && (
                       <>
                         <h3>Peças Relacionadas</h3>
                         <div className="related-parts">
-                          {productDetails.pecas_relacionadas.map((peca, index) => (
+                          {productDetails.pecas-relacionadas.map((peca, index) => (
                             <div key={index} className="related-part">
                               <strong>{peca.nome}</strong>
                               <span>{peca.relacao}</span>
@@ -215,9 +215,9 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                   <div className="tab-panel">
                     <h3>Especificações Técnicas</h3>
                     <div className="specs-grid">
-                      {productDetails.especificacoes_tecnicas && Object.entries(productDetails.especificacoes_tecnicas).map(([key, value]) => (
+                      {productDetails.especificacoes-tecnicas && Object.entries(productDetails.especificacoes-tecnicas).map(([key, value]) => (
                         <div key={key} className="spec-item">
-                          <span className="spec-label">{key.replace(/_/g, ' ')}:</span>
+                          <span className="spec-label">{key.replace(//g, ' ')}:</span>
                           <span className="spec-value">{value}</span>
                         </div>
                       ))}
@@ -229,11 +229,11 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                   <div className="tab-panel">
                     <h3>Aplicações Detalhadas</h3>
                     <div className="compatibility-table">
-                      {productDetails.aplicacoes_detalhadas?.map((app, index) => (
+                      {productDetails.aplicacoes-detalhadas?.map((app, index) => (
                         <div key={index} className="compatibility-row">
                           <div className="app-main">
                             <strong>{app.marca} {app.modelo}</strong>
-                            <span>{app.ano_inicio}-{app.ano_fim}</span>
+                            <span>{app.ano-inicio}-{app.ano-fim}</span>
                           </div>
                           <div className="app-details">
                             <span>Motor: {app.motor}</span>
@@ -252,7 +252,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                       <div className="install-requirements">
                         <div><strong>Ferramentas necessárias:</strong></div>
                         <ul>
-                          {productDetails.instalacao?.ferramentas_necessarias?.map((tool, index) => (
+                          {productDetails.instalacao?.ferramentas-necessarias?.map((tool, index) => (
                             <li key={index}>{tool}</li>
                           ))}
                         </ul>
@@ -283,18 +283,18 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                             <div className="review-rating">
                               {'★'.repeat(review.nota)}{'☆'.repeat(5-review.nota)}
                             </div>
-                            <span className="review-date">{new Date(review.data).toLocaleDateString('pt-BR')}</span>
+                            <span className="review-date">{new Date(review.data).to-locale-date-string('pt-BR')}</span>
                           </div>
                           <p>{review.texto}</p>
                         </div>
                       ))}
                     </div>
 
-                    {productDetails.perguntas_frequentes && (
+                    {productDetails.perguntas-frequentes && (
                       <>
                         <h3>Perguntas Frequentes</h3>
                         <div className="faq">
-                          {productDetails.perguntas_frequentes.map((faq, index) => (
+                          {productDetails.perguntas-frequentes.map((faq, index) => (
                             <div key={index} className="faq-item">
                               <strong>Q: {faq.pergunta}</strong>
                               <p>R: {faq.resposta}</p>

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useLayoutEffect, useState, useRef } from 'react';
+import React, { useContext, use-effect, useLayoutEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import './MenuLogin.css';
@@ -14,15 +14,15 @@ function Menu() {
   const [mobileMenuPosition, setMobileMenuPosition] = useState({ top: 0, left: 0 });
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window !== 'undefined') {
-      return window.innerWidth <= 768;
+      return window.inner-width <= 768;
     }
     return false;
   });
   const mobileMenuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
-  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext);
-  const proActive = Boolean(usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true';
+  const { usuario-logado, setUsuarioLogado } = useContext(AuthContext);
+  const proActive = Boolean(usuario-logado && usuario-logado.is-pro) || localStorage.get-item('versaoProAtiva') === 'true';
   const headerRef = useRef(null);
 
   // shared menu items to render in desktop nav and mobile dropdown
@@ -30,17 +30,17 @@ function Menu() {
     {
       id: 'buscar',
       label: 'Buscar Peças',
-      onClick: () => navigate('/buscar-pecas')
+      on-click: () => navigate('/buscar-pecas')
     },
-    { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
-    { id: 'guias', label: 'Guias', onClick: () => navigate('/guias') },
-    { id: 'parceiros', label: 'Parceiros', onClick: () => navigate('/parceiros') },
-    { id: 'contato', label: 'Contato', onClick: () => navigate('/contato-logado') }
+    { id: 'recalls', label: 'Recalls', on-click: () => navigate('/recalls') },
+    { id: 'guias', label: 'Guias', on-click: () => navigate('/guias') },
+    { id: 'parceiros', label: 'Parceiros', on-click: () => navigate('/parceiros') },
+    { id: 'contato', label: 'Contato', on-click: () => navigate('/contato-logado') }
   ];
 
-  useEffect(() => {
+  use-effect(() => {
     const handleScroll = () => {
-      const currentScroll = window.scrollY;
+      const currentScroll = window.scroll-y;
       if (currentScroll > lastScroll && currentScroll > 60) {
         setHideMenu(true);
       } else {
@@ -48,23 +48,23 @@ function Menu() {
       }
       setLastScroll(currentScroll);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.add-event-listener('scroll', handleScroll);
+    return () => window.remove-event-listener('scroll', handleScroll);
   }, [lastScroll]);
 
   // Monitor screen size changes for mobile detection
-  useEffect(() => {
+  use-effect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.inner-width <= 768);
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.add-event-listener('resize', handleResize);
+    return () => window.remove-event-listener('resize', handleResize);
   }, []);
 
   // Função para calcular a posição do menu mobile EXATAMENTE como MenuUsuario
   const calculateMobileMenuPosition = () => {
     if (mobileMenuButtonRef.current) {
-      const rect = mobileMenuButtonRef.current.getBoundingClientRect();
+      const rect = mobileMenuButtonRef.current.get-bounding-client-rect();
 
       // Position below the button like MenuUsuario.jsx does
       const top = Math.round(rect.bottom + 4); // Small gap below the button
@@ -72,8 +72,8 @@ function Menu() {
 
       // Set CSS custom properties for positioning
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        mobileMenuRef.current.style.set-property('--dropdown-top', `${top}px`);
+        mobileMenuRef.current.style.set-property('--dropdown-left', `${left}px`);
       }
 
       setMobileMenuPosition({ top, left });
@@ -90,7 +90,7 @@ function Menu() {
     // If opening, calculate position after next paint (we measure in useLayoutEffect too)
     if (newState) {
       // slight delay to allow DOM updates; calculateMobileMenuPosition will also run in useLayoutEffect
-      window.requestAnimationFrame(() => calculateMobileMenuPosition());
+      window.request-animation-frame(() => calculateMobileMenuPosition());
     }
   };
 
@@ -101,8 +101,8 @@ function Menu() {
   const handleNavigation = (callback) => {
     return (e) => {
       // Suporta ser chamado com ou sem evento (ex.: MenuUsuario chama sem evento)
-      if (e && typeof e.preventDefault === 'function') {
-        e.preventDefault();
+      if (e && typeof e.prevent-default === 'function') {
+        e.prevent-default();
       }
       closeMobileMenu();
       callback();
@@ -110,7 +110,7 @@ function Menu() {
   };
 
   // Fecha menu mobile ao clicar fora (similar ao MenuUsuario)
-  useEffect(() => {
+  use-effect(() => {
     function handleOutside(e) {
       if (mobileMenuOpen && 
           mobileMenuButtonRef.current && !mobileMenuButtonRef.current.contains(e.target) && 
@@ -119,11 +119,11 @@ function Menu() {
       }
     }
     
-    window.addEventListener('mousedown', handleOutside);
-    window.addEventListener('resize', calculateMobileMenuPosition);
+    window.add-event-listener('mousedown', handleOutside);
+    window.add-event-listener('resize', calculateMobileMenuPosition);
     return () => {
-      window.removeEventListener('mousedown', handleOutside);
-      window.removeEventListener('resize', calculateMobileMenuPosition);
+      window.remove-event-listener('mousedown', handleOutside);
+      window.remove-event-listener('resize', calculateMobileMenuPosition);
     };
   }, [mobileMenuOpen]);
 
@@ -131,14 +131,14 @@ function Menu() {
   useLayoutEffect(() => {
     if (mobileMenuOpen && mobileMenuRef.current && mobileMenuButtonRef.current) {
       // Recalculate position like MenuUsuario.jsx does
-      const rect = mobileMenuButtonRef.current.getBoundingClientRect();
+      const rect = mobileMenuButtonRef.current.get-bounding-client-rect();
       const top = Math.round(rect.bottom + 4); // Position below button
       const left = Math.round(rect.left); // Align left edge with hamburger icon
 
       // Set CSS custom properties for positioning
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        mobileMenuRef.current.style.set-property('--dropdown-top', `${top}px`);
+        mobileMenuRef.current.style.set-property('--dropdown-left', `${left}px`);
       }
 
       setMobileMenuPosition({ top, left });
@@ -155,7 +155,7 @@ function Menu() {
           <button
             ref={mobileMenuButtonRef}
             className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
-            onClick={() => { setMobileMenuOpen(v => !v); if (!mobileMenuOpen) calculateMobileMenuPosition(); }}
+            on-click={() => { setMobileMenuOpen(v => !v); if (!mobileMenuOpen) calculateMobileMenuPosition(); }}
             aria-label="Toggle mobile menu"
             aria-haspopup="true"
             aria-expanded={mobileMenuOpen}
@@ -173,7 +173,7 @@ function Menu() {
             aria-hidden={!mobileMenuOpen}
           >
             {menuItems.map(item => (
-              <button key={item.id} className="dropdown-item" onClick={() => { setMobileMenuOpen(false); item.onClick(); }}>
+              <button key={item.id} className="dropdown-item" on-click={() => { setMobileMenuOpen(false); item.on-click(); }}>
                 {item.label}
               </button>
             ))}
@@ -186,7 +186,7 @@ function Menu() {
             <ul className="menu-list">
               {menuItems.map(item => (
                 <li key={item.id}>
-                  <a href={`#${item.id}`} className="menu-login-item" onClick={handleNavigation(item.onClick)}>{item.label}</a>
+                  <a href={`#${item.id}`} className="menu-login-item" on-click={handleNavigation(item.on-click)}>{item.label}</a>
                 </li>
               ))}
             </ul>
@@ -196,20 +196,20 @@ function Menu() {
         {/* NOTE: mobile dropdown uses the replicated user-dropdown earlier; no separate mobile-menu-dropdown required */}
 
         <div className="menu-login-right">
-        {!usuarioLogado ? (
+        {!usuario-logado ? (
             // SEMPRE CircularArrowButton - tanto mobile quanto desktop
-            <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
+            <CircularArrowButton on-click={handleNavigation(() => navigate('/login'))} />
           ) : (
             <MenuUsuario
-              nome={usuarioLogado.nome}
-              isPro={proActive}
+              nome={usuario-logado.nome}
+              is-pro={proActive}
               onPerfil={handleNavigation(() => navigate('/perfil'))}
               onPro={handleNavigation(() => navigate(proActive ? '/versao-pro-assinado' : '/versao-pro'))}
               onConfiguracoes={handleNavigation(() => navigate('/configuracoes'))}
               onLogout={handleNavigation(() => {
                 // limpa estado/localStorage e redireciona para a tela de login
                 setUsuarioLogado(null);
-                localStorage.removeItem('usuarioLogado');
+                localStorage.remove-item('usuario-logado');
                 navigate('/login');
               })}
             />

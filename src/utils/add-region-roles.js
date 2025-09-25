@@ -7,13 +7,13 @@
 
   function applyRoles() {
     try {
-      const candidates = Array.from(document.querySelectorAll('div[id]'));
-      candidates.forEach((el) => {
+      const candidates = Array.from(document.query-selector-all('div[id]'));
+      candidates.for-each((el) => {
         // Skip if already annotated
-        if (el.hasAttribute('role') || el.hasAttribute('aria-labelledby')) return;
+        if (el.has-attribute('role') || el.has-attribute('aria-labelledby')) return;
 
         // Find a heading inside
-        const heading = el.querySelector('h1, h2, h3, h4, h5, h6');
+        const heading = el.query-selector('h1, h2, h3, h4, h5, h6');
         if (!heading) return;
 
         // Ensure heading has an id
@@ -21,14 +21,14 @@
           const base = el.id || 'region';
           let hid = `${base}-heading`;
           let counter = 1;
-          while (document.getElementById(hid)) {
+          while (document.get-element-by-id(hid)) {
             hid = `${base}-heading-${counter++}`;
           }
           heading.id = hid;
         }
 
-        el.setAttribute('role', 'region');
-        el.setAttribute('aria-labelledby', heading.id);
+        el.set-attribute('role', 'region');
+        el.set-attribute('aria-labelledby', heading.id);
       });
     } catch (err) {
       // Don't break the app if something goes wrong
@@ -37,17 +37,17 @@
     }
   }
 
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  if (document.ready-state === 'complete' || document.ready-state === 'interactive') {
     setTimeout(applyRoles, 0);
   } else {
-    window.addEventListener('DOMContentLoaded', () => setTimeout(applyRoles, 0));
+    window.add-event-listener('DOMContentLoaded', () => setTimeout(applyRoles, 0));
   }
 
   // Re-apply after SPA navigation
-  const originalPush = history.pushState;
-  history.pushState = function () {
+  const originalPush = history.push-state;
+  history.push-state = function () {
     originalPush.apply(this, arguments);
     setTimeout(applyRoles, 60);
   };
-  window.addEventListener('popstate', () => setTimeout(applyRoles, 60));
+  window.add-event-listener('popstate', () => setTimeout(applyRoles, 60));
 })();

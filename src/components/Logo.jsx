@@ -2,12 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Logo.css';
 
-const Logo = ({ className = '', onClick, ...props }) => {
+const Logo = ({ className = '', on-click, ...props }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    if (onClick) {
-      onClick();
+    if (on-click) {
+      on-click();
     } else {
       navigate('/');
     }
@@ -17,7 +17,7 @@ const Logo = ({ className = '', onClick, ...props }) => {
     <div className="menu-login-logo">
       <div 
         className={`logo-container ${className}`}
-        onClick={handleClick}
+        on-click={handleClick}
         {...props}
       >
         <img 

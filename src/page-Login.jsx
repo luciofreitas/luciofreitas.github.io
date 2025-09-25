@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, use-effect } from 'react';
 import MenuLogin from './components/MenuLogin';
 // Removido import './components/Menu.css' - não é necessário e causa conflito de cores
 import './page-Login.css';
@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './App';
 
 // Contas demo que funcionam para todos os usuários (não dependem de localStorage)
-const usuariosDemoGlobais = [
+const usuarios-demo-globais = [
   {
     id: 'demo1',
     nome: 'Usuário Demo',
@@ -57,9 +57,9 @@ export default function Login() {
   function testLocalStorage() {
     try {
       const test = '__test_localStorage__';
-      localStorage.setItem(test, 'test');
-      const retrieved = localStorage.getItem(test);
-      localStorage.removeItem(test);
+      localStorage.set-item(test, 'test');
+      const retrieved = localStorage.get-item(test);
+      localStorage.remove-item(test);
       return retrieved === 'test';
     } catch (e) {
       console.error('[Debug] localStorage não disponível:', e);
@@ -68,18 +68,18 @@ export default function Login() {
   }
 
   // Testar localStorage na inicialização do componente
-  useEffect(() => {
+  use-effect(() => {
     const lsAvailable = testLocalStorage();
   }, []);
 
   function getUsuarios() {
     let usuarios = [];
     // Sempre incluir contas demo (funcionam para todos)
-    usuarios = [...usuariosDemoGlobais];
+    usuarios = [...usuarios-demo-globais];
     
     // Tentar adicionar usuários do localStorage se disponível
     try {
-      const raw = localStorage.getItem('usuarios');
+      const raw = localStorage.get-item('usuarios');
       if (raw) {
         const parsed = JSON.parse(raw);
         usuarios = usuarios.concat(parsed);
@@ -94,7 +94,7 @@ export default function Login() {
         id: u.id,
         nome: u.nome || '',
         celular: String(u.celular || '').replace(/\D/g, ''),
-        email: String(u.email || '').trim().toLowerCase(),
+        email: String(u.email || '').trim().to-lower-case(),
         senha: String(u.senha || '')
       }));
   usuarios = usuarios.concat(seedData);
@@ -105,34 +105,34 @@ export default function Login() {
     return usuarios;
   }
 
-  function saveUsuario(novoUsuario) {
+  function saveUsuario(novo-usuario) {
     
     // Obter apenas usuários do localStorage (excluir demos e seeds)
-    let usuariosLS = [];
+    let usuarios-ls = [];
     try {
-      const raw = localStorage.getItem('usuarios');
+      const raw = localStorage.get-item('usuarios');
       if (raw) {
-        usuariosLS = JSON.parse(raw);
+        usuarios-ls = JSON.parse(raw);
       }
     } catch (e) {
       console.error('[Debug] Erro ao ler localStorage existente:', e);
-      return novoUsuario; // Falha silenciosa
+      return novo-usuario; // Falha silenciosa
     }
     
     
     
     const normalized = {
-      ...novoUsuario,
-      email: String(novoUsuario.email || '').trim().toLowerCase(),
-      celular: String(novoUsuario.celular || '').replace(/\D/g, '')
+      ...novo-usuario,
+      email: String(novo-usuario.email || '').trim().to-lower-case(),
+      celular: String(novo-usuario.celular || '').replace(/\D/g, '')
     };
     
-    const updated = [...usuariosLS, normalized];
+    const updated = [...usuarios-ls, normalized];
     
     
     try { 
       const serialized = JSON.stringify(updated);
-      localStorage.setItem('usuarios', serialized);
+      localStorage.set-item('usuarios', serialized);
       // Verificação opcional.
     } catch (e) {
       console.error('Erro ao salvar no localStorage:', e);
@@ -143,29 +143,29 @@ export default function Login() {
   }
 
   function handleLogin(e) {
-    e.preventDefault();
-    const normalizedEmail = String(email || '').trim().toLowerCase();
+    e.prevent-default();
+    const normalizedEmail = String(email || '').trim().to-lower-case();
     const normalizedSenha = String(senha || '');
-    const usuario = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmail && String(u.senha || '') === normalizedSenha);
+    const usuario = getUsuarios().find(u => String(u.email || '').trim().to-lower-case() === normalizedEmail && String(u.senha || '') === normalizedSenha);
     if (!usuario) {
       setError('E-mail ou senha incorretos.');
       return;
     }
     setError('');
     if (setUsuarioLogado) setUsuarioLogado(usuario);
-    try { localStorage.setItem('usuarioLogado', JSON.stringify(usuario)); } catch (e) {}
+    try { localStorage.set-item('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
     navigate('/');
   }
 
   function handleRegister(e) {
-    e.preventDefault();
+    e.prevent-default();
     
     if (!regNome || !regSenha || !regEmail || !regCelular || !regConfirmSenha) {
       setRegError('Preencha todos os campos.');
       return;
     }
     
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(regEmail)) {
+    if (!/^[a-zA-Z0-9.%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(regEmail)) {
       setRegError('E-mail inválido. Use o formato: exemplo@dominio.com');
       return;
     }
@@ -186,16 +186,16 @@ export default function Login() {
       return;
     }
     
-    const normalizedRegEmail = String(regEmail || '').trim().toLowerCase();
+    const normalizedRegEmail = String(regEmail || '').trim().to-lower-case();
   const existingUsers = getUsuarios();
     
-    if (existingUsers.some(u => String(u.email || '').trim().toLowerCase() === normalizedRegEmail)) {
+    if (existingUsers.some(u => String(u.email || '').trim().to-lower-case() === normalizedRegEmail)) {
       setRegError('Já existe um usuário com este e-mail.');
       return;
     }
     
     const id = Date.now();
-    const novoUsuario = {
+    const novo-usuario = {
       id,
       nome: regNome,
       celular: cleanCelular,
@@ -205,7 +205,7 @@ export default function Login() {
     
     
     try {
-  const savedUser = saveUsuario(novoUsuario);
+  const savedUser = saveUsuario(novo-usuario);
       
       setRegError('');
       setRegNome(''); setRegCelular(''); setRegEmail(''); setRegSenha(''); setRegConfirmSenha('');
@@ -231,19 +231,19 @@ export default function Login() {
     return formatted;
   }
 
-  const ToggleCar = ({ on, onClick }) => (
+  const ToggleCar = ({ on, on-click }) => (
     <span
       className={`car-toggle ${on ? 'headlight-on' : 'headlight-off'}`}
       role="button"
       tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+      on-click={on-click}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') on-click(); }}
       aria-label={on ? 'Ocultar senha' : 'Mostrar senha'}
     >
       <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5H11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={on ? '#3B82F6' : '#4A5568'} className="car-body"/>
-        <path d="M24 6H8l1.5-1.5c.3-.3.7-.5 1.1-.5h9.8c.4 0 .8.2 1.1.5L24 6z" fill={on ? '#1E40AF' : '#2D3748'} className="car-roof"/>
-        <path d="M10.5 4.5L9 6h3l1-1.5h-2.5z" fill="#63B3ED" opacity="0.3"/>
+        <path d="M28 8c0-1.1-.9-2-2-2h-2l-1-2c-.5-.9-1.4-1.5-2.4-1.5-h11.4c-1 0-1.9.6-2.4 1.5l-1 2H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h1v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1h1c1.1 0 2-.9 2-2V8z" fill={on ? '#3B82F6' : '#4A5568'} className="car-body"/>
+        <path d="M24 6H8l1.5-1.5c.3-.3.7-.5 1.1-.5h9.8c.4 0 .8.2 1.1.5-l24 6z" fill={on ? '#1E40AF' : '#2D3748'} className="car-roof"/>
+        <path d="M10.5 4.5-l9 6h3l1-1.5h-2.5z" fill="#63B3ED" opacity="0.3"/>
         <circle cx="9" cy="16" r="2.5" fill="#2D3748"/>
         <circle cx="9" cy="16" r="1.5" fill={on ? '#60A5FA' : '#718096'} className="wheel-rim"/>
         <circle cx="23" cy="16" r="2.5" fill="#2D3748"/>
@@ -287,13 +287,13 @@ export default function Login() {
                 <div className="form-control w-full login-form-control">
                   <input type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} className="input input-bordered w-full bg-white text-black" autoComplete="username" />
                 </div>
-                <div className="form-control w-full Login-form-control">
+                <div className="form-control w-full login-form-control">
                   <div className="password-field">
                     <input id="senha" name="senha" type={showPasswordLogin ? 'text' : 'password'} value={senha} onChange={e => setSenha(e.target.value)} className="form-input password-input" placeholder="Senha" autoComplete="current-password" />
-                    <ToggleCar on={showPasswordLogin} onClick={() => setShowPasswordLogin(s => !s)} />
+                    <ToggleCar on={showPasswordLogin} on-click={() => setShowPasswordLogin(s => !s)} />
                   </div>
                 </div>
-                <div className="login-forgot-wrapper"><a href="#" className="login-forgot-link" onClick={e => { e.preventDefault(); }}>Esqueci minha senha</a></div>
+                <div className="login-forgot-wrapper"><a href="#" className="login-forgot-link" on-click={e => { e.prevent-default(); }}>Esqueci minha senha</a></div>
                 {error && <div className="text-red-600 text-center text-sm">{error}</div>}
                 <button type="submit" className="btn w-full login-submit">Entrar</button>
               </form>
@@ -305,22 +305,22 @@ export default function Login() {
                 <div className="form-control w-full login-form-control">
                   <input type="text" placeholder="Nome Completo" value={regNome} onChange={e => setRegNome(e.target.value)} className="input input-bordered w-full bg-white text-black" autoComplete="name" />
                 </div>
-                <div className="form-control w-full Login-form-control">
+                <div className="form-control w-full login-form-control">
                   <input type="tel" placeholder="Celular" value={regCelular} onChange={e => setRegCelular(formatCelular(e.target.value))} className="input input-bordered w-full bg-white text-black" autoComplete="tel" />
                 </div>
-                <div className="form-control w-full Login-form-control">
+                <div className="form-control w-full login-form-control">
                   <input type="email" placeholder="E-mail" value={regEmail} onChange={e => setRegEmail(e.target.value)} className="input input-bordered w-full bg-white text-black" autoComplete="email" />
                 </div>
-                <div className="form-control w-full Login-form-control">
+                <div className="form-control w-full login-form-control">
                   <div className="password-field">
                     <input type={showPasswordRegister ? 'text' : 'password'} placeholder="Senha" value={regSenha} onChange={e => setRegSenha(e.target.value)} className="form-input password-input" autoComplete="new-password" />
-                    <ToggleCar on={showPasswordRegister} onClick={() => setShowPasswordRegister(s => !s)} />
+                    <ToggleCar on={showPasswordRegister} on-click={() => setShowPasswordRegister(s => !s)} />
                   </div>
                 </div>
-                <div className="form-control w-full Login-form-control">
+                <div className="form-control w-full login-form-control">
                   <div className="password-field">
                     <input type={showPasswordConfirmRegister ? 'text' : 'password'} placeholder="Confirmar Senha" value={regConfirmSenha} onChange={e => setRegConfirmSenha(e.target.value)} className="form-input password-input" autoComplete="new-password" />
-                    <ToggleCar on={showPasswordConfirmRegister} onClick={() => setShowPasswordConfirmRegister(s => !s)} />
+                    <ToggleCar on={showPasswordConfirmRegister} on-click={() => setShowPasswordConfirmRegister(s => !s)} />
                   </div>
                 </div>
                 {regError && <div className="text-red-600 text-center text-sm">{regError}</div>}

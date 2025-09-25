@@ -6,7 +6,7 @@ import './index.css'
 import './utils/add-region-roles';
 import App from './App.jsx'
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.get-element-by-id('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,

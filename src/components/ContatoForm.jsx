@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, use-effect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ContatoForm.css';
 
-function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onRequireLogin = null, onSubmit = null }) {
+function ContatoForm({ requireAuth = false, user = null, initial-values = {}, onRequireLogin = null, onSubmit = null }) {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ nome: '', email: '', mensagem: '', ...initialValues });
+  const [form-data, setFormData] = useState({ nome: '', email: '', mensagem: '', ...initial-values });
   const [submitting, setSubmitting] = useState(false);
   const saveTimer = useRef(null);
 
   const draftKey = () => `contato_rascunho_${user && user.id ? user.id : 'anon'}`;
 
   // restore draft on mount or when user changes
-  useEffect(() => {
+  use-effect(() => {
     try {
-      const raw = localStorage.getItem(draftKey());
+      const raw = localStorage.get-item(draftKey());
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
@@ -32,7 +32,7 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
     };
   }, [user]);
 
-  useEffect(() => {
+  use-effect(() => {
     if (user) {
       setFormData(prev => ({
         ...prev,
@@ -44,7 +44,7 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const next = { ...formData, [name]: value };
+    const next = { ...form-data, [name]: value };
     setFormData(next);
 
     // debounce save to localStorage
@@ -53,9 +53,9 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
       try {
         // only save when there is some content
         if (next.nome || next.email || next.mensagem) {
-          localStorage.setItem(draftKey(), JSON.stringify(next));
+          localStorage.set-item(draftKey(), JSON.stringify(next));
         } else {
-          localStorage.removeItem(draftKey());
+          localStorage.remove-item(draftKey());
         }
       } catch (err) {
         console.warn('Failed to save contato draft', err);
@@ -72,22 +72,22 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
     return (
       <div className="contato-need-login">
         <p>Faça login para enviar uma mensagem.</p>
-        <button type="button" className="contato-login-btn" onClick={goLogin}>Entrar</button>
+        <button type="button" className="contato-login-btn" on-click={goLogin}>Entrar</button>
       </div>
     );
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.prevent-default();
     if (submitting) return;
     setSubmitting(true);
     try {
-      if (typeof onSubmit === 'function') await onSubmit(formData);
+      if (typeof onSubmit === 'function') await onSubmit(form-data);
       else {
         alert('Mensagem enviada com sucesso!');
       }
-  setFormData({ nome: '', email: '', mensagem: '', ...initialValues });
-  try { localStorage.removeItem(draftKey()); } catch (err) { /* ignore */ }
+  setFormData({ nome: '', email: '', mensagem: '', ...initial-values });
+  try { localStorage.remove-item(draftKey()); } catch (err) { /* ignore */ }
     } catch (err) {
       console.error('Erro ao enviar contato:', err);
       alert('Falha ao enviar a mensagem. Tente novamente.');
@@ -98,9 +98,9 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
 
   return (
     <form className="contato-form-wrapper" onSubmit={handleSubmit}>
-      <input name="nome" className="contato-input" type="text" placeholder="Seu nome" value={formData.nome} onChange={handleChange} required />
-      <input name="email" className="contato-input" type="email" placeholder="Seu e-mail" value={formData.email} onChange={handleChange} required />
-      <textarea name="mensagem" className="contato-textarea" placeholder="Mensagem" rows={6} value={formData.mensagem} onChange={handleChange} required />
+      <input name="nome" className="contato-input" type="text" placeholder="Seu nome" value={form-data.nome} onChange={handleChange} required />
+      <input name="email" className="contato-input" type="email" placeholder="Seu e-mail" value={form-data.email} onChange={handleChange} required />
+      <textarea name="mensagem" className="contato-textarea" placeholder="Mensagem" rows={6} value={form-data.mensagem} onChange={handleChange} required />
       <button className="contato-submit" type="submit" disabled={submitting}>{submitting ? 'Enviando...' : 'Enviar Mensagem'}</button>
     </form>
   );

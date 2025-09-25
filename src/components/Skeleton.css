@@ -27,11 +27,11 @@
   gap: 0.5rem;
 }
 
-.skeleton-text__line {
+.skeleton-text-line {
   margin-bottom: 0.25rem;
 }
 
-.skeleton-text__line:last-child {
+.skeleton-text-line:last-child {
   margin-bottom: 0;
 }
 
@@ -54,25 +54,25 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.skeleton-card__header {
+.skeleton-card-header {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-.skeleton-card__header-text {
+.skeleton-card-header-text {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   flex: 1;
 }
 
-.skeleton-card__content {
+.skeleton-card-content {
   margin-bottom: 1rem;
 }
 
-.skeleton-card__actions {
+.skeleton-card-actions {
   display: flex;
   gap: 0.75rem;
 }
@@ -87,7 +87,7 @@
   background: transparent;
 }
 
-.skeleton-user-menu__info {
+.skeleton-user-menu-info {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;

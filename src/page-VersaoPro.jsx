@@ -11,13 +11,13 @@ export default function VersaoPro() {
   <div className="page-wrapper menu-page">
   <div className="page-content" id="versao-pro">
             <h2 className="page-title">Versão Pro</h2>
-          <p className="versaoPro-intro">
+          <p className="versao-pro-intro">
             Tenha acesso a todos os recursos avançados, suporte prioritário e integrações para otimizar sua busca por peças.
           </p>
-          <div className="versaoPro-cards">
-            <div className="versaoPro-features">
-              <h3 className="versaoPro-features-title">Recursos incluídos</h3>
-              <ul className="versaoPro-list">
+          <div className="versao-pro-cards">
+            <div className="versao-pro-features">
+              <h3 className="versao-pro-features-title">Recursos incluídos</h3>
+              <ul className="versao-pro-list">
                   <li> Acesso ao endereço das lojas que vendem as peças.</li>
                   <li> Suporte via email.</li>
                   <li> Suporte via whatsapp.</li>
@@ -25,10 +25,10 @@ export default function VersaoPro() {
               </ul>
             </div>
 
-            <div className="versaoPro-pricecard">
-              <div className="versaoPro-price">R$ 9,90/mês</div>
-              <div className="versaoPro-price-note">Cancelamento a qualquer momento</div>
-              <button className="versaoPro-cta" onClick={() => navigate('/checkin')}>Assinar Pro</button>
+            <div className="versao-pro-pricecard">
+              <div className="versao-pro-price">R$ 9,90/mês</div>
+              <div className="versao-pro-price-note">Cancelamento a qualquer momento</div>
+              <button className="versao-pro-cta" on-click={() => navigate('/checkin')}>Assinar Pro</button>
             </div>
           </div>
               </div>

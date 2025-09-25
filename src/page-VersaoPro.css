@@ -1,13 +1,13 @@
 /* page-VersaoPro.css - Estilos específicos da página Versão Pro */
 
-.versaoPro-intro {
+.versao-pro-intro {
   color: var(--text-secondary);
   line-height: var(--line-height-relaxed);
   margin-bottom: var(--space-xl);
   text-align: center;
 }
 
-.versaoPro-cards {
+.versao-pro-cards {
   display: flex;
   gap: var(--space-lg);
   justify-content: center;
@@ -16,7 +16,7 @@
   align-items: stretch;
 }
 
-.versaoPro-features {
+.versao-pro-features {
   background: var(--bg-white);
   border: 1px solid var(--border-gray);
   border-radius: var(--radius-md);
@@ -30,11 +30,11 @@
   transition: box-shadow var(--transition-base);
 }
 
-.versaoPro-features:hover {
+.versao-pro-features:hover {
   box-shadow: var(--shadow-md);
 }
 
-.versaoPro-features-title {
+.versao-pro-features-title {
   color: var(--text-primary);
   margin: 0;
   font-size: var(--font-size-xl);
@@ -42,7 +42,7 @@
   margin-bottom: var(--space-md);
 }
 
-.versaoPro-list {
+.versao-pro-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -52,13 +52,13 @@
   text-align: left;
 }
 
-.versaoPro-list li {
+.versao-pro-list li {
   color: var(--text-secondary);
   padding-left: var(--space-md);
   position: relative;
 }
 
-.versaoPro-list li::before {
+.versao-pro-list li::before {
   content: "✓";
   position: absolute;
   left: 0;
@@ -66,7 +66,7 @@
   font-weight: var(--font-weight-bold);
 }
 
-.versaoPro-pricecard {
+.versao-pro-pricecard {
   background: var(--bg-gray-50);
   border: 1px solid var(--border-gray);
   border-radius: var(--radius-md);
@@ -82,25 +82,25 @@
   transition: box-shadow var(--transition-base);
 }
 
-.versaoPro-pricecard:hover {
+.versao-pro-pricecard:hover {
   box-shadow: var(--shadow-md);
 }
 
-.versaoPro-price {
+.versao-pro-price {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   margin-bottom: var(--space-sm);
 }
 
-.versaoPro-price-note {
+.versao-pro-price-note {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
   margin-bottom: var(--space-lg);
   text-align: center;
 }
 
-.versaoPro-cta {
+.versao-pro-cta {
   padding: var(--space-sm) var(--space-lg);
   background: var(--color-primary);
   color: var(--text-inverse);
@@ -112,20 +112,20 @@
   transition: background var(--transition-fast);
 }
 
-.versaoPro-cta:hover {
+.versao-pro-cta:hover {
   background: var(--color-primary-dark);
 }
 
 /* Responsividade */
 @media (max-width: 48rem) {
-  .versaoPro-cards {
+  .versao-pro-cards {
     flex-direction: column;
     align-items: center;
     gap: var(--space-md);
   }
   
-  .versaoPro-features,
-  .versaoPro-pricecard {
+  .versao-pro-features,
+  .versao-pro-pricecard {
     width: 100%;
     max-width: 25rem;
   }
@@ -133,11 +133,11 @@
 
 /* Full HD - 1920x1080 - Updated to use design tokens */
 @media (min-width: 118.75rem) and (max-width: 121.25rem) {
-  .versaoPro-intro { 
+  .versao-pro-intro { 
     color: var(--text-secondary); 
     line-height: var(--line-height-relaxed); 
   }
-  .versaoPro-cards { 
+  .versao-pro-cards { 
     display: flex; 
     gap: var(--space-sm); 
     justify-content: center; 
@@ -145,7 +145,7 @@
     flex-wrap: wrap; 
     align-items: stretch; 
   }
-  .versaoPro-features { 
+  .versao-pro-features { 
     background: var(--bg-white); 
     border: 1px solid var(--border-gray); 
     border-radius: var(--radius-md); 
@@ -157,13 +157,13 @@
     box-sizing: border-box;
     box-shadow: var(--shadow-base);
   }
-  .versaoPro-features-title { 
+  .versao-pro-features-title { 
     color: var(--text-primary); 
     margin: 0; 
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-semibold);
   }
-  .versaoPro-list { 
+  .versao-pro-list { 
     list-style: none; 
     padding: 0; 
     margin: var(--space-sm) 0 0 0; 
@@ -172,7 +172,7 @@
     gap: var(--space-xs); 
     text-align: left; 
   }
-  .versaoPro-pricecard { 
+  .versao-pro-pricecard { 
     background: var(--bg-gray-50); 
     border: 1px solid var(--border-gray); 
     border-radius: var(--radius-md); 
@@ -187,19 +187,19 @@
     box-shadow: var(--shadow-base);
   }
   
-  .versaoPro-price { 
+  .versao-pro-price { 
     font-size: var(--font-size-lg); 
     font-weight: var(--font-weight-bold); 
     color: var(--text-primary); 
   }
   
-  .versaoPro-price-note { 
+  .versao-pro-price-note { 
     font-size: var(--font-size-sm); 
     color: var(--text-muted); 
     margin-top: var(--space-xs); 
   }
   
-  .versaoPro-cta { 
+  .versao-pro-cta { 
     margin-top: var(--space-sm); 
     padding: var(--space-sm) var(--space-md); 
     background: var(--color-primary); 
@@ -210,7 +210,7 @@
     transition: background var(--transition-fast);
   }
   
-  .versaoPro-cta:hover {
+  .versao-pro-cta:hover {
     background: var(--color-primary-dark);
   }
 }

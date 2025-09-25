@@ -1,11 +1,11 @@
 import React from 'react';
 import './CircularArrowButton.css';
 
-const CircularArrowButton = ({ onClick, className = '', size = 'medium' }) => {
+const CircularArrowButton = ({ on-click, className = '', size = 'medium' }) => {
   return (
     <button 
       className={`circular-arrow-button ${size} ${className}`}
-      onClick={onClick}
+      on-click={on-click}
       type="button"
       aria-label="Comece agora - É grátis"
     >

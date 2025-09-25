@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useLayoutEffect, useState, useRef, useContext } from 'react';
+﻿import React, { use-effect, useLayoutEffect, useState, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import './MenuLogin.css';
@@ -20,7 +20,7 @@ const MenuLogin = () => {
   const [ariaMessage, setAriaMessage] = useState('');
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window !== 'undefined') {
-      const width = window.innerWidth;
+      const width = window.inner-width;
       return width <= 768;
     }
     return false;
@@ -30,17 +30,17 @@ const MenuLogin = () => {
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
 
-  const { usuarioLogado, setUsuarioLogado, authLoaded } = useContext(AuthContext) || {};
+  const { usuario-logado, setUsuarioLogado, authLoaded } = useContext(AuthContext) || {};
 
   const menuItems = [
-    { id: 'inicio', label: 'Início', onClick: () => navigate('/inicio') },
-    { id: 'quem-somos', label: 'Quem Somos', onClick: () => navigate('/quem-somos') },
-    { id: 'nosso-projeto', label: 'Nosso Projeto', onClick: () => navigate('/nosso-projeto') },
-    { id: 'seja-pro', label: 'Seja Pro', onClick: () => navigate('/seja-pro') },
-    { id: 'contato', label: 'Contato', onClick: () => navigate('/contato') }
+    { id: 'inicio', label: 'Início', on-click: () => navigate('/inicio') },
+    { id: 'quem-somos', label: 'Quem Somos', on-click: () => navigate('/quem-somos') },
+    { id: 'nosso-projeto', label: 'Nosso Projeto', on-click: () => navigate('/nosso-projeto') },
+    { id: 'seja-pro', label: 'Seja Pro', on-click: () => navigate('/seja-pro') },
+    { id: 'contato', label: 'Contato', on-click: () => navigate('/contato') }
   ];
 
-  const showToast = (type, title, message) => {
+  const show-toast = (type, title, message) => {
     setToast({ type, title, message, id: Date.now() });
     setTimeout(() => setToast(null), 4000);
   };
@@ -52,8 +52,8 @@ const MenuLogin = () => {
 
   const handleLogout = () => {
     setUsuarioLogado(null);
-    localStorage.removeItem('usuarioLogado');
-    showToast('success', 'Logout realizado', 'Você foi desconectado com sucesso');
+    localStorage.remove-item('usuario-logado');
+    show-toast('success', 'Logout realizado', 'Você foi desconectado com sucesso');
     setAriaAlert('Logout realizado com sucesso');
     navigate('/inicio');
   };
@@ -63,7 +63,7 @@ const MenuLogin = () => {
   };
 
   const handleProClick = () => {
-    if (usuarioLogado?.isPro) {
+    if (usuario-logado?.is-pro) {
       navigate('/versao-pro-assinado');
     } else {
       navigate('/seja-pro');
@@ -75,38 +75,38 @@ const MenuLogin = () => {
   };
 
   const handleLoginSuccess = () => {
-    showToast('success', 'Login realizado', 'Bem-vindo de volta!');
+    show-toast('success', 'Login realizado', 'Bem-vindo de volta!');
     setAriaAlert('Login realizado com sucesso');
   };
 
   const prevUsuarioLogado = useRef();
-  useEffect(() => {
-    if (prevUsuarioLogado.current === null && usuarioLogado) {
+  use-effect(() => {
+    if (prevUsuarioLogado.current === null && usuario-logado) {
       handleLoginSuccess();
     }
-    prevUsuarioLogado.current = usuarioLogado;
-  }, [usuarioLogado]);
+    prevUsuarioLogado.current = usuario-logado;
+  }, [usuario-logado]);
 
-  useEffect(() => {
+  use-effect(() => {
     const handleResize = () => {
-      const width = window.innerWidth;
+      const width = window.inner-width;
       const newIsMobile = width <= 768;
       setIsMobile(newIsMobile);
     };
-    window.addEventListener('resize', handleResize);
+    window.add-event-listener('resize', handleResize);
     handleResize();
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.remove-event-listener('resize', handleResize);
   }, []);
 
   const calculateMobileMenuPosition = () => {
     if (mobileMenuButtonRef.current) {
-      const rect = mobileMenuButtonRef.current.getBoundingClientRect();
+      const rect = mobileMenuButtonRef.current.get-bounding-client-rect();
       const top = Math.round(rect.bottom + 4);
       const left = Math.round(rect.left);
 
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        mobileMenuRef.current.style.set-property('--dropdown-top', `${top}px`);
+        mobileMenuRef.current.style.set-property('--dropdown-left', `${left}px`);
       }
 
       setMobileMenuPosition({ top, left });
@@ -117,7 +117,7 @@ const MenuLogin = () => {
     const newState = !mobileMenuOpen;
     setMobileMenuOpen(newState);
     if (newState) {
-      window.requestAnimationFrame(() => calculateMobileMenuPosition());
+      window.request-animation-frame(() => calculateMobileMenuPosition());
     }
   };
 
@@ -127,15 +127,15 @@ const MenuLogin = () => {
 
   const handleNavigation = (callback) => {
     return (e) => {
-      if (e && typeof e.preventDefault === 'function') {
-        e.preventDefault();
+      if (e && typeof e.prevent-default === 'function') {
+        e.prevent-default();
       }
       closeMobileMenu();
       callback();
     };
   };
 
-  useEffect(() => {
+  use-effect(() => {
     function handleOutside(e) {
       if (mobileMenuOpen &&
           mobileMenuButtonRef.current && !mobileMenuButtonRef.current.contains(e.target) &&
@@ -144,23 +144,23 @@ const MenuLogin = () => {
       }
     }
 
-    window.addEventListener('mousedown', handleOutside);
-    window.addEventListener('resize', calculateMobileMenuPosition);
+    window.add-event-listener('mousedown', handleOutside);
+    window.add-event-listener('resize', calculateMobileMenuPosition);
     return () => {
-      window.removeEventListener('mousedown', handleOutside);
-      window.removeEventListener('resize', calculateMobileMenuPosition);
+      window.remove-event-listener('mousedown', handleOutside);
+      window.remove-event-listener('resize', calculateMobileMenuPosition);
     };
   }, [mobileMenuOpen]);
 
   useLayoutEffect(() => {
     if (mobileMenuOpen && mobileMenuRef.current && mobileMenuButtonRef.current) {
-      const rect = mobileMenuButtonRef.current.getBoundingClientRect();
+      const rect = mobileMenuButtonRef.current.get-bounding-client-rect();
       const top = Math.round(rect.bottom + 4);
       const left = Math.round(rect.left);
 
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        mobileMenuRef.current.style.set-property('--dropdown-top', `${top}px`);
+        mobileMenuRef.current.style.set-property('--dropdown-left', `${left}px`);
       }
 
       setMobileMenuPosition({ top, left });
@@ -178,7 +178,7 @@ const MenuLogin = () => {
             <button
               ref={mobileMenuButtonRef}
               className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
-              onClick={toggleMobileMenu}
+              on-click={toggleMobileMenu}
               aria-label="Toggle mobile menu"
               aria-haspopup="true"
               aria-expanded={mobileMenuOpen}
@@ -196,7 +196,7 @@ const MenuLogin = () => {
               aria-hidden={!mobileMenuOpen}
             >
               {menuItems.map(item => (
-                <button key={item.id} className="dropdown-item" onClick={() => { setMobileMenuOpen(false); item.onClick(); }}>
+                <button key={item.id} className="dropdown-item" on-click={() => { setMobileMenuOpen(false); item.on-click(); }}>
                   {item.label}
                 </button>
               ))}
@@ -212,7 +212,7 @@ const MenuLogin = () => {
                     <a
                       href={`#${item.id}`}
                       className={`menu-login-item ${item.id === 'nosso-projeto' ? 'nosso-projeto' : ''}`}
-                      onClick={handleNavigation(item.onClick)}
+                      on-click={handleNavigation(item.on-click)}
                     >
                       {item.label}
                     </a>
@@ -224,18 +224,18 @@ const MenuLogin = () => {
 
           {/* Desktop: GetStartedButton | Mobile: CircularArrowButton */}
           <div className="menu-login-right">
-            {!usuarioLogado ? (
+            {!usuario-logado ? (
               <>
                 {isMobile ? (
-                  <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
+                  <CircularArrowButton on-click={handleNavigation(() => navigate('/login'))} />
                 ) : (
-                  <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+                  <GetStartedButton on-click={handleNavigation(() => navigate('/login'))} />
                 )}
               </>
             ) : (
               <MenuUsuario
-                nome={usuarioLogado.nome}
-                isPro={usuarioLogado?.isPro}
+                nome={usuario-logado.nome}
+                is-pro={usuario-logado?.is-pro}
                 onPerfil={handleNavigation(handleProfileClick)}
                 onPro={handleNavigation(handleProClick)}
                 onConfiguracoes={handleNavigation(handleConfiguracoesClick)}

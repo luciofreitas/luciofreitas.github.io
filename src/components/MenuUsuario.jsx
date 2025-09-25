@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, use-effect } from 'react';
 import './MenuUsuario.css';
 
-function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onConfiguracoes, onLogout }) {
+function MenuUsuario({ nome, is-pro = false, onPerfil, onPro, onConfiguracoes, onLogout }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -10,23 +10,23 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onConfiguracoes, on
   // Função para calcular a posição do dropdown
   const calculatePosition = () => {
     if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
+      const rect = buttonRef.current.get-bounding-client-rect();
       setDropdownPosition({
         top: rect.bottom, // Posiciona abaixo do botão
-        right: window.innerWidth - rect.right // Alinha à direita do botão
+        right: window.inner-width - rect.right // Alinha à direita do botão
       });
     }
   };
 
   // Atualiza posição quando abre
-  useEffect(() => {
+  use-effect(() => {
     if (open) {
       calculatePosition();
     }
   }, [open]);
 
   // Fecha ao clicar fora
-  useEffect(() => {
+  use-effect(() => {
     function handleOutside(e) {
       if (open && 
           buttonRef.current && !buttonRef.current.contains(e.target) && 
@@ -35,11 +35,11 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onConfiguracoes, on
       }
     }
     
-    window.addEventListener('mousedown', handleOutside);
-    window.addEventListener('resize', calculatePosition);
+    window.add-event-listener('mousedown', handleOutside);
+    window.add-event-listener('resize', calculatePosition);
     return () => {
-      window.removeEventListener('mousedown', handleOutside);
-      window.removeEventListener('resize', calculatePosition);
+      window.remove-event-listener('mousedown', handleOutside);
+      window.remove-event-listener('resize', calculatePosition);
     };
   }, [open]);
 
@@ -48,7 +48,7 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onConfiguracoes, on
       <button
         ref={buttonRef}
         className="user-button icon-only"
-        onClick={() => setOpen(v => !v)}
+        on-click={() => setOpen(v => !v)}
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -63,7 +63,7 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onConfiguracoes, on
             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
           </svg>
         </span>
-        {isPro && (
+        {is-pro && (
           <span className="pro-badge">PRO</span>
         )}
       </button>
@@ -79,10 +79,10 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onConfiguracoes, on
         >
           {/* Nome do usuário como primeiro item do dropdown (apenas no mobile) - não clicável */}
           <div className="dropdown-item dropdown-user-name dropdown-user-name-header">Olá, {nome}</div>
-          <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button>
-          <button className="dropdown-item" onClick={() => { setOpen(false); onPro(); }}>Versão Pro</button>
-          <button className="dropdown-item" onClick={() => { setOpen(false); onConfiguracoes(); }}>Configurações</button>
-          <button className="dropdown-item dropdown-item-logout" onClick={() => { setOpen(false); onLogout(); }}>Sair</button>
+          <button className="dropdown-item" on-click={() => { setOpen(false); onPerfil(); }}>Perfil</button>
+          <button className="dropdown-item" on-click={() => { setOpen(false); onPro(); }}>Versão Pro</button>
+          <button className="dropdown-item" on-click={() => { setOpen(false); onConfiguracoes(); }}>Configurações</button>
+          <button className="dropdown-item dropdown-item-logout" on-click={() => { setOpen(false); onLogout(); }}>Sair</button>
         </div>
       )}
     </div>

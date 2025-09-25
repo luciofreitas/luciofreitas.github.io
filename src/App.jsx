@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, useEffect } from 'react';
+import React, { useState, createContext, useContext, use-effect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './page-Login';
 import PageInicio from './page-Inicio';
@@ -21,30 +21,30 @@ import './CustomDropdown.css';
 export const AuthContext = createContext(null);
 
 function ProtectedRoute({ children }) {
-  const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
+  const { usuario-logado, authLoaded } = useContext(AuthContext) || {};
   if (!authLoaded) return null;
-  if (!usuarioLogado) return <Navigate to="/login" replace />;
+  if (!usuario-logado) return <Navigate to="/login" replace />;
   return children;
 }
 
 export default function App() {
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  const [usuario-logado, setUsuarioLogado] = useState(null);
   const [authLoaded, setAuthLoaded] = useState(false);
 
-  React.useEffect(() => {
+  React.use-effect(() => {
     try {
-      const stored = localStorage.getItem('usuarioLogado');
+      const stored = localStorage.get-item('usuario-logado');
       if (stored) {
         setUsuarioLogado(JSON.parse(stored));
       }
     } catch (e) {
-      console.warn('Failed to parse usuarioLogado from localStorage', e);
+      console.warn('Failed to parse usuario-logado from localStorage', e);
     }
     setAuthLoaded(true);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
+    <AuthContext.provider value={{ usuario-logado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
       <HashRouter>
         <div className="app">
           <Routes>
@@ -84,6 +84,6 @@ export default function App() {
           </Routes>
         </div>
       </HashRouter>
-    </AuthContext.Provider>
+    </AuthContext.provider>
   );
 }

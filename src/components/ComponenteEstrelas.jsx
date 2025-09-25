@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
-const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAvaliar, somenteLeitura = false }) => {
+const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votos-usuario, onAvaliar, somenteLeitura = false }) => {
   const [hoverEstrela, setHoverEstrela] = useState(0);
-  const jaVotou = votosUsuario[guiaId] !== undefined;
+  const jaVotou = votos-usuario[guiaId] !== undefined;
 
   const handleClick = (estrela) => {
     if (!somenteLeitura && !jaVotou) {
@@ -13,7 +13,7 @@ const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAv
   const renderEstrela = (indice) => {
     const estrelaBrilhante = indice <= (hoverEstrela || mediaAtual);
     const corEstrela = jaVotou 
-      ? (indice <= votosUsuario[guiaId] ? '#FFAB00' : '#d1d5db')
+      ? (indice <= votos-usuario[guiaId] ? '#FFAB00' : '#d1d5db')
       : (estrelaBrilhante ? '#FFAB00' : '#d1d5db');
 
     return (
@@ -25,7 +25,7 @@ const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAv
           fontSize: '1.2rem',
           cursor: !somenteLeitura && !jaVotou ? 'pointer' : 'default'
         }}
-        onClick={() => handleClick(indice)}
+        on-click={() => handleClick(indice)}
         onMouseEnter={() => !somenteLeitura && !jaVotou && setHoverEstrela(indice)}
         onMouseLeave={() => !somenteLeitura && !jaVotou && setHoverEstrela(0)}
       >
@@ -40,12 +40,12 @@ const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAv
         {[1, 2, 3, 4, 5].map(renderEstrela)}
       </div>
       <div className="avaliacao-info">
-        <span className="media-nota">{mediaAtual.toFixed(1)}</span>
+        <span className="media-nota">{mediaAtual.to-fixed(1)}</span>
         <span className="total-votos">({totalVotos} avaliação{totalVotos !== 1 ? 'ões' : ''})</span>
       </div>
       {jaVotou && (
         <div className="voto-confirmado">
-          Sua avaliação: {votosUsuario[guiaId]} ★
+          Sua avaliação: {votos-usuario[guiaId]} ★
         </div>
       )}
     </div>

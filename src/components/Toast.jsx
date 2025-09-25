@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, use-effect } from 'react';
 import './Toast.css';
 
 const Toast = ({ message, type = 'success', duration = 3000, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
-  useEffect(() => {
+  use-effect(() => {
     // Show toast
     const showTimer = setTimeout(() => setIsVisible(true), 10);
     
@@ -31,17 +31,17 @@ const Toast = ({ message, type = 'success', duration = 3000, onClose }) => {
       role="alert"
       aria-live="polite"
     >
-      <div className="toast__content">
+      <div className="toast-content">
         {type === 'success' && (
-          <svg className="toast__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M13.5 4.5L6 12L2.5 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg className="toast-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M13.5 4.5-l6 12L2.5 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         )}
-        <span className="toast__message">{message}</span>
+        <span className="toast-message">{message}</span>
       </div>
       <button 
-        className="toast__close"
-        onClick={() => {
+        className="toast-close"
+        on-click={() => {
           setIsLeaving(true);
           setTimeout(onClose, 300);
         }}
@@ -60,14 +60,14 @@ export const ToastContainer = () => {
   const [toasts, setToasts] = useState([]);
 
   // Global toast function that can be called from anywhere
-  useEffect(() => {
-    window.showToast = (message, type = 'success', duration = 3000) => {
+  use-effect(() => {
+    window.show-toast = (message, type = 'success', duration = 3000) => {
       const id = Date.now() + Math.random();
       setToasts(prev => [...prev, { id, message, type, duration }]);
     };
 
     return () => {
-      delete window.showToast;
+      delete window.show-toast;
     };
   }, []);
 

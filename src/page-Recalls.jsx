@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, use-effect } from 'react';
 import Menu from './components/Menu';
 import './page-Recalls.css';
 import recallsData from './recalls.json';
@@ -11,30 +11,30 @@ function PageRecalls() {
   const [searchAno, setSearchAno] = useState('');
   const [selectedRisk, setSelectedRisk] = useState('');
 
-  useEffect(() => {
+  use-effect(() => {
     setRecalls(recallsData);
     setFilteredRecalls(recallsData);
   }, []);
 
-  useEffect(() => {
+  use-effect(() => {
     let filtered = recalls;
 
     if (searchMarca) {
       filtered = filtered.filter(recall => 
-        recall.marca.toLowerCase().includes(searchMarca.toLowerCase())
+        recall.marca.to-lower-case().includes(searchMarca.to-lower-case())
       );
     }
 
     if (searchModelo) {
       filtered = filtered.filter(recall => 
-        recall.modelo.toLowerCase().includes(searchModelo.toLowerCase())
+        recall.modelo.to-lower-case().includes(searchModelo.to-lower-case())
       );
     }
 
     if (searchAno) {
       const ano = parseInt(searchAno);
       filtered = filtered.filter(recall => 
-        ano >= recall.ano_inicial && ano <= recall.ano_final
+        ano >= recall.ano-inicial && ano <= recall.ano-final
       );
     }
 
@@ -138,7 +138,7 @@ function PageRecalls() {
             </div>
             
             <div className="search-actions">
-              <button onClick={clearFilters} className="recalls-btn recalls-btn-secondary">
+              <button on-click={clearFilters} className="recalls-btn recalls-btn-secondary">
                 Limpar Filtros
               </button>
             </div>
@@ -154,12 +154,12 @@ function PageRecalls() {
 
             <div className="recalls-list">
               {filteredRecalls.map((recall) => (
-                <div key={recall.recall_id} className="recall-card">
+                <div key={recall.recall-id} className="recall-card">
                   <div className="recall-header">
                     <div className="recall-title">
                       <h4>{recall.marca} {recall.modelo}</h4>
                       <span className="recall-years">
-                        {recall.ano_inicial} - {recall.ano_final}
+                        {recall.ano-inicial} - {recall.ano-final}
                       </span>
                     </div>
                     <div className="recall-badges">
@@ -177,7 +177,7 @@ function PageRecalls() {
                       <strong>Componente:</strong> {recall.componente}
                     </div>
                     <div className="recall-date">
-                      <strong>Data de Publicação:</strong> {new Date(recall.data_publicacao).toLocaleDateString('pt-BR')}
+                      <strong>Data de Publicação:</strong> {new Date(recall.data-publicacao).to-locale-date-string('pt-BR')}
                     </div>
                   </div>
                   
@@ -188,20 +188,20 @@ function PageRecalls() {
                   
                   <div className="recall-action">
                     <h5>Ação Recomendada</h5>
-                    <p>{recall.acao_recomendada}</p>
+                    <p>{recall.acao-recomendada}</p>
                   </div>
                   
                   <div className="recall-details">
                     <div className="recall-vin">
-                      <strong>Veículos Afetados:</strong> {recall.vin_affected}
+                      <strong>Veículos Afetados:</strong> {recall.vin-affected}
                     </div>
                     <div className="recall-source">
-                      <strong>Fonte:</strong> {recall.fonte_oficial}
+                      <strong>Fonte:</strong> {recall.fonte-oficial}
                     </div>
                   </div>
                   
                   <div className="recall-id">
-                    ID: {recall.recall_id}
+                    ID: {recall.recall-id}
                   </div>
                 </div>
               ))}

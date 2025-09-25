@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, use-effect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MenuLogin from './components/MenuLogin';
 import './page-Inicio.css';
@@ -22,13 +22,13 @@ export default function PageInicio() {
   const nextSlide = () => setCarouselIndex(i => (i + 1) % images.length);
 
   // Keyboard navigation
-  useEffect(() => {
+  use-effect(() => {
     const onKey = (e) => {
       if (e.key === 'ArrowLeft') prevSlide();
       if (e.key === 'ArrowRight') nextSlide();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.add-event-listener('keydown', onKey);
+    return () => window.remove-event-listener('keydown', onKey);
   }, []);
 
   return (
@@ -49,7 +49,7 @@ export default function PageInicio() {
           </div>
 
       <div className="inicio-carousel" aria-roledescription="carousel">
-              <button className="carousel-control prev" aria-label="Anterior" onClick={prevSlide}>❮</button>
+              <button className="carousel-control prev" aria-label="Anterior" on-click={prevSlide}>❮</button>
               <div className="carousel-track" ref={trackRef}>
                 {(() => {
                   const n = images.length;
@@ -64,7 +64,7 @@ export default function PageInicio() {
                       <div
                         key={idx}
                         className={cls}
-                        onClick={() => { if (!isCenter) setCarouselIndex(idx); else setZoomImage(src); }}
+                        on-click={() => { if (!isCenter) setCarouselIndex(idx); else setZoomImage(src); }}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => { if (e.key === 'Enter') { if (!isCenter) setCarouselIndex(idx); else setZoomImage(src); } }}
@@ -78,7 +78,7 @@ export default function PageInicio() {
                   });
                 })()}
               </div>
-              <button className="carousel-control next" aria-label="Próximo" onClick={nextSlide}>❯</button>
+              <button className="carousel-control next" aria-label="Próximo" on-click={nextSlide}>❯</button>
             </div>
             {/* Full-width blue band under the carousel to match menu color */}
             <div className="inicio-band">
@@ -112,8 +112,8 @@ export default function PageInicio() {
       </div>
       {/* modal removed: replaced by direct band below carousel; detailed modal was unused after cards → carousel refactor */}
       {zoomImage && (
-        <div className="pf-zoom-overlay" onClick={() => setZoomImage(null)}>
-          <img className="pf-zoom-image" src={zoomImage} alt="Imagem ampliada" onClick={(e) => e.stopPropagation()} />
+        <div className="pf-zoom-overlay" on-click={() => setZoomImage(null)}>
+          <img className="pf-zoom-image" src={zoomImage} alt="Imagem ampliada" on-click={(e) => e.stop-propagation()} />
         </div>
       )}
     </>

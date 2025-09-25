@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, use-effect } from 'react';
 import Menu from './components/Menu';
 import { apiService } from './utils/apiService';
 import './page-GlossarioAutomotivo.css';
@@ -47,13 +47,13 @@ function PageGlossarioAutomotivo() {
   ];
 
   // Carregar dados das luzes
-  useEffect(() => {
+  use-effect(() => {
     const fetchLuzes = async () => {
       try {
-        const data = await apiService.getLuzesPainel();
+        const data = await apiService.get-luzes-painel();
         const luzesData = data.luzes || data;
         // Garantir que sempre seja um array
-        const arrayData = Array.isArray(luzesData) ? luzesData : (luzesData ? [luzesData] : []);
+        const arrayData = Array.is-array(luzesData) ? luzesData : (luzesData ? [luzesData] : []);
         setLuzes(arrayData);
         setLuzesFiltered(arrayData);
       } catch (err) {
@@ -71,8 +71,8 @@ function PageGlossarioAutomotivo() {
   }, []);
 
   // Aplicar filtros
-  useEffect(() => {
-    let filtered = Array.isArray(luzes) ? luzes : [];
+  use-effect(() => {
+    let filtered = Array.is-array(luzes) ? luzes : [];
 
     // Filtrar por categoria
     if (filtros.categoria) {
@@ -91,13 +91,13 @@ function PageGlossarioAutomotivo() {
 
     // Busca por texto
     if (filtros.busca) {
-      const busca = filtros.busca.toLowerCase();
+      const busca = filtros.busca.to-lower-case();
       filtered = filtered.filter(luz => {
         if (!luz) return false;
-        return (luz.nome && luz.nome.toLowerCase().includes(busca)) ||
-               (luz.descricao && luz.descricao.toLowerCase().includes(busca)) ||
-               (Array.isArray(luz.causas_comuns) && luz.causas_comuns.some(causa => 
-                 causa && causa.toLowerCase().includes(busca)
+        return (luz.nome && luz.nome.to-lower-case().includes(busca)) ||
+               (luz.descricao && luz.descricao.to-lower-case().includes(busca)) ||
+               (Array.is-array(luz.causas-comuns) && luz.causas-comuns.some(causa => 
+                 causa && causa.to-lower-case().includes(busca)
                ));
       });
     }
@@ -236,7 +236,7 @@ function PageGlossarioAutomotivo() {
                 </select>
               </div>
 
-              <button onClick={limparFiltros} className="btn-limpar-filtros">
+              <button on-click={limparFiltros} className="btn-limpar-filtros">
                 Limpar Filtros
               </button>
             </div>
@@ -285,20 +285,20 @@ function PageGlossarioAutomotivo() {
                   <div className="luz-section">
                     <h4>Causas comuns:</h4>
                     <ul className="causas-list">
-                      {luz.causas_comuns.map((causa, index) => (
+                      {luz.causas-comuns.map((causa, index) => (
                         <li key={index}>{causa}</li>
                       ))}
                     </ul>
                   </div>
 
-                  {luz.tempo_estimado && (
+                  {luz.tempo-estimado && (
                     <div className="luz-meta">
-                      <span><strong>Tempo estimado:</strong> {luz.tempo_estimado}</span>
+                      <span><strong>Tempo estimado:</strong> {luz.tempo-estimado}</span>
                       <span><strong>Dificuldade:</strong> {luz.dificuldade}</span>
                     </div>
                   )}
 
-                  {luz.recall_relacionado && (
+                  {luz.recall-relacionado && (
                     <div className="recall-alert">
                       ⚠️ Pode estar relacionado a recalls conhecidos
                     </div>
@@ -311,7 +311,7 @@ function PageGlossarioAutomotivo() {
           {luzesFiltered.length === 0 && (
             <div className="no-results">
               <p>Nenhuma luz encontrada com os filtros aplicados.</p>
-              <button onClick={limparFiltros} className="btn-limpar-filtros">
+              <button on-click={limparFiltros} className="btn-limpar-filtros">
                 Limpar Filtros
               </button>
             </div>

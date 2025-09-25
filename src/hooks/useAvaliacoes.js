@@ -1,28 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, use-effect } from 'react';
 import { avaliacoesIniciais } from '../data/glossarioData';
 
 export const useAvaliacoes = () => {
   const [avaliacoes, setAvaliacoes] = useState(avaliacoesIniciais);
-  const [votosUsuario, setVotosUsuario] = useState({});
+  const [votos-usuario, setVotosUsuario] = useState({});
 
   // Carregar avaliações do localStorage na inicialização
-  useEffect(() => {
-    const votosArmazenados = JSON.parse(localStorage.getItem('votosGuias') || '{}');
-    const avaliacoesArmazenadas = JSON.parse(localStorage.getItem('avaliacoesGuias') || '{}');
+  use-effect(() => {
+    const votosArmazenados = JSON.parse(localStorage.get-item('votosGuias') || '{}');
+    const avaliacoes-armazenadas = JSON.parse(localStorage.get-item('avaliacoesGuias') || '{}');
     
     setVotosUsuario(votosArmazenados);
     
     // Mesclar avaliações armazenadas com as iniciais
     setAvaliacoes(prev => ({
       ...prev,
-      ...avaliacoesArmazenadas
+      ...avaliacoes-armazenadas
     }));
   }, []);
 
   // Função para avaliar um guia
   const avaliarGuia = (guiaId, estrelas) => {
     // Verifica se o usuário já votou neste guia
-    if (votosUsuario[guiaId]) {
+    if (votos-usuario[guiaId]) {
       alert('Você já avaliou este guia!');
       return;
     }
@@ -39,28 +39,28 @@ export const useAvaliacoes = () => {
         [guiaId]: {
           total: novoTotal,
           soma: novaSoma,
-          media: Number(novaMedia.toFixed(1))
+          media: Number(novaMedia.to-fixed(1))
         }
       };
 
       // Salvar no localStorage
-      localStorage.setItem('avaliacoesGuias', JSON.stringify(novasAvaliacoes));
+      localStorage.set-item('avaliacoesGuias', JSON.stringify(novasAvaliacoes));
       
       return novasAvaliacoes;
     });
 
     // Registra o voto do usuário
     const novosVotos = {
-      ...votosUsuario,
+      ...votos-usuario,
       [guiaId]: estrelas
     };
     setVotosUsuario(novosVotos);
-    localStorage.setItem('votosGuias', JSON.stringify(novosVotos));
+    localStorage.set-item('votosGuias', JSON.stringify(novosVotos));
   };
 
   return {
     avaliacoes,
-    votosUsuario,
+    votos-usuario,
     avaliarGuia
   };
 };

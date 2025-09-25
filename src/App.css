@@ -659,7 +659,7 @@ textarea:focus-visible,
 /* Primary buttons (search, submit, login/register) */
 .btn,
 .login-submit,
-.checkin-btnPrimary,
+.checkin-btn-primary,
 .search-btn,
 .results-container .btn {
   background: #0052CC !important;
@@ -677,7 +677,7 @@ textarea:focus-visible,
 
 /* Secondary / neutral buttons */
 .btn.secondary,
-.checkin-btnSecondary {
+.checkin-btn-secondary {
   background: #f3f4f6 !important;
   color: #172B4D !important;
   border: none !important;
@@ -1183,8 +1183,8 @@ html body {
 
   /* Compact cards and forms */
   .card,
-  .versaoPro-features,
-  .versaoPro-pricecard,
+  .versao-pro-features,
+  .versao-pro-pricecard,
   .checkin-container,
   .checkin-form {
     padding: var(--space-sm) !important;
@@ -1192,14 +1192,14 @@ html body {
   }
 
   /* Stack VersaoPro cards vertically */
-  .versaoPro-cards {
+  .versao-pro-cards {
     flex-direction: column !important;
     align-items: center !important;
     gap: var(--space-md) !important;
   }
   
-  .versaoPro-features,
-  .versaoPro-pricecard {
+  .versao-pro-features,
+  .versao-pro-pricecard {
     width: 100% !important;
     max-width: 25rem !important;
   }
@@ -1222,9 +1222,9 @@ html body {
   .btn,
   .btn-primary,
   .btn-secondary,
-  .checkin-btnPrimary,
-  .checkin-btnSecondary,
-  .versaoPro-cta {
+  .checkin-btn-primary,
+  .checkin-btn-secondary,
+  .versao-pro-cta {
     width: 100% !important;
     padding: var(--space-sm) var(--space-md) !important;
     min-height: 44px !important;
@@ -1266,7 +1266,7 @@ html body {
   }
 
   /* Reduce intro text size */
-  .versaoPro-intro,
+  .versao-pro-intro,
   .checkin-intro {
     font-size: var(--font-size-base) !important;
     margin-bottom: var(--space-md) !important;
@@ -1289,8 +1289,8 @@ html body {
   }
   
   .btn,
-  .checkin-btnPrimary,
-  .checkin-btnSecondary {
+  .checkin-btn-primary,
+  .checkin-btn-secondary {
     padding: var(--space-xs) var(--space-sm) !important;
   }
   
@@ -1316,13 +1316,13 @@ html body {
   }
   
   .card,
-  .versaoPro-features,
-  .versaoPro-pricecard {
+  .versao-pro-features,
+  .versao-pro-pricecard {
     max-width: 48rem !important;
     margin: 0 auto var(--space-lg) auto !important;
   }
   
-  .versaoPro-cards {
+  .versao-pro-cards {
     gap: var(--space-lg) !important;
   }
 }

@@ -16,7 +16,7 @@ function SearchForm({
   selectedFabricante,
   setSelectedFabricante,
   grupos,
-  todasPecas,
+  todas-pecas,
   marcas,
   modelos,
   anos,
@@ -42,7 +42,7 @@ function SearchForm({
           <label htmlFor="categoria">Peça</label>
           {/* CustomDropdown abre sempre para baixo e substitui o select nativo */}
           <CustomDropdown
-            options={[{ value: '', label: '' }, ...todasPecas.map(n => ({ value: n, label: n }))]}
+            options={[{ value: '', label: '' }, ...todas-pecas.map(n => ({ value: n, label: n }))]}
             value={selectedCategoria}
             onChange={setSelectedCategoria}
             placeholder=""
@@ -96,7 +96,7 @@ function SearchForm({
         <button className="search-form-btn search-form-btn-primary" type="submit" disabled={loading}>
           {loading ? 'Buscando...' : 'Buscar'}
         </button>
-        <button type="button" className="search-form-btn search-form-btn-secondary" onClick={onClear}>
+        <button type="button" className="search-form-btn search-form-btn-secondary" on-click={onClear}>
           Limpar
         </button>
         {error && <div className="search-form-error" role="status" aria-live="polite">{error}</div>}

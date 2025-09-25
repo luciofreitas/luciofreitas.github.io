@@ -1,16 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { use-effect, useRef } from 'react';
 import './AriaLive.css';
 
 const AriaLive = ({ message, priority = 'polite' }) => {
   const liveRef = useRef(null);
 
-  useEffect(() => {
+  use-effect(() => {
     if (message && liveRef.current) {
       // Clear and set message to ensure screen readers announce it
-      liveRef.current.textContent = '';
+      liveRef.current.text-content = '';
       setTimeout(() => {
         if (liveRef.current) {
-          liveRef.current.textContent = message;
+          liveRef.current.text-content = message;
         }
       }, 10);
     }
@@ -31,24 +31,24 @@ export const AriaLiveContainer = () => {
   const politeRef = useRef(null);
   const assertiveRef = useRef(null);
 
-  useEffect(() => {
+  use-effect(() => {
     // Global function to announce messages
-    window.announceToScreenReader = (message, priority = 'polite') => {
+    window.announce-to-screen-reader = (message, priority = 'polite') => {
       const targetRef = priority === 'assertive' ? assertiveRef : politeRef;
       
       if (targetRef.current) {
         // Clear and announce
-        targetRef.current.textContent = '';
+        targetRef.current.text-content = '';
         setTimeout(() => {
           if (targetRef.current) {
-            targetRef.current.textContent = message;
+            targetRef.current.text-content = message;
           }
         }, 10);
       }
     };
 
     return () => {
-      delete window.announceToScreenReader;
+      delete window.announce-to-screen-reader;
     };
   }, []);
 

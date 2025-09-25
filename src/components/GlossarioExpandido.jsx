@@ -72,7 +72,7 @@ const GlossarioExpandido = ({
             </select>
           </div>
           
-          <button className="btn-limpar-filtros" onClick={limparFiltros}>
+          <button className="btn-limpar-filtros" on-click={limparFiltros}>
             Limpar
           </button>
         </div>

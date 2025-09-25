@@ -5,7 +5,7 @@ import { AuthContext } from './App';
 import './page-ContatoLogado.css';
 
 export default function ContatoLogado() {
-  const { usuarioLogado } = useContext(AuthContext) || {};
+  const { usuario-logado } = useContext(AuthContext) || {};
 
   const handleSubmit = async (data) => {
     // aqui você pode enviar para a sua API
@@ -25,7 +25,7 @@ export default function ContatoLogado() {
               </p>
             </div>
 
-            <ContatoForm requireAuth={true} user={usuarioLogado} onSubmit={handleSubmit} />
+            <ContatoForm requireAuth={true} user={usuario-logado} onSubmit={handleSubmit} />
 
             <div className="contato-logado-info">
               <p>Telefone: (00) 0000-0000</p>
