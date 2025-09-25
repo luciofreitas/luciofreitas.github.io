@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
+import ToggleCar from './ToggleCar';
 import './ContatoForm.css';
 import '../page-Login.css';
 import './PerfilForm.css'; // Importado por último para ter precedência
@@ -237,19 +238,7 @@ export default function PerfilForm({
                 placeholder="Senha atual" 
                 autoComplete="current-password"
               />
-              <span
-                className={`car-toggle ${showSenhaAtual ? 'headlight-on' : 'headlight-off'}`}
-                role="button"
-                tabIndex={0}
-                onClick={() => setShowSenhaAtual(s => !s)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowSenhaAtual(s => !s); }}
-                aria-label={showSenhaAtual ? 'Ocultar senha' : 'Mostrar senha'}
-              >
-                <svg width="32" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ color: showSenhaAtual ? '#3B82F6' : '#4A5568' }}>
-                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" fill="currentColor" />
-                  <circle cx="12" cy="12" r="3" fill={showSenhaAtual ? '#FFFFFF' : '#CBD5E0'} />
-                </svg>
-              </span>
+              <ToggleCar on={showSenhaAtual} onClick={() => setShowSenhaAtual(s => !s)} ariaLabel={showSenhaAtual ? 'Ocultar senha' : 'Mostrar senha'} />
             </div>
               {errors.senhaAtual && <span className="error-message">{errors.senhaAtual}</span>}
           </div>
@@ -266,19 +255,7 @@ export default function PerfilForm({
                 placeholder="Nova senha" 
                 autoComplete="new-password"
               />
-              <span
-                className={`car-toggle ${showPasswordState ? 'headlight-on' : 'headlight-off'}`}
-                role="button"
-                tabIndex={0}
-                onClick={toggleShowPassword}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleShowPassword(); }}
-                aria-label={showPasswordState ? 'Ocultar senha' : 'Mostrar senha'}
-              >
-                <svg width="32" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ color: showPasswordState ? '#3B82F6' : '#4A5568' }}>
-                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" fill="currentColor" />
-                  <circle cx="12" cy="12" r="3" fill={showPasswordState ? '#FFFFFF' : '#CBD5E0'} />
-                </svg>
-              </span>
+              <ToggleCar on={showPasswordState} onClick={toggleShowPassword} ariaLabel={showPasswordState ? 'Ocultar senha' : 'Mostrar senha'} />
             </div>
             {errors.novaSenha && <span className="error-message">{errors.novaSenha}</span>}
           </div>
@@ -295,19 +272,7 @@ export default function PerfilForm({
                 placeholder="Confirmar nova senha" 
                 autoComplete="new-password"
               />
-              <span
-                className={`car-toggle ${showConfirmNova ? 'headlight-on' : 'headlight-off'}`}
-                role="button"
-                tabIndex={0}
-                onClick={() => setShowConfirmNova(s => !s)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmNova(s => !s); }}
-                aria-label={showConfirmNova ? 'Ocultar senha' : 'Mostrar senha'}
-              >
-                <svg width="32" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ color: showConfirmNova ? '#3B82F6' : '#4A5568' }}>
-                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" fill="currentColor" />
-                  <circle cx="12" cy="12" r="3" fill={showConfirmNova ? '#FFFFFF' : '#CBD5E0'} />
-                </svg>
-              </span>
+              <ToggleCar on={showConfirmNova} onClick={() => setShowConfirmNova(s => !s)} ariaLabel={showConfirmNova ? 'Ocultar senha' : 'Mostrar senha'} />
             </div>
             {errors.confirmNovaSenha && <span className="error-message">{errors.confirmNovaSenha}</span>}
           </div>
