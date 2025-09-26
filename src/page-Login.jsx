@@ -6,6 +6,8 @@ import usuariosData from './usuarios.json';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from './App';
 import ToggleCar from './components/ToggleCar';
+import { signInWithGooglePopup } from './firebaseAuth';
+import { FaGoogle } from 'react-icons/fa';
 
 const usuariosDemoGlobais = [
   { id: 'demo1', nome: 'Usuário Demo', email: 'demo@pecafacil.com', senha: '123456', celular: '11999999999', isDemo: true },
@@ -83,6 +85,25 @@ export default function Login() {
                   <div className="cadastro-forgot-row"><a href="#" className="login-forgot-link" onClick={e => { e.preventDefault(); }}>Esqueci minha senha</a></div>
 
                   <button className="submit" type="submit">Entrar</button>
+
+                  <div className="social-login-row">
+                    <button type="button" className="google-btn" onClick={async () => {
+                      const { user, error } = await signInWithGooglePopup();
+                      if (error) {
+                        // eslint-disable-next-line no-console
+                        console.error('Google sign-in error', error);
+                        setError('Erro no login com Google.');
+                        return;
+                      }
+                      // persist user locally and navigate
+                      const usuario = { id: user.uid, nome: user.displayName || '', email: user.email || '' };
+                      try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
+                      if (setUsuarioLogado) setUsuarioLogado(usuario);
+                      navigate('/');
+                    }}>
+                      <FaGoogle style={{ marginRight: 8 }} /> Entrar com Google
+                    </button>
+                  </div>
 
                   <div className="cadastro-signup-row">
                     <Link to="/cadastro" className="signup-link">Crie sua conta agora!</Link>
