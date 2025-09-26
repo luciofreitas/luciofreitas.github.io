@@ -135,21 +135,15 @@
   }
 }
 
-/* Específico: esconder subtítulo exatamente em largura 320px (ex.: 320x1080) */
-@media screen and (width: 320px) {
+/* Mobile: esconder subtítulo em telas pequenas (ex.: smartphones) */
+@media screen and (max-width: 25rem) { /* 25rem = 400px */
   .logo-subtitle {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
   }
-}
-
-/* Específico: esconder subtítulo exatamente em largura 375px (ex.: 375x1080) */
-@media screen and (width: 375px) {
-  .logo-subtitle {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
+  .logo-text-container {
+    margin-left: 0 !important;
   }
 }
 
