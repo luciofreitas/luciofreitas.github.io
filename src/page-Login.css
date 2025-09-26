@@ -206,11 +206,16 @@
 
 /* Signup link styling: centered, no underline */
 .signup-link {
-  text-decoration: none !important;
+  color: #0052CC;
+  text-decoration: none !important; /* no underline by default */
   display: inline-block;
   margin-top: 6px;
+  cursor: pointer;
 }
-.signup-link:hover { text-decoration: none !important; }
+.signup-link:hover,
+.signup-link:focus-visible {
+  text-decoration: underline !important;
+}
 
 /* Center the Entrar button inside the login card */
 .login-form-card .login-submit {
@@ -236,10 +241,15 @@
 .login-form-inner .login-signup-row { text-align: center; }
 .signup-link {
   color: #0052CC;
-  text-decoration: underline;
+  /* keep text-decoration none here to ensure hover-only underline */
+  text-decoration: none !important;
   font-size: 0.95rem;
 }
-.signup-link:hover { text-decoration: underline; filter: brightness(0.95); }
+.signup-link:hover,
+.signup-link:focus-visible {
+  text-decoration: underline !important;
+  filter: brightness(0.95);
+}
 @media (max-width: 56.25rem) {
   .login-page-main {
     flex-direction: column;
