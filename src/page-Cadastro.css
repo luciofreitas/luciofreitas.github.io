@@ -148,6 +148,29 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
   .cadastro-title { font-size: 1.25rem; }
 }
 
+/* Align helper rows inside the form */
+.cadastro-forgot-row{
+  text-align: right;
+  margin-bottom: 8px;
+}
+.cadastro-forgot-row .login-forgot-link{
+  color: #2563eb;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.cadastro-forgot-row .login-forgot-link:hover{ text-decoration: underline; }
+
+.cadastro-signup-row{
+  text-align: center;
+  margin-top: 8px;
+}
+.cadastro-signup-row .signup-link{
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+.cadastro-signup-row .signup-link:hover{ text-decoration: underline; }
+
 /* Layout: form (left) + hero (right) */
 /* Mirror login two-column card styles so both columns are equal width and height */
 .cadastro-card-outer{
