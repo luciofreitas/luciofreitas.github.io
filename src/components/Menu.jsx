@@ -173,9 +173,19 @@ function Menu() {
             className={`user-dropdown ${mobileMenuOpen ? 'open' : 'closed'}`}
             role="menu"
             aria-hidden={!mobileMenuOpen}
+            // ensure element is truly non-interactive when closed
+            hidden={!mobileMenuOpen}
+            inert={!mobileMenuOpen}
           >
             {menuItems.map(item => (
-              <button key={item.id} className="dropdown-item" onClick={() => { setMobileMenuOpen(false); if (typeof item.onClick === 'function') item.onClick(); }}>
+              <button
+                key={item.id}
+                className="dropdown-item"
+                onClick={() => { setMobileMenuOpen(false); if (typeof item.onClick === 'function') item.onClick(); }}
+                // disable buttons when the dropdown is closed so they cannot be focused or clicked
+                disabled={!mobileMenuOpen}
+                tabIndex={mobileMenuOpen ? 0 : -1}
+              >
                 {item.label}
               </button>
             ))}

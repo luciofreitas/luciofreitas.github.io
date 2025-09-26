@@ -1036,7 +1036,12 @@ a.menu-login-item {
     transition: all 0.3s ease !important;
     z-index: 99999 !important; /* Very high z-index to ensure it stays above modals */
     margin-top: 0.25rem !important; /* Same margin as user dropdown */
-    pointer-events: auto !important; /* Ensure it's clickable */
+    /* When hidden (desktop or closed state) it must not intercept pointer events
+       to avoid invisible dropdowns capturing clicks; it becomes interactive only
+       when the `.mobile-open` class is added. */
+    pointer-events: none !important;
+   /* additionally hide from hit-testing and assistive tech when hidden */
+   visibility: hidden !important;
   }
 
   /* Show mobile menu when open */
@@ -1045,7 +1050,30 @@ a.menu-login-item {
     transform: translateY(0) !important;
     opacity: 1 !important;
     visibility: visible !important;
+    /* Re-enable pointer events when visible/open */
+    pointer-events: auto !important;
+    visibility: visible !important;
   }
+
+/* Ensure any dropdown marked aria-hidden or closed cannot receive pointer events
+   This covers cases where different class names or attribute-driven hiding is used. */
+.user-dropdown.closed,
+.user-dropdown[aria-hidden="true"],
+.menu-login-center[aria-hidden="true"] {
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* EXTRA: ensure children inside a hidden dropdown cannot be targeted/clicked
+   by disabling pointer-events on dropdown items when the parent is hidden.
+   This covers cases where some browsers or stacking contexts still allow
+   hit-testing on absolutely/visually hidden elements. */
+.user-dropdown.closed .dropdown-item,
+.user-dropdown[aria-hidden="true"] .dropdown-item,
+.menu-login-center[aria-hidden="true"] .menu-login-item {
+  pointer-events: none !important;
+  user-select: none !important;
+}
 
   /* Stack navigation items vertically like user dropdown */
   .menu-nav .menu-list {

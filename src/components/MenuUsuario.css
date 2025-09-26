@@ -236,6 +236,23 @@
   opacity: 0;
   transform: scale(0.96);
   pointer-events: none !important; /* avoid intercepting clicks when closed */
+  /* Also hide from cursor and assistive pointer hit-testing in all browsers */
+  visibility: hidden !important;
+}
+
+/* Robust selector: if the dropdown is marked aria-hidden="true" (set by JS),
+   ensure it is not interactive even if class/context differs. */
+.user-dropdown[aria-hidden="true"] {
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* EXTRA: disable pointer events for child items when the dropdown is hidden
+   to prevent invisible elements from receiving clicks in some stacking contexts. */
+.user-menu-root .user-dropdown.closed .dropdown-item,
+.user-dropdown[aria-hidden="true"] .dropdown-item {
+  pointer-events: none !important;
+  user-select: none !important;
 }
 
 /* Open state explicitly set via class or rendering state */
