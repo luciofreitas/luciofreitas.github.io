@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ToggleCar from './components/ToggleCar';
+import MenuLogin from './components/MenuLogin';
 import './page-Cadastro.css';
 
 export default function PageCadastro() {
@@ -51,8 +52,10 @@ export default function PageCadastro() {
   }
 
   return (
-    <main className="cadastro-page">
-      <section className="cadastro-card">
+    <>
+      <MenuLogin />
+      <main className="cadastro-page">
+        <section className="cadastro-card">
         <h1 className="cadastro-title">Cadastro</h1>
         <p className="cadastro-sub">Crie sua conta para acessar recursos adicionais</p>
 
@@ -127,5 +130,6 @@ export default function PageCadastro() {
         </form>
       </section>
     </main>
+    </>
   );
 }
