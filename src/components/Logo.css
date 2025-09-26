@@ -135,6 +135,24 @@
   }
 }
 
+/* Específico: esconder subtítulo exatamente em largura 320px (ex.: 320x1080) */
+@media screen and (width: 320px) {
+  .logo-subtitle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+}
+
+/* Específico: esconder subtítulo exatamente em largura 375px (ex.: 375x1080) */
+@media screen and (width: 375px) {
+  .logo-subtitle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+}
+
 /* Para telas muito grandes */
 @media (min-width: 100rem) {
   .logo-image {
