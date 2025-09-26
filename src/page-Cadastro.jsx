@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ToggleCar from './components/ToggleCar';
 import MenuLogin from './components/MenuLogin';
 import './page-Cadastro.css';
@@ -12,6 +13,7 @@ export default function PageCadastro() {
   const [showConfirmSenha, setShowConfirmSenha] = useState(false);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -39,6 +41,10 @@ export default function PageCadastro() {
       existing.push({ nome: nome.trim(), email: email.trim(), senha, criadoEm: new Date().toISOString() });
       localStorage.setItem(key, JSON.stringify(existing));
       setSuccess('Cadastro realizado com sucesso!');
+      // redireciona para tela de login após sucesso, mantendo a mensagem visível por 1.2s
+      setTimeout(() => {
+        try { navigate('/login'); } catch (e) { /* ignore */ }
+      }, 1200);
       setNome('');
       setEmail('');
       setSenha('');
