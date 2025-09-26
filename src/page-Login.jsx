@@ -241,7 +241,7 @@ export default function Login() {
     <div className="page-root">
       <div className="page-wrapper login-page-wrapper">
         <div className="page-content login-content-container">
-          <h2 className="page-heading login-heading page-title">Faça o Login ou Cadastro</h2>
+          <h2 className="page-heading login-heading page-title">Bem vindo ao Peças Fácil</h2>
           
           <div className="login-forms-row">
             <div className="login-form-card">
