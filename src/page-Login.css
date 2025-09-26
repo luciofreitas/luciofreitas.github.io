@@ -50,20 +50,9 @@
 
 /* Títulos dos cards Entrar/Registrar - compatibilidade cross-browser */
 .login-section-title {
-  color: #172B4D !important; /* Gray-800 - cor escura consistente */
-  font-size: 1.5rem !important; /* 24px */
-  font-weight: 600 !important; /* semi-bold */
-  margin: 0 !important;
-  padding: 0 !important;
-  text-align: center !important;
-  margin-bottom: 1rem !important;
-  line-height: 1.2 !important;
-  /* Força estilos para todos os navegadores */
-  -webkit-text-fill-color: #172B4D !important;
-  -webkit-text-stroke: none !important;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  margin: 0 0 6px 0;
+  font-size: 1.5rem;
+  color: #111827;
 }
 
 /* Força estilos específicos para navegadores baseados em Chromium (Opera GX, Edge) */
