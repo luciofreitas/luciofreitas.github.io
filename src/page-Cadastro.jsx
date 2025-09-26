@@ -41,10 +41,10 @@ export default function PageCadastro() {
       existing.push({ nome: nome.trim(), email: email.trim(), senha, criadoEm: new Date().toISOString() });
       localStorage.setItem(key, JSON.stringify(existing));
       setSuccess('Cadastro realizado com sucesso!');
-      // redireciona para tela de login após sucesso, mantendo a mensagem visível por 1.2s
+      // redireciona para tela de login após sucesso, mantendo a mensagem visível por 2s
       setTimeout(() => {
-        try { navigate('/login'); } catch (e) { /* ignore */ }
-      }, 1200);
+        try { navigate('/login', { state: { email: email.trim() } }); } catch (e) { /* ignore */ }
+      }, 2000);
       setNome('');
       setEmail('');
       setSenha('');

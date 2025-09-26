@@ -20,6 +20,16 @@ export default function Login() {
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
 
   const navigate = useNavigate();
+  // prefill email when redirected from cadastro
+  useEffect(() => {
+    try {
+      const st = window.history.state && window.history.state.usr && window.history.state.usr.state;
+      // react-router HashRouter stores the state inside history.state.usr.state in some setups
+      const forwarded = st || (window.history.state && window.history.state.state);
+      const pref = forwarded && forwarded.email;
+      if (pref) setEmail(String(pref).trim());
+    } catch (e) { /* ignore */ }
+  }, []);
   const { setUsuarioLogado } = useContext(AuthContext || {});
 
   useEffect(() => { try { localStorage.setItem('__test_localStorage__', 'test'); localStorage.removeItem('__test_localStorage__'); } catch (e) {} }, []);
