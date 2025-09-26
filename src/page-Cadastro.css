@@ -41,6 +41,7 @@
   color: #111827;
   background: #fff;
   box-sizing: border-box;
+  margin-bottom: 6px; /* small spacing between inputs */
 }
 
 .input:focus {

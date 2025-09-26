@@ -132,21 +132,39 @@ export default function Login() {
               <div className="login-form-inner">
                 <div className="login-section-title">Entrar</div>
                 <div className="login-section-subtitle">Acesse sua conta para gerenciar pedidos e recursos</div>
-                <form onSubmit={handleLogin} className="">
-                  <div className="form-control w-full login-form-control">
-                    <label className="sr-only">E-mail</label>
-                    <input type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} className="input input-bordered w-full bg-white text-black" autoComplete="username" />
-                  </div>
-                  <div className="form-control w-full login-form-control">
-                    <label className="sr-only">Senha</label>
+                <form onSubmit={handleLogin} className="login-form">
+                  <label className="field">
+                    <span className="label">E-mail</span>
+                    <input
+                      type="email"
+                      placeholder="E-mail"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className="input"
+                      autoComplete="username"
+                    />
+                  </label>
+
+                  <label className="field">
+                    <span className="label">Senha</span>
                     <div className="password-field">
-                      <input id="senha" name="senha" type={showPasswordLogin ? 'text' : 'password'} value={senha} onChange={e => setSenha(e.target.value)} className="form-input password-input" placeholder="Senha" autoComplete="current-password" />
+                      <input
+                        id="senha"
+                        name="senha"
+                        type={showPasswordLogin ? 'text' : 'password'}
+                        value={senha}
+                        onChange={e => setSenha(e.target.value)}
+                        className="input password-input"
+                        placeholder="Senha"
+                        autoComplete="current-password"
+                      />
                       <ToggleCar on={showPasswordLogin} onClick={() => setShowPasswordLogin(s => !s)} />
                     </div>
-                  </div>
+                  </label>
+
                   <div className="login-forgot-wrapper"><a href="#" className="login-forgot-link" onClick={e => { e.preventDefault(); }}>Esqueci minha senha</a></div>
                   {error && <div className="text-red-600 text-center text-sm">{error}</div>}
-                  <button type="submit" className="btn login-submit">Entrar</button>
+                  <button type="submit" className="btn login-submit submit">Entrar</button>
                   <div className="login-signup-row">
                     <Link to="/cadastro" className="signup-link">Crie sua conta agora!</Link>
                   </div>
