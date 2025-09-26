@@ -56,8 +56,9 @@ export default function PageCadastro() {
       <MenuLogin />
       <div className="page-wrapper">
         <div className="page-content">
-          <main className="cadastro-page">
-            <section className="cadastro-card">
+          <div className="cadastro-card-outer">
+            <div className="cadastro-card-grid">
+                <section className="cadastro-card">
         <h1 className="cadastro-title">Cadastro</h1>
         <p className="cadastro-sub">Crie sua conta para acessar recursos adicionais</p>
 
@@ -130,10 +131,15 @@ export default function PageCadastro() {
 
           {success && <div className="success">{success}</div>}
         </form>
-            </section>
-          </main>
+                </section>
+
+                <div className="cadastro-right" aria-hidden="true">
+                  <div className="cadastro-hero" role="img" aria-label="Imagem ilustrativa de peças automotivas"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
     </>
   );
 }

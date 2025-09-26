@@ -1,11 +1,4 @@
-.cadastro-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80vh;
-  padding: 32px 16px;
-  background: #f7fafc;
-}
+/* Page wrapper styles moved to .page-wrapper/.page-content or handled by outer grid */
 
 .cadastro-card {
   width: 100%;
@@ -151,4 +144,59 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
 @media (max-width: 420px) {
   .cadastro-card { padding: 18px; }
   .cadastro-title { font-size: 1.25rem; }
+}
+
+/* Layout: form (left) + hero (right) */
+/* Mirror login two-column card styles so both columns are equal width and height */
+.cadastro-card-outer{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  padding: 0 20px;
+  background: #ffffff;
+}
+.cadastro-card-grid{
+  width:100%;
+  max-width:960px; /* same container width as login page */
+  display:grid;
+  grid-template-columns: 1fr 1fr; /* equal width columns */
+  gap: 0; /* no gap so they sit flush */
+  background: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(15,23,42,0.06);
+  max-height: 460px; /* cap the card height so it matches login visual */
+  align-items: stretch;
+  grid-auto-rows: 1fr; /* ensure both columns stretch to same height */
+}
+
+/* Left column (form) should occupy full left cell and keep white background */
+.cadastro-card{
+  box-sizing: border-box;
+  flex: 0 1 22.5rem;
+  max-width: none;
+  width: 100%;
+  padding: 24px;
+  background: #FFFFFF;
+  border-radius: 0; /* card radius handled by outer grid */
+  border: 0.062rem solid #e5e7eb;
+}
+
+.cadastro-right{ display:flex; align-items: stretch; justify-content: stretch; padding:0; }
+.cadastro-hero{
+  width:100%;
+  height:100%;
+  margin:0;
+  background-image: url('/imagem-login.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 460px; /* ensure fills the card when card is capped */
+  border-radius: 0 8px 8px 0;
+}
+
+@media (max-width:900px){
+  .cadastro-card-grid{ grid-template-columns: 1fr; }
+  .cadastro-right{ display:none !important; }
+  .cadastro-card{ border-radius:8px; max-width:560px; }
 }
