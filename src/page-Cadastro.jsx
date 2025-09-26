@@ -54,8 +54,10 @@ export default function PageCadastro() {
   return (
     <>
       <MenuLogin />
-      <main className="cadastro-page">
-        <section className="cadastro-card">
+      <div className="page-wrapper">
+        <div className="page-content">
+          <main className="cadastro-page">
+            <section className="cadastro-card">
         <h1 className="cadastro-title">Cadastro</h1>
         <p className="cadastro-sub">Crie sua conta para acessar recursos adicionais</p>
 
@@ -128,8 +130,10 @@ export default function PageCadastro() {
 
           {success && <div className="success">{success}</div>}
         </form>
-      </section>
-    </main>
+            </section>
+          </main>
+        </div>
+      </div>
     </>
   );
 }

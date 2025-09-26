@@ -122,37 +122,45 @@ export default function Login() {
 
   return (
     <>
-    <MenuLogin />
-    <div className="page-root">
-      <div className="page-wrapper login-page-wrapper">
-        <div className="page-content login-content-container">
-          <h2 className="page-heading login-heading page-title">Bem vindo ao Peça Fácil</h2>
-          
-          <div className="login-forms-row">
-            <div className="login-form-card">
-              <div><h2 className="login-section-title">Entrar</h2></div>
-              <form onSubmit={handleLogin} className="login-form">
-                <div className="form-control w-full login-form-control">
-                  <input type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} className="input input-bordered w-full bg-white text-black" autoComplete="username" />
-                </div>
-                <div className="form-control w-full login-form-control">
-                  <div className="password-field">
-                    <input id="senha" name="senha" type={showPasswordLogin ? 'text' : 'password'} value={senha} onChange={e => setSenha(e.target.value)} className="form-input password-input" placeholder="Senha" autoComplete="current-password" />
-                    <ToggleCar on={showPasswordLogin} onClick={() => setShowPasswordLogin(s => !s)} />
+      <MenuLogin />
+      <div className="page-wrapper">
+        <div className="page-content">
+          <div className="page-root">
+            <div className="login-card-outer">
+          <div className="login-card">
+            <div className="login-left">
+              <div className="login-form-inner">
+                <div className="login-section-title">Entrar</div>
+                <div className="login-section-subtitle">Acesse sua conta para gerenciar pedidos e recursos</div>
+                <form onSubmit={handleLogin} className="">
+                  <div className="form-control w-full login-form-control">
+                    <label className="sr-only">E-mail</label>
+                    <input type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} className="input input-bordered w-full bg-white text-black" autoComplete="username" />
                   </div>
-                </div>
-                <div className="login-forgot-wrapper"><a href="#" className="login-forgot-link" onClick={e => { e.preventDefault(); }}>Esqueci minha senha</a></div>
-                {error && <div className="text-red-600 text-center text-sm">{error}</div>}
-                <button type="submit" className="btn login-submit">Entrar</button>
-              </form>
-              <div className="login-signup-row">
-                <Link to="/cadastro" className="signup-link">Crie sua conta agora!</Link>
+                  <div className="form-control w-full login-form-control">
+                    <label className="sr-only">Senha</label>
+                    <div className="password-field">
+                      <input id="senha" name="senha" type={showPasswordLogin ? 'text' : 'password'} value={senha} onChange={e => setSenha(e.target.value)} className="form-input password-input" placeholder="Senha" autoComplete="current-password" />
+                      <ToggleCar on={showPasswordLogin} onClick={() => setShowPasswordLogin(s => !s)} />
+                    </div>
+                  </div>
+                  <div className="login-forgot-wrapper"><a href="#" className="login-forgot-link" onClick={e => { e.preventDefault(); }}>Esqueci minha senha</a></div>
+                  {error && <div className="text-red-600 text-center text-sm">{error}</div>}
+                  <button type="submit" className="btn login-submit">Entrar</button>
+                  <div className="login-signup-row">
+                    <Link to="/cadastro" className="signup-link">Crie sua conta agora!</Link>
+                  </div>
+                </form>
               </div>
+            </div>
+            <div className="login-right" aria-hidden="true">
+              <div className="login-hero" role="img" aria-label="Imagem ilustrativa de peças automotivas"></div>
+            </div>
+          </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
