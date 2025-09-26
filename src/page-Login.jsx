@@ -3,7 +3,7 @@ import MenuLogin from './components/MenuLogin';
 // Removido import './components/Menu.css' - não é necessário e causa conflito de cores
 import './page-Login.css';
 import usuariosData from './usuarios.json';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from './App';
 import ToggleCar from './components/ToggleCar';
 
@@ -39,17 +39,8 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
-
-  const [regNome, setRegNome] = useState('');
-  const [regCelular, setRegCelular] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regSenha, setRegSenha] = useState('');
-  const [regConfirmSenha, setRegConfirmSenha] = useState('');
-  const [regError, setRegError] = useState('');
-
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
-  const [showPasswordRegister, setShowPasswordRegister] = useState(false);
-  const [showPasswordConfirmRegister, setShowPasswordConfirmRegister] = useState(false);
+  
 
   const navigate = useNavigate();
   const { setUsuarioLogado } = useContext(AuthContext || {});
@@ -107,40 +98,9 @@ export default function Login() {
   }
 
   function saveUsuario(novoUsuario) {
-    
-    // Obter apenas usuários do localStorage (excluir demos e seeds)
-    let usuariosLs = [];
-    try {
-      const raw = localStorage.getItem('usuarios');
-      if (raw) {
-        usuariosLs = JSON.parse(raw);
-      }
-    } catch (e) {
-      console.error('[Debug] Erro ao ler localStorage existente:', e);
-      return novoUsuario; // Falha silenciosa
-    }
-    
-    
-    
-    const normalized = {
-      ...novoUsuario,
-      email: String(novoUsuario.email || '').trim().toLowerCase(),
-      celular: String(novoUsuario.celular || '').replace(/\D/g, '')
-    };
-    
-    const updated = [...usuariosLs, normalized];
-    
-    
-    try { 
-      const serialized = JSON.stringify(updated);
-      localStorage.setItem('usuarios', serialized);
-      // Verificação opcional.
-    } catch (e) {
-      console.error('Erro ao salvar no localStorage:', e);
-      throw e;
-    }
-    
-    return normalized;
+    // Mantido inicialmente para compatibilidade; registro agora foi movido para page-Cadastro.jsx
+    // Se necessário, a função de persistência do usuário pode ser centralizada posteriormente.
+    return novoUsuario;
   }
 
   function handleLogin(e) {
@@ -156,81 +116,6 @@ export default function Login() {
     if (setUsuarioLogado) setUsuarioLogado(usuario);
     try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
     navigate('/');
-  }
-
-  function handleRegister(e) {
-    e.preventDefault();
-    
-    if (!regNome || !regSenha || !regEmail || !regCelular || !regConfirmSenha) {
-      setRegError('Preencha todos os campos.');
-      return;
-    }
-    
-    // email regex: allow common email characters and require a TLD of at least 2 letters
-    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(regEmail)) {
-      setRegError('E-mail inválido. Use o formato: exemplo@dominio.com');
-      return;
-    }
-    
-    const cleanCelular = regCelular.replace(/\D/g, '');
-    if (!/^\d{10,11}$/.test(cleanCelular)) {
-      setRegError('Celular inválido (deve ter 10 ou 11 dígitos).');
-      return;
-    }
-    
-    if (regSenha.length < 4) {
-      setRegError('A senha deve ter pelo menos 4 caracteres.');
-      return;
-    }
-    
-    if (regSenha !== regConfirmSenha) {
-      setRegError('As senhas não coincidem.');
-      return;
-    }
-    
-    const normalizedRegEmail = String(regEmail || '').trim().toLowerCase();
-  const existingUsers = getUsuarios();
-    
-    if (existingUsers.some(u => String(u.email || '').trim().toLowerCase() === normalizedRegEmail)) {
-      setRegError('Já existe um usuário com este e-mail.');
-      return;
-    }
-    
-    const id = Date.now();
-    const novoUsuario = {
-      id,
-      nome: regNome,
-      celular: cleanCelular,
-      email: normalizedRegEmail,
-      senha: regSenha
-    };
-    
-    
-    try {
-  const savedUser = saveUsuario(novoUsuario);
-      
-      setRegError('');
-      setRegNome(''); setRegCelular(''); setRegEmail(''); setRegSenha(''); setRegConfirmSenha('');
-      alert('Registro realizado com sucesso! Agora faça login com suas credenciais.');
-    } catch (error) {
-      console.error('Erro ao salvar usuário:', error);
-      setRegError('Erro ao salvar usuário. Tente novamente.');
-    }
-  }
-
-  function formatCelular(value) {
-    const digits = value.replace(/\D/g, '');
-    let formatted = '';
-    if (digits.length > 0) {
-      formatted += '(' + digits.substring(0, 2);
-      if (digits.length >= 2) {
-        formatted += ') ' + digits.substring(2, 7);
-      }
-      if (digits.length > 7) {
-        formatted += '-' + digits.substring(7, 11);
-      }
-    }
-    return formatted;
   }
 
   // ToggleCar component imported from components/ToggleCar
@@ -258,37 +143,11 @@ export default function Login() {
                 </div>
                 <div className="login-forgot-wrapper"><a href="#" className="login-forgot-link" onClick={e => { e.preventDefault(); }}>Esqueci minha senha</a></div>
                 {error && <div className="text-red-600 text-center text-sm">{error}</div>}
-                <button type="submit" className="btn w-full login-submit">Entrar</button>
+                <button type="submit" className="btn login-submit">Entrar</button>
               </form>
-            </div>
-
-            <div className="login-form-card">
-              <div><h2 className="login-section-title">Registrar</h2></div>
-              <form onSubmit={handleRegister} className="login-form">
-                <div className="form-control w-full login-form-control">
-                  <input type="text" placeholder="Nome Completo" value={regNome} onChange={e => setRegNome(e.target.value)} className="input input-bordered w-full bg-white text-black" autoComplete="name" />
-                </div>
-                <div className="form-control w-full login-form-control">
-                  <input type="tel" placeholder="Celular" value={regCelular} onChange={e => setRegCelular(formatCelular(e.target.value))} className="input input-bordered w-full bg-white text-black" autoComplete="tel" />
-                </div>
-                <div className="form-control w-full login-form-control">
-                  <input type="email" placeholder="E-mail" value={regEmail} onChange={e => setRegEmail(e.target.value)} className="input input-bordered w-full bg-white text-black" autoComplete="email" />
-                </div>
-                <div className="form-control w-full login-form-control">
-                  <div className="password-field">
-                    <input type={showPasswordRegister ? 'text' : 'password'} placeholder="Senha" value={regSenha} onChange={e => setRegSenha(e.target.value)} className="form-input password-input" autoComplete="new-password" />
-                    <ToggleCar on={showPasswordRegister} onClick={() => setShowPasswordRegister(s => !s)} />
-                  </div>
-                </div>
-                <div className="form-control w-full login-form-control">
-                  <div className="password-field">
-                    <input type={showPasswordConfirmRegister ? 'text' : 'password'} placeholder="Confirmar Senha" value={regConfirmSenha} onChange={e => setRegConfirmSenha(e.target.value)} className="form-input password-input" autoComplete="new-password" />
-                    <ToggleCar on={showPasswordConfirmRegister} onClick={() => setShowPasswordConfirmRegister(s => !s)} />
-                  </div>
-                </div>
-                {regError && <div className="text-red-600 text-center text-sm">{regError}</div>}
-                <button type="submit" className="btn w-full login-submit">Registrar</button>
-              </form>
+              <div className="login-signup-row">
+                <Link to="/cadastro" className="signup-link">Crie sua conta agora!</Link>
+              </div>
             </div>
           </div>
         </div>

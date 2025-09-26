@@ -191,6 +191,29 @@
 .login-forgot-link:hover {
   text-decoration: underline;
 }
+
+/* Link para página de cadastro abaixo do formulário Entrar */
+.login-signup-row {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: flex-start; /* left align by default */
+}
+.login-form-card > .login-signup-row { padding-left: 0.25rem; }
+
+/* Center the Entrar button inside the login card */
+.login-form-card .login-submit {
+  display: block;
+  margin: 0.75rem auto 0 auto; /* top auto, center horizontally */
+  width: auto; /* remove full-width behavior */
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+.signup-link {
+  color: #0052CC;
+  text-decoration: underline;
+  font-size: 0.95rem;
+}
+.signup-link:hover { text-decoration: underline; filter: brightness(0.95); }
 @media (max-width: 56.25rem) {
   .login-page-main {
     flex-direction: column;

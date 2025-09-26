@@ -1,0 +1,154 @@
+.cadastro-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 32px 16px;
+  background: #f7fafc;
+}
+
+.cadastro-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.cadastro-title {
+  margin: 0 0 6px 0;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.cadastro-sub {
+  margin: 0 0 16px 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.cadastro-form .field {
+  margin-bottom: 12px;
+}
+
+.label {
+  display: block;
+  font-size: 0.85rem;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #111827;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.06);
+}
+
+.input-error {
+  border-color: #ef4444;
+}
+
+.error {
+  margin-top: 6px;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.form-error {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #fff1f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 6px;
+}
+
+.success {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #ecfeff;
+  border: 1px solid #bbf7d0;
+  color: #065f46;
+  border-radius: 6px;
+}
+
+.password-row {
+  position: relative; /* allow absolutely positioned toggle inside */
+  display: flex;
+  align-items: center;
+}
+
+.field-password .input {
+  flex: 1 1 auto;
+  padding-right: 52px; /* space for the car toggle inside the input */
+}
+
+.car-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Ensure toggle is visible and SVG sized correctly */
+.password-field .car-toggle {
+  z-index: 10;
+  border: none;
+  padding: 0;
+}
+.password-field .car-toggle svg {
+  display: block !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+.password-input {
+  padding-right: 2.75rem !important;
+}
+
+/* Strongly prevent default focus rectangle on car toggle button */
+button.car-toggle:focus, button.car-toggle:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.submit {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.submit:hover { filter: brightness(0.98); }
+
+@media (max-width: 420px) {
+  .cadastro-card { padding: 18px; }
+  .cadastro-title { font-size: 1.25rem; }
+}

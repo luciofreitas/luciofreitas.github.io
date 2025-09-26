@@ -9,6 +9,7 @@ import VersaoPro from './page-VersaoPro';
 import Checkin from './page-Checkin';
 import VersaoPro_Assinado from './page-VersaoPro_Assinado';
 import Contato from './page-Contato';
+import PageCadastro from './page-Cadastro';
 import Parceiros from './page-Parceiros';
 import ContatoLogado from './page-ContatoLogado';
 import BuscarPeca from './page-BuscarPeca';
@@ -60,6 +61,7 @@ export default function App() {
             } />
 
             <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<PageCadastro />} />
             <Route path="/inicio" element={<PageInicio />} />
             <Route path="/quem-somos" element={<QuemSomos />} />
             <Route path="/seja-pro" element={<SejaPro />} />

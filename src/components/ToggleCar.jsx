@@ -2,12 +2,10 @@ import React from 'react';
 
 export default function ToggleCar({ on = false, onClick = () => {}, ariaLabel }) {
   return (
-    <span
+    <button
+      type="button"
       className={`car-toggle ${on ? 'headlight-on' : 'headlight-off'}`}
-      role="button"
-      tabIndex={0}
       onClick={onClick}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
       aria-label={ariaLabel || (on ? 'Ocultar senha' : 'Mostrar senha')}
     >
       <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -58,7 +56,7 @@ export default function ToggleCar({ on = false, onClick = () => {}, ariaLabel })
         {/* Side mirror */}
         <ellipse cx="7.5" cy="8.5" rx="0.8" ry="0.5" fill={on ? '#3B82F6' : '#4A5568'} className="side-mirror"/>
       </svg>
-    </span>
+    </button>
   );
 }
 

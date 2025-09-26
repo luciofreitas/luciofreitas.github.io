@@ -160,3 +160,17 @@ html body .site-header .menu-login-root .menu-nav .menu-list a.menu-login-item {
   outline: 2px solid #2563eb; /* Tailwind 'blue-600' — clear contrast */
   outline-offset: 3px;
 }
+
+/* Remove unwanted black rectangle around the car-toggle button on focus.
+   Show a subtle blue ring for keyboard users while keeping mouse users unaffected. */
+.car-toggle:focus, .car-toggle:focus-visible {
+  /* Remove any visible focus rectangle for the car toggle entirely. */
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+  outline-offset: 0 !important;
+}
+
+/* Firefox inner focus patch */
+.car-toggle::-moz-focus-inner { border: 0 !important; }
