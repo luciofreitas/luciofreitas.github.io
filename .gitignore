@@ -24,3 +24,5 @@ db/
 *.njsproj
 *.sln
 *.sw?
+
+.env.local

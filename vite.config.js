@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Prevent `process is not defined` errors when libraries reference process.env at runtime
+  define: {
+    'process.env': {}
+  },
   base: '/', // GitHub Pages base path
   build: {
     outDir: 'dist',
