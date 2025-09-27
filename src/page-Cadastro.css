@@ -222,7 +222,18 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
 }
 
 @media (max-width:900px){
-  .cadastro-card-grid{ grid-template-columns: 1fr; }
-  .cadastro-right{ display:none !important; }
-  .cadastro-card{ border-radius:8px; max-width:560px; }
+  .cadastro-card-grid{
+    grid-template-columns: 1fr;
+    /* constrain the overall card width on mobile so both children
+       (form and hero) line up and have the same width */
+    max-width: 560px;
+    margin: 0 auto; /* center the stacked card */
+    box-shadow: none; /* optional: remove outer shadow on small screens */
+  }
+
+  /* On mobile show the hero below the form instead of hiding it.
+     Ensure both the form and hero occupy 100% of the stacked grid width */
+  .cadastro-right{ display:block !important; order: 2; width:100%; }
+  .cadastro-card{ border-radius:8px 8px 0 0; max-width:560px; width:100%; }
+  .cadastro-hero{ min-height:220px; border-radius: 0 0 8px 8px; width:100%; }
 }
