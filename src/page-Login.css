@@ -397,6 +397,22 @@
 }
 .google-btn:hover{ box-shadow:0 6px 18px rgba(15,23,42,0.06); }
 
+/* Circular google icon button used on login */
+.google-btn-round{
+  width:44px;
+  height:44px;
+  padding:0;
+  border-radius:9999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid #e5e7eb;
+}
+.google-btn-round svg{ display:block; }
+.google-btn-round:focus{ outline:3px solid rgba(37,99,235,0.15); outline-offset:2px; }
+.google-btn-round:hover{ box-shadow:0 6px 18px rgba(15,23,42,0.06); transform:translateY(-1px); }
+
 /* Responsive: stack columns on smaller screens */
 @media (max-width: 900px) {
   .login-two-column { grid-template-columns: 1fr; }

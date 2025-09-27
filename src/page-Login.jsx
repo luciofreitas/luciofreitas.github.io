@@ -87,7 +87,7 @@ export default function Login() {
                   <button className="submit" type="submit">Entrar</button>
 
                   <div className="social-login-row">
-                    <button type="button" className="google-btn" onClick={async () => {
+                    <button type="button" className="google-btn google-btn-round" aria-label="Entrar com Google" title="Entrar com Google" onClick={async () => {
                       const { user, error } = await signInWithGooglePopup();
                       if (error) {
                         // eslint-disable-next-line no-console
@@ -101,7 +101,14 @@ export default function Login() {
                       if (setUsuarioLogado) setUsuarioLogado(usuario);
                       navigate('/');
                     }}>
-                      <FaGoogle style={{ marginRight: 8 }} /> Entrar com Google
+                      {/* Colored Google G SVG */}
+                      <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                        <path fill="#EA4335" d="M24 9.5c3.9 0 7.1 1.4 9.2 3.2l6.8-6.6C35.6 3 30.1 1 24 1 14.7 1 6.9 6.6 3.1 14.7l7.9 6.1C12.4 15.1 17.7 9.5 24 9.5z"/>
+                        <path fill="#34A853" d="M46.5 24c0-1.6-.1-2.9-.4-4.3H24v8.2h12.9c-.6 3.2-2.9 5.9-6.1 7.4l9.4 7.3C43.9 37.4 46.5 31.1 46.5 24z"/>
+                        <path fill="#4A90E2" d="M10 29.8A14.9 14.9 0 0 1 9.1 24c0-1.2.2-2.3.5-3.4L2 14.5A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.5 10.8l7.5-5z"/>
+                        <path fill="#FBBC05" d="M24 46c6.1 0 11.6-2 15.7-5.4l-9.4-7.3c-2.5 1.7-5.7 2.8-9 2.8-6.3 0-11.6-4.6-13.6-10.8L2.5 34.8C6.9 41.4 14.7 46 24 46z"/>
+                        <path fill="none" d="M0 0h48v48H0z"/>
+                      </svg>
                     </button>
                   </div>
 
