@@ -81,3 +81,23 @@
 @media (min-width: 85.312rem) and (max-width: 85.375rem) {
   /* Title styles now handled by .page-title class */
 }
+
+/* --- Test forced parity: aplicar apenas para diagnóstico --- */
+.quem-somos-body,
+.nosso-projeto-body,
+.quem-somos-content,
+.nosso-projeto-content {
+  font-size: 16px !important;
+  line-height: 1.8 !important;
+  font-weight: 400 !important;
+  max-width: 50rem !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  text-align: justify !important;
+  text-justify: inter-word !important;
+  hyphens: auto !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Fim do bloco de teste */
