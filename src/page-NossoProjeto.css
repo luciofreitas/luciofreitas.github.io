@@ -6,7 +6,8 @@
 }
 
 .nosso-projeto-container {
-  max-width: 62.5rem;
+  /* Match QuemSomos content width for spatial parity */
+  max-width: 50rem;
   margin: 0 auto;
   text-align: center;
 }
@@ -16,8 +17,10 @@
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   padding: 1.5rem;
-  margin-bottom: 2rem;
+  margin: 0 auto 2rem auto;
   text-align: center;
+  display: table; /* shrink-to-fit the width to content and allow margin: auto centering */
+  max-width: 100%;
 }
 
 .nossoprojeto-intro p {
@@ -40,11 +43,19 @@
 }
 */
 
-.nosso-projeto-paragraph {
-  margin-top: 0.75rem;
+.nosso-projeto-content {
+  /* Match QuemSomos content container and text flow */
+  max-width: 50rem;
+  margin: 0 auto;
+  line-height: 1.8;
   color: #172B4D;
-  line-height: 1.6;
-  text-align: left;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.nosso-projeto-body {
+  line-height: 1.8;
+  text-align: justify;
 }
 
 /* Responsividade */
