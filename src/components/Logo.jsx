@@ -20,14 +20,14 @@ const Logo = ({ className = '', onClick, ...props }) => {
         onClick={handleClick}
         {...props}
       >
-        <img 
-          src="./logo.png" 
-          alt="Logo Peça Fácil" 
-          className="logo-image"
-        />
+          <img 
+            src="/logo.png" 
+            alt="Logo Peça Fácil" 
+            className="logo-image"
+          />
         <div className="logo-text-container">
-          <h1 className="logo-title">Peça Fácil</h1>
-          <p className="logo-subtitle">Compatibilidade e Economia</p>
+          <h1 className="logo-title">Auto Mestre</h1>
+          <p className="logo-subtitle">Confiança, Tecnologia e Domínio Automotivo</p>
         </div>
       </div>
     </div>

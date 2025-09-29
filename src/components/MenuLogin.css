@@ -1177,10 +1177,10 @@ a.menu-login-item {
    so it applies regardless of previous rules. It also reduces size on small screens. */
 .menu-login-logo.logo-container .logo-image,
 .menu-login-logo img {
-  /* Strong override: make logo much larger without inline styles */
-  height: 6.5rem !important; /* significantly larger */
-  max-height: 6.5rem !important;
-  max-width: 480px !important;
+  /* Stable sizes for the logo: desktop ~64px height, mobile smaller */
+  height: 64px !important;
+  max-height: 64px !important;
+  max-width: 280px !important;
   width: auto !important;
   object-fit: contain !important;
 }
@@ -1188,7 +1188,7 @@ a.menu-login-item {
 @media (max-width: 48rem) {
   .menu-login-logo.logo-container .logo-image,
   .menu-login-logo img {
-    height: 3.25rem !important; /* reduce on small screens */
-    max-width: 180px !important;
+    height: 40px !important; /* mobile friendly */
+    max-width: 160px !important;
   }
 }
