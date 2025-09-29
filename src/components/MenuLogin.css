@@ -1171,3 +1171,24 @@ a.menu-login-item {
 a.menu-login-item {
   font-weight: 600 !important;
 }
+
+/* FINAL OVERRIDE: Force a much larger header logo for visual prominence
+   This override intentionally uses !important and high-specificity selectors
+   so it applies regardless of previous rules. It also reduces size on small screens. */
+.menu-login-logo.logo-container .logo-image,
+.menu-login-logo img {
+  /* Strong override: make logo much larger without inline styles */
+  height: 6.5rem !important; /* significantly larger */
+  max-height: 6.5rem !important;
+  max-width: 480px !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 48rem) {
+  .menu-login-logo.logo-container .logo-image,
+  .menu-login-logo img {
+    height: 3.25rem !important; /* reduce on small screens */
+    max-width: 180px !important;
+  }
+}
