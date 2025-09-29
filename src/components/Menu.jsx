@@ -150,7 +150,10 @@ function Menu() {
   return (
     <header ref={headerRef} className="site-header menu-login">
       <div className="menu-login-root menu-responsive">
-        <Logo />
+        {/* Inline logo image (using the image placed in public/) */}
+        <div className="menu-login-logo logo-container" onClick={() => navigate('/') } style={{cursor: 'pointer'}}>
+          <img src="/logo-teste.png" alt="Logo Peça Fácil" className="logo-image" />
+        </div>
 
   {/* Mobile hamburger button - replicate MenuUsuario structure */}
   <div className="user-menu-root">
