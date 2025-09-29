@@ -197,11 +197,11 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                       <div>� Garantia conforme política de cada oficina</div>
                     </div>
 
-                    {productDetails.pecas-relacionadas && (
+                    {productDetails.pecas_relacionadas && (
                       <>
                         <h3>Peças Relacionadas</h3>
                         <div className="related-parts">
-                          {productDetails.pecas-relacionadas.map((peca, index) => (
+                          {productDetails.pecas_relacionadas.map((peca, index) => (
                             <div key={index} className="related-part">
                               <strong>{peca.nome}</strong>
                               <span>{peca.relacao}</span>
@@ -254,7 +254,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                       <div className="install-requirements">
                         <div><strong>Ferramentas necessárias:</strong></div>
                         <ul>
-                          {productDetails.instalacao?.ferramentas-necessarias?.map((tool, index) => (
+                          {productDetails.instalacao?.ferramentas_necessarias?.map((tool, index) => (
                             <li key={index}>{tool}</li>
                           ))}
                         </ul>
@@ -285,7 +285,7 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
                             <div className="review-rating">
                               {'★'.repeat(review.nota)}{'☆'.repeat(5-review.nota)}
                             </div>
-                            <span className="review-date">{new Date(review.data).to-locale-date-string('ptBR')}</span>
+                            <span className="review-date">{new Date(review.data).toLocaleDateString('pt-BR')}</span>
                           </div>
                           <p>{review.texto}</p>
                         </div>

@@ -34,7 +34,8 @@ const Toast = ({ message, type = 'success', duration = 3000, onClose }) => {
       <div className="toast-content">
         {type === 'success' && (
           <svg className="toast-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M13.5 4.5-l6 12L2.5 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            {/* fixed checkmark path: use absolute line commands with proper spacing */}
+            <path d="M13.5 4.5 L6 12 L2.5 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         )}
         <span className="toast-message">{message}</span>

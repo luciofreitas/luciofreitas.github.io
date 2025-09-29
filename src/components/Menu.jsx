@@ -175,7 +175,7 @@ function Menu() {
             aria-hidden={!mobileMenuOpen}
             // ensure element is truly non-interactive when closed
             hidden={!mobileMenuOpen}
-            inert={!mobileMenuOpen}
+            {...(!mobileMenuOpen ? { inert: 'true' } : {})}
           >
             {menuItems.map(item => (
               <button
