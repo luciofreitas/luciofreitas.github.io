@@ -76,14 +76,15 @@
 }
 
 .menu-login-logo img {
-  /* size the logo proportionally to header height so it scales across viewports */
-  height: calc(4.5rem * 0.7);
-  width: calc(4.5rem * 0.7);
-  border-radius: 50%;
-  object-fit: cover;
+  /* larger logo: make it visually prominent in the header */
+  height: calc(4.5rem * 0.95) !important; /* nearly the full header height */
+  width: auto !important; /* preserve aspect ratio */
+  max-width: 220px !important; /* limit extreme wide logos */
+  border-radius: 6px !important; /* subtle rounding */
+  object-fit: contain !important;
   cursor: pointer;
   vertical-align: middle;
-  transition: transform 0.2s ease;
+  transition: transform 0.18s ease, filter 0.18s ease !important;
 }
 
 .menu-login-logo img:hover {
@@ -936,9 +937,9 @@ a.menu-login-item {
   /* Logo image com dimensões proporcionais */
   .menu-login-logo .logo-image {
     width: auto !important;
-    /* fit the logo image into the header height with some breathing room */
-    height: calc(4.5rem - 0.75rem) !important; /* ~3.75rem */
-    max-width: 150px !important; /* Limita largura para deixar espaço para texto */
+    /* increase the inline logo image to be prominent */
+    height: calc(4.5rem * 0.95) !important; /* match .menu-login-logo img */
+    max-width: 260px !important; /* allow wider logos on desktop */
     object-fit: contain !important;
     border: none !important;
     outline: none !important;
