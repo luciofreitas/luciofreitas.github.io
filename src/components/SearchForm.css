@@ -171,4 +171,23 @@
     margin-left: 0;
     margin-top: 0.5rem;
   }
+  
+  .search-form-warning {
+    margin-top: 0.375rem;
+  }
+}
+
+/* Estilos para mensagens de aviso de incompatibilidade */
+.search-form-warning {
+  margin-top: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background-color: #fff3cd;
+  border: 0.062rem solid #ffc107;
+  border-radius: 0.375rem;
+  color: #856404;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
 }
