@@ -36,7 +36,6 @@ const MenuLogin = () => {
     { id: 'inicio', label: 'Início', onClick: () => navigate('/inicio') },
     { id: 'quem-somos', label: 'Quem Somos', onClick: () => navigate('/quem-somos') },
     { id: 'nosso-projeto', label: 'Nosso Projeto', onClick: () => navigate('/nosso-projeto') },
-    ...(usuarioLogado ? [{ id: 'tabela-fipe', label: 'Tabela FIPE', onClick: () => navigate('/tabela-fipe') }] : []),
     { id: 'seja-pro', label: 'Seja Pro', onClick: () => navigate('/seja-pro') },
     { id: 'contato', label: 'Contato', onClick: () => navigate('/contato') }
   ];
