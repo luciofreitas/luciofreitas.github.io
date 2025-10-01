@@ -7,8 +7,8 @@ export default function QuemSomos() {
     <>
     <MenuLogin />
     <div className="page-wrapper">
-  <div className="page-content" id="quem-somos">
-          <h2 className="page-title">Quem Somos</h2>
+      <div className="page-content" id="quem-somos">
+        <h2 className="page-title">Quem Somos</h2>
           
           <div className="quem-somos-intro">
             <p>
@@ -25,8 +25,8 @@ export default function QuemSomos() {
               trabalhamos com serenidade e consistência para, um dia, nos tornar referência em tecnologia.
             </p>
           </div>
-        </div>
-  </div>
+      </div>
+    </div>
     </>
   );
 }
