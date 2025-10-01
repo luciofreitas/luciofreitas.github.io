@@ -7,9 +7,8 @@ export default function NossoProjeto() {
     <>
   <MenuLogin />
   <div className="page-wrapper">
-  <div className="page-content" id="nosso-projeto">
-  <div className="nosso-projeto-section nosso-projeto-container">
-          <h2 className="page-title">Nosso Projeto</h2>
+    <div className="page-content" id="nosso-projeto">
+      <h2 className="page-title">Nosso Projeto</h2>
           
           <div className="nossoprojeto-intro">
             <p>
@@ -31,9 +30,8 @@ export default function NossoProjeto() {
               que gere economia de tempo e dinheiro e ajude a profissionalizar a tomada de decisão no setor automotivo.
             </p>
           </div>
-              </div>
-        </div>
-        </div>
-          </>
+    </div>
+  </div>
+    </>
   );
 }
