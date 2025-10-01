@@ -40,8 +40,8 @@ export default function QuemSomos() {
                   <h4 className="equipe-nome">Rafael de Almeida</h4>
                   <p className="equipe-cargo">Fundador & Head de Inovação</p>
                   <p className="equipe-bio">
-                    Descrição breve sobre o membro 1. Sua experiência, formação e papel na empresa.
-                    Pode incluir conquistas relevantes e áreas de especialização.
+                   Idealizador do Peça Fácil, é quem trouxe a visão inicial do projeto e ajuda a guiar seus rumos estratégicos. 
+                   Tem perfil criativo e inovador, buscando sempre novas formas de gerar valor para o negócio e seus usuários.
                   </p>
                 </div>
               </div>
@@ -55,8 +55,9 @@ export default function QuemSomos() {
                   <h4 className="equipe-nome">Guilherme Melo Fleury</h4>
                   <p className="equipe-cargo">Co-Fundador & Head de Negócios</p>
                   <p className="equipe-bio">
-                    Descrição breve sobre o membro 2. Sua experiência, formação e papel na empresa.
-                    Pode incluir conquistas relevantes e áreas de especialização.
+                    Responsável pela liderança e pela representação do Peça Fácil em eventos e apresentações. 
+                    Atua como porta-voz do projeto, conduzindo negociações e transmitindo a visão da empresa. 
+                    Tem foco em crescimento, conexões estratégicas e novos negócios.
                   </p>
                 </div>
               </div>
