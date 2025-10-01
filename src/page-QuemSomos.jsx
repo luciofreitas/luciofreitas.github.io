@@ -70,8 +70,9 @@ export default function QuemSomos() {
                   <h4 className="equipe-nome">Lúcio de Freitas Pereira</h4>
                   <p className="equipe-cargo">Co-Fundador & Product Designer/Desenvolvedor</p>
                   <p className="equipe-bio">
-                    Descrição breve sobre o membro 3. Sua experiência, formação e papel na empresa.
-                    Pode incluir conquistas relevantes e áreas de especialização.
+                 Apaixonado por tecnologia e design, é responsável pelo desenvolvimento e pela experiência digital do Peça Fácil. 
+                 Com formação em TI e experiência em análise de dados, encontrou no design UX/UI uma forma de unir criatividade 
+                 e funcionalidade.
                   </p>
                 </div>
               </div>
