@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import MenuLogin from './components/MenuLogin';
+import Menu from './components/Menu';
 import './page-TabelaFIPE.css';
 
 export default function TabelaFIPE() {
@@ -66,7 +66,7 @@ export default function TabelaFIPE() {
 
   return (
     <>
-      <MenuLogin />
+      <Menu />
       <div className="page-wrapper">
         <div className="page-content" id="tabela-fipe">
           <h2 className="page-title">Tabela FIPE</h2>
