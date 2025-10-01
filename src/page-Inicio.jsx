@@ -108,6 +108,58 @@ export default function PageInicio() {
                 </div>
               </div>
             </div>
+
+            {/* Nova seção: Impacto e Credibilidade */}
+            <div className="inicio-stats-section">
+              <div className="inicio-stats-container">
+                <h2 className="inicio-stats-title">Impacto e Credibilidade: A Peça Fácil em Números</h2>
+                
+                <div className="inicio-stats-grid">
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">🔧</div>
+                    <div className="stat-number">50.000+</div>
+                    <div className="stat-label">Peças Catalogadas</div>
+                    <div className="stat-description">Base de dados completa e atualizada</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">🚗</div>
+                    <div className="stat-number">500+</div>
+                    <div className="stat-label">Modelos de Veículos</div>
+                    <div className="stat-description">Compatibilidade verificada e testada</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">👥</div>
+                    <div className="stat-number">10.000+</div>
+                    <div className="stat-label">Usuários Ativos</div>
+                    <div className="stat-description">Comunidade crescente de entusiastas</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">⭐</div>
+                    <div className="stat-number">98%</div>
+                    <div className="stat-label">Satisfação</div>
+                    <div className="stat-description">Avaliação positiva dos usuários</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">💰</div>
+                    <div className="stat-number">R$ 5.000</div>
+                    <div className="stat-label">Economia Média/Ano</div>
+                    <div className="stat-description">Por usuário em compras certeiras</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">⚡</div>
+                    <div className="stat-number">70%</div>
+                    <div className="stat-label">Redução de Tempo</div>
+                    <div className="stat-description">Na busca e compra de peças</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
         </div>
       </div>
       {/* modal removed: replaced by direct band below carousel; detailed modal was unused after cards → carousel refactor */}
