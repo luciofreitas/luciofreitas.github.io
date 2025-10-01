@@ -5,7 +5,6 @@ import './MenuLogin.css';
 import Logo from './Logo';
 import GetStartedButton from './GetStartedButton';
 import CircularArrowButton from './CircularArrowButton';
-import MenuUsuario from './MenuUsuario';
 import Toast from './Toast';
 import './Toast.css';
 import AriaLive from './AriaLive';
@@ -224,23 +223,10 @@ const MenuLogin = () => {
 
           {/* Desktop: GetStartedButton | Mobile: CircularArrowButton */}
           <div className="menu-login-right">
-            {!usuarioLogado ? (
-              <>
-                {isMobile ? (
-                  <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
-                ) : (
-                  <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
-                )}
-              </>
+            {isMobile ? (
+              <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
             ) : (
-              <MenuUsuario
-                nome={usuarioLogado.nome}
-                isPro={usuarioLogado?.isPro}
-                onPerfil={handleNavigation(handleProfileClick)}
-                onPro={handleNavigation(handleProClick)}
-                onConfiguracoes={handleNavigation(handleConfiguracoesClick)}
-                onLogout={handleNavigation(handleLogout)}
-              />
+              <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
             )}
           </div>
         </div>
