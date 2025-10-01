@@ -30,6 +30,12 @@ export default function BuscarPeca() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Estados para mensagens de incompatibilidade
+  const [warningMarca, setWarningMarca] = useState('');
+  const [warningModelo, setWarningModelo] = useState('');
+  const [warningAno, setWarningAno] = useState('');
+  const [warningFabricante, setWarningFabricante] = useState('');
+
   // modal state
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
@@ -72,41 +78,87 @@ export default function BuscarPeca() {
     return () => window.removeEventListener('app-refresh', onRefresh);
   }, []);
 
-  // Clear dependent selections when parent selections change
+  // Verificar compatibilidade e gerar mensagens de aviso
   useEffect(() => {
-    // When grupo changes, clear categoria and fabricante
-    setSelectedCategoria('');
-    setSelectedFabricante('');
-    setSelectedMarca('');
-    setSelectedModelo('');
-    setSelectedAno('');
-  }, [selectedGrupo]);
+    // Limpar mensagens
+    setWarningMarca('');
+    setWarningModelo('');
+    setWarningAno('');
+    setWarningFabricante('');
 
-  useEffect(() => {
-    // When categoria changes, clear fabricante
-    setSelectedFabricante('');
-    setSelectedMarca('');
-    setSelectedModelo('');
-    setSelectedAno('');
-  }, [selectedCategoria]);
+    // Verificar se há incompatibilidade entre fabricante e outros campos
+    if (selectedFabricante && todasPecas.length > 0) {
+      const pecasComFabricante = todasPecas.filter(p => 
+        (!selectedGrupo || p.category === selectedGrupo) &&
+        (!selectedCategoria || p.name === selectedCategoria) &&
+        p.manufacturer === selectedFabricante
+      );
 
-  useEffect(() => {
-    // When fabricante changes, clear marca, modelo, ano
-    setSelectedMarca('');
-    setSelectedModelo('');
-    setSelectedAno('');
-  }, [selectedFabricante]);
+      // Verificar marca
+      if (selectedMarca && pecasComFabricante.length > 0) {
+        const temMarca = pecasComFabricante.some(p => {
+          if (!p.applications || !Array.isArray(p.applications)) return false;
+          return p.applications.some(app => 
+            String(app).toLowerCase().includes(selectedMarca.toLowerCase())
+          );
+        });
+        if (!temMarca) {
+          setWarningMarca(`Não há peças do fabricante "${selectedFabricante}" compatíveis com a marca "${selectedMarca}"`);
+        }
+      }
 
-  useEffect(() => {
-    // When marca changes, clear modelo and ano
-    setSelectedModelo('');
-    setSelectedAno('');
-  }, [selectedMarca]);
+      // Verificar modelo
+      if (selectedModelo && pecasComFabricante.length > 0) {
+        const temModelo = pecasComFabricante.some(p => {
+          if (!p.applications || !Array.isArray(p.applications)) return false;
+          return p.applications.some(app => 
+            String(app).toLowerCase().includes(selectedModelo.toLowerCase())
+          );
+        });
+        if (!temModelo) {
+          setWarningModelo(`Não há peças do fabricante "${selectedFabricante}" compatíveis com o modelo "${selectedModelo}"`);
+        }
+      }
 
-  useEffect(() => {
-    // When modelo changes, clear ano
-    setSelectedAno('');
-  }, [selectedModelo]);
+      // Verificar ano
+      if (selectedAno && pecasComFabricante.length > 0) {
+        const temAno = pecasComFabricante.some(p => {
+          if (!p.applications || !Array.isArray(p.applications)) return false;
+          return p.applications.some(app => 
+            String(app).toLowerCase().includes(selectedAno)
+          );
+        });
+        if (!temAno) {
+          setWarningAno(`Não há peças do fabricante "${selectedFabricante}" compatíveis com o ano "${selectedAno}"`);
+        }
+      }
+    }
+
+    // Verificar incompatibilidade quando marca/modelo/ano são selecionados mas fabricante não tem peças
+    if ((selectedMarca || selectedModelo || selectedAno) && selectedFabricante) {
+      const pecasCompativeis = todasPecas.filter(p => {
+        const grupoMatch = !selectedGrupo || p.category === selectedGrupo;
+        const categoriaMatch = !selectedCategoria || p.name === selectedCategoria;
+        const fabricanteMatch = p.manufacturer === selectedFabricante;
+        
+        if (!grupoMatch || !categoriaMatch || !fabricanteMatch) return false;
+        
+        if (!p.applications || !Array.isArray(p.applications)) return false;
+        
+        return p.applications.some(app => {
+          const appStr = String(app).toLowerCase();
+          const marcaMatch = !selectedMarca || appStr.includes(selectedMarca.toLowerCase());
+          const modeloMatch = !selectedModelo || appStr.includes(selectedModelo.toLowerCase());
+          const anoMatch = !selectedAno || appStr.includes(selectedAno);
+          return marcaMatch && modeloMatch && anoMatch;
+        });
+      });
+
+      if (pecasCompativeis.length === 0 && !warningMarca && !warningModelo && !warningAno) {
+        setWarningFabricante(`Não há peças que atendam todos os filtros selecionados`);
+      }
+    }
+  }, [selectedGrupo, selectedCategoria, selectedFabricante, selectedMarca, selectedModelo, selectedAno, todasPecas]);
 
   // Filtrar opções de dropdown baseado nas seleções atuais
   const getFilteredPecas = () => {
@@ -341,6 +393,10 @@ export default function BuscarPeca() {
     setSelectedFabricante('');
     setPecas([]);
     setError('');
+    setWarningMarca('');
+    setWarningModelo('');
+    setWarningAno('');
+    setWarningFabricante('');
   };
 
   return (
@@ -379,6 +435,10 @@ export default function BuscarPeca() {
               onClear={handleClear}
               loading={loading}
               error={error}
+              warningMarca={warningMarca}
+              warningModelo={warningModelo}
+              warningAno={warningAno}
+              warningFabricante={warningFabricante}
             />
         </div>
       </div>

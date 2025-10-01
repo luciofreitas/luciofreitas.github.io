@@ -24,7 +24,11 @@ function SearchForm({
   onSearch,
   onClear,
   loading,
-  error
+  error,
+  warningMarca,
+  warningModelo,
+  warningAno,
+  warningFabricante
 }) {
   return (
   <form className="search-form" onSubmit={onSearch} aria-label="Formulário de busca de peças">
@@ -59,6 +63,11 @@ function SearchForm({
             onChange={setSelectedMarca}
             placeholder=""
           />
+          {warningMarca && (
+            <div className="search-form-warning" role="alert">
+              ⚠️ {warningMarca}
+            </div>
+          )}
         </div>
         <div className="search-form-field">
           <label htmlFor="modelo">Modelo</label>
@@ -68,6 +77,11 @@ function SearchForm({
             onChange={setSelectedModelo}
             placeholder=""
           />
+          {warningModelo && (
+            <div className="search-form-warning" role="alert">
+              ⚠️ {warningModelo}
+            </div>
+          )}
         </div>
       </div>
 
@@ -80,6 +94,11 @@ function SearchForm({
             onChange={setSelectedAno}
             placeholder=""
           />
+          {warningAno && (
+            <div className="search-form-warning" role="alert">
+              ⚠️ {warningAno}
+            </div>
+          )}
         </div>
         <div className="search-form-field">
           <label htmlFor="fabricante">Fabricante</label>
@@ -89,6 +108,11 @@ function SearchForm({
             onChange={setSelectedFabricante}
             placeholder=""
           />
+          {warningFabricante && (
+            <div className="search-form-warning" role="alert">
+              ⚠️ {warningFabricante}
+            </div>
+          )}
         </div>
       </div>
 
