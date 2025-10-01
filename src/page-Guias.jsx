@@ -115,8 +115,8 @@ function PageGuias() {
               </div>
               
               <div className="guia-content">
-                <h3 className="guia-titulo">Glossário Automotivo</h3>
-                <p className="guia-subtitulo">Luzes do Painel - Entenda os avisos do seu veículo</p>
+                <h3 className="guia-titulo">Luzes do Painel</h3>
+                <p className="guia-subtitulo">Entenda os avisos do seu veículo</p>
                 <p className="guia-descricao">
                   Aprenda sobre as luzes de aviso do painel e o que fazer quando elas acendem.
                 </p>
