@@ -27,7 +27,7 @@ const Logo = ({ className = '', onClick, ...props }) => {
           />
         <div className="logo-text-container">
           <h1 className="logo-title">Auto Mestre</h1>
-          <p className="logo-subtitle">Confiança, Tecnologia e Domínio Automotivo</p>
+          <p className="logo-subtitle">Confiança e Economia</p>
         </div>
       </div>
     </div>
