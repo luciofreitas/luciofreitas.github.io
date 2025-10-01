@@ -16,6 +16,7 @@ import BuscarPeca from './page-BuscarPeca';
 import PagePerfil from './page-Perfil';
 import PageRecalls from './page-Recalls';
 import PageGuias from './page-Guias';
+import TabelaFIPE from './page-TabelaFIPE';
 import './App.css';
 import './CustomDropdown.css';
 
@@ -79,6 +80,11 @@ export default function App() {
             <Route path="/perfil" element={
               <ProtectedRoute>
                 <PagePerfil />
+              </ProtectedRoute>
+            } />
+            <Route path="/tabela-fipe" element={
+              <ProtectedRoute>
+                <TabelaFIPE />
               </ProtectedRoute>
             } />
             {/* Redirecionamento da rota antiga para a nova */}
