@@ -25,6 +25,59 @@ export default function QuemSomos() {
               trabalhamos com serenidade e consistência para, um dia, nos tornar referência em tecnologia.
             </p>
           </div>
+
+          {/* Seção de Apresentação da Equipe */}
+          <div className="quem-somos-equipe-section">
+            <h3 className="equipe-section-title">Nossa Equipe</h3>
+            
+            <div className="equipe-cards-container">
+              {/* Card Membro 1 */}
+              <div className="equipe-card">
+                <div className="equipe-card-photo">
+                  <img src="/path/to/rafael.jpg" alt="Nome do Membro 1" className="equipe-photo" />
+                </div>
+                <div className="equipe-card-content">
+                  <h4 className="equipe-nome">Rafael de Almeida</h4>
+                  <p className="equipe-cargo">Fundador & Head de Inovação</p>
+                  <p className="equipe-bio">
+                    Descrição breve sobre o membro 1. Sua experiência, formação e papel na empresa.
+                    Pode incluir conquistas relevantes e áreas de especialização.
+                  </p>
+                </div>
+              </div>
+
+              {/* Card Membro 2 */}
+              <div className="equipe-card">
+                <div className="equipe-card-photo">
+                  <img src="/fotos-socios/guilherme.jpg" alt="Guilherme" className="equipe-photo" />
+                </div>
+                <div className="equipe-card-content">
+                  <h4 className="equipe-nome">Guilherme Melo Fleury</h4>
+                  <p className="equipe-cargo">Co-Fundador & Head de Negócios</p>
+                  <p className="equipe-bio">
+                    Descrição breve sobre o membro 2. Sua experiência, formação e papel na empresa.
+                    Pode incluir conquistas relevantes e áreas de especialização.
+                  </p>
+                </div>
+              </div>
+
+              {/* Card Membro 3 */}
+              <div className="equipe-card">
+                <div className="equipe-card-photo">
+                  <img src="/fotos-socios/lucio.jpg" alt="Nome do Membro 3" className="equipe-photo" />
+                </div>
+                <div className="equipe-card-content">
+                  <h4 className="equipe-nome">Lúcio de Freitas Pereira</h4>
+                  <p className="equipe-cargo">Co-Fundador & Product Designer/Desenvolvedor</p>
+                  <p className="equipe-bio">
+                    Descrição breve sobre o membro 3. Sua experiência, formação e papel na empresa.
+                    Pode incluir conquistas relevantes e áreas de especialização.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
       </div>
     </div>
     </>
