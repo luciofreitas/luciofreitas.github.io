@@ -3,7 +3,7 @@ import Menu from '../components/Menu';
 import MenuLogin from '../components/MenuLogin';
 import { AuthContext } from '../App';
 import { apiService } from '../utils/apiService';
-import CompatibilityModal from './CompatibilityModal';
+import CompatibilityModal from '../components/CompatibilityModal';
 import ProductDetailModal from '../components/ProductDetailModal';
 import SearchForm from '../components/SearchForm';
 import PecasGrid from '../components/PecasGrid';
