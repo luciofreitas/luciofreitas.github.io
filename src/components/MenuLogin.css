@@ -13,9 +13,9 @@
   align-items: center;
   width: 100%;
   overflow: hidden;
-  background: #0052CC !important; /* Fundo azul padrão para todas as resoluções */
+  background: var(--color-primary) !important;
   z-index: 1000;
-  box-shadow: 0 0.125rem 0.375rem rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-md);
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
@@ -323,7 +323,7 @@ button.menu-login-item {
   position: relative;
   display: block;
   text-align: left;
-  color: #172B4D;
+  color: var(--text-primary);
   text-decoration: none;
   border: none;
   background: transparent;
@@ -349,7 +349,7 @@ button.menu-login-item {
 .dropdown-item:hover,
 .dropdown-item:focus {
   background: transparent;
-  color: #172B4D;
+  color: var(--text-primary);
 }
 
 .dropdown-item:hover::after {
@@ -357,7 +357,7 @@ button.menu-login-item {
 }
 
 .dropdown-item:focus-visible {
-  color: #172B4D;
+  color: var(--text-primary);
 }
 
 /* Remove mouse-click/active outline; preserve keyboard focus visuals via :focus-visible */
@@ -424,7 +424,7 @@ button.menu-login-item {
 
 /* Ensure the grouped menu + logo container uses the same blue background as header */
 .menu-login-container {
-  background: #0052CC !important; /* Mesmo azul do header */
+  background: var(--color-primary) !important;
   width: 100%;
   overflow-x: hidden;
   overflow-y: visible;
@@ -490,7 +490,7 @@ button.menu-login-item {
 
 /* Defensive rule: ensure MenuLogin stays blue even if other global CSS attempts to override it */
 .site-header {
-  background: #0052CC !important;
+  background: var(--color-primary) !important;
 }
 
 .menu-login-right {
@@ -688,7 +688,7 @@ button.menu-login-item {
   border: none !important;
   background: none !important;
   text-decoration: none !important;
-  color: #172B4D !important;
+  color: var(--text-primary) !important;
 }
 
 /* >>> Simplified: No more conditional overrides - all styling is now applied at the base level */
@@ -1040,10 +1040,10 @@ button.menu-login-item {
     right: auto !important;
     width: auto !important; /* Auto width like user dropdown */
     min-width: 11.25rem !important; /* Same min-width as user dropdown */
-    background: #FFFFFF !important; /* White background like user dropdown */
+    background: var(--bg-white) !important;
     border-radius: 0.5rem !important;
-    border: 0.062rem solid rgba(16,24,40,0.06) !important; /* Same border as user dropdown */
-    box-shadow: 0 0.375rem 1.125rem rgba(16,24,40,0.15) !important; /* Same shadow as user dropdown */
+    border: 0.062rem solid var(--border-gray) !important;
+    box-shadow: var(--shadow-lg) !important;
     padding: 0.5rem !important; /* Same padding as user dropdown */
     transform: translateY(-10px) !important;
     opacity: 0 !important;
@@ -1110,7 +1110,7 @@ button.menu-login-item {
     padding: 0.5rem 0.75rem !important; /* Same padding as dropdown items */
     border: none !important; /* No borders like user dropdown */
     background-color: transparent !important;
-    color: #172B4D !important; /* Same text color as dropdown items */
+    color: var(--text-primary) !important; /* Same text color as dropdown items */
     font-size: 0.875rem !important; /* Same font size as dropdown items */
     border-radius: 0.375rem !important; /* Same border radius as dropdown items */
     cursor: pointer !important;
