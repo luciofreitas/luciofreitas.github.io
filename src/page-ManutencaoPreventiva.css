@@ -1,0 +1,519 @@
+/* Manutenção Preventiva Page Styles */
+
+.manutencao-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+}
+
+.manutencao-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 2rem 4rem;
+}
+
+/* Header */
+.manutencao-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.header-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+  0%, 10% { transform: rotate(0deg); }
+  25%, 35% { transform: rotate(-15deg); }
+  50%, 60% { transform: rotate(0deg); }
+  75%, 85% { transform: rotate(15deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.manutencao-header h1 {
+  font-size: 2.5rem;
+  color: #1a365d;
+  margin-bottom: 1rem;
+}
+
+.header-subtitle {
+  font-size: 1.125rem;
+  color: #4a5568;
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Introdução */
+.manutencao-intro {
+  margin-bottom: 3rem;
+}
+
+.intro-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.intro-card h2 {
+  font-size: 1.875rem;
+  color: #1a365d;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.intro-benefits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.benefit-item {
+  text-align: center;
+}
+
+.benefit-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.benefit-item h3 {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.benefit-item p {
+  color: #4a5568;
+  line-height: 1.6;
+  font-size: 0.938rem;
+}
+
+/* Cronograma */
+.manutencao-cronograma {
+  margin-bottom: 3rem;
+}
+
+.manutencao-cronograma h2 {
+  font-size: 2rem;
+  color: #1a365d;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.section-description {
+  text-align: center;
+  color: #4a5568;
+  margin-bottom: 2rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.cronograma-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.cronograma-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cronograma-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cronograma-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.cronograma-header h3 {
+  font-size: 1.5rem;
+  color: #2b6cb0;
+  font-weight: 700;
+}
+
+.itens-count {
+  background: #edf2f7;
+  color: #2d3748;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.cronograma-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cronograma-lista li {
+  padding: 0.625rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid #f7fafc;
+  font-size: 0.938rem;
+  color: #2d3748;
+}
+
+.cronograma-lista li:last-child {
+  border-bottom: none;
+}
+
+.prioridade-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.prioridade-alta .prioridade-badge {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.prioridade-media .prioridade-badge {
+  background: #feebc8;
+  color: #c05621;
+}
+
+/* Legenda */
+.legenda-prioridades {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.legenda-prioridades h4 {
+  font-size: 1rem;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+
+.legenda-items {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.legenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.938rem;
+  color: #4a5568;
+}
+
+.legenda-badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.legenda-item.alta .legenda-badge {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.legenda-item.media .legenda-badge {
+  background: #feebc8;
+  color: #c05621;
+}
+
+/* Dicas Práticas */
+.manutencao-dicas {
+  margin-bottom: 3rem;
+}
+
+.manutencao-dicas h2 {
+  font-size: 2rem;
+  color: #1a365d;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.dicas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.dica-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.dica-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dica-card h3 {
+  font-size: 1.25rem;
+  color: #2b6cb0;
+  margin-bottom: 0.75rem;
+}
+
+.dica-descricao {
+  color: #4a5568;
+  margin-bottom: 1rem;
+  font-size: 0.938rem;
+  line-height: 1.5;
+}
+
+.dica-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dica-lista li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  color: #2d3748;
+  font-size: 0.938rem;
+  line-height: 1.5;
+}
+
+.check-icon {
+  color: #38a169;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+/* Custos */
+.manutencao-custos {
+  margin-bottom: 3rem;
+}
+
+.manutencao-custos h2 {
+  font-size: 2rem;
+  color: #1a365d;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.custos-tabela {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.tabela-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 2fr;
+  background: #2b6cb0;
+  color: white;
+  font-weight: 600;
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+}
+
+.tabela-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 2fr;
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.2s;
+}
+
+.tabela-row:hover {
+  background: #f7fafc;
+}
+
+.tabela-row:last-child {
+  border-bottom: none;
+}
+
+.col-servico {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.col-faixa {
+  color: #2b6cb0;
+  font-weight: 600;
+}
+
+.col-periodicidade {
+  color: #4a5568;
+  font-size: 0.938rem;
+}
+
+.custos-aviso {
+  background: #ebf8ff;
+  border-left: 4px solid #2b6cb0;
+  border-radius: 0.5rem;
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.aviso-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.custos-aviso p {
+  color: #2c5282;
+  margin: 0;
+  line-height: 1.6;
+  font-size: 0.938rem;
+}
+
+/* Conclusão */
+.manutencao-conclusao {
+  margin-bottom: 2rem;
+}
+
+.conclusao-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.conclusao-card h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: white;
+}
+
+.conclusao-content p {
+  margin-bottom: 1.25rem;
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+.conclusao-content p:last-child {
+  margin-bottom: 0;
+}
+
+.conclusao-content strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 1.0625rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .manutencao-container {
+    padding: 5rem 1rem 2rem;
+  }
+
+  .header-icon {
+    font-size: 3rem;
+  }
+
+  .manutencao-header h1 {
+    font-size: 1.875rem;
+  }
+
+  .header-subtitle {
+    font-size: 1rem;
+  }
+
+  .intro-benefits {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .cronograma-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dicas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabela-header,
+  .tabela-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .tabela-header {
+    display: none;
+  }
+
+  .tabela-row {
+    padding: 1rem;
+  }
+
+  .col-servico::before {
+    content: "Serviço: ";
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .col-faixa::before {
+    content: "Preço: ";
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .col-periodicidade::before {
+    content: "Quando: ";
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .conclusao-card {
+    padding: 1.5rem;
+  }
+
+  .conclusao-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .conclusao-content p {
+    font-size: 0.938rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .manutencao-container {
+    padding: 4.5rem 0.75rem 1.5rem;
+  }
+
+  .legenda-items {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

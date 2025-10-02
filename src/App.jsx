@@ -17,6 +17,8 @@ import PagePerfil from './page-Perfil';
 import PageRecalls from './page-Recalls';
 import PageGuias from './page-Guias';
 import TabelaFIPE from './page-TabelaFIPE';
+import ManutencaoPreventiva from './page-ManutencaoPreventiva';
+import PecasOriginaisVsCompativeis from './page-PecasOriginaisVsCompativeis';
 import './App.css';
 import './CustomDropdown.css';
 
@@ -77,6 +79,8 @@ export default function App() {
             <Route path="/guias" element={<PageGuias />} />
             {/* Redirecionamento da rota antiga glossario para guias */}
             <Route path="/glossario" element={<Navigate to="/guias" replace />} />
+            <Route path="/manutencao-preventiva" element={<ManutencaoPreventiva />} />
+            <Route path="/pecas-originais-vs-compativeis" element={<PecasOriginaisVsCompativeis />} />
             <Route path="/nosso-projeto" element={<NossoProjeto />} />
             <Route path="/perfil" element={
               <ProtectedRoute>

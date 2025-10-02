@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Menu from './components/Menu';
 import ComponenteEstrelas from './components/ComponenteEstrelas';
 import GlossarioExpandido from './components/GlossarioExpandido';
@@ -8,6 +9,8 @@ import { glossarioMockData, outrosGuias } from './data/glossarioData';
 import './page-Guias.css';
 
 function PageGuias() {
+  const navigate = useNavigate();
+
   // Estados principais
   const [glossarioData, setGlossarioData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -190,7 +193,9 @@ function PageGuias() {
                 </div>
 
                 <div className="guia-footer">
-                  <span className="guia-cta">Em breve →</span>
+                  <span className="guia-cta" onClick={() => navigate(guia.rota)} style={{ cursor: 'pointer' }}>
+                    Ver guia completo →
+                  </span>
                 </div>
               </div>
             ))}
