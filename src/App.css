@@ -187,7 +187,7 @@ html, body {
 /* Make sure modal content appears as a centered card with a header and scrollable body */
 .modal-overlay {
   position: fixed;
-  top: 4.5rem; /* Start below fixed header (header height is 4.5rem) */
+  top: 4.5rem !important; /* Start below fixed header (header height is 4.5rem) */
   left: 0;
   right: 0;
   bottom: 0;
@@ -195,7 +195,7 @@ html, body {
   display: flex;
   align-items: flex-start; /* Align to top instead of center */
   justify-content: center;
-  z-index: var(--z-modal-backdrop); /* Using design token */
+  z-index: var(--z-modal-backdrop); /* Using design token - 1040, below menu 1050 */
   padding: 0.5rem 1rem 3rem; /* Pouco padding em cima, muito embaixo para dar folga */
 }
 
