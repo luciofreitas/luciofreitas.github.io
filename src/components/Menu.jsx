@@ -29,7 +29,7 @@ function Menu() {
   const menuItems = [
     {
       id: 'buscar',
-      label: 'Buscar Peças',
+      label: 'Catálogo de Peças',
       onClick: () => navigate('/buscar-pecas')
     },
     { id: 'tabela-fipe', label: 'Tabela FIPE', onClick: () => navigate('/tabela-fipe') },
