@@ -109,7 +109,7 @@
   background: #ecfdf5;
   color: #065f46;
   padding: clamp(0.2rem, 0.4vw, 0.25rem) clamp(0.5rem, 1vw, 0.75rem);
-  border-radius: 20px;
+  border-radius: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
   font-size: clamp(0.65rem, 1.2vw, 0.75rem);
   font-weight: 500;
   align-self: flex-start;
@@ -147,7 +147,7 @@
   color: white;
   padding: 0.25rem 0.75rem;
   padding: clamp(0.2rem, 0.5vw, 0.25rem) clamp(0.5rem, 1vw, 0.75rem);
-  border-radius: 20px;
+  border-radius: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
   font-size: 0.75rem;
   font-size: clamp(0.65rem, 1.2vw, 0.75rem);
   font-weight: 600;
@@ -230,7 +230,7 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   margin-bottom: 1rem;
 }
 
@@ -252,7 +252,7 @@
 .filtro-group select {
   padding: 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   font-size: 0.875rem;
   transition: border-color 0.2s;
 }
@@ -281,7 +281,7 @@
   background: transparent;
   color: #1A66FF;
   border: 1px solid #1A66FF;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   font-weight: 500;
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
@@ -324,7 +324,7 @@
   padding: 2rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
   margin: 2rem 0;
 }
 
@@ -344,7 +344,7 @@
 .luz-card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -391,7 +391,7 @@
   color: white;
   font-size: 0.75rem;
   font-weight: 600;
-  border-radius: 20px;
+  border-radius: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -416,7 +416,7 @@
   margin-bottom: 1.5rem;
   padding: 1rem;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
   border-left: 4px solid #1A66FF;
 }
 
@@ -483,7 +483,7 @@
   gap: 0.75rem;
   padding: 0.75rem;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
 }
 
 .cor-dot {

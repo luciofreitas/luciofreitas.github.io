@@ -22,12 +22,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: clamp(23.25rem, 76.0vw, 25.0rem); /* ~372px a 400px - fluido */
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
+  width: clamp(2.35rem, 4.7vw, 2.5rem); /* ~37.6px a 40px - fluido */
+  height: clamp(2.35rem, 4.7vw, 2.5rem); /* ~37.6px a 40px - fluido */
   border: 4px solid #e2e8f0;
   border-left: 4px solid #1A66FF;
   border-radius: 50%;
@@ -45,7 +45,7 @@
   padding: 2rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
   margin: 2rem;
 }
 
@@ -67,14 +67,14 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   margin-bottom: 1rem;
 }
 
 .filtro-group {
   display: flex;
   flex-direction: column;
-  min-width: 150px;
+  min-width: clamp(8.8rem, 17.6vw, 9.375rem); /* ~140.8px a 150px - fluido */
   flex: 1;
 }
 
@@ -89,7 +89,7 @@
 .filtro-group select {
   padding: 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   font-size: 0.875rem;
   transition: border-color 0.2s;
 }
@@ -110,7 +110,7 @@
 }
 
 .busca-input {
-  min-width: 250px;
+  min-width: clamp(14.531rem, 47.5vw, 15.625rem); /* ~232px a 250px - fluido */
 }
 
 .btn-limpar-filtros {
@@ -118,7 +118,7 @@
   background: #6b7280;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -147,7 +147,7 @@
 .luz-card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -194,14 +194,14 @@
   color: white;
   font-size: 0.75rem;
   font-weight: 600;
-  border-radius: 20px;
+  border-radius: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .cor-indicator {
-  width: 16px;
-  height: 16px;
+  width: clamp(0.95rem, 1.9vw, 1rem); /* ~15.2px a 16px - fluido */
+  height: clamp(0.95rem, 1.9vw, 1rem); /* ~15.2px a 16px - fluido */
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -219,7 +219,7 @@
   margin-bottom: 1.5rem;
   padding: 1rem;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
   border-left: 4px solid #1A66FF;
 }
 
@@ -261,7 +261,7 @@
   gap: 1rem;
   padding: 0.75rem;
   background: #f1f5f9;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   font-size: 0.8rem;
   margin-top: 1rem;
 }
@@ -275,7 +275,7 @@
   border: 1px solid #f59e0b;
   color: #92400e;
   padding: 0.75rem;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   font-size: 0.875rem;
   margin-top: 1rem;
   display: flex;
@@ -326,12 +326,12 @@
   gap: 0.75rem;
   padding: 0.75rem;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
 }
 
 .cor-dot {
-  width: 20px;
-  height: 20px;
+  width: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
+  height: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
   border-radius: 50%;
   flex-shrink: 0;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -372,7 +372,7 @@
     /* Alinhar todo o conteúdo à esquerda no mobile */
     align-items: flex-start;
     /* diminuir largura do container em telas pequenas e centralizar o bloco */
-    max-width: 520px;
+    max-width: clamp(30.225rem, 98.8vw, 32.5rem); /* ~483px a 520px - fluido */
     margin-left: auto;
     margin-right: auto;
   }
