@@ -1,5 +1,6 @@
 import React, { useState, createContext, useContext, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/page-Login';
 import PageInicio from './pages/page-Inicio';
 import QuemSomos from './pages/page-QuemSomos';
@@ -16,6 +17,7 @@ import BuscarPeca from './pages/page-BuscarPeca';
 import PagePerfil from './pages/page-Perfil';
 import PageRecalls from './pages/page-Recalls';
 import PageGuias from './pages/page-Guias';
+import PageConfiguracoes from './pages/page-Configuracoes';
 import TabelaFIPE from './pages/page-TabelaFIPE';
 import ManutencaoPreventiva from './pages/page-ManutencaoPreventiva';
 import PecasOriginaisVsCompativeis from './pages/page-PecasOriginaisVsCompativeis';
@@ -55,10 +57,11 @@ export default function App() {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
-      <HashRouter>
-        <div className="app">
-          <Routes>
+    <ThemeProvider>
+      <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
+        <HashRouter>
+          <div className="app">
+            <Routes>
             {/* Rota raiz redireciona para catálogo se logado, ou página inicial se não logado */}
             <Route path="/" element={<HomeRedirect />} />
             
@@ -89,6 +92,11 @@ export default function App() {
                 <PagePerfil />
               </ProtectedRoute>
             } />
+            <Route path="/configuracoes" element={
+              <ProtectedRoute>
+                <PageConfiguracoes />
+              </ProtectedRoute>
+            } />
             <Route path="/tabela-fipe" element={
               <ProtectedRoute>
                 <TabelaFIPE />
@@ -97,8 +105,9 @@ export default function App() {
             {/* Redirecionamento da rota antiga para a nova */}
             <Route path="/perfil-teste" element={<Navigate to="/perfil" replace />} />
           </Routes>
-        </div>
-      </HashRouter>
-  </AuthContext.Provider>
+          </div>
+        </HashRouter>
+      </AuthContext.Provider>
+    </ThemeProvider>
   );
 }

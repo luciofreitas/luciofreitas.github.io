@@ -71,7 +71,7 @@ const MenuLogin = () => {
   };
 
   const handleConfiguracoesClick = () => {
-    navigate('/perfil');
+    navigate('/configuracoes');
   };
 
   const handleLoginSuccess = () => {
