@@ -108,31 +108,27 @@ function SearchForm({
             </button>
           </div>
           <div className="search-form-warnings-container">
-            {emptyFieldsWarning && (
+            {emptyFieldsWarning ? (
               <div className="search-form-inline-warning" role="alert">
                 ⚠️ {emptyFieldsWarning}
               </div>
-            )}
-            {warningMarca && (
+            ) : warningMarca ? (
               <div className="search-form-inline-warning" role="alert">
                 ⚠️ {warningMarca}
               </div>
-            )}
-            {warningModelo && (
+            ) : warningModelo ? (
               <div className="search-form-inline-warning" role="alert">
                 ⚠️ {warningModelo}
               </div>
-            )}
-            {warningAno && (
+            ) : warningAno ? (
               <div className="search-form-inline-warning" role="alert">
                 ⚠️ {warningAno}
               </div>
-            )}
-            {warningFabricante && (
+            ) : warningFabricante ? (
               <div className="search-form-inline-warning" role="alert">
                 ⚠️ {warningFabricante}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
         {error && <div className="search-form-error" role="status" aria-live="polite">{error}</div>}
