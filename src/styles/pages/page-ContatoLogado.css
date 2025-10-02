@@ -12,7 +12,6 @@
 }
 
 .contatologado-intro {
-.contatologado-intro {
   background: #F4F5F7;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
@@ -30,17 +29,22 @@
   line-height: 1.6;
 }
 
-.contato-logado-intro {
-  color: #172B4D;
+#contato-logado .contato-logado-info {
+  margin-top: 3rem;
+  color: #6b7280;
   line-height: 1.6;
-  margin-bottom: 2rem;
-  text-align: center;
+  text-align: center !important;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.contato-logado-info {
-  color: #172B4D;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  text-align: center;
+
+#contato-logado .contato-logado-info p {
+  text-align: center !important;
+  margin: 0.25rem auto !important;
+  display: block;
+  width: 100%;
 }
 
 .contato-logado-user-info {
@@ -167,11 +171,21 @@
     flex-direction: column;
     align-items: center;
   }
-  .contato-logado-info{
+  #contato-logado .contato-logado-info {
   margin-top: 3rem;
   color: #6b7280;
   text-align: center !important;
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  }
+
+  #contato-logado .contato-logado-info p {
+  text-align: center !important;
+  margin: 0.25rem auto !important;
+  display: block;
+  width: 100%;
   }
 }
 
@@ -185,6 +199,6 @@
   .contato-logado-user-info h3 { color: #172B4D; margin-bottom: 0.5rem; }
   .contato-logado-user-info p { color: #172B4D; margin-bottom: 0.25rem; }
   .contato-logado-form-wrapper { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
-  .contato-logado-info { margin-top: 1.5rem; color: #6b7280; text-align: center !important; line-height: 1.6; }
-}
+  #contato-logado .contato-logado-info { margin-top: 1.5rem; color: #6b7280; text-align: center !important; line-height: 1.6; display: flex; flex-direction: column; align-items: center; }
+  #contato-logado .contato-logado-info p { text-align: center !important; margin: 0.25rem auto !important; display: block; width: 100%; }
 }

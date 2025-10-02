@@ -3,15 +3,12 @@
 #contato {
   /* match QuemSomos spacing so title distance is identical */
   padding: 0 1rem 0rem 1rem; /* top padding removed per user request */
-  background: var(--bg-white);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: #FFFFFF;
 }
 
 .contato-intro {
-  background: var(--bg-gray-neutral);
-  border: 1px solid var(--border-gray);
+  background: #F4F5F7;
+  border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   padding: 1.5rem;
   margin: 0 auto 2rem auto;
@@ -21,7 +18,7 @@
 }
 
 .contato-intro p {
-  color: var(--text-secondary);
+  color: #64748b;
   margin: 0;
   font-size: 1.1rem;
   line-height: 1.6;
@@ -53,66 +50,28 @@
   margin-bottom: 2rem;
 }
 
-.contato-info {
+#contato .contato-info {
   margin-top: 3rem;
-  color: var(--text-secondary);
+  color: #6b7280;
   text-align: center !important;
   line-height: 1.6;
   width: 100%;
-  display: block;
-}
-
-.contato-info p {
-  text-align: center !important;
-  margin: 0.5rem auto !important;
-  display: block !important;
-  width: 100% !important;
-}
-
-.contato-info h3 {
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-  text-align: center !important;
-}
-
-/* Estilização do formulário - centralização */
-.contato-form-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  width: 100%;
-  margin: 0 auto;
 }
 
-.contato-input,
-.contato-textarea {
-  max-width: 32.5rem;
-  width: 100%;
-}
-
-.contato-submit {
-  background: var(--color-primary) !important;
-  color: var(--text-inverse) !important;
-  border: none !important;
-  border-radius: 0.5rem !important;
-  padding: 0.75rem 1.5rem !important;
-  cursor: pointer !important;
-  font-weight: 600 !important;
-  min-width: 16.25rem;
-  width: auto;
+#contato .contato-info p {
+  text-align: center !important;
+  margin: 0.25rem auto !important;
   display: block;
-  margin: 0.5rem auto 0 auto;
-  transition: background 0.2s ease;
+  width: 100%;
 }
 
-.contato-submit:hover {
-  background: var(--color-primary-dark) !important;
-}
-
-.contato-submit:disabled {
-  opacity: 0.6 !important;
-  cursor: not-allowed !important;
+.contato-info h3 {
+  color: #172B4D;
+  margin-bottom: 0.5rem;
+  text-align: center !important;
 }
 
 /* Responsividade */
@@ -125,10 +84,10 @@
 /* Full HD - 1920x1080 */
 @media (min-width: 118.75rem) and (max-width: 121.25rem) {
   /* Contato component centralized spacing */
-  .contato-form-wrapper { margin-top: 1.25rem; gap: 0.75rem; }
-  .contato-input, .contato-textarea { padding: 0.625rem 0.75rem; }
+  .contato-form-wrapper { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
+  .contato-input, .contato-textarea { width: 100%; max-width: 32.5rem; padding: 0.625rem 0.75rem; border-radius: 0.375rem; border: 0.062rem solid #ddd; box-sizing: border-box; }
   .contato-textarea { padding: 0.75rem; }
-  .contato-submit { margin-top: 0.5rem; }
+  .contato-submit { margin-top: 0.5rem; min-width: 16.25rem; width: auto; }
   .contato-info { margin-top: 1.75rem; color: #555; }
   
   /* Title styles now handled by .page-title class */

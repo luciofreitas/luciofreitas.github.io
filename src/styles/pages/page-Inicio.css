@@ -509,7 +509,7 @@ h1.page-title {
 }
 
 .stat-label {
-  color: #FFFFFF;
+  color: #172B4D;
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
@@ -517,12 +517,11 @@ h1.page-title {
 }
 
 .stat-description {
-  color: #FFFFFF;
+  color: #64748b;
   font-size: 0.95rem;
   line-height: 1.4;
   margin: 0;
   text-align: center;
-  opacity: 0.9;
 }
 
 /* ===== MEDIA QUERIES ===== */
@@ -590,5 +589,18 @@ h1.page-title {
   .reasons-grid { gap: 0 12rem; }
   .inicio-reasons { max-width: 80rem; }
   .reasons-col li { white-space: nowrap; overflow-wrap: normal; }
+}
+
+/* ===== DARK MODE ===== */
+.theme-dark .stat-label {
+  color: #ffffff;
+}
+
+.theme-dark .stat-description {
+  color: #ffffff;
+}
+
+.theme-dark .reasons-col li {
+  color: #ffffff;
 }
 

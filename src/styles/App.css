@@ -468,6 +468,11 @@ h2.page-title {
   color: #0052CC !important;
 }
 
+/* Dark mode override for page titles */
+.theme-dark h2.page-title {
+  color: #60a5fa !important; /* Blue-400 for better contrast in dark mode */
+}
+
 /* Keep a specific rule for pages with .menu-page to avoid double spacing on some breakpoints. */
 .menu-page .page-title { padding-top: 0 !important; }
 
@@ -1395,14 +1400,12 @@ html body {
 /* Força cor de texto consistente em todos os navegadores */
 h1, h3, h4, h5, h6 {
   color: var(--text-primary) !important;
-  -webkit-text-fill-color: #0052CC !important;
   -webkit-text-stroke: none !important;
 }
 
-/* Força todos os h2 (títulos de seção) para serem cinza escuro */
+/* Força todos os h2 (títulos de seção) para usarem a variável de cor que muda com o tema */
 h2 {
   color: var(--color-section-title) !important;
-  -webkit-text-fill-color: var(--color-section-title) !important;
   -webkit-text-stroke: none !important;
 }
 
