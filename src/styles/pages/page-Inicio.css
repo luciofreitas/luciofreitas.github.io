@@ -509,7 +509,7 @@ h1.page-title {
 }
 
 .stat-label {
-  color: #172B4D;
+  color: var(--text-inverse);
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
@@ -517,11 +517,12 @@ h1.page-title {
 }
 
 .stat-description {
-  color: #64748b;
+  color: var(--text-inverse);
   font-size: 0.95rem;
   line-height: 1.4;
   margin: 0;
   text-align: center;
+  opacity: 0.9;
 }
 
 /* ===== MEDIA QUERIES ===== */
