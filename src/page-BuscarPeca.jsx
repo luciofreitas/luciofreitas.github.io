@@ -382,16 +382,9 @@ export default function BuscarPeca() {
       fabricante: selectedFabricante 
     };
     try {
-    console.log('🔍 Buscando com filtros:', filtros);
     const data = await apiService.filtrarPecas(filtros);
-    console.log('📦 Resposta da API (objeto completo):', JSON.parse(JSON.stringify(data)));
-    console.log('📦 Chaves do objeto data:', Object.keys(data));
-    console.log('📦 data.results:', data.results);
-    console.log('📦 data.total:', data.total);
-    
-    // Tentar diferentes formas de acessar os resultados
-    const pecasFiltradas = data.results || data.data || data || [];
-    console.log('✅ Peças filtradas (tentativa):', pecasFiltradas.length, pecasFiltradas);
+    // A API retorna data.pecas, não data.results
+    const pecasFiltradas = data.pecas || [];
       setPecas(pecasFiltradas);
       if (pecasFiltradas.length === 0) {
         setError('Nenhuma peça encontrada para os filtros selecionados.');
