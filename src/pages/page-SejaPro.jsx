@@ -1,6 +1,6 @@
 import React from 'react';
-import MenuLogin from './components/MenuLogin';
-import './page-SejaPro.css';
+import MenuLogin from '../components/MenuLogin';
+import '../styles/pages/page-SejaPro.css';
 
 export default function SejaPro() {
   return (

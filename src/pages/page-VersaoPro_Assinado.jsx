@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Menu from './components/Menu';
-import { AuthContext } from './App';
-import './page-VersaoPro_Assinado.css';
+import Menu from '../components/Menu';
+import { AuthContext } from '../App';
+import '../styles/pages/page-VersaoPro_Assinado.css';
 
 export default function VersaoPro_Assinado() {
   const navigate = useNavigate();

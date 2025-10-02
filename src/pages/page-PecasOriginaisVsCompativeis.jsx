@@ -1,9 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Menu from './components/Menu';
-import MenuLogin from './components/MenuLogin';
-import { AuthContext } from './App';
-import './page-PecasOriginaisVsCompativeis.css';
+import Menu from '../components/Menu';
+import MenuLogin from '../components/MenuLogin';
+import { AuthContext } from '../App';
+import '../styles/pages/page-PecasOriginaisVsCompativeis.css';
 
 const PecasOriginaisVsCompativeis = () => {
   const { usuarioLogado } = useContext(AuthContext) || {};

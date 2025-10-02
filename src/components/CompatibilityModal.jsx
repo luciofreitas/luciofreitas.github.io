@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import useFocusTrap from './hooks/useFocusTrap';
+import useFocusTrap from '../hooks/useFocusTrap';
 
 export default function CompatibilityModal({ show, onClose, title, titleIcon, children }) {
 	const modalRef = useRef(null);

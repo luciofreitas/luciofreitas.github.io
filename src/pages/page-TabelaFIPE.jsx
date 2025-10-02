@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import Menu from './components/Menu';
-import './page-TabelaFIPE.css';
+import Menu from '../components/Menu';
+import '../styles/pages/page-TabelaFIPE.css';
 
 export default function TabelaFIPE() {
   const [searchTerm, setSearchTerm] = useState('');

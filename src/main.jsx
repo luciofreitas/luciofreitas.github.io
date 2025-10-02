@@ -1,8 +1,8 @@
 import React from 'react';
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './reset.css' // Reset CSS primeiro para garantir que não haja margens/paddings
-import './index.css'
+import './styles/reset.css' // Reset CSS primeiro para garantir que não haja margens/paddings
+import './styles/index.css'
 import './utils/add-region-roles';
 import App from './App.jsx'
 

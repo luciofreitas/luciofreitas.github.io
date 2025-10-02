@@ -1,9 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Menu from './components/Menu';
-import MenuLogin from './components/MenuLogin';
-import { AuthContext } from './App';
-import './page-ManutencaoPreventiva.css';
+import Menu from '../components/Menu';
+import MenuLogin from '../components/MenuLogin';
+import { AuthContext } from '../App';
+import '../styles/pages/page-ManutencaoPreventiva.css';
 
 const ManutencaoPreventiva = () => {
   const { usuarioLogado } = useContext(AuthContext) || {};

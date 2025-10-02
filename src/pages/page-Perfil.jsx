@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
-import Menu from './components/Menu';
-import PerfilForm from './components/PerfilForm';
-import { AuthContext } from './App';
-import './page-Perfil.css';
+import Menu from '../components/Menu';
+import PerfilForm from '../components/PerfilForm';
+import { AuthContext } from '../App';
+import '../styles/pages/page-Perfil.css';
 
 export default function PagePerfil() {
   const { usuarioLogado } = useContext(AuthContext);

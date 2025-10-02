@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Menu from './components/Menu';
-import ComponenteEstrelas from './components/ComponenteEstrelas';
-import { useAvaliacoes } from './hooks/useAvaliacoes';
-import { outrosGuias } from './data/glossarioData';
-import './page-Guias.css';
+import Menu from '../components/Menu';
+import ComponenteEstrelas from '../components/ComponenteEstrelas';
+import { useAvaliacoes } from '../hooks/useAvaliacoes';
+import { outrosGuias } from '../data/glossarioData';
+import '../styles/pages/page-Guias.css';
 
 function PageGuias() {
   const navigate = useNavigate();

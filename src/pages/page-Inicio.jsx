@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MenuLogin from './components/MenuLogin';
-import './page-Inicio.css';
+import MenuLogin from '../components/MenuLogin';
+import '../styles/pages/page-Inicio.css';
 import catalogo1 from '../imagens pagina Inicial/catalogo-1.jpg';
 import catalogo2 from '../imagens pagina Inicial/catalogo-2.jpg';
 import recall1 from '../imagens pagina Inicial/recall-1.jpg';

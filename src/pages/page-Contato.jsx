@@ -1,7 +1,7 @@
 import React from 'react';
-import MenuLogin from './components/MenuLogin';
-import ContatoForm from './components/ContatoForm';
-import './page-Contato.css';
+import MenuLogin from '../components/MenuLogin';
+import ContatoForm from '../components/ContatoForm';
+import '../styles/pages/page-Contato.css';
 
 export default function Contato() {
   return (
