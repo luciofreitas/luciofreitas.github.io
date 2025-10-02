@@ -74,6 +74,16 @@
   text-align: center !important;
 }
 
+/* Dark mode styles */
+.theme-dark .contato-intro {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .contato-intro p {
+  color: #ffffff;
+}
+
 /* Responsividade */
 @media (max-width: 48rem) {
   #contato {
