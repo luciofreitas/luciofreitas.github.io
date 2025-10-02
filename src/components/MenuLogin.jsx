@@ -209,13 +209,12 @@ const MenuLogin = () => {
               <ul className="menu-list">
                 {menuItems.map(item => (
                   <li key={item.id}>
-                    <a
-                      href={`#${item.id}`}
+                    <button
                       className={`menu-login-item ${item.id === 'nosso-projeto' ? 'nosso-projeto' : ''}`}
                       onClick={handleNavigation(item.onClick)}
                     >
                       {item.label}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -225,9 +224,9 @@ const MenuLogin = () => {
           {/* Desktop: GetStartedButton | Mobile: CircularArrowButton */}
           <div className="menu-login-right">
             {isMobile ? (
-              <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
+              <CircularArrowButton onClick={() => navigate('/login')} />
             ) : (
-              <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
+              <GetStartedButton onClick={() => navigate('/login')} />
             )}
           </div>
         </div>

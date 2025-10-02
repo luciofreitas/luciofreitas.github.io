@@ -181,7 +181,8 @@
 }
 
 /* Estilo para indicador acima do item do menu ao hover */
-a.menu-login-item {
+a.menu-login-item,
+button.menu-login-item {
   color: #ffffff !important; /* Branco para contrastar com fundo azul - aplicado globalmente */
   font-weight: 600 !important;
   font-size: 1rem;
@@ -194,6 +195,10 @@ a.menu-login-item {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: background 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .menu-login-item:hover {
