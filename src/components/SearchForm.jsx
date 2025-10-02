@@ -118,19 +118,21 @@ function SearchForm({
       </div>
 
       <div className="search-form-actions">
-        <div className="search-form-buttons">
-          <button className="search-form-btn search-form-btn-primary" type="submit" disabled={loading}>
-            {loading ? 'Buscando...' : 'Buscar'}
-          </button>
-          <button type="button" className="search-form-btn search-form-btn-secondary" onClick={onClear}>
-            Limpar
-          </button>
-        </div>
-        {emptyFieldsWarning && (
-          <div className="search-form-empty-warning" role="alert">
-            ⚠️ {emptyFieldsWarning}
+        <div className="search-form-buttons-row">
+          {emptyFieldsWarning && (
+            <div className="search-form-empty-warning" role="alert">
+              ⚠️ {emptyFieldsWarning}
+            </div>
+          )}
+          <div className="search-form-buttons">
+            <button className="search-form-btn search-form-btn-primary" type="submit" disabled={loading}>
+              {loading ? 'Buscando...' : 'Buscar'}
+            </button>
+            <button type="button" className="search-form-btn search-form-btn-secondary" onClick={onClear}>
+              Limpar
+            </button>
           </div>
-        )}
+        </div>
         {error && <div className="search-form-error" role="status" aria-live="polite">{error}</div>}
       </div>
     </form>
