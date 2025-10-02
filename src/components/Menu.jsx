@@ -210,7 +210,7 @@ function Menu() {
         {/* NOTE: mobile dropdown uses the replicated user-dropdown earlier; no separate mobile-menu-dropdown required */}
 
         <div className="menu-login-right">
-        {!usuarioLogado ? (
+          {!usuarioLogado ? (
             // SEMPRE CircularArrowButton - tanto mobile quanto desktop
             <CircularArrowButton onClick={handleNavigation(() => navigate('/login'))} />
           ) : (
@@ -219,7 +219,6 @@ function Menu() {
               isPro={proActive}
               onPerfil={handleNavigation(() => navigate('/perfil'))}
               onPro={handleNavigation(() => navigate(proActive ? '/versaoProAssinado' : '/versaoPro'))}
-              onConfiguracoes={handleNavigation(() => navigate('/configuracoes'))}
               onLogout={handleNavigation(() => {
                 // limpa estado/localStorage e redireciona para a tela de login
                 setUsuarioLogado(null);
