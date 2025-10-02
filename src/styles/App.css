@@ -272,7 +272,7 @@ html, body {
 .compat-modal {
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
+  background: var(--bg-white);
   border-radius: 0.75rem;
   overflow: visible;
   box-shadow: none;
@@ -519,13 +519,14 @@ h2.page-title {
     display: flex;
     justify-content: center; /* center the inner content horizontally */
     align-items: flex-start; /* default: start near top; pages can override */
-    /* background: #FFFFFF; */ /* Removido para permitir backgrounds específicos por página */
+    background: var(--bg-white); /* Usa variável para suportar Dark Mode */
   }
   .page-content {
     width: 100%;
     max-width: 88rem; /* generous max width, tune per project */
     /* padding removed to let .page-section control spacing */
     box-sizing: border-box;
+    background: var(--bg-white); /* Garante background em todo conteúdo */
   }
 
 /* Logo deve aparecer dentro dos menus */
@@ -875,8 +876,8 @@ body .page-wrapper.page-inicio,
 html body div.page-wrapper.page-inicio,
 html body .page-wrapper.page-inicio.page-inicio,
 .page-wrapper.page-inicio.page-inicio,div.page-wrapper.page-inicio{
-  background: #ffffff !important; /* force white like other pages */
-  background-color: #ffffff !important;
+  background: var(--bg-white) !important;
+  background-color: var(--bg-white) !important;
   background-image: none !important;
   min-height: 100vh !important;
 }
@@ -895,14 +896,14 @@ body.page-inicio-body {
   background-color: transparent !important;
 }
 
-/* Ensure other pages keep white background */
+/* Ensure other pages keep themed background */
 .page-wrapper:not(.page-inicio) {
-  background: #FFFFFF !important;
+  background: var(--bg-white) !important;
 }
 
-/* Default white background for body on non-inicio pages */
+/* Default background for body on non-inicio pages */
 body:not(:has(.page-inicio)) {
-  background: #FFFFFF !important;
+  background: var(--bg-white) !important;
 }
 
 /* Ensure legacy selectors that targeted .page-heading don't reintroduce gaps */
@@ -1049,8 +1050,8 @@ html body .page-wrapper.page-inicio.page-inicio,
 body div.page-wrapper.page-inicio,
 div.page-wrapper.page-inicio {
   background-image: none !important;
-  background: #ffffff !important;
-  background-color: #ffffff !important;
+  background: var(--bg-white) !important;
+  background-color: var(--bg-white) !important;
   min-height: 100vh !important;
   width: 100% !important;
 }
