@@ -278,8 +278,8 @@ export default function PerfilForm({
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn w-full login-submit" onClick={handleSave}>Salvar</button>
-            <button type="button" className="btn w-full btn-cancel" onClick={handleCancel}>Cancelar</button>
+            <button type="button" className="btn login-submit" onClick={handleSave}>Salvar</button>
+            <button type="button" className="btn btn-cancel" onClick={handleCancel}>Cancelar</button>
           </div>
       </form>
     </div>
