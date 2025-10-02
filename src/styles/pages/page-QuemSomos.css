@@ -26,6 +26,46 @@
   line-height: 1.6;
 }
 
+/* Dark mode styles */
+.theme-dark .quem-somos-intro {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .quem-somos-intro p {
+  color: #ffffff;
+}
+
+.theme-dark .quem-somos-body {
+  color: #ffffff;
+}
+
+.theme-dark .equipe-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .equipe-card:hover {
+  border-color: #FFAB00;
+  box-shadow: 0 8px 24px rgba(255, 171, 0, 0.25);
+}
+
+.theme-dark .equipe-nome {
+  color: #ffffff;
+}
+
+.theme-dark .equipe-cargo {
+  color: #60a5fa;
+}
+
+.theme-dark .equipe-bio {
+  color: #ffffff;
+}
+
+.theme-dark .equipe-section-title {
+  color: #60a5fa;
+}
+
 /* Title now uses .page-title class from App.css - keeping this for reference
 .quem-somos-title {
   color: #0052CC;

@@ -26,6 +26,20 @@
   line-height: 1.6;
 }
 
+/* Dark mode styles */
+.theme-dark .nossoprojeto-intro {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .nossoprojeto-intro p {
+  color: #ffffff;
+}
+
+.theme-dark .nosso-projeto-body {
+  color: #ffffff;
+}
+
 /* Title now uses .page-title class from App.css - keeping this for reference
 .nosso-projeto__title {
   color: #0052CC;

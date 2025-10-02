@@ -36,6 +36,51 @@
   line-height: 1.6;
 }
 
+/* Dark mode styles */
+.theme-dark .sejapro-intro {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .sejapro-intro p {
+  color: #ffffff;
+}
+
+.theme-dark .seja-pro-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .seja-pro-card.seja-pro-card-pro {
+  border-color: var(--color-highlight);
+  box-shadow: 0 0.25rem 0.75rem rgba(255, 171, 0, 0.25);
+}
+
+.theme-dark .seja-pro-card.seja-pro-card-pro:hover {
+  box-shadow: 0 0.5rem 1.5rem rgba(255, 171, 0, 0.35);
+}
+
+.theme-dark .seja-pro-card-title {
+  color: #60a5fa;
+}
+
+.theme-dark .seja-pro-card-lead {
+  color: #ffffff;
+}
+
+.theme-dark .seja-pro-features li {
+  color: #ffffff;
+}
+
+.theme-dark .seja-pro-cta {
+  background: #60a5fa;
+  color: #0f172a;
+}
+
+.theme-dark .seja-pro-cta:hover {
+  background: #3b82f6;
+}
+
 .seja-pro-cards {
   display: flex;
   gap: 1.5rem;
