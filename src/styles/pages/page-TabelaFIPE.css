@@ -2,15 +2,15 @@
 
 #tabela-fipe {
   padding: 0 1rem 2rem 1rem;
-  background: #FFFFFF;
+  background: var(--bg-white);
   max-width: 75rem;
   margin: 0 auto;
   text-align: center;
 }
 
 .fipe-intro {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-gray-neutral);
+  border: 1px solid var(--border-gray);
   border-radius: 0.75rem;
   padding: 1.5rem;
   margin: 0 auto 2rem auto;
@@ -20,7 +20,7 @@
 }
 
 .fipe-intro p {
-  color: #64748b;
+  color: var(--text-secondary);
   margin: 0;
   font-size: 1.1rem;
   line-height: 1.6;
@@ -32,11 +32,11 @@
   flex-wrap: wrap;
   gap: 1.5rem;
   align-items: flex-end;
-  background: #f9fafb;
+  background: var(--bg-gray-neutral);
   padding: 2rem;
   border-radius: 1rem;
   margin-bottom: 2rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-gray);
 }
 
 .filtro-group {
@@ -47,7 +47,7 @@
 }
 
 .filtro-label {
-  color: #172B4D;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 0.95rem;
   margin-bottom: 0.5rem;
@@ -56,25 +56,25 @@
 .filtro-input,
 .filtro-select {
   padding: 0.75rem 1rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-gray);
   border-radius: 0.5rem;
   font-size: 1rem;
   font-family: 'Roboto', sans-serif;
   transition: all 0.2s ease;
-  background: #FFFFFF;
+  background: var(--bg-white);
 }
 
 .filtro-input:focus,
 .filtro-select:focus {
   outline: none;
-  border-color: #0052CC;
-  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .filtro-btn-limpar {
   padding: 0.75rem 1.5rem;
-  background: #64748b;
-  color: #FFFFFF;
+  background: var(--text-muted);
+  color: var(--text-inverse);
   border: none;
   border-radius: 0.5rem;
   font-size: 1rem;
@@ -86,9 +86,9 @@
 }
 
 .filtro-btn-limpar:hover {
-  background: #475569;
+  background: var(--text-secondary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 /* Contador de Resultados */
@@ -99,21 +99,21 @@
 }
 
 .fipe-resultados-info p {
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
 .fipe-resultados-info strong {
-  color: #0052CC;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 /* Container da Tabela */
 .fipe-tabela-container {
   overflow-x: auto;
-  background: #FFFFFF;
+  background: var(--bg-white);
   border-radius: 1rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-gray);
   margin-bottom: 2rem;
 }
 
@@ -125,8 +125,8 @@
 }
 
 .fipe-tabela thead {
-  background: #0052CC;
-  color: #FFFFFF;
+  background: var(--color-primary);
+  color: var(--text-inverse);
 }
 
 .fipe-tabela thead th {
@@ -134,16 +134,16 @@
   text-align: left;
   font-weight: 600;
   font-size: 1rem;
-  border-bottom: 2px solid #003A99;
+  border-bottom: 2px solid var(--color-primary-dark);
 }
 
 .fipe-tabela tbody tr {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-gray);
   transition: background 0.2s ease;
 }
 
 .fipe-tabela tbody tr:hover {
-  background: #f8fafc;
+  background: var(--bg-gray-neutral);
 }
 
 .fipe-tabela tbody tr:last-child {
@@ -153,12 +153,12 @@
 .fipe-tabela tbody td {
   padding: 1rem;
   text-align: left;
-  color: #172B4D;
+  color: var(--text-primary);
 }
 
 .fipe-preco {
   font-weight: 600;
-  color: #0052CC;
+  color: var(--color-primary);
   font-size: 1.05rem;
 }
 
@@ -166,7 +166,7 @@
 .fipe-sem-resultados {
   text-align: center;
   padding: 4rem 2rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .fipe-sem-resultados p {
@@ -176,15 +176,15 @@
 
 /* Aviso sobre a Tabela */
 .fipe-aviso {
-  background: #fff7ed;
-  border: 2px solid #fed7aa;
+  background: var(--color-warning-bg);
+  border: 2px solid var(--color-warning-border);
   border-radius: 1rem;
   padding: 1.5rem;
   text-align: left;
 }
 
 .fipe-aviso p {
-  color: #92400e;
+  color: var(--color-warning-text);
   font-size: 0.95rem;
   line-height: 1.6;
   margin-bottom: 0.75rem;
@@ -196,7 +196,7 @@
 
 .fipe-atualizacao {
   font-style: italic;
-  color: #b45309;
+  color: var(--color-warning);
   font-size: 0.9rem !important;
 }
 
