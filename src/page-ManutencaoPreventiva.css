@@ -11,29 +11,6 @@
   padding: 6rem 2rem 4rem;
 }
 
-/* Botão Voltar */
-.voltar-guias {
-  margin-bottom: 1.5rem;
-}
-
-.btn-voltar-guias {
-  color: #1A66FF;
-  font-weight: 600;
-  font-size: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: color 0.2s;
-  background: none;
-  border: none;
-  padding: 0.5rem 0;
-}
-
-.btn-voltar-guias:hover {
-  color: #0052CC;
-}
-
 /* Header */
 .manutencao-header {
   text-align: center;
@@ -421,6 +398,34 @@
 /* Conclusão */
 .manutencao-conclusao {
   margin-bottom: 2rem;
+}
+
+/* Rodapé com botão voltar */
+.guia-footer-voltar {
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.guia-footer-voltar .guia-cta {
+  color: #1A66FF;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.guia-footer-voltar .guia-cta:hover {
+  color: #0052CC;
 }
 
 .conclusao-card {

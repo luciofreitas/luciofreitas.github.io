@@ -270,12 +270,6 @@ const PecasOriginaisVsCompativeis = () => {
       {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="pecas-container">
-        <div className="voltar-guias">
-          <button className="btn-voltar-guias" onClick={() => navigate('/guias')}>
-            ← Voltar para Guias
-          </button>
-        </div>
-
         {/* Header */}
         <div className="pecas-header">
           <div className="header-icon">⚙️</div>
@@ -469,6 +463,13 @@ const PecasOriginaisVsCompativeis = () => {
             </div>
           </div>
         </section>
+
+        {/* Rodapé com botão voltar */}
+        <div className="guia-footer-voltar">
+          <span className="guia-cta" onClick={() => navigate('/guias')}>
+            ← Voltar para Guias
+          </span>
+        </div>
       </div>
     </div>
   );
