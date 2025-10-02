@@ -249,18 +249,14 @@
 
 .btn-limpar-filtros {
   padding: 0.75rem 1.5rem;
-  background: #6b7280;
-  color: white;
-  border: none;
+  background: transparent;
+  color: #1A66FF;
+  border: 1px solid #1A66FF;
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: color 0.2s, border-color 0.2s;
   white-space: nowrap;
-}
-
-.btn-limpar-filtros:hover {
-  background: #4b5563;
 }
 
 .resultados-info {
@@ -334,7 +330,7 @@
   display: flex;
   align-items: center;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: white;
   border-bottom: 1px solid #e2e8f0;
 }
 
