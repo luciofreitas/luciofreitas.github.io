@@ -187,7 +187,7 @@ html, body {
 /* Make sure modal content appears as a centered card with a header and scrollable body */
 .modal-overlay {
   position: fixed;
-  top: var(--header-height); /* Start below fixed header using token */
+  top: 4.5rem; /* Start below fixed header (header height is 4.5rem) */
   left: 0;
   right: 0;
   bottom: 0;
