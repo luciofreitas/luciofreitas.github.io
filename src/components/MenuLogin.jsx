@@ -127,6 +127,7 @@ const MenuLogin = () => {
 
   const handleNavigation = (callback) => {
     return (e) => {
+      console.log('[MenuLogin] handleNavigation called', { event: e?.type, target: e?.target });
       if (e && typeof e.preventDefault === 'function') {
         e.preventDefault();
         e.stopPropagation();
@@ -225,9 +226,19 @@ const MenuLogin = () => {
           {/* Desktop: GetStartedButton | Mobile: CircularArrowButton */}
           <div className="menu-login-right">
             {isMobile ? (
-              <CircularArrowButton onClick={(e) => { e?.preventDefault?.(); e?.stopPropagation?.(); navigate('/login'); }} />
+              <CircularArrowButton onClick={(e) => { 
+                console.log('[MenuLogin] CircularArrowButton clicked', e); 
+                e?.preventDefault?.(); 
+                e?.stopPropagation?.(); 
+                navigate('/login'); 
+              }} />
             ) : (
-              <GetStartedButton onClick={(e) => { e?.preventDefault?.(); e?.stopPropagation?.(); navigate('/login'); }} />
+              <GetStartedButton onClick={(e) => { 
+                console.log('[MenuLogin] GetStartedButton clicked', e); 
+                e?.preventDefault?.(); 
+                e?.stopPropagation?.(); 
+                navigate('/login'); 
+              }} />
             )}
           </div>
         </div>
