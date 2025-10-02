@@ -384,13 +384,14 @@ export default function BuscarPeca() {
     try {
     console.log('🔍 Buscando com filtros:', filtros);
     const data = await apiService.filtrarPecas(filtros);
-    console.log('📦 Resposta da API:', data);
+    console.log('📦 Resposta da API (objeto completo):', JSON.parse(JSON.stringify(data)));
+    console.log('📦 Chaves do objeto data:', Object.keys(data));
     console.log('📦 data.results:', data.results);
-    console.log('📦 typeof data:', typeof data);
-    console.log('📦 Array.isArray(data):', Array.isArray(data));
-    console.log('📦 Array.isArray(data.results):', Array.isArray(data.results));
-    const pecasFiltradas = data.results || [];
-    console.log('✅ Peças filtradas:', pecasFiltradas.length, pecasFiltradas);
+    console.log('📦 data.total:', data.total);
+    
+    // Tentar diferentes formas de acessar os resultados
+    const pecasFiltradas = data.results || data.data || data || [];
+    console.log('✅ Peças filtradas (tentativa):', pecasFiltradas.length, pecasFiltradas);
       setPecas(pecasFiltradas);
       if (pecasFiltradas.length === 0) {
         setError('Nenhuma peça encontrada para os filtros selecionados.');
