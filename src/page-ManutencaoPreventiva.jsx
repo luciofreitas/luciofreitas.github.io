@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import Menu from './components/Menu.jsx';
-import MenuLogin from './components/MenuLogin.jsx';
-import { useAuth } from './context/AuthContext';
+import React, { useState, useContext } from 'react';
+import Menu from './components/Menu';
+import MenuLogin from './components/MenuLogin';
+import { AuthContext } from './App';
 import './page-ManutencaoPreventiva.css';
 
 const ManutencaoPreventiva = () => {
-  const { user } = useAuth();
+  const { usuarioLogado } = useContext(AuthContext) || {};
   const [expandedSection, setExpandedSection] = useState(null);
 
   const toggleSection = (section) => {
@@ -198,7 +198,7 @@ const ManutencaoPreventiva = () => {
 
   return (
     <div className="manutencao-page">
-      {user ? <Menu /> : <MenuLogin />}
+      {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="manutencao-container">
         <div className="manutencao-header">

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import Menu from './components/Menu.jsx';
-import MenuLogin from './components/MenuLogin.jsx';
-import { useAuth } from './context/AuthContext';
+import React, { useState, useContext } from 'react';
+import Menu from './components/Menu';
+import MenuLogin from './components/MenuLogin';
+import { AuthContext } from './App';
 import './page-PecasOriginaisVsCompativeis.css';
 
 const PecasOriginaisVsCompativeis = () => {
-  const { user } = useAuth();
+  const { usuarioLogado } = useContext(AuthContext) || {};
   const [selectedCategory, setSelectedCategory] = useState('todas');
 
   const comparacaoData = {
@@ -265,7 +265,7 @@ const PecasOriginaisVsCompativeis = () => {
 
   return (
     <div className="pecas-page">
-      {user ? <Menu /> : <MenuLogin />}
+      {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="pecas-container">
         {/* Header */}
