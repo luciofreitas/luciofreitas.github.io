@@ -64,11 +64,6 @@ function SearchForm({
             onChange={setSelectedMarca}
             placeholder=""
           />
-          {warningMarca && (
-            <div className="search-form-warning" role="alert">
-              ⚠️ {warningMarca}
-            </div>
-          )}
         </div>
         <div className="search-form-field">
           <label htmlFor="modelo">Modelo</label>
@@ -78,11 +73,6 @@ function SearchForm({
             onChange={setSelectedModelo}
             placeholder=""
           />
-          {warningModelo && (
-            <div className="search-form-warning" role="alert">
-              ⚠️ {warningModelo}
-            </div>
-          )}
         </div>
       </div>
 
@@ -95,11 +85,6 @@ function SearchForm({
             onChange={setSelectedAno}
             placeholder=""
           />
-          {warningAno && (
-            <div className="search-form-warning" role="alert">
-              ⚠️ {warningAno}
-            </div>
-          )}
         </div>
         <div className="search-form-field">
           <label htmlFor="fabricante">Fabricante</label>
@@ -109,21 +94,38 @@ function SearchForm({
             onChange={setSelectedFabricante}
             placeholder=""
           />
-          {warningFabricante && (
-            <div className="search-form-warning" role="alert">
-              ⚠️ {warningFabricante}
-            </div>
-          )}
         </div>
       </div>
 
       <div className="search-form-actions">
         <div className="search-form-buttons-row">
-          {emptyFieldsWarning && (
-            <div className="search-form-empty-warning" role="alert">
-              ⚠️ {emptyFieldsWarning}
-            </div>
-          )}
+          <div className="search-form-warnings-container">
+            {emptyFieldsWarning && (
+              <div className="search-form-inline-warning" role="alert">
+                ⚠️ {emptyFieldsWarning}
+              </div>
+            )}
+            {warningMarca && (
+              <div className="search-form-inline-warning" role="alert">
+                ⚠️ {warningMarca}
+              </div>
+            )}
+            {warningModelo && (
+              <div className="search-form-inline-warning" role="alert">
+                ⚠️ {warningModelo}
+              </div>
+            )}
+            {warningAno && (
+              <div className="search-form-inline-warning" role="alert">
+                ⚠️ {warningAno}
+              </div>
+            )}
+            {warningFabricante && (
+              <div className="search-form-inline-warning" role="alert">
+                ⚠️ {warningFabricante}
+              </div>
+            )}
+          </div>
           <div className="search-form-buttons">
             <button className="search-form-btn search-form-btn-primary" type="submit" disabled={loading}>
               {loading ? 'Buscando...' : 'Buscar'}
