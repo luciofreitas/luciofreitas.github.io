@@ -10,8 +10,7 @@
   border-radius: clamp(0.4rem, 1vw, 0.5rem) 0 0 clamp(0.4rem, 1vw, 0.5rem); /* rounded left side for grid layout */
   border: 0.062rem solid #e5e7eb;
   box-shadow: 0 clamp(0.3rem, 0.6vw, 0.375rem) clamp(0.9rem, 1.8vw, 1.125rem) rgba(15, 23, 42, 0.06);
-  overflow-y: auto; /* Permite scroll quando formulário cresce com erros */
-  max-height: 85vh; /* Limita altura máxima mas permite scroll */
+  /* Sem overflow - deixa a página rolar naturalmente */
 }
 
 .cadastro-title {
