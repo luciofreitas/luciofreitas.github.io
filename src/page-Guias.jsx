@@ -134,37 +134,38 @@ function PageGuias() {
                     onAvaliar={avaliarGuia}
                   />
                 </div>
-                
-                {expandedCard !== 'glossario' && (
+              </div>
+
+              {/* Footer fora do content - igual aos outros cards */}
+              {expandedCard !== 'glossario' && (
+                <div className="guia-footer">
+                  <span className="guia-cta" onClick={() => toggleCard('glossario')}>
+                    Ver Glossário Completo →
+                  </span>
+                </div>
+              )}
+
+              {/* Conteúdo expandido do Glossário */}
+              {expandedCard === 'glossario' && (
+                <>
+                  <GlossarioExpandido
+                    loading={loading}
+                    error={error}
+                    filtros={filtros}
+                    setFiltros={setFiltros}
+                    dadosFiltrados={dadosFiltrados}
+                    getPrioridadeColor={getPrioridadeColor}
+                    getCorHex={getCorHex}
+                    limparFiltros={limparFiltros}
+                  />
+                  
                   <div className="guia-footer">
                     <span className="guia-cta" onClick={() => toggleCard('glossario')}>
-                      Ver Glossário Completo →
+                      ← Minimizar Glossário
                     </span>
                   </div>
-                )}
-
-                {/* Conteúdo expandido do Glossário */}
-                {expandedCard === 'glossario' && (
-                  <>
-                    <GlossarioExpandido
-                      loading={loading}
-                      error={error}
-                      filtros={filtros}
-                      setFiltros={setFiltros}
-                      dadosFiltrados={dadosFiltrados}
-                      getPrioridadeColor={getPrioridadeColor}
-                      getCorHex={getCorHex}
-                      limparFiltros={limparFiltros}
-                    />
-                    
-                    <div className="guia-footer">
-                      <span className="guia-cta" onClick={() => toggleCard('glossario')}>
-                        ← Minimizar Glossário
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
+                </>
+              )}
             </div>
 
             {/* Outros Cards de Guias */}
@@ -193,7 +194,7 @@ function PageGuias() {
                 </div>
 
                 <div className="guia-footer">
-                  <span className="guia-cta" onClick={() => navigate(guia.rota)} style={{ cursor: 'pointer' }}>
+                  <span className="guia-cta" onClick={() => navigate(guia.rota)}>
                     Ver guia completo →
                   </span>
                 </div>
