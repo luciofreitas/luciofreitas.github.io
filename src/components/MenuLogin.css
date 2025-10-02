@@ -199,10 +199,19 @@ button.menu-login-item {
   border: none;
   cursor: pointer;
   font-family: inherit;
+  outline: none;
 }
 
 .menu-login-item:hover {
   background: rgba(255, 255, 255, 0.15); /* Hover semi-transparente */
+}
+
+.menu-login-item:focus {
+  outline: none;
+}
+
+.menu-login-item:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .menu-login-item::before {
