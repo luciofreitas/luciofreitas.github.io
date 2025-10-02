@@ -188,8 +188,8 @@ h1.page-title {
   font-size: 1.4rem; /* arrow size */
   cursor: pointer;
   color: #ffffff; /* white arrow */
-  width: 56px;
-  height: 56px;
+  width: clamp(3.3rem, 6.6vw, 3.5rem); /* ~52.8px a 56px - fluido */
+  height: clamp(3.3rem, 6.6vw, 3.5rem); /* ~52.8px a 56px - fluido */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -220,7 +220,7 @@ h1.page-title {
   transform: scale(0.85);
   transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 240ms ease;
   cursor: pointer;
-  height: 200px; /* uniform height for thumbs */
+  height: clamp(11.75rem, 23.5vw, 12.5rem); /* ~188px a 200px - altura uniforme fluida */
   display: flex;
   align-items: center; /* vertical center title and list */
   justify-content: flex-start; /* place title on the left and list to the right */
@@ -230,7 +230,7 @@ h1.page-title {
   max-width: 50%;
   transform: scale(1);
   opacity: 1;
-  height: 320px; /* larger center height */
+  height: clamp(18.75rem, 37.5vw, 20rem); /* ~300px a 320px - altura central maior fluida */
 }
 .inicio-carousel .carousel-item img {
   /* Use contain to avoid cropping; images will letterbox if aspect ratios differ */
@@ -250,9 +250,9 @@ h1.page-title {
   max-width: 50%;
   transform: scale(1);
   opacity: 1;
-  height: 320px; /* larger center height */
-  padding: 6px; /* spacing so border doesn't touch edges */
-  border-radius: 12px;
+  height: clamp(18.75rem, 37.5vw, 20rem); /* ~300px a 320px - altura central maior fluida */
+  padding: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - espaçamento fluido */
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
 }
 .inicio-carousel .carousel-item img {
   width: auto;
@@ -260,17 +260,17 @@ h1.page-title {
   height: 100%;
   object-fit: contain; /* do not crop images */
   object-position: center;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
   display: block;
   box-shadow: 0 12px 30px rgba(2,6,23,0.08);
   background: #ffffff; /* neutral background for letterboxing */
-  padding: 6px; /* small inner padding so edges don't touch */
+  padding: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - espaçamento interno fluido */
 }
 
 /* Yellow border + shadow for center image to match visual spec */
 .inicio-carousel .carousel-item.is-center img {
   border: 2px solid #f59e0b; /* thinner warm yellow/orange border */
-  padding: 4px; /* small inner padding so the thin border sits nicely */
+  padding: clamp(0.25rem, 0.5vw, 0.275rem); /* ~4px a 4.4px - padding interno fluido */
   box-shadow: 0 18px 40px rgba(245,158,11,0.12), 0 6px 18px rgba(2,6,23,0.06);
 }
 
@@ -283,8 +283,8 @@ h1.page-title {
   background: rgba(255,255,255,0.15);
   color: #fff;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: clamp(2.6rem, 5.2vw, 2.75rem); /* ~41.6px a 44px - fluido */
+  height: clamp(2.6rem, 5.2vw, 2.75rem); /* ~41.6px a 44px - fluido */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -298,10 +298,10 @@ h1.page-title {
 /* Full-width colored band under the carousel that matches the menu/header color */
 .inicio-band {
   background: #0052CC; /* same blue as MenuLogin header */
-  min-height: 220px; /* healthy visual block height */
+  min-height: clamp(12.9rem, 25.8vw, 13.75rem); /* ~206.4px a 220px - altura fluida */
   margin: 1.25rem auto; /* center the band and give top spacing */
   box-shadow: inset 0 6px 18px rgba(2,6,23,0.06);
-  padding: 24px 32px; /* more comfortable side padding */
+  padding: clamp(1.4rem, 2.8vw, 1.5rem) clamp(1.875rem, 3.75vw, 2rem); /* ~22.4px a 24px, ~30px a 32px - padding fluido */
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -310,7 +310,7 @@ h1.page-title {
   z-index: 1; /* keep below menu */
   max-width: 68.75rem; /* keep band width tied to content */
   width: auto;
-  border-radius: 12px; /* rounded ends */
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - bordas arredondadas fluidas */
 }
 
 /* Ensure the band spans the entire viewport (full-bleed) even when inside the centered .page-content.
