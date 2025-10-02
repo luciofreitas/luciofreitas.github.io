@@ -129,6 +129,7 @@ const MenuLogin = () => {
     return (e) => {
       if (e && typeof e.preventDefault === 'function') {
         e.preventDefault();
+        e.stopPropagation();
       }
       closeMobileMenu();
       callback();
@@ -224,9 +225,9 @@ const MenuLogin = () => {
           {/* Desktop: GetStartedButton | Mobile: CircularArrowButton */}
           <div className="menu-login-right">
             {isMobile ? (
-              <CircularArrowButton onClick={() => navigate('/login')} />
+              <CircularArrowButton onClick={(e) => { e?.preventDefault?.(); e?.stopPropagation?.(); navigate('/login'); }} />
             ) : (
-              <GetStartedButton onClick={() => navigate('/login')} />
+              <GetStartedButton onClick={(e) => { e?.preventDefault?.(); e?.stopPropagation?.(); navigate('/login'); }} />
             )}
           </div>
         </div>
