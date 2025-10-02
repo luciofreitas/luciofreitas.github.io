@@ -35,6 +35,7 @@ export default function BuscarPeca() {
   const [warningModelo, setWarningModelo] = useState('');
   const [warningAno, setWarningAno] = useState('');
   const [warningFabricante, setWarningFabricante] = useState('');
+  const [emptyFieldsWarning, setEmptyFieldsWarning] = useState('');
 
   // modal state
   const [showModal, setShowModal] = useState(false);
@@ -356,6 +357,19 @@ export default function BuscarPeca() {
 
   const handleSearch = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
+    
+    // Limpar mensagem de campos vazios ao tentar buscar
+    setEmptyFieldsWarning('');
+    
+    // Validar se pelo menos um campo foi preenchido
+    const temAlgumCampo = selectedGrupo || selectedCategoria || selectedMarca || 
+                          selectedModelo || selectedAno || selectedFabricante;
+    
+    if (!temAlgumCampo) {
+      setEmptyFieldsWarning('Por favor, preencha pelo menos um campo para realizar a busca.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     const filtros = { 
@@ -397,6 +411,7 @@ export default function BuscarPeca() {
     setWarningModelo('');
     setWarningAno('');
     setWarningFabricante('');
+    setEmptyFieldsWarning('');
   };
 
   return (
@@ -439,6 +454,7 @@ export default function BuscarPeca() {
               warningModelo={warningModelo}
               warningAno={warningAno}
               warningFabricante={warningFabricante}
+              emptyFieldsWarning={emptyFieldsWarning}
             />
         </div>
       </div>

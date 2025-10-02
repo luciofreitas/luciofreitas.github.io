@@ -28,7 +28,8 @@ function SearchForm({
   warningMarca,
   warningModelo,
   warningAno,
-  warningFabricante
+  warningFabricante,
+  emptyFieldsWarning
 }) {
   return (
   <form className="search-form" onSubmit={onSearch} aria-label="Formulário de busca de peças">
@@ -117,13 +118,20 @@ function SearchForm({
       </div>
 
       <div className="search-form-actions">
-        <button className="search-form-btn search-form-btn-primary" type="submit" disabled={loading}>
-          {loading ? 'Buscando...' : 'Buscar'}
-        </button>
-        <button type="button" className="search-form-btn search-form-btn-secondary" onClick={onClear}>
-          Limpar
-        </button>
-  {error && <div className="search-form-error" role="status" aria-live="polite">{error}</div>}
+        <div className="search-form-buttons">
+          <button className="search-form-btn search-form-btn-primary" type="submit" disabled={loading}>
+            {loading ? 'Buscando...' : 'Buscar'}
+          </button>
+          <button type="button" className="search-form-btn search-form-btn-secondary" onClick={onClear}>
+            Limpar
+          </button>
+        </div>
+        {emptyFieldsWarning && (
+          <div className="search-form-empty-warning" role="alert">
+            ⚠️ {emptyFieldsWarning}
+          </div>
+        )}
+        {error && <div className="search-form-error" role="status" aria-live="polite">{error}</div>}
       </div>
     </form>
   );
