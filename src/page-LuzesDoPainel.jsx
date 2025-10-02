@@ -89,12 +89,6 @@ function LuzesDoPainel() {
       {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="luzes-painel-container">
-        <div className="voltar-guias">
-          <button className="btn-voltar-guias" onClick={() => navigate('/guias')}>
-            ← Voltar para Guias
-          </button>
-        </div>
-
         {/* Header */}
         <div className="luzes-painel-header">
           <div className="header-icon">⚠️</div>
