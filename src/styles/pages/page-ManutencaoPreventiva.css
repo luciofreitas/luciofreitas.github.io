@@ -108,7 +108,7 @@
   text-align: center;
   color: #4a5568;
   margin-bottom: 2rem;
-  max-width: 800px;
+  max-width: clamp(32rem, 75vw, 50rem); /* ~512px a 800px - fluido */
   margin-left: auto;
   margin-right: auto;
   line-height: 1.6;
