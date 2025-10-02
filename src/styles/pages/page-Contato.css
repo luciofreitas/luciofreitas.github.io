@@ -55,11 +55,15 @@
   color: var(--text-secondary);
   text-align: center !important;
   line-height: 1.6;
+  width: 100%;
+  display: block;
 }
 
 .contato-info p {
   text-align: center !important;
-  margin: 0.5rem 0;
+  margin: 0.5rem auto !important;
+  display: block !important;
+  width: 100% !important;
 }
 
 .contato-info h3 {
