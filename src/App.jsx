@@ -22,6 +22,7 @@ import TabelaFIPE from './pages/page-TabelaFIPE';
 import ManutencaoPreventiva from './pages/page-ManutencaoPreventiva';
 import PecasOriginaisVsCompativeis from './pages/page-PecasOriginaisVsCompativeis';
 import LuzesDoPainel from './pages/page-LuzesDoPainel';
+import ThemeToggle from './components/ThemeToggle';
 import './styles/App.css';
 import './styles/CustomDropdown.css';
 
@@ -61,6 +62,7 @@ export default function App() {
       <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
         <HashRouter>
           <div className="app">
+            <ThemeToggle />
             <Routes>
             {/* Rota raiz redireciona para catálogo se logado, ou página inicial se não logado */}
             <Route path="/" element={<HomeRedirect />} />
