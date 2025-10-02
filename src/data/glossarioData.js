@@ -146,7 +146,8 @@ export const outrosGuias = [
     subtitulo: 'Cuidados essenciais para seu veículo',
     descricao: 'Guia completo sobre quando e como fazer a manutenção do seu carro.',
     icone: '🔧',
-    categoria: 'Manutenção'
+    categoria: 'Manutenção',
+    rota: '/manutencao-preventiva'
   },
   {
     id: 'pecasOriginais',
@@ -154,6 +155,7 @@ export const outrosGuias = [
     subtitulo: 'Entenda as diferenças e quando usar cada uma',
     descricao: 'Compare vantagens, desvantagens e quando optar por cada tipo de peça.',
     icone: '⚙️',
-    categoria: 'Peças'
+    categoria: 'Peças',
+    rota: '/pecas-originais-vs-compativeis'
   }
 ];
