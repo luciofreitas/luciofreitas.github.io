@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Menu from '../components/Menu';
 import '../styles/pages/page-Recalls.css';
-import recallsData from './recalls.json';
+import recallsData from '../data/recalls.json';
 
 function PageRecalls() {
   const [recalls, setRecalls] = useState([]);
