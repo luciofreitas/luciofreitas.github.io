@@ -391,3 +391,162 @@
     padding: 1.5rem;
   }
 }
+
+/* ===== DARK MODE ===== */
+.theme-dark .recalls-section {
+  background: #0f172a; /* Slate-900 */
+}
+
+.theme-dark .recalls-intro {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .recalls-intro p {
+  color: #94a3b8; /* Slate-400 */
+}
+
+/* Área de busca e filtros - dark mode */
+.theme-dark .recalls-search {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .search-field label {
+  color: #f1f5f9; /* Slate-100 */
+}
+
+.theme-dark .recalls-input,
+.theme-dark .recalls-select {
+  background: #0f172a; /* Slate-900 */
+  border-color: #475569; /* Slate-600 */
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .recalls-input:focus:not(:focus-visible),
+.theme-dark .recalls-select:focus:not(:focus-visible) {
+  border-color: #3b82f6; /* Blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.theme-dark .recalls-input:focus-visible,
+.theme-dark .recalls-select:focus-visible {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+  outline: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+.theme-dark .recalls-btn-secondary {
+  background: #334155; /* Slate-700 */
+  color: #f8fafc; /* Slate-50 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .recalls-btn-secondary:hover {
+  background: #475569; /* Slate-600 */
+}
+
+/* Resultados - dark mode */
+.theme-dark .results-header {
+  border-bottom-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .results-header h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+/* Cards de recall - dark mode */
+.theme-dark .recall-card {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .recall-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+.theme-dark .recall-title h4 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .recall-years {
+  color: #94a3b8; /* Slate-400 */
+}
+
+/* Informações do recall - dark mode */
+.theme-dark .recall-info {
+  background: #0f172a; /* Slate-900 */
+}
+
+.theme-dark .recall-component,
+.theme-dark .recall-date {
+  color: #e2e8f0; /* Slate-200 */
+}
+
+.theme-dark .recall-component strong,
+.theme-dark .recall-date strong {
+  color: #f8fafc; /* Slate-50 */
+}
+
+/* Descrições - dark mode */
+.theme-dark .recall-description h5,
+.theme-dark .recall-action h5 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .recall-description p,
+.theme-dark .recall-action p {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Detalhes - dark mode */
+.theme-dark .recall-details {
+  background: #0f172a; /* Slate-900 */
+}
+
+.theme-dark .recall-vin,
+.theme-dark .recall-source {
+  color: #e2e8f0; /* Slate-200 */
+}
+
+.theme-dark .recall-vin strong,
+.theme-dark .recall-source strong {
+  color: #f8fafc; /* Slate-50 */
+}
+
+/* ID do recall - dark mode */
+.theme-dark .recall-id {
+  color: #64748b; /* Slate-500 */
+  border-top-color: #334155; /* Slate-700 */
+}
+
+/* Sem resultados - dark mode */
+.theme-dark .no-results {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  color: #94a3b8; /* Slate-400 */
+}
+
+/* Rodapé - dark mode */
+.theme-dark .recalls-footer {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .important-info h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .important-info li {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+.theme-dark .important-info li::before {
+  color: #60a5fa; /* Blue-400 */
+}
+
+.theme-dark .important-info li strong {
+  color: #f8fafc; /* Slate-50 */
+}

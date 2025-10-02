@@ -647,3 +647,142 @@
     max-width: 100%;
   }
 }
+
+/* ===== DARK MODE ===== */
+.theme-dark .guias-intro {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .guias-intro p {
+  color: #94a3b8; /* Slate-400 */
+}
+
+/* Cards dos Guias - dark mode */
+.theme-dark .guia-card {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  border-left-color: #f59e0b; /* Mantém a borda laranja */
+  box-shadow: 0 clamp(0.2rem, 0.5vw, 0.25rem) clamp(1rem, 2vw, 1.25rem) rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .guia-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+}
+
+.theme-dark .guia-header {
+  background: #1e293b; /* Slate-800 */
+  border-bottom-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .guia-titulo {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .guia-subtitulo {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+.theme-dark .guia-descricao {
+  color: #94a3b8; /* Slate-400 */
+}
+
+.theme-dark .guia-footer {
+  background: #0f172a; /* Slate-900 */
+  border-top-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .guia-cta {
+  color: #60a5fa; /* Blue-400 */
+}
+
+/* Sistema de Avaliação - dark mode */
+.theme-dark .guia-avaliacao {
+  border-top-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .media-nota {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .total-votos {
+  color: #94a3b8; /* Slate-400 */
+}
+
+.theme-dark .voto-confirmado {
+  background: #14532d; /* Green-900 com opacidade */
+  color: #86efac; /* Green-300 */
+  border-color: #166534; /* Green-800 */
+}
+
+/* Filtros - dark mode */
+.theme-dark .filtros-container {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .busca-input {
+  background: #0f172a; /* Slate-900 */
+  border-color: #475569; /* Slate-600 */
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .busca-input::placeholder {
+  color: #64748b; /* Slate-500 */
+}
+
+.theme-dark .busca-input:focus {
+  border-color: #3b82f6; /* Blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.theme-dark .filtro-select {
+  background: #0f172a; /* Slate-900 */
+  border-color: #475569; /* Slate-600 */
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .filtro-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.theme-dark .filtro-label {
+  color: #f1f5f9; /* Slate-100 */
+}
+
+.theme-dark .btn-limpar-filtros {
+  background: #334155; /* Slate-700 */
+  color: #f8fafc; /* Slate-50 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .btn-limpar-filtros:hover {
+  background: #475569; /* Slate-600 */
+}
+
+/* Mensagem sem resultados - dark mode */
+.theme-dark .no-results {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  color: #94a3b8; /* Slate-400 */
+}
+
+.theme-dark .no-results p {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Seção de informação (Dica) - dark mode */
+.theme-dark .info-section {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .info-section h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .info-section p {
+  color: #94a3b8; /* Slate-400 */
+}
