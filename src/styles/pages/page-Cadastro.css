@@ -147,9 +147,8 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
 .submit:hover { filter: brightness(0.98); }
 
 @media (max-width: 420px) {
-  .cadastro-card { padding: 18px; }
-  .cadastro-card { max-width: 100%; }
-  .cadastro-title { font-size: 1.25rem; }
+  /* Padding e max-width já são fluidos na regra principal, não precisa sobrescrever */
+  .cadastro-title { font-size: clamp(1.1rem, 4vw, 1.25rem); } /* ~17.6px a 20px */
 }
 
 /* Align helper rows inside the form */
@@ -227,6 +226,9 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
   /* On mobile show the hero below the form instead of hiding it.
      Ensure both the form and hero occupy 100% of the stacked grid width */
   .cadastro-right{ display:block !important; order: 2; width:100%; }
-  .cadastro-card{ border-radius: clamp(0.4rem, 1vw, 0.5rem) clamp(0.4rem, 1vw, 0.5rem) 0 0; max-width: clamp(20rem, 90vw, 35rem); width:100%; }
+  .cadastro-card{ 
+    /* Apenas ajusta border-radius para mobile (stacked), max-width já é fluido na regra principal */
+    border-radius: clamp(0.4rem, 1vw, 0.5rem) clamp(0.4rem, 1vw, 0.5rem) 0 0; 
+  }
   .cadastro-hero{ min-height: clamp(12rem, 25vh, 13.75rem); border-radius: 0 0 clamp(0.4rem, 1vw, 0.5rem) clamp(0.4rem, 1vw, 0.5rem); width:100%; } /* ~192px a 220px */
 }
