@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Menu from './components/Menu';
 import MenuLogin from './components/MenuLogin';
 import { AuthContext } from './App';
@@ -6,6 +7,7 @@ import './page-PecasOriginaisVsCompativeis.css';
 
 const PecasOriginaisVsCompativeis = () => {
   const { usuarioLogado } = useContext(AuthContext) || {};
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('todas');
 
   const comparacaoData = {
@@ -268,6 +270,12 @@ const PecasOriginaisVsCompativeis = () => {
       {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="pecas-container">
+        <div className="voltar-guias">
+          <button className="btn-voltar-guias" onClick={() => navigate('/guias')}>
+            ← Voltar para Guias
+          </button>
+        </div>
+
         {/* Header */}
         <div className="pecas-header">
           <div className="header-icon">⚙️</div>

@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Menu from './components/Menu';
 import MenuLogin from './components/MenuLogin';
 import { AuthContext } from './App';
@@ -6,6 +7,7 @@ import './page-ManutencaoPreventiva.css';
 
 const ManutencaoPreventiva = () => {
   const { usuarioLogado } = useContext(AuthContext) || {};
+  const navigate = useNavigate();
   const [expandedSection, setExpandedSection] = useState(null);
 
   const toggleSection = (section) => {
@@ -201,6 +203,12 @@ const ManutencaoPreventiva = () => {
       {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="manutencao-container">
+        <div className="voltar-guias">
+          <button className="btn-voltar-guias" onClick={() => navigate('/guias')}>
+            ← Voltar para Guias
+          </button>
+        </div>
+
         <div className="manutencao-header">
           <div className="header-icon">🔧</div>
           <h1>Guia de Manutenção Preventiva</h1>

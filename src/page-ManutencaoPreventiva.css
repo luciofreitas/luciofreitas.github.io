@@ -11,6 +11,29 @@
   padding: 6rem 2rem 4rem;
 }
 
+/* Botão Voltar */
+.voltar-guias {
+  margin-bottom: 1.5rem;
+}
+
+.btn-voltar-guias {
+  color: #1A66FF;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  padding: 0.5rem 0;
+}
+
+.btn-voltar-guias:hover {
+  color: #0052CC;
+}
+
 /* Header */
 .manutencao-header {
   text-align: center;
