@@ -19,6 +19,7 @@ import PageGuias from './page-Guias';
 import TabelaFIPE from './page-TabelaFIPE';
 import ManutencaoPreventiva from './page-ManutencaoPreventiva';
 import PecasOriginaisVsCompativeis from './page-PecasOriginaisVsCompativeis';
+import LuzesDoPainel from './page-LuzesDoPainel';
 import './App.css';
 import './CustomDropdown.css';
 
@@ -81,6 +82,7 @@ export default function App() {
             <Route path="/glossario" element={<Navigate to="/guias" replace />} />
             <Route path="/manutencao-preventiva" element={<ManutencaoPreventiva />} />
             <Route path="/pecas-originais-vs-compativeis" element={<PecasOriginaisVsCompativeis />} />
+            <Route path="/luzes-do-painel" element={<LuzesDoPainel />} />
             <Route path="/nosso-projeto" element={<NossoProjeto />} />
             <Route path="/perfil" element={
               <ProtectedRoute>
