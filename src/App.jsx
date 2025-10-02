@@ -29,6 +29,12 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function HomeRedirect() {
+  const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
+  if (!authLoaded) return null;
+  return <Navigate to={usuarioLogado ? "/buscar-pecas" : "/inicio"} replace />;
+}
+
 export default function App() {
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [authLoaded, setAuthLoaded] = useState(false);
@@ -50,8 +56,8 @@ export default function App() {
       <HashRouter>
         <div className="app">
           <Routes>
-            {/* Rota raiz redireciona para página inicial pública */}
-            <Route path="/" element={<Navigate to="/inicio" replace />} />
+            {/* Rota raiz redireciona para catálogo se logado, ou página inicial se não logado */}
+            <Route path="/" element={<HomeRedirect />} />
             
             {/* Catálogo público - permite acesso sem login com funcionalidades limitadas */}
             <Route path="/buscar-pecas" element={<BuscarPeca />} />

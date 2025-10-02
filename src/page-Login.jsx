@@ -52,7 +52,7 @@ export default function Login() {
     setError('');
     if (setUsuarioLogado) setUsuarioLogado(usuario);
     try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
-    navigate('/perfil');
+    navigate('/buscar-pecas');
   }
 
   return (
@@ -99,7 +99,7 @@ export default function Login() {
                       const usuario = { id: user.uid, nome: user.displayName || '', email: user.email || '' };
                       try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
                       if (setUsuarioLogado) setUsuarioLogado(usuario);
-                      navigate('/perfil');
+                      navigate('/buscar-pecas');
                     }}>
                       {/* Colored Google G SVG */}
                       <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
