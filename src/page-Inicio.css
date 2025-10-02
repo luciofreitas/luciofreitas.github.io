@@ -307,7 +307,7 @@ h1.page-title {
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 1100; /* put above header (1000) and many menu controls */
+  z-index: 1; /* keep below menu */
   max-width: 68.75rem; /* keep band width tied to content */
   width: auto;
   border-radius: 12px; /* rounded ends */
@@ -321,7 +321,7 @@ h1.page-title {
   box-sizing: border-box;
   background: #0052CC !important;
   background-color: #0052CC !important;
-  z-index: 1100 !important; /* sit above page background and header so title is visible */
+  z-index: 1 !important; /* keep below menu */
   margin-left: auto !important;
   margin-right: auto !important;
   left: 0 !important;
@@ -364,7 +364,7 @@ h1.page-title {
   font-size: 1.5rem;
   font-weight: 600;
   position: relative;
-  z-index: 1101; /* ensure text is above band and other controls */
+  z-index: 2; /* ensure text is above band but below menu */
   text-shadow: 0 1px 2px rgba(0,0,0,0.35);
 }
 
