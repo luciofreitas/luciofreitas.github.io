@@ -87,6 +87,12 @@ export default function BuscarPeca() {
     setWarningModelo('');
     setWarningAno('');
     setWarningFabricante('');
+    // Limpar aviso de campos vazios quando usuário começar a preencher
+    const temAlgumCampo = selectedGrupo || selectedCategoria || selectedMarca || 
+                          selectedModelo || selectedAno || selectedFabricante;
+    if (temAlgumCampo) {
+      setEmptyFieldsWarning('');
+    }
 
     // Verificar se há incompatibilidade entre fabricante e outros campos
     if (selectedFabricante && todasPecas.length > 0) {
@@ -368,6 +374,11 @@ export default function BuscarPeca() {
     
     if (!temAlgumCampo) {
       setEmptyFieldsWarning('Por favor, preencha pelo menos um campo para realizar a busca.');
+      // Limpar avisos de incompatibilidade quando mostrar aviso de campos vazios
+      setWarningMarca('');
+      setWarningModelo('');
+      setWarningAno('');
+      setWarningFabricante('');
       return;
     }
     
