@@ -197,7 +197,7 @@ class ApiService {
             p.manufacturer && p.manufacturer.toLowerCase().includes(filtros.fabricante.toLowerCase())
           );
         }
-        return { results: filtered };
+        return { pecas: filtered, total: filtered.length };
       } else {
         console.error('ApiService: Failed to load /data/parts_db.json:', response.status);
       }
@@ -205,7 +205,7 @@ class ApiService {
       console.warn('Error filtering local data:', error);
     }
 
-    return { results: [] };
+    return { pecas: [], total: 0 };
   }
 
   async getPecaById(id) {
