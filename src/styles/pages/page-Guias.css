@@ -27,7 +27,11 @@
 /* Grid de Cards dos Guias */
 .guias-grid {
   display: grid;
+  /* Fallback para navegadores que não suportam min() */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  /* Versão moderna com min() para melhor responsividade */
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1.5rem;
   gap: clamp(1rem, 2vw, 1.5rem);
   margin-bottom: 2rem;
 }
@@ -36,6 +40,7 @@
   background: white;
   border: 1px solid #e2e8f0;
   border-left: 4px solid #f59e0b;
+  border-radius: 0.75rem;
   border-radius: clamp(0.75rem, 1.5vw, 1rem);
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
@@ -47,6 +52,15 @@
 .guia-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+@supports not (width: clamp(1rem, 2vw, 1.5rem)) {
+  .guias-grid {
+    gap: 1.5rem;
+  }
+  .guia-card {
+    border-radius: 0.75rem;
+  }
 }
 
 /* Sistema de Avaliação */
@@ -127,6 +141,7 @@
 }
 
 .guia-icone {
+  font-size: 2.5rem;
   font-size: clamp(2rem, 4vw, 2.5rem);
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
@@ -134,8 +149,10 @@
 .guia-categoria {
   background: #0052CC;
   color: white;
+  padding: 0.25rem 0.75rem;
   padding: clamp(0.2rem, 0.5vw, 0.25rem) clamp(0.5rem, 1vw, 0.75rem);
   border-radius: 20px;
+  font-size: 0.75rem;
   font-size: clamp(0.65rem, 1.2vw, 0.75rem);
   font-weight: 600;
   text-transform: uppercase;
@@ -147,6 +164,7 @@
 }
 
 .guia-titulo {
+  font-size: 1.25rem;
   font-size: clamp(1.1rem, 2.5vw, 1.25rem);
   font-weight: 700;
   color: #1e293b;
@@ -154,6 +172,7 @@
 }
 
 .guia-subtitulo {
+  font-size: 1rem;
   font-size: clamp(0.9rem, 2vw, 1rem);
   font-weight: 600;
   color: #475569;
@@ -162,6 +181,7 @@
 
 .guia-descricao {
   color: #64748b;
+  font-size: 0.95rem;
   font-size: clamp(0.85rem, 1.8vw, 0.95rem);
   line-height: 1.6;
   margin: 0;
@@ -221,7 +241,7 @@
 .filtro-group {
   display: flex;
   flex-direction: column;
-  min-width: 150px;
+  min-width: clamp(8rem, 15vw, 9.375rem); /* ~128px a 150px */
   flex: 1;
 }
 
@@ -257,7 +277,7 @@
 }
 
 .busca-input {
-  min-width: 250px;
+  min-width: clamp(12rem, 25vw, 15.625rem); /* ~192px a 250px */
 }
 
 .btn-limpar-filtros {
@@ -285,14 +305,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
+  min-height: clamp(10rem, 20vh, 12.5rem); /* ~160px a 200px */
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e2e8f0;
-  border-left: 4px solid #1A66FF;
+  width: clamp(2rem, 4vw, 2.5rem); /* ~32px a 40px */
+  height: clamp(2rem, 4vw, 2.5rem);
+  border: clamp(0.2rem, 0.4vw, 0.25rem) solid #e2e8f0;
+  border-left: clamp(0.2rem, 0.4vw, 0.25rem) solid #1A66FF;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -320,9 +340,9 @@
 /* Grid de Luzes */
 .luzes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(18rem, 35vw, 21.875rem)), 1fr)); /* ~288px a 350px */
+  gap: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: clamp(1.5rem, 2.5vw, 2rem);
 }
 
 .luz-card {
@@ -381,11 +401,11 @@
 }
 
 .cor-indicator {
-  width: 16px;
-  height: 16px;
+  width: clamp(0.875rem, 1.5vw, 1rem); /* ~14px a 16px */
+  height: clamp(0.875rem, 1.5vw, 1rem);
   border-radius: 50%;
   border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0,0,0,0.1);
 }
 
 /* Conteúdo do Card das Luzes */
@@ -457,8 +477,8 @@
 
 .cores-legend {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(12rem, 25vw, 15.625rem)), 1fr)); /* ~192px a 250px */
+  gap: clamp(0.75rem, 1.5vw, 1rem);
 }
 
 .cor-item {
@@ -471,11 +491,11 @@
 }
 
 .cor-dot {
-  width: 20px;
-  height: 20px;
+  width: clamp(1rem, 2vw, 1.25rem); /* ~16px a 20px */
+  height: clamp(1rem, 2vw, 1.25rem);
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0,0,0,0.1);
 }
 
 .disclaimer {
@@ -524,6 +544,18 @@
 }
 
 /* Responsividade */
+@media (max-width: 1200px) {
+  .guias-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .guias-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .guias-grid {
     grid-template-columns: 1fr;
@@ -537,6 +569,19 @@
   
   .guia-icone {
     margin-bottom: 0.25rem;
+    font-size: 2.5rem;
+  }
+  
+  .guia-titulo {
+    font-size: 1.25rem;
+  }
+  
+  .guia-subtitulo {
+    font-size: 1rem;
+  }
+  
+  .guia-descricao {
+    font-size: 0.95rem;
   }
   
   /* Sistema de Avaliação no Mobile */

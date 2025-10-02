@@ -31,9 +31,9 @@
 }
 
 .luzes-header .header-subtitle {
-  font-size: 1.125rem;
+  font-size: clamp(1rem, 2vw, 1.125rem); /* ~16px a 18px */
   color: #4a5568;
-  max-width: 800px;
+  max-width: clamp(28rem, 70vw, 50rem); /* ~448px a 800px */
   margin: 0 auto;
   line-height: 1.6;
 }
@@ -49,10 +49,10 @@
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e2e8f0;
-  border-left: 4px solid #1A66FF;
+  width: clamp(2rem, 4vw, 2.5rem); /* ~32px a 40px */
+  height: clamp(2rem, 4vw, 2.5rem);
+  border: clamp(0.2rem, 0.4vw, 0.25rem) solid #e2e8f0;
+  border-left: clamp(0.2rem, 0.4vw, 0.25rem) solid #1A66FF;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -96,10 +96,10 @@
 
 .filtro-group {
   flex: 1;
-  min-width: 200px;
+  min-width: clamp(10rem, 20vw, 12.5rem); /* ~160px a 200px */
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: clamp(0.4rem, 0.8vw, 0.5rem);
 }
 
 .filtro-group label {
@@ -222,11 +222,11 @@
 }
 
 .cor-indicator {
-  width: 20px;
-  height: 20px;
+  width: clamp(1rem, 2vw, 1.25rem); /* ~16px a 20px */
+  height: clamp(1rem, 2vw, 1.25rem);
   border-radius: 50%;
   border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
 }
 
 /* Conteúdo da Luz */
@@ -312,9 +312,9 @@
 
 .cores-legend {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(12rem, 25vw, 15.625rem)), 1fr)); /* ~192px a 250px */
+  gap: clamp(0.75rem, 1.5vw, 1rem);
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
 }
 
 .cor-item {
@@ -328,11 +328,11 @@
 }
 
 .cor-dot {
-  width: 24px;
-  height: 24px;
+  width: clamp(1.25rem, 2.5vw, 1.5rem); /* ~20px a 24px */
+  height: clamp(1.25rem, 2.5vw, 1.5rem);
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
 }
 
 .cor-item span {

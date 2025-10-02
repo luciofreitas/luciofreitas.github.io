@@ -78,7 +78,7 @@
 .nosso-projeto-body,
 .quem-somos-content,
 .nosso-projeto-content {
-  font-size: 16px !important;
+  font-size: clamp(0.875rem, 1.8vw, 1rem) !important; /* ~14px a 16px */
   line-height: 1.8 !important;
   font-weight: 400 !important;
   max-width: 50rem !important;

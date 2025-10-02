@@ -6,9 +6,9 @@
 }
 
 .manutencao-container {
-  max-width: 1200px;
+  max-width: clamp(48rem, 90vw, 75rem); /* ~768px a 1200px */
   margin: 0 auto;
-  padding: 6rem 2rem 4rem;
+  padding: clamp(4rem, 7vw, 6rem) clamp(1rem, 2.5vw, 2rem) clamp(3rem, 5vw, 4rem);
 }
 
 /* Header */
@@ -38,9 +38,9 @@
 }
 
 .header-subtitle {
-  font-size: 1.125rem;
+  font-size: clamp(1rem, 2vw, 1.125rem); /* ~16px a 18px */
   color: #4a5568;
-  max-width: 800px;
+  max-width: clamp(32rem, 75vw, 50rem); /* ~512px a 800px */
   margin: 0 auto;
   line-height: 1.6;
 }
