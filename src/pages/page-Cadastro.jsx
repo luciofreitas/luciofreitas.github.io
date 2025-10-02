@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ToggleCar from './components/ToggleCar';
-import MenuLogin from './components/MenuLogin';
-import './page-Cadastro.css';
+import ToggleCar from '../components/ToggleCar';
+import MenuLogin from '../components/MenuLogin';
+import '../styles/pages/page-Cadastro.css';
 
 export default function PageCadastro() {
   const [nome, setNome] = useState('');

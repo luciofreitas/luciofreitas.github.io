@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
-import Menu from './components/Menu';
-import ContatoForm from './components/ContatoForm';
-import { AuthContext } from './App';
-import './page-ContatoLogado.css';
+import Menu from '../components/Menu';
+import ContatoForm from '../components/ContatoForm';
+import { AuthContext } from '../App';
+import '../styles/pages/page-ContatoLogado.css';
 
 export default function ContatoLogado() {
   const { usuarioLogado } = useContext(AuthContext) || {};

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './CustomDropdown.css';
+import '../styles/CustomDropdown.css';
 
 export default function CustomDropdown({ options = [], value, onChange, placeholder = '', disabled = false }) {
   const [open, setOpen] = useState(false);

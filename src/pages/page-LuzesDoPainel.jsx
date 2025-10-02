@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Menu from './components/Menu';
-import MenuLogin from './components/MenuLogin';
-import { AuthContext } from './App';
-import ComponenteEstrelas from './components/ComponenteEstrelas';
-import { useAvaliacoes } from './hooks/useAvaliacoes';
-import { apiService } from './utils/apiService';
-import { glossarioMockData } from './data/glossarioData';
-import './page-LuzesDoPainel.css';
+import Menu from '../components/Menu';
+import MenuLogin from '../components/MenuLogin';
+import { AuthContext } from '../App';
+import ComponenteEstrelas from '../components/ComponenteEstrelas';
+import { useAvaliacoes } from '../hooks/useAvaliacoes';
+import { apiService } from '../utils/apiService';
+import { glossarioMockData } from '../data/glossarioData';
+import '../styles/pages/page-LuzesDoPainel.css';
 
 function LuzesDoPainel() {
   const { usuarioLogado } = useContext(AuthContext) || {};

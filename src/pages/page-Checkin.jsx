@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
-import Menu from './components/Menu';
-import { AuthContext } from './App';
-import './page-Checkin.css';
+import Menu from '../components/Menu';
+import { AuthContext } from '../App';
+import '../styles/pages/page-Checkin.css';
 
 export default function Checkin() {
   const [name, setName] = useState('');

@@ -1,6 +1,6 @@
 import React from 'react';
-import MenuLogin from './components/MenuLogin';
-import './page-NossoProjeto.css';
+import MenuLogin from '../components/MenuLogin';
+import '../styles/pages/page-NossoProjeto.css';
 
 export default function NossoProjeto() {
   return (

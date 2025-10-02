@@ -1,6 +1,6 @@
 import React from 'react';
-import MenuLogin from './components/MenuLogin';
-import './page-QuemSomos.css';
+import MenuLogin from '../components/MenuLogin';
+import '../styles/pages/page-QuemSomos.css';
 
 export default function QuemSomos() {
   return (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Menu from './components/Menu';
-import { apiService } from './utils/apiService';
-import './page-GlossarioAutomotivo.css';
+import Menu from '../components/Menu';
+import { apiService } from '../utils/apiService';
+import '../styles/pages/page-GlossarioAutomotivo.css';
 
 function PageGlossarioAutomotivo() {
   const [luzes, setLuzes] = useState([]);
