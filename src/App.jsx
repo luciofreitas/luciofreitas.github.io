@@ -50,11 +50,9 @@ export default function App() {
       <HashRouter>
         <div className="app">
           <Routes>
-            <Route path="/" element={
-              <ProtectedRoute>
-                <BuscarPeca />
-              </ProtectedRoute>
-            } />
+            {/* Rota raiz redireciona para página inicial pública */}
+            <Route path="/" element={<Navigate to="/inicio" replace />} />
+            
             {/* Catálogo público - permite acesso sem login com funcionalidades limitadas */}
             <Route path="/buscar-pecas" element={<BuscarPeca />} />
 
