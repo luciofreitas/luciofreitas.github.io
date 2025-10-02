@@ -5,7 +5,7 @@
   box-sizing: border-box;
   /* Não usa width:100% pois está dentro de grid-template-columns: 1fr 1fr */
   min-width: 0; /* Permite que o grid item encolha se necessário */
-  padding: clamp(1.5rem, 3vw, 2rem); /* ~24px a 32px - fluido */
+  padding: clamp(1.5rem, 2vw, 1.75rem); /* ~24px a 28px - fluido controlado */
   background: #FFFFFF;
   border-radius: clamp(0.4rem, 1vw, 0.5rem) 0 0 clamp(0.4rem, 1vw, 0.5rem); /* rounded left side for grid layout */
   border: 0.062rem solid #e5e7eb;
@@ -14,18 +14,18 @@
 
 .cadastro-title {
   margin: 0 0 clamp(0.3rem, 0.6vw, 0.375rem) 0;
-  font-size: clamp(1.25rem, 2.5vw, 1.5rem); /* ~20px a 24px - fluido */
+  font-size: clamp(1.25rem, 2vw, 1.4rem); /* ~20px a 22.4px - fluido controlado */
   color: #111827;
 }
 
 .cadastro-sub {
   margin: 0 0 clamp(0.8rem, 1.6vw, 1rem) 0;
   color: #6b7280;
-  font-size: clamp(0.85rem, 1.5vw, 0.95rem); /* ~14px a 15px - fluido */
+  font-size: clamp(0.85rem, 1.2vw, 0.9rem); /* ~13.6px a 14.4px - fluido controlado */
 }
 
 .cadastro-form .field {
-  margin-bottom: clamp(1rem, 2vw, 1.125rem); /* ~16px a 18px - espaçamento fluido entre campos */
+  margin-bottom: clamp(1rem, 1.5vw, 1.1rem); /* ~16px a 17.6px - espaçamento controlado */
 }
 
 .label {
@@ -37,10 +37,10 @@
 
 .input {
   width: 100%;
-  padding: clamp(0.7rem, 1.4vw, 0.875rem) clamp(0.7rem, 1.4vw, 0.875rem); /* ~11px a 14px - fluido */
+  padding: clamp(0.7rem, 1vw, 0.8rem) clamp(0.7rem, 1vw, 0.8rem); /* ~11px a 12.8px - fluido controlado */
   border: 1px solid #e5e7eb;
   border-radius: clamp(0.4rem, 1vw, 0.5rem);
-  font-size: clamp(0.9rem, 1.6vw, 0.98rem); /* ~14px a 16px - fluido */
+  font-size: clamp(0.9rem, 1.2vw, 0.95rem); /* ~14.4px a 15.2px - fluido controlado */
   color: #111827;
   background: #fff;
   box-sizing: border-box;
@@ -179,12 +179,12 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
   width:100%;
   display:flex;
   justify-content:center;
-  padding: 0 clamp(1rem, 2.5vw, 1.5rem); /* ~16px a 24px - fluido */
+  padding: 0 clamp(0.5rem, 1vw, 1rem); /* ~8px a 16px - padding mínimo */
   background: #ffffff;
 }
 .cadastro-card-grid{
   width:100%;
-  max-width: clamp(40rem, 80vw, 60rem); /* ~640px a 960px - REDUZIDO para não ficar tão largo */
+  max-width: clamp(38rem, 75vw, 58rem); /* ~608px a 928px - MAIS ESTREITO para caber em 1366px */
   display:grid;
   grid-template-columns: 1fr 1fr; /* Cada coluna fica com 50% do grid */
   gap: 0;
@@ -192,7 +192,7 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
   border-radius: clamp(0.4rem, 1vw, 0.5rem);
   overflow: hidden;
   box-shadow: 0 clamp(0.3rem, 0.6vw, 0.375rem) clamp(1rem, 2vw, 1.5rem) rgba(15,23,42,0.06);
-  max-height: clamp(28rem, 65vh, 38rem); /* ~448px a 608px - ajustado */
+  max-height: clamp(32rem, 75vh, 42rem); /* ~512px a 672px - aumentado para não cortar conteúdo */
   align-items: stretch;
   grid-auto-rows: 1fr;
 }
