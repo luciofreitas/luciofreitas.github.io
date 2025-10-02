@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Menu from './components/Menu';
+import MenuLogin from './components/MenuLogin';
 import { AuthContext } from './App';
 import { apiService } from './utils/apiService';
 import CompatibilityModal from './CompatibilityModal';
@@ -381,8 +382,11 @@ export default function BuscarPeca() {
       fabricante: selectedFabricante 
     };
     try {
+    console.log('🔍 Buscando com filtros:', filtros);
     const data = await apiService.filtrarPecas(filtros);
+    console.log('📦 Resposta da API:', data);
     const pecasFiltradas = data.results || [];
+    console.log('✅ Peças filtradas:', pecasFiltradas.length, pecasFiltradas);
       setPecas(pecasFiltradas);
       if (pecasFiltradas.length === 0) {
         setError('Nenhuma peça encontrada para os filtros selecionados.');
@@ -392,6 +396,7 @@ export default function BuscarPeca() {
         setShowModal(true);
       }
     } catch (err) {
+      console.error('❌ Erro na busca:', err);
       setError(err.message || 'Erro ao buscar peças');
     } finally {
       setLoading(false);
@@ -416,7 +421,8 @@ export default function BuscarPeca() {
 
   return (
     <>
-      <Menu />
+      {/* Menu dinâmico: MenuLogin para visitantes, Menu para usuários logados */}
+      {usuarioLogado ? <Menu /> : <MenuLogin />}
       <div className="page-wrapper menu-page">
   <div className="page-content buscarpeca-section">
               <h2 className="page-title">Catálogo de Peças</h2>
