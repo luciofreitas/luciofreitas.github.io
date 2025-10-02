@@ -1,6 +1,6 @@
 import React from 'react';
 import './SearchForm.css';
-import CustomDropdown from '../CustomDropdown';
+import CustomDropdown from './CustomDropdown';
 
 function SearchForm({
   selectedGrupo,
