@@ -146,6 +146,17 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
 
 .submit:hover { filter: brightness(0.98); }
 
+.submit:focus,
+.submit:focus-visible,
+.submit:active {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important; /* Sombra azul suave ao invés de borda preta */
+}
+
+.submit:active {
+  transform: translateY(1px); /* Leve movimento ao clicar */
+}
+
 @media (max-width: 420px) {
   /* Padding e max-width já são fluidos na regra principal, não precisa sobrescrever */
   .cadastro-title { font-size: clamp(1.1rem, 4vw, 1.25rem); } /* ~17.6px a 20px */
