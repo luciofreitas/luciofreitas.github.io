@@ -491,8 +491,8 @@ h1.page-title {
 
 .inicio-stat-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 8px 24px rgba(0, 82, 204, 0.15);
-  border-color: #0052CC;
+  box-shadow: 0 8px 24px rgba(255, 171, 0, 0.15);
+  border-color: #FFAB00;
 }
 
 .stat-icon {
