@@ -25,14 +25,14 @@
 }
 
 .cadastro-form .field {
-  margin-bottom: 18px; /* increased spacing between fields */
+  margin-bottom: clamp(1rem, 2vw, 1.125rem); /* ~16px a 18px - espaçamento fluido entre campos */
 }
 
 .label {
   display: block;
-  font-size: 0.85rem;
+  font-size: clamp(0.8rem, 1.4vw, 0.85rem); /* ~12.8px a 13.6px - fluido */
   color: #374151;
-  margin-bottom: 6px;
+  margin-bottom: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
 }
 
 .input {
@@ -58,27 +58,27 @@
 }
 
 .error {
-  margin-top: 6px;
+  margin-top: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   color: #b91c1c;
-  font-size: 0.85rem;
+  font-size: clamp(0.8rem, 1.4vw, 0.85rem); /* ~12.8px a 13.6px - fluido */
 }
 
 .form-error {
-  margin-bottom: 12px;
-  padding: 10px 12px;
+  margin-bottom: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
+  padding: clamp(0.6rem, 1.2vw, 0.65rem) clamp(0.7rem, 1.4vw, 0.75rem); /* ~9.6px a 10.4px, ~11.2px a 12px - fluido */
   background: #fff1f2;
   border: 1px solid #fecaca;
   color: #b91c1c;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
 }
 
 .success {
-  margin-top: 12px;
-  padding: 10px 12px;
+  margin-top: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
+  padding: clamp(0.6rem, 1.2vw, 0.65rem) clamp(0.7rem, 1.4vw, 0.75rem); /* ~9.6px a 10.4px, ~11.2px a 12px - fluido */
   background: #ecfeff;
   border: 1px solid #bbf7d0;
   color: #065f46;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
 }
 
 .password-row {
@@ -89,7 +89,7 @@
 
 .field-password .input {
   flex: 1 1 auto;
-  padding-right: 52px; /* space for the car toggle inside the input */
+  padding-right: clamp(3rem, 5vw, 3.25rem); /* ~48px a 52px - espaço para toggle - fluido */
 }
 
 .car-toggle {
@@ -101,9 +101,9 @@
   align-items: center;
   justify-content: center;
   width: clamp(2rem, 3.5vw, 2.25rem); /* ~32px a 36px */
-  height: 36px;
+  height: clamp(2rem, 3.5vw, 2.25rem); /* ~32px a 36px - fluido */
   background: transparent;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   cursor: pointer;
   z-index: 2;
 }
@@ -133,13 +133,13 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
 
 .submit {
   width: 100%;
-  padding: 12px 16px; /* taller button */
+  padding: clamp(0.7rem, 1.4vw, 0.75rem) clamp(0.9rem, 1.8vw, 1rem); /* ~11.2px a 12px, ~14.4px a 16px - fluido */
   border: none;
   background: #2563eb;
   color: #fff;
   font-weight: 600;
-  border-radius: 10px;
-  margin-top: 12px;
+  border-radius: clamp(0.55rem, 1.1vw, 0.625rem); /* ~8.8px a 10px - fluido */
+  margin-top: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   cursor: pointer;
 }
 
@@ -153,18 +153,18 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
 /* Align helper rows inside the form */
 .cadastro-forgot-row{
   text-align: right;
-  margin-bottom: 8px;
+  margin-bottom: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
 }
 .cadastro-forgot-row .login-forgot-link{
   color: #2563eb;
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 1.5vw, 0.9rem); /* ~13.6px a 14.4px - fluido */
   text-decoration: none;
 }
 .cadastro-forgot-row .login-forgot-link:hover{ text-decoration: underline; }
 
 .cadastro-signup-row{
   text-align: center;
-  margin-top: 8px;
+  margin-top: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
 }
 .cadastro-signup-row .signup-link{
   color: #2563eb;

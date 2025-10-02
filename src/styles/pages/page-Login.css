@@ -188,7 +188,7 @@
 }
 .login-forgot-link {
   color: #0052CC;
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 1.5vw, 0.9rem); /* ~13.6px a 14.4px - fluido */
   text-decoration: none;
 }
 .login-forgot-link:hover {
@@ -208,7 +208,7 @@
   color: #0052CC;
   text-decoration: none !important; /* no underline by default */
   display: inline-block;
-  margin-top: 6px;
+  margin-top: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   cursor: pointer;
 }
 .signup-link:hover,
@@ -242,7 +242,7 @@
   color: #0052CC;
   /* keep text-decoration none here to ensure hover-only underline */
   text-decoration: none !important;
-  font-size: 0.95rem;
+  font-size: clamp(0.9rem, 1.6vw, 0.95rem); /* ~14.4px a 15.2px - fluido */
 }
 .signup-link:hover,
 .signup-link:focus-visible {
@@ -291,7 +291,7 @@
   display: flex;
   align-items: flex-start; /* align to top to remove big vertical gap */
   justify-content: center;
-  padding: 0 20px; /* horizontal padding only */
+  padding: 0 clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - padding horizontal fluido */
   background: #ffffff; /* keep background white */
 }
 
@@ -355,7 +355,7 @@
 .login-form-inner { width: 100%; max-width: clamp(18rem, 45vw, 23.75rem); } /* ~288px a 380px */
 .login-form-inner .page-heading { font-size: clamp(1.5rem, 3vw, 2rem) !important; line-height: 1.05 !important; } /* ~24px a 32px */
 .login-form .login-submit { background: #0052CC; color: #fff; width: 100%; padding: clamp(0.4rem, 1vw, 0.5rem) clamp(0.6rem, 1.2vw, 0.75rem); border-radius: clamp(0.4rem, 1vw, 0.5rem); border: none; font-size: clamp(0.8rem, 1.5vw, 0.875rem); line-height: 1.1; }
-.password-field { display: flex; align-items: center; gap: 8px; }
+.password-field { display: flex; align-items: center; gap: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */ }
 .password-input { flex: 1 1 auto; }
 
 /* slight rounding on right side to match screenshot */
@@ -370,10 +370,10 @@
 }
 
 /* Bridge styles so login's new markup uses cadastro form styles */
-.field { margin-bottom: 12px; }
-.label { display: block; font-size: 0.85rem; color: #374151; margin-bottom: 6px; }
+.field { margin-bottom: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */ }
+.label { display: block; font-size: clamp(0.8rem, 1.4vw, 0.85rem); /* ~12.8px a 13.6px - fluido */; color: #374151; margin-bottom: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */ }
 .input { width: 100%; padding: clamp(0.5rem, 1.2vw, 0.625rem) clamp(0.6rem, 1.5vw, 0.75rem); border: 1px solid #e5e7eb; border-radius: clamp(0.3rem, 0.8vw, 0.375rem); font-size: clamp(0.85rem, 1.5vw, 0.95rem); color: #111827; background: #fff; box-sizing: border-box; }
-.input { margin-bottom: 6px; }
+.input { margin-bottom: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */ }
 .password-field .input { flex: 1 1 auto; padding-right: 2.75rem !important; }
 .submit, .login-submit { width: 100%; padding: clamp(0.5rem, 1.2vw, 0.625rem) clamp(0.7rem, 1.5vw, 0.875rem); border: none; background: #2563eb; color: #fff; font-weight: 600; border-radius: clamp(0.4rem, 1vw, 0.5rem); margin-top: clamp(0.4rem, 1vw, 0.5rem); cursor: pointer; }
 
@@ -381,16 +381,16 @@
 .social-login-row{
   display:flex;
   justify-content:center;
-  margin-top:12px;
+  margin-top: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
 }
 .google-btn{
   display:inline-flex;
   align-items:center;
-  gap:8px;
+  gap: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
   background:#fff;
   border:1px solid #e5e7eb;
-  padding:8px 12px;
-  border-radius:8px;
+  padding: clamp(0.45rem, 0.9vw, 0.5rem) clamp(0.7rem, 1.4vw, 0.75rem); /* ~7.2px a 8px, ~11.2px a 12px - fluido */
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
   cursor:pointer;
   color:#111827;
 }
@@ -416,5 +416,5 @@
 @media (max-width: 900px) {
   .login-two-column { grid-template-columns: 1fr; }
   .login-right { display: none; }
-  .login-left { padding: 24px; }
+  .login-left { padding: clamp(1.4rem, 2.8vw, 1.5rem); /* ~22.4px a 24px - fluido */ }
 }
