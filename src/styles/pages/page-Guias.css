@@ -9,25 +9,26 @@
 .guias-intro {
   background: #F4F5F7;
   border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
+  border-radius: clamp(0.65rem, 1.2vw, 0.75rem);
+  padding: clamp(1rem, 2.5vw, 1.5rem);
   margin-bottom: 2rem;
   text-align: center;
   display: inline-block;
+  max-width: 90%;
 }
 
 .guias-intro p {
   color: #64748b;
   margin: 0;
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
   line-height: 1.6;
 }
 
 /* Grid de Cards dos Guias */
 .guias-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
   margin-bottom: 2rem;
 }
 
@@ -35,11 +36,17 @@
   background: white;
   border: 1px solid #e2e8f0;
   border-left: 4px solid #f59e0b;
-  border-radius: 12px;
+  border-radius: clamp(0.75rem, 1.5vw, 1rem);
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
   cursor: pointer;
   position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.guia-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
 }
 
 /* Sistema de Avaliação */
@@ -57,24 +64,26 @@
 
 .estrelas-container {
   display: flex;
-  gap: 0.25rem;
+  gap: clamp(0.15rem, 0.4vw, 0.25rem);
   align-items: center;
 }
 
 .estrela {
   transition: color 0.2s, transform 0.1s;
   user-select: none;
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
 }
 
 .estrela-interativa:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 .avaliacao-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: clamp(0.75rem, 1.6vw, 0.875rem);
+  flex-wrap: wrap;
 }
 
 .media-nota {
@@ -89,9 +98,9 @@
 .voto-confirmado {
   background: #ecfdf5;
   color: #065f46;
-  padding: 0.25rem 0.75rem;
+  padding: clamp(0.2rem, 0.4vw, 0.25rem) clamp(0.5rem, 1vw, 0.75rem);
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: clamp(0.65rem, 1.2vw, 0.75rem);
   font-weight: 500;
   align-self: flex-start;
   border: 1px solid #a7f3d0;
@@ -112,40 +121,40 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
   background: white;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .guia-icone {
-  font-size: 2.5rem;
+  font-size: clamp(2rem, 4vw, 2.5rem);
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .guia-categoria {
   background: #0052CC;
   color: white;
-  padding: 0.25rem 0.75rem;
+  padding: clamp(0.2rem, 0.5vw, 0.25rem) clamp(0.5rem, 1vw, 0.75rem);
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: clamp(0.65rem, 1.2vw, 0.75rem);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .guia-content {
-  padding: 1.5rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
 }
 
 .guia-titulo {
-  font-size: 1.25rem;
+  font-size: clamp(1.1rem, 2.5vw, 1.25rem);
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 0.5rem 0;
 }
 
 .guia-subtitulo {
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   font-weight: 600;
   color: #475569;
   margin: 0 0 1rem 0;
@@ -153,13 +162,13 @@
 
 .guia-descricao {
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
   line-height: 1.6;
   margin: 0;
 }
 
 .guia-footer {
-  padding: 1rem 1.5rem;
+  padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
   display: flex;
@@ -170,7 +179,7 @@
 .guia-cta {
   color: #1A66FF;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -180,6 +189,10 @@
   background: none;
   border: none;
   padding: 0;
+}
+
+.guia-cta:hover {
+  color: #0052CC;
 }
 
 /* Conteúdo expandido do Glossário */
@@ -514,17 +527,16 @@
 @media (max-width: 768px) {
   .guias-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
   
   .guia-header {
     flex-direction: column;
     text-align: center;
-    gap: 1rem;
+    gap: 0.75rem;
   }
   
   .guia-icone {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
   }
   
   /* Sistema de Avaliação no Mobile */
@@ -543,6 +555,10 @@
   
   .voto-confirmado {
     align-self: center;
+  }
+  
+  .guias-intro {
+    max-width: 95%;
   }
   
   .filtros-row {
@@ -591,26 +607,14 @@
 
 @media (max-width: 480px) {
   .guias-grid {
-    padding: 0 0.5rem;
+    padding: 0;
   }
   
-  .guia-content {
-    padding: 1rem;
+  .guia-card:hover {
+    transform: none;
   }
   
   .guias-intro {
-    padding: 1rem;
-  }
-  
-  .info-section {
-    padding: 1.5rem;
-  }
-  
-  .luz-content {
-    padding: 1rem;
-  }
-  
-  .filtros-row {
-    padding: 1rem;
+    max-width: 100%;
   }
 }
