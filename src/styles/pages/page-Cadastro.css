@@ -1,11 +1,15 @@
 /* Page wrapper styles moved to .page-wrapper/.page-content or handled by outer grid */
 
 .cadastro-card {
+  /* Mesclando todas as propriedades aqui */
+  box-sizing: border-box;
   width: 100%;
   max-width: clamp(20rem, 55vw, 32.5rem); /* ~320px a 520px - fluido */
-  background: #ffffff;
-  border-radius: clamp(0.4rem, 1vw, 0.5rem);
+  flex: 0 1 clamp(18rem, 40vw, 22.5rem); /* ~288px a 360px - fluido */
   padding: clamp(1.5rem, 3vw, 2rem); /* ~24px a 32px - fluido */
+  background: #FFFFFF;
+  border-radius: clamp(0.4rem, 1vw, 0.5rem) 0 0 clamp(0.4rem, 1vw, 0.5rem); /* rounded left side for grid layout */
+  border: 0.062rem solid #e5e7eb;
   box-shadow: 0 clamp(0.3rem, 0.6vw, 0.375rem) clamp(0.9rem, 1.8vw, 1.125rem) rgba(15, 23, 42, 0.06);
 }
 
@@ -195,18 +199,7 @@ button.car-toggle:focus, button.car-toggle:focus-visible {
   grid-auto-rows: 1fr;
 }
 
-/* Left column (form) should occupy full left cell and keep white background */
-.cadastro-card{
-  box-sizing: border-box;
-  flex: 0 1 22.5rem;
-  max-width: none;
-  width: 100%;
-  padding: 24px;
-  background: #FFFFFF;
-  /* mirror right hero rounded corners on desktop: round left side */
-  border-radius: 8px 0 0 8px;
-  border: 0.062rem solid #e5e7eb;
-}
+/* Left column (form) styling is defined above in the main .cadastro-card rule */
 
 .cadastro-right{ display:flex; align-items: stretch; justify-content: stretch; padding:0; }
 .cadastro-hero{
