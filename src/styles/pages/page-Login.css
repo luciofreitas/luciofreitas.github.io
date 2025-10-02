@@ -50,7 +50,7 @@
 
 /* Títulos dos cards Entrar/Registrar - compatibilidade cross-browser */
 .login-section-title {
-  margin: 0 0 6px 0;
+  margin: 0 0 clamp(0.35rem, 0.7vw, 0.4rem) 0;
   font-size: 1.5rem;
   color: #111827;
 }
@@ -401,7 +401,7 @@
   width: clamp(2.5rem, 4vw, 2.75rem); /* ~40px a 44px */
   height: clamp(2.5rem, 4vw, 2.75rem);
   padding:0;
-  border-radius:9999px;
+  border-radius: clamp(581.192rem, 1899.8vw, 624.938rem); /* ~9299px a 9999px - fluido */
   display:inline-flex;
   align-items:center;
   justify-content:center;

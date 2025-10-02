@@ -175,7 +175,7 @@
 /* Badges de risco */
 .risk-badge {
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: clamp(581.192rem, 1899.8vw, 624.938rem); /* ~9299px a 9999px - fluido */
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -200,7 +200,7 @@
 /* Badges de status */
 .status-badge {
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: clamp(581.192rem, 1899.8vw, 624.938rem); /* ~9299px a 9999px - fluido */
   font-size: 0.8rem;
   font-weight: 600;
 }

@@ -42,7 +42,7 @@
 .loading-container {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   padding: 3rem;
   text-align: center;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -66,7 +66,7 @@
 .error-container {
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   padding: 3rem;
   text-align: center;
 }
@@ -90,7 +90,7 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   margin-bottom: 1rem;
 }
 
@@ -112,7 +112,7 @@
 .filtro-group select {
   padding: 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   font-size: 0.875rem;
   transition: border-color 0.2s;
   width: 100%;
@@ -129,7 +129,7 @@
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 600;
@@ -161,7 +161,7 @@
 .no-results {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   padding: 3rem;
   text-align: center;
   color: #64748b;
@@ -173,7 +173,7 @@
   background: white;
   border: 1px solid #e2e8f0;
   border-left: 4px solid #f59e0b;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
 }
@@ -213,7 +213,7 @@
 .prioridade-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
@@ -294,7 +294,7 @@
 .glossario-footer-section {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -323,7 +323,7 @@
   gap: 0.75rem;
   padding: 0.75rem;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
   border: 1px solid #e2e8f0;
 }
 
@@ -345,7 +345,7 @@
   background: #fef3c7;
   border-left: 4px solid #f59e0b;
   padding: 1rem 1.5rem;
-  border-radius: 8px;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
 }
 
 .disclaimer p {
@@ -358,7 +358,7 @@
 .guia-footer-voltar {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   padding: 1rem 1.5rem;
   display: flex;
   justify-content: flex-start;
