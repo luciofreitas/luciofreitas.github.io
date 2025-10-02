@@ -108,10 +108,13 @@
   text-align: center;
   color: #4a5568;
   margin-bottom: 2rem;
-  max-width: clamp(32rem, 75vw, 50rem); /* ~512px a 800px - fluido */
+  max-width: clamp(48rem, 85vw, 70rem); /* ~768px a 1120px - largura aumentada para texto em uma linha */
   margin-left: auto;
   margin-right: auto;
   line-height: 1.6;
+  white-space: nowrap; /* Mantém texto em uma linha */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Adiciona ... se texto for muito longo */
 }
 
 .cronograma-grid {
@@ -458,6 +461,162 @@
   display: block;
   margin-bottom: 0.25rem;
   font-size: 1.0625rem;
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+
+/* Background da página */
+.theme-dark .manutencao-page {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Header */
+.theme-dark .manutencao-header h1 {
+  color: #f8fafc !important; /* Slate-50 */
+  -webkit-text-fill-color: #f8fafc !important;
+}
+
+.theme-dark .header-subtitle {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Cards e Conteúdo */
+.theme-dark .intro-card,
+.theme-dark .cronograma-card,
+.theme-dark .legenda-prioridades,
+.theme-dark .dica-card,
+.theme-dark .custos-tabela {
+  background: #1e293b; /* Slate-800 */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .intro-card h2,
+.theme-dark .manutencao-cronograma h2,
+.theme-dark .manutencao-dicas h2,
+.theme-dark .manutencao-custos h2 {
+  color: #60a5fa !important; /* Blue-400 */
+  -webkit-text-fill-color: #60a5fa !important;
+}
+
+.theme-dark .section-description {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Benefit Items */
+.theme-dark .benefit-item h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .benefit-item p {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Cronograma Cards */
+.theme-dark .cronograma-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+}
+
+.theme-dark .cronograma-header {
+  border-bottom-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .cronograma-header h3 {
+  color: #60a5fa !important; /* Blue-400 */
+  -webkit-text-fill-color: #60a5fa !important;
+}
+
+.theme-dark .itens-count {
+  background: #475569; /* Slate-600 */
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .cronograma-lista li {
+  color: #cbd5e1; /* Slate-300 */
+  border-bottom-color: #334155; /* Slate-700 */
+}
+
+/* Legenda */
+.theme-dark .legenda-prioridades h4 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .legenda-item {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Dicas Cards */
+.theme-dark .dica-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+}
+
+.theme-dark .dica-card h3 {
+  color: #60a5fa !important; /* Blue-400 */
+  -webkit-text-fill-color: #60a5fa !important;
+}
+
+.theme-dark .dica-descricao {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+.theme-dark .dica-lista li {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Tabela de Custos */
+.theme-dark .tabela-header {
+  background: #0f172a; /* Slate-900 - mais escuro para destaque */
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .tabela-row {
+  border-bottom-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .tabela-row:hover {
+  background: #334155; /* Slate-700 */
+}
+
+.theme-dark .col-servico {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .col-faixa {
+  color: #60a5fa; /* Blue-400 */
+}
+
+.theme-dark .col-periodicidade {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Aviso de Custos */
+.theme-dark .custos-aviso {
+  background: #1e293b; /* Slate-800 */
+  border-left-color: #60a5fa; /* Blue-400 */
+}
+
+.theme-dark .custos-aviso p {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Footer com botão voltar */
+.theme-dark .guia-footer-voltar {
+  border-top-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .guia-footer-voltar .guia-cta {
+  color: #60a5fa; /* Blue-400 */
+}
+
+.theme-dark .guia-footer-voltar .guia-cta:hover {
+  color: #93c5fd; /* Blue-300 */
+}
+
+/* Card de Conclusão - mantém o gradiente azul mas com ajustes */
+.theme-dark .conclusao-card {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
 }
 
 /* Responsive */

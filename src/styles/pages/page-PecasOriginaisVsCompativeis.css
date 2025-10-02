@@ -612,6 +612,213 @@
   font-size: 1.0625rem;
 }
 
+/* ========================================
+   DARK MODE
+   ======================================== */
+
+/* Background da página */
+.theme-dark .pecas-page {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Header */
+.theme-dark .pecas-header h1 {
+  color: #f8fafc !important; /* Slate-50 */
+  -webkit-text-fill-color: #f8fafc !important;
+}
+
+.theme-dark .header-subtitle,
+.theme-dark .section-subtitle {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Títulos de seções */
+.theme-dark .pecas-definicoes h2,
+.theme-dark .pecas-comparacao h2,
+.theme-dark .pecas-quando-usar h2,
+.theme-dark .pecas-marcas h2,
+.theme-dark .pecas-dicas-economia h2,
+.theme-dark .pecas-alertas h2 {
+  color: #60a5fa !important; /* Blue-400 */
+  -webkit-text-fill-color: #60a5fa !important;
+}
+
+/* Cards gerais */
+.theme-dark .definicao-card,
+.theme-dark .comparacao-card,
+.theme-dark .quando-card,
+.theme-dark .marca-card,
+.theme-dark .dica-economia-card {
+  background: #1e293b; /* Slate-800 */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .definicao-card:hover,
+.theme-dark .comparacao-card:hover,
+.theme-dark .quando-card:hover,
+.theme-dark .marca-card:hover,
+.theme-dark .dica-economia-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+}
+
+/* Definições Cards */
+.theme-dark .definicao-card h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .definicao-card p {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+.theme-dark .definicao-card ul li {
+  background: none !important; /* Remove background que conflita */
+  color: #ffffff !important; /* Branco puro */
+}
+
+.theme-dark .caracteristicas-list li {
+  color: #ffffff !important; /* Branco puro */
+}
+
+/* Comparação */
+.theme-dark .comparacao-sides {
+  color: #ffffff; /* Branco para todo o container */
+}
+
+.theme-dark .side {
+  background: transparent;
+}
+
+.theme-dark .side.original {
+  background: rgba(59, 130, 246, 0.1); /* Blue com transparência */
+}
+
+.theme-dark .side.compativel {
+  background: rgba(34, 197, 94, 0.1); /* Green com transparência */
+}
+
+.theme-dark .side-badge,
+.theme-dark .side.original .side-badge,
+.theme-dark .side.compativel .side-badge {
+  background: none !important; /* Remove background que conflita */
+  color: #ffffff !important; /* Branco puro - sobrescreve regras específicas */
+}
+
+.theme-dark .side-nota {
+  background: rgba(15, 23, 42, 0.8); /* Slate-900 semi-transparente */
+}
+
+.theme-dark .side.original .side-nota {
+  color: #ffffff; /* Branco puro */
+}
+
+.theme-dark .side.compativel .side-nota {
+  color: #ffffff; /* Branco puro */
+}
+
+.theme-dark .side-texto,
+.theme-dark .side.original .side-texto,
+.theme-dark .side.compativel .side-texto {
+  color: #ffffff !important; /* Branco puro - sobrescreve regras específicas */
+}
+
+.theme-dark .side.original .side-pontos li,
+.theme-dark .side.compativel .side-pontos li {
+  color: #ffffff !important; /* Branco puro - sobrescreve regras específicas */
+}
+
+/* Quando Usar */
+.theme-dark .quando-header {
+  border-bottom-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .quando-header h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .quando-lista li {
+  color: #ffffff !important; /* Branco puro */
+  border-bottom-color: #334155; /* Slate-700 */
+}
+
+.theme-dark .bullet {
+  color: #60a5fa; /* Blue-400 */
+}
+
+/* Marcas */
+.theme-dark .marca-header h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .marca-especialidade {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+.theme-dark .marca-especialidade strong {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .marca-descricao {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Badges de qualidade - mantém cores originais para contraste */
+.theme-dark .qualidade-badge.premium {
+  background: #78350f; /* Amber-900 escuro */
+  color: #fbbf24; /* Amber-400 */
+}
+
+.theme-dark .qualidade-badge.boa {
+  background: #1e3a8a; /* Blue-900 escuro */
+  color: #60a5fa; /* Blue-400 */
+}
+
+/* Dicas de Economia */
+.theme-dark .dica-economia-card h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .dica-economia-card p {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Alertas */
+.theme-dark .alerta-card {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); /* Red-900 escuro */
+  border-left-color: #ef4444; /* Red-500 */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .alerta-card h3 {
+  color: #fecaca; /* Red-200 */
+}
+
+.theme-dark .alerta-card ul li {
+  color: #ffffff !important; /* Branco puro */
+}
+
+.theme-dark .alerta-card ul li::before {
+  color: #f87171; /* Red-400 */
+}
+
+/* Footer com botão voltar */
+.theme-dark .guia-footer-voltar {
+  border-top-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .guia-footer-voltar .guia-cta {
+  color: #60a5fa; /* Blue-400 */
+}
+
+.theme-dark .guia-footer-voltar .guia-cta:hover {
+  color: #93c5fd; /* Blue-300 */
+}
+
+/* Card de Conclusão - mantém gradiente azul com ajustes */
+.theme-dark .conclusao-card {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .pecas-container {
