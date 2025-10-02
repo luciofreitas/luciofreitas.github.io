@@ -203,12 +203,6 @@ const ManutencaoPreventiva = () => {
       {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="manutencao-container">
-        <div className="voltar-guias">
-          <button className="btn-voltar-guias" onClick={() => navigate('/guias')}>
-            ← Voltar para Guias
-          </button>
-        </div>
-
         <div className="manutencao-header">
           <div className="header-icon">🔧</div>
           <h1>Guia de Manutenção Preventiva</h1>
@@ -364,6 +358,13 @@ const ManutencaoPreventiva = () => {
             </div>
           </div>
         </section>
+
+        {/* Rodapé com botão voltar */}
+        <div className="guia-footer-voltar">
+          <span className="guia-cta" onClick={() => navigate('/guias')}>
+            ← Voltar para Guias
+          </span>
+        </div>
       </div>
     </div>
   );
