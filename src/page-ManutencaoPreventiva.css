@@ -401,7 +401,7 @@
 }
 
 .conclusao-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0052CC 0%, #1A66FF 100%);
   border-radius: 1rem;
   padding: 2.5rem;
   color: white;
@@ -413,6 +413,7 @@
   margin-bottom: 1.5rem;
   text-align: center;
   color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 .conclusao-content p {
