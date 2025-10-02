@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import ToggleCar from './ToggleCar';
 import './ContatoForm.css';
-import '../page-Login.css';
+import '../styles/pages/page-Login.css';
 import './PerfilForm.css'; // Importado por último para ter precedência
 
 export default function PerfilForm({

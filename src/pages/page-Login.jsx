@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import MenuLogin from '../components/MenuLogin';
 import '../styles/pages/page-Login.css';
 import '../styles/pages/page-Cadastro.css';
-import usuariosData from './usuarios.json';
+import usuariosData from '../data/usuarios.json';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import ToggleCar from '../components/ToggleCar';
