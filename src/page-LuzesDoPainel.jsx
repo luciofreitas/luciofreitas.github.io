@@ -85,30 +85,19 @@ function LuzesDoPainel() {
   });
 
   return (
-    <div className="luzes-painel-page">
+    <>
       {usuarioLogado ? <Menu /> : <MenuLogin />}
-      
-      <div className="luzes-painel-container">
-        {/* Header */}
-        <div className="luzes-painel-header">
-          <div className="header-icon">⚠️</div>
-          <h1>Luzes do Painel</h1>
-          <p className="header-subtitle">
-            Entenda os avisos do seu veículo e saiba como agir quando as luzes do painel acenderem.
-            Mantenha-se seguro e evite problemas maiores.
-          </p>
-        </div>
-
-        {/* Sistema de Avaliação */}
-        <div className="avaliacao-section">
-          <ComponenteEstrelas 
-            guiaId="glossario-automotivo"
-            mediaAtual={avaliacoes['glossario-automotivo']?.media || 0}
-            totalVotos={avaliacoes['glossario-automotivo']?.total || 0}
-            votosUsuario={votosUsuario}
-            onAvaliar={avaliarGuia}
-          />
-        </div>
+      <div className="page-wrapper menu-page">
+        <div className="page-content">
+          {/* Header com ícone */}
+          <div className="luzes-header">
+            <div className="header-icon">⚠️</div>
+            <h2 className="page-title">Luzes do Painel</h2>
+            <p className="header-subtitle">
+              Entenda os avisos do seu veículo e saiba como agir quando as luzes do painel acenderem.
+              Mantenha-se seguro e evite problemas maiores.
+            </p>
+          </div>
 
         {/* Conteúdo do Glossário */}
         {loading ? (
@@ -273,14 +262,15 @@ function LuzesDoPainel() {
           </>
         )}
 
-        {/* Rodapé com botão voltar */}
-        <div className="guia-footer-voltar">
-          <span className="guia-cta" onClick={() => navigate('/guias')}>
-            ← Voltar para Guias
-          </span>
+          {/* Rodapé com botão voltar */}
+          <div className="guia-footer-voltar">
+            <span className="guia-cta" onClick={() => navigate('/guias')}>
+              ← Voltar para Guias
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
