@@ -1,96 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Menu from './components/Menu';
 import ComponenteEstrelas from './components/ComponenteEstrelas';
-import GlossarioExpandido from './components/GlossarioExpandido';
 import { useAvaliacoes } from './hooks/useAvaliacoes';
-import { apiService } from './utils/apiService';
-import { glossarioMockData, outrosGuias } from './data/glossarioData';
+import { outrosGuias } from './data/glossarioData';
 import './page-Guias.css';
 
 function PageGuias() {
   const navigate = useNavigate();
 
-  // Estados principais
-  const [glossarioData, setGlossarioData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [expandedCard, setExpandedCard] = useState(null);
-  
-  // Estados para filtros
-  const [filtros, setFiltros] = useState({
-    busca: '',
-    prioridade: '',
-    cor: ''
-  });
-
   // Hook customizado para avaliações
   const { avaliacoes, votosUsuario, avaliarGuia } = useAvaliacoes();
 
-  // Carregar dados do glossário
-  useEffect(() => {
-    const carregarGlossario = async () => {
-      try {
-        const data = await apiService.getGlossarioDashboard();
-        // Garantir que sempre seja um array
-        const arrayData = Array.isArray(data) ? data : (data ? [data] : glossarioMockData);
-        setGlossarioData(arrayData);
-      } catch (error) {
-        console.error('Erro ao carregar glossário:', error);
-        setGlossarioData(Array.isArray(glossarioMockData) ? glossarioMockData : []);
-        setError(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    carregarGlossario();
-  }, []);
-
-  // Utilitários
-  const toggleCard = (cardId) => {
-    setExpandedCard(expandedCard === cardId ? null : cardId);
+  // Guia do glossário (Luzes do Painel)
+  const glossarioGuia = {
+    id: 'glossario-automotivo',
+    titulo: 'Luzes do Painel',
+    subtitulo: 'Entenda os avisos do seu veículo',
+    descricao: 'Aprenda sobre as luzes de aviso do painel e o que fazer quando elas acendem.',
+    icone: '⚠️',
+    categoria: 'Diagnóstico',
+    rota: '/luzes-do-painel'
   };
 
-  const limparFiltros = () => {
-    setFiltros({ busca: '', prioridade: '', cor: '' });
-  };
-
-  const getPrioridadeColor = (prioridade) => {
-    const cores = {
-      'alta': '#dc2626',
-      'média': '#f59e0b', 
-      'baixa': '#16a34a'
-    };
-    return cores[prioridade?.toLowerCase()] || '#6b7280';
-  };
-
-  const getCorHex = (cor) => {
-    const cores = {
-      'vermelho': '#dc2626',
-      'amarelo': '#f59e0b',
-      'verde': '#16a34a',
-      'azul': '#2563eb',
-      'laranja': '#ea580c',
-      'branco': '#f8fafc',
-      'roxo': '#7c3aed'
-    };
-    return cores[cor?.toLowerCase()] || '#6b7280';
-  };
-
-  // Filtrar dados do glossário
-  const dadosFiltrados = (Array.isArray(glossarioData) ? glossarioData : []).filter(item => {
-    if (!item) return false;
-    
-    const matchBusca = !filtros.busca || 
-      (item.nome && item.nome.toLowerCase().includes(filtros.busca.toLowerCase())) ||
-      (item.descricao && item.descricao.toLowerCase().includes(filtros.busca.toLowerCase()));
-    
-    const matchPrioridade = !filtros.prioridade || item.prioridade === filtros.prioridade;
-    const matchCor = !filtros.cor || item.cor === filtros.cor;
-    
-    return matchBusca && matchPrioridade && matchCor;
-  });
+  // Combinar todos os guias
+  const todosGuias = [glossarioGuia, ...outrosGuias];
 
   return (
     <>
@@ -109,67 +43,8 @@ function PageGuias() {
 
           {/* Grid de Cards dos Guias */}
           <div className="guias-grid">
-            
-            {/* Card do Glossário Automotivo - Expandível */}
-            <div className={`guia-card glossario-card ${expandedCard === 'glossario' ? 'expanded' : ''}`}>
-              <div className="guia-header" onClick={() => toggleCard('glossario')}>
-                <div className="guia-icone">⚠️</div>
-                <div className="guia-categoria">Diagnóstico</div>
-              </div>
-              
-              <div className="guia-content">
-                <h3 className="guia-titulo">Luzes do Painel</h3>
-                <p className="guia-subtitulo">Entenda os avisos do seu veículo</p>
-                <p className="guia-descricao">
-                  Aprenda sobre as luzes de aviso do painel e o que fazer quando elas acendem.
-                </p>
-                
-                {/* Sistema de Avaliação */}
-                <div className="guia-avaliacao">
-                  <ComponenteEstrelas 
-                    guiaId="glossario-automotivo"
-                    mediaAtual={avaliacoes['glossario-automotivo']?.media || 0}
-                    totalVotos={avaliacoes['glossario-automotivo']?.total || 0}
-                    votosUsuario={votosUsuario}
-                    onAvaliar={avaliarGuia}
-                  />
-                </div>
-              </div>
-
-              {/* Footer fora do content - igual aos outros cards */}
-              {expandedCard !== 'glossario' && (
-                <div className="guia-footer">
-                  <span className="guia-cta" onClick={() => toggleCard('glossario')}>
-                    Ver Glossário Completo →
-                  </span>
-                </div>
-              )}
-
-              {/* Conteúdo expandido do Glossário */}
-              {expandedCard === 'glossario' && (
-                <>
-                  <GlossarioExpandido
-                    loading={loading}
-                    error={error}
-                    filtros={filtros}
-                    setFiltros={setFiltros}
-                    dadosFiltrados={dadosFiltrados}
-                    getPrioridadeColor={getPrioridadeColor}
-                    getCorHex={getCorHex}
-                    limparFiltros={limparFiltros}
-                  />
-                  
-                  <div className="guia-footer">
-                    <span className="guia-cta" onClick={() => toggleCard('glossario')}>
-                      ← Minimizar Glossário
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Outros Cards de Guias */}
-            {outrosGuias.map(guia => (
+            {/* Todos os cards agora navegam para páginas dedicadas */}
+            {todosGuias.map(guia => (
               <div key={guia.id} className="guia-card">
                 <div className="guia-header">
                   <div className="guia-icone">{guia.icone}</div>
