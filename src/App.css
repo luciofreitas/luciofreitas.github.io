@@ -270,8 +270,11 @@ html, body {
   color: #556b86;
   padding: 0.375rem;
   border-radius: 0.375rem;
+  outline: none;
 }
 .app-compat-close:hover { background: rgba(0,0,0,0.04); }
+.app-compat-close:focus { outline: none; box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2); }
+.app-compat-close:focus:not(:focus-visible) { box-shadow: none; }
 
 .app-compat-body {
   padding: 1rem;
