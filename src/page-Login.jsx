@@ -20,6 +20,7 @@ export default function Login() {
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
   // prefill email when redirected from cadastro
@@ -87,20 +88,49 @@ export default function Login() {
                   <button className="submit" type="submit">Entrar</button>
 
                   <div className="social-login-row">
-                    <button type="button" className="google-btn google-btn-round" aria-label="Entrar com Google" title="Entrar com Google" onClick={async () => {
-                      const { user, error } = await signInWithGooglePopup();
-                      if (error) {
-                        // eslint-disable-next-line no-console
-                        console.error('Google sign-in error', error);
-                        setError('Erro no login com Google.');
-                        return;
-                      }
-                      // persist user locally and navigate
-                      const usuario = { id: user.uid, nome: user.displayName || '', email: user.email || '' };
-                      try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
-                      if (setUsuarioLogado) setUsuarioLogado(usuario);
-                      navigate('/buscar-pecas');
-                    }}>
+                    <button 
+                      type="button" 
+                      className="google-btn google-btn-round" 
+                      aria-label="Entrar com Google" 
+                      title="Entrar com Google"
+                      disabled={googleLoading}
+                      onClick={async () => {
+                        if (googleLoading) return; // Prevenir múltiplos cliques
+                        
+                        setGoogleLoading(true);
+                        setError('');
+                        
+                        try {
+                          const { user, error } = await signInWithGooglePopup();
+                          
+                          if (error) {
+                            console.error('Google sign-in error:', error);
+                            
+                            // Tratamento específico de erros
+                            if (error.code === 'auth/cancelled-popup-request') {
+                              setError('Login cancelado. Por favor, tente novamente.');
+                            } else if (error.code === 'auth/popup-blocked') {
+                              setError('Popup bloqueado. Permita popups para este site.');
+                            } else if (error.code === 'auth/popup-closed-by-user') {
+                              setError('Popup fechado. Tente novamente.');
+                            } else {
+                              setError('Erro no login com Google. Tente novamente.');
+                            }
+                            return;
+                          }
+                          
+                          // persist user locally and navigate
+                          const usuario = { id: user.uid, nome: user.displayName || '', email: user.email || '' };
+                          try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
+                          if (setUsuarioLogado) setUsuarioLogado(usuario);
+                          navigate('/buscar-pecas');
+                        } catch (err) {
+                          console.error('Unexpected error:', err);
+                          setError('Erro inesperado. Tente novamente.');
+                        } finally {
+                          setGoogleLoading(false);
+                        }
+                      }}>
                       {/* Colored Google G SVG */}
                       <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
                         <path fill="#EA4335" d="M24 9.5c3.9 0 7.1 1.4 9.2 3.2l6.8-6.6C35.6 3 30.1 1 24 1 14.7 1 6.9 6.6 3.1 14.7l7.9 6.1C12.4 15.1 17.7 9.5 24 9.5z"/>
