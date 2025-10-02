@@ -100,8 +100,8 @@
 
 .equipe-card-photo {
   flex-shrink: 0;
-  width: 180px;
-  height: 180px;
+  width: clamp(9rem, 18vw, 11.25rem); /* ~144px a 180px */
+  height: clamp(9rem, 18vw, 11.25rem);
 }
 
 .equipe-photo {
@@ -173,8 +173,8 @@
   }
 
   .equipe-card-photo {
-    width: 140px;
-    height: 140px;
+    width: clamp(7rem, 15vw, 8.75rem); /* ~112px a 140px */
+    height: clamp(7rem, 15vw, 8.75rem);
   }
 
   .equipe-card-content {
