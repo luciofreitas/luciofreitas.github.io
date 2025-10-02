@@ -385,6 +385,10 @@ export default function BuscarPeca() {
     console.log('🔍 Buscando com filtros:', filtros);
     const data = await apiService.filtrarPecas(filtros);
     console.log('📦 Resposta da API:', data);
+    console.log('📦 data.results:', data.results);
+    console.log('📦 typeof data:', typeof data);
+    console.log('📦 Array.isArray(data):', Array.isArray(data));
+    console.log('📦 Array.isArray(data.results):', Array.isArray(data.results));
     const pecasFiltradas = data.results || [];
     console.log('✅ Peças filtradas:', pecasFiltradas.length, pecasFiltradas);
       setPecas(pecasFiltradas);
