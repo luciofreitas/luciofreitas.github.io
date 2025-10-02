@@ -55,11 +55,8 @@ export default function App() {
                 <BuscarPeca />
               </ProtectedRoute>
             } />
-            <Route path="/buscar-pecas" element={
-              <ProtectedRoute>
-                <BuscarPeca />
-              </ProtectedRoute>
-            } />
+            {/* Catálogo público - permite acesso sem login com funcionalidades limitadas */}
+            <Route path="/buscar-pecas" element={<BuscarPeca />} />
 
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<PageCadastro />} />
