@@ -24,6 +24,69 @@
   line-height: 1.6;
 }
 
+/* Aviso Pro */
+.guias-pro-notice {
+  background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+  border: 2px solid #FF8C00;
+  border-radius: clamp(0.65rem, 1.2vw, 0.75rem);
+  padding: clamp(1.2rem, 2.5vw, 1.8rem);
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.2);
+}
+
+.pro-notice-icon {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  flex-shrink: 0;
+}
+
+.pro-notice-content {
+  flex: 1;
+}
+
+.pro-notice-content h3 {
+  color: white;
+  margin: 0 0 0.5rem 0;
+  font-size: clamp(1.1rem, 2.2vw, 1.3rem);
+  font-weight: 600;
+}
+
+.pro-notice-content p {
+  color: white;
+  margin: 0;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pro-notice-content strong {
+  font-weight: 700;
+}
+
+.btn-seja-pro-inline {
+  background: white;
+  color: #FF8C00;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: clamp(0.9rem, 1.8vw, 1rem);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-seja-pro-inline:hover {
+  background: #fff5e6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Grid de Cards dos Guias */
 .guias-grid {
   display: grid;
@@ -798,6 +861,23 @@
 
 .theme-dark .btn-editar-guia:hover {
   background: #e06800;
+}
+
+/* Aviso Pro - dark mode */
+.theme-dark .guias-pro-notice {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  border-color: #c2410c;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+}
+
+.theme-dark .btn-seja-pro-inline {
+  background: #1e293b;
+  color: #fb923c;
+}
+
+.theme-dark .btn-seja-pro-inline:hover {
+  background: #0f172a;
+  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
 }
 
 /* Cards dos Guias - dark mode */

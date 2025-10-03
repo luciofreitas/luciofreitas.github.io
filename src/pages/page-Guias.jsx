@@ -75,6 +75,25 @@ function PageGuias() {
             </div>
           </div>
 
+          {/* Aviso sobre criação de guias */}
+          {!isPro && (
+            <div className="guias-pro-notice">
+              <div className="pro-notice-icon">⭐</div>
+              <div className="pro-notice-content">
+                <h3>Crie seus próprios guias!</h3>
+                <p>
+                  Assinantes <strong>Pro</strong> podem criar e compartilhar guias customizados com a comunidade.
+                  <button 
+                    className="btn-seja-pro-inline"
+                    onClick={() => navigate('/seja-pro')}
+                  >
+                    Seja Pro →
+                  </button>
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Botão para criar guia (apenas Pro) */}
           {isPro && (
             <div className="criar-guia-section">
@@ -123,83 +142,6 @@ function PageGuias() {
               </div>
             ))}
           </div>
-
-          {/* Guias Customizados pela Comunidade (aparecem depois dos oficiais) */}
-          {guiasCustomizados.length > 0 && (
-            <>
-              <h3 className="section-title">📚 Guias da Comunidade</h3>
-              <div className="guias-grid">
-                {guiasCustomizados.map(guia => {
-                  const isAutor = usuarioLogado?.email === guia.autorEmail;
-                  const averageRating = guiasService.calculateAverageRating(guia);
-                  const isOculto = guia.status === 'oculto';
-
-                  return (
-                    <div key={guia.id} className={`guia-card ${isOculto ? 'guia-oculto' : ''}`}>
-                      <div className="guia-header">
-                        <div className="guia-icone">📄</div>
-                        <div className="guia-categoria">{guia.categoria}</div>
-                        {isAutor && (
-                          <div className="guia-author-badge" title="Você é o autor deste guia">
-                            👤 Seu Guia
-                          </div>
-                        )}
-                      </div>
-
-                      {guia.imagem && (
-                        <div className="guia-imagem">
-                          <img src={guia.imagem} alt={guia.titulo} />
-                        </div>
-                      )}
-                      
-                      <div className="guia-content">
-                        <h3 className="guia-titulo">{guia.titulo}</h3>
-                        <p className="guia-descricao">{guia.descricao}</p>
-                        
-                        {/* Status de ocultação (visível apenas para autor) */}
-                        {isOculto && isAutor && (
-                          <div className="guia-status-warning">
-                            ⚠️ Este guia está oculto devido a avaliações baixas. Edite-o para melhorar!
-                          </div>
-                        )}
-
-                        {/* Sistema de Avaliação com RatingStars */}
-                        <div className="guia-avaliacao">
-                          <RatingStars
-                            rating={averageRating}
-                            totalRatings={guia.ratings.length}
-                            onRate={(rating) => handleAvaliarGuiaCustomizado(guia.id, rating)}
-                            readOnly={isAutor || !usuarioLogado} // Autor não pode avaliar próprio guia
-                            size="medium"
-                          />
-                          {guia.views > 0 && (
-                            <span className="guia-views">👁️ {guia.views} visualizações</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="guia-footer">
-                        {isAutor && (
-                          <button 
-                            className="btn-editar-guia"
-                            onClick={() => navigate(`/criar-guia/${guia.id}`)}
-                          >
-                            ✏️ Editar
-                          </button>
-                        )}
-                        <span 
-                          className="guia-cta" 
-                          onClick={() => handleVerGuiaCustomizado(guia.id)}
-                        >
-                          Ver guia completo →
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
 
           {/* Grid de Cards dos Guias Fixos */}
           <h3 className="section-title">📖 Guias Oficiais</h3>
