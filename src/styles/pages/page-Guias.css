@@ -26,65 +26,53 @@
 
 /* Aviso Pro */
 .guias-pro-notice {
-  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-  border: 2px solid #ea580c;
-  border-radius: clamp(0.65rem, 1.2vw, 0.75rem);
-  padding: clamp(1.2rem, 2.5vw, 1.8rem);
   margin-bottom: 2rem;
-  display: flex;
-  gap: 1.2rem;
-  align-items: center;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.2);
+  padding: 0;
+  text-align: center;
 }
 
 .pro-notice-icon {
-  font-size: clamp(2rem, 4vw, 2.5rem);
-  flex-shrink: 0;
+  display: none;
 }
 
 .pro-notice-content {
-  flex: 1;
+  display: inline-block;
 }
 
 .pro-notice-content h3 {
-  color: white;
-  margin: 0 0 0.5rem 0;
-  font-size: clamp(1.1rem, 2.2vw, 1.3rem);
-  font-weight: 600;
+  display: none;
 }
 
 .pro-notice-content p {
-  color: white;
+  color: #64748b;
   margin: 0;
-  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  font-size: clamp(0.9rem, 1.8vw, 0.95rem);
   line-height: 1.6;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+  display: inline;
 }
 
 .pro-notice-content strong {
-  font-weight: 700;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .btn-seja-pro-inline {
-  background: white;
-  color: #ea580c;
+  background: transparent;
+  color: #3b82f6;
   border: none;
-  padding: 0.5rem 1.2rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: clamp(0.9rem, 1.8vw, 1rem);
+  padding: 0;
+  margin-left: 0.25rem;
+  font-weight: 500;
+  font-size: clamp(0.9rem, 1.8vw, 0.95rem);
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .btn-seja-pro-inline:hover {
-  background: #fff7ed;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #2563eb;
+  text-decoration-thickness: 2px;
 }
 
 /* Grid de Cards dos Guias */
@@ -864,20 +852,20 @@
 }
 
 /* Aviso Pro - dark mode */
-.theme-dark .guias-pro-notice {
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-  border-color: #c2410c;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+.theme-dark .pro-notice-content p {
+  color: #94a3b8;
+}
+
+.theme-dark .pro-notice-content strong {
+  color: #f8fafc;
 }
 
 .theme-dark .btn-seja-pro-inline {
-  background: #1e293b;
-  color: #ffffff;
+  color: #60a5fa;
 }
 
 .theme-dark .btn-seja-pro-inline:hover {
-  background: #0f172a;
-  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
+  color: #93c5fd;
 }
 
 /* Cards dos Guias - dark mode */
