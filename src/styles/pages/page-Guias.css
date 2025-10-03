@@ -655,7 +655,7 @@
 }
 
 .theme-dark .guias-intro p {
-  color: #94a3b8; /* Slate-400 */
+  color: var(--text-primary); /* Texto branco */
 }
 
 /* Cards dos Guias - dark mode */

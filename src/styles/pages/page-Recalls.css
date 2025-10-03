@@ -403,7 +403,7 @@
 }
 
 .theme-dark .recalls-intro p {
-  color: #94a3b8; /* Slate-400 */
+  color: var(--text-primary); /* Texto branco */
 }
 
 /* Área de busca e filtros - dark mode */
