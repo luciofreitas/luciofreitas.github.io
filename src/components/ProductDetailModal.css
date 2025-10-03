@@ -554,3 +554,150 @@
     gap: 0.5rem;
   }
 }
+
+/* ===== DARK MODE STYLES ===== */
+
+.theme-dark .product-modal {
+  background: #1e293b;
+}
+
+.theme-dark .product-modal-header {
+  background: #0f172a;
+  border-bottom-color: #334155;
+}
+
+.theme-dark .product-modal-header h2 {
+  color: #60a5fa !important;
+}
+
+.theme-dark .product-modal-close {
+  color: #94a3b8;
+}
+
+.theme-dark .product-modal-close:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.theme-dark .product-modal-loading,
+.theme-dark .product-modal-error {
+  color: #94a3b8;
+}
+
+.theme-dark .loading-spinner {
+  border-color: #334155;
+  border-top-color: #60a5fa;
+}
+
+.theme-dark .product-header-section {
+  border-bottom-color: #334155;
+}
+
+.theme-dark .main-image {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.theme-dark .image-thumbnails img {
+  border-color: #334155;
+}
+
+.theme-dark .image-thumbnails img:hover,
+.theme-dark .image-thumbnails img.active {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 1px #60a5fa;
+}
+
+.theme-dark .recall-alert {
+  background: #422006;
+  border-color: #78350f;
+  color: #fef3c7;
+}
+
+.theme-dark .product-codes {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.theme-dark .contact-workshop {
+  background: #1e3a5f;
+  border-color: #3b82f6;
+  color: #bfdbfe;
+}
+
+.theme-dark .install-time {
+  color: #94a3b8;
+}
+
+.theme-dark .tab-buttons {
+  background: #0f172a;
+  border-bottom-color: #334155;
+}
+
+.theme-dark .tab-buttons button {
+  color: #94a3b8;
+}
+
+.theme-dark .tab-buttons button:hover {
+  color: #ffffff;
+  background: rgba(96, 165, 250, 0.1);
+}
+
+.theme-dark .tab-buttons button.active {
+  color: #60a5fa;
+  border-bottom-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.15);
+}
+
+.theme-dark .tab-panel {
+  color: #e2e8f0;
+}
+
+.theme-dark .specs-grid {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.theme-dark .spec-item strong {
+  color: #ffffff;
+}
+
+.theme-dark .compatibility-list {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.theme-dark .compat-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .compat-item:hover {
+  border-color: #60a5fa;
+  background: #0f172a;
+}
+
+.theme-dark .compat-car-name {
+  color: #ffffff;
+}
+
+.theme-dark .compat-year {
+  color: #94a3b8;
+}
+
+.theme-dark .review-card {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.theme-dark .reviewer-name {
+  color: #ffffff;
+}
+
+.theme-dark .review-date {
+  color: #94a3b8;
+}
+
+.theme-dark .review-text {
+  color: #e2e8f0;
+}
