@@ -555,149 +555,220 @@
   }
 }
 
-/* ===== DARK MODE STYLES ===== */
+/* ===== DARK MODE ===== */
+
+.theme-dark .product-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.75);
+}
 
 .theme-dark .product-modal {
-  background: #1e293b;
+  background: var(--bg-white);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
 }
 
 .theme-dark .product-modal-header {
-  background: #0f172a;
-  border-bottom-color: #334155;
+  border-bottom: 1px solid var(--border-gray);
+  background: var(--bg-gray-neutral);
 }
 
 .theme-dark .product-modal-header h2 {
-  color: #60a5fa !important;
+  color: var(--color-primary-light) !important;
 }
 
 .theme-dark .product-modal-close {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .theme-dark .product-modal-close:hover {
-  background: #334155;
-  color: #ffffff;
+  background: var(--bg-gray-100);
+  color: var(--text-primary);
 }
 
 .theme-dark .product-modal-loading,
 .theme-dark .product-modal-error {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .theme-dark .loading-spinner {
-  border-color: #334155;
-  border-top-color: #60a5fa;
+  border: 3px solid var(--bg-gray-100);
+  border-top: 3px solid var(--color-primary);
 }
 
 .theme-dark .product-header-section {
-  border-bottom-color: #334155;
+  border-bottom: 1px solid var(--border-gray);
 }
 
 .theme-dark .main-image {
-  background: #0f172a;
-  border-color: #334155;
+  background: var(--bg-gray-neutral);
+  border: 1px solid var(--border-gray);
 }
 
-.theme-dark .image-thumbnails img {
-  border-color: #334155;
+.theme-dark .image-thumbnails img:hover {
+  border-color: var(--color-primary);
 }
 
-.theme-dark .image-thumbnails img:hover,
 .theme-dark .image-thumbnails img.active {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 1px #60a5fa;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .theme-dark .recall-alert {
-  background: #422006;
-  border-color: #78350f;
-  color: #fef3c7;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning);
 }
 
 .theme-dark .product-codes {
-  background: #0f172a;
-  color: #e2e8f0;
+  background: var(--bg-gray-neutral);
+  color: var(--text-secondary);
 }
 
 .theme-dark .contact-workshop {
-  background: #1e3a5f;
-  border-color: #3b82f6;
-  color: #bfdbfe;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary-light);
+}
+
+.theme-dark .difficulty.fácil {
+  background: rgba(34, 197, 94, 0.2);
+  color: var(--color-success);
+}
+
+.theme-dark .difficulty.médio {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-warning);
+}
+
+.theme-dark .difficulty.difícil {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--color-error);
 }
 
 .theme-dark .install-time {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .theme-dark .tab-buttons {
-  background: #0f172a;
-  border-bottom-color: #334155;
+  border-bottom: 1px solid var(--border-gray);
+  background: var(--bg-gray-neutral);
 }
 
 .theme-dark .tab-buttons button {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .theme-dark .tab-buttons button:hover {
-  color: #ffffff;
-  background: rgba(96, 165, 250, 0.1);
+  color: var(--text-primary);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .theme-dark .tab-buttons button.active {
-  color: #60a5fa;
-  border-bottom-color: #60a5fa;
-  background: rgba(96, 165, 250, 0.15);
+  color: var(--color-primary-light);
+  border-bottom-color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.1);
 }
 
-.theme-dark .tab-panel {
-  color: #e2e8f0;
+.theme-dark .tab-panel h3 {
+  color: var(--text-primary);
+}
+
+.theme-dark .tab-panel p {
+  color: var(--text-secondary);
+}
+
+.theme-dark .workshop-info > div {
+  background: rgba(34, 197, 94, 0.15);
+  border-left: 3px solid var(--color-success);
+  color: var(--color-success);
+}
+
+.theme-dark .related-part {
+  background: var(--bg-gray-neutral);
+  border-left: 3px solid var(--color-primary);
+  color: var(--text-primary);
 }
 
 .theme-dark .specs-grid {
-  background: #0f172a;
-  border-color: #334155;
+  color: var(--text-primary);
 }
 
-.theme-dark .spec-item strong {
-  color: #ffffff;
+.theme-dark .spec-item {
+  background: var(--bg-gray-neutral);
 }
 
-.theme-dark .compatibility-list {
-  background: #0f172a;
-  border-color: #334155;
+.theme-dark .spec-label {
+  color: var(--text-primary);
 }
 
-.theme-dark .compat-item {
-  background: #1e293b;
-  border-color: #334155;
+.theme-dark .spec-value {
+  color: var(--text-secondary);
 }
 
-.theme-dark .compat-item:hover {
-  border-color: #60a5fa;
-  background: #0f172a;
+.theme-dark .compatibility-row {
+  background: var(--bg-gray-neutral);
+  border-left: 3px solid var(--color-success);
 }
 
-.theme-dark .compat-car-name {
-  color: #ffffff;
+.theme-dark .app-main strong {
+  color: var(--text-primary);
 }
 
-.theme-dark .compat-year {
-  color: #94a3b8;
+.theme-dark .app-main span {
+  color: var(--text-secondary);
 }
 
-.theme-dark .review-card {
-  background: #0f172a;
-  border-color: #334155;
+.theme-dark .app-details span {
+  color: var(--text-primary);
 }
 
-.theme-dark .reviewer-name {
-  color: #ffffff;
+.theme-dark .app-details small {
+  color: var(--text-muted);
+}
+
+.theme-dark .install-requirements,
+.theme-dark .install-precautions {
+  background: var(--bg-gray-neutral);
+}
+
+.theme-dark .install-precautions {
+  background: rgba(245, 158, 11, 0.15);
+  border-left: 3px solid var(--color-warning);
+}
+
+.theme-dark .install-requirements ul,
+.theme-dark .install-precautions ul {
+  color: var(--text-primary);
+}
+
+.theme-dark .review-item {
+  background: var(--bg-gray-neutral);
+  border-left: 3px solid var(--color-primary);
+}
+
+.theme-dark .review-header {
+  color: var(--text-primary);
+}
+
+.theme-dark .review-rating {
+  color: var(--color-warning);
 }
 
 .theme-dark .review-date {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
-.theme-dark .review-text {
-  color: #e2e8f0;
+.theme-dark .review-item p {
+  color: var(--text-secondary);
+}
+
+.theme-dark .faq-item {
+  background: var(--bg-gray-neutral);
+}
+
+.theme-dark .faq-item strong {
+  color: var(--text-primary);
+}
+
+.theme-dark .faq-item p {
+  color: var(--text-secondary);
 }

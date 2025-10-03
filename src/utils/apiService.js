@@ -155,7 +155,13 @@ class ApiService {
         // Apply filters - map Portuguese terms to English fields
         if (filtros.grupo) {
           const beforeCount = filtered.length;
-          filtered = filtered.filter(p => p.category === filtros.grupo);
+          console.log('🔍 Filtrando por grupo:', filtros.grupo);
+          console.log('📊 Categorias disponíveis:', [...new Set(filtered.map(p => p.category))]);
+          filtered = filtered.filter(p => {
+            console.log(`Comparando: "${p.category}" === "${filtros.grupo}"`, p.category === filtros.grupo);
+            return p.category === filtros.grupo;
+          });
+          console.log(`✅ Filtrado: ${beforeCount} → ${filtered.length} peças`);
         }
         if (filtros.peca) {
           filtered = filtered.filter(p => p.name === filtros.peca);

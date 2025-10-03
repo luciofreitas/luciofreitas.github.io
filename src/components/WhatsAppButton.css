@@ -130,3 +130,38 @@
   border-style: solid;
   border-color: #172B4D transparent transparent transparent;
 }
+
+/* ===== DARK MODE ===== */
+
+.theme-dark .whatsapp-button {
+  background: #25D366;
+}
+
+.theme-dark .whatsapp-button:hover {
+  background: #1da851;
+}
+
+.theme-dark .whatsapp-button-blur {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(0.188rem);
+}
+
+.theme-dark .whatsapp-tooltip-text {
+  background: var(--bg-gray-100);
+  color: var(--text-primary);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .whatsapp-tooltip-text::after {
+  border-color: var(--bg-gray-100) transparent transparent transparent;
+}
+
+.theme-dark .whatsapp-portal-tooltip-text {
+  background: var(--bg-gray-100);
+  color: var(--text-primary);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.theme-dark .whatsapp-portal-tooltip-text::after {
+  border-color: var(--bg-gray-100) transparent transparent transparent;
+}

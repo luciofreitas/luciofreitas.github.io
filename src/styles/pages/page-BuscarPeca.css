@@ -63,20 +63,6 @@
   display: block;
 }
 
-/* Dark mode styles */
-.theme-dark .buscarpeca-intro {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-.theme-dark .buscarpeca-intro p {
-  color: #ffffff;
-}
-
-.theme-dark .buscarpeca-compat-title {
-  color: #ffffff;
-}
-
 /* Full HD - 1920x1080 */
 @media (min-width: 118.75rem) and (max-width: 121.25rem) {
   /* BuscarPeca */

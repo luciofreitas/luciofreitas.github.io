@@ -116,3 +116,34 @@
     margin-bottom: 0.5rem;
   }
 }
+
+/* ===== DARK MODE ===== */
+
+.theme-dark .compatibility-grid {
+  background: var(--bg-gray-neutral);
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .compatibility-grid-header {
+  border-bottom: 0.125rem solid var(--border-gray);
+  color: var(--text-primary);
+  background: var(--bg-white);
+}
+
+.theme-dark .compatibility-grid-row {
+  background: var(--bg-white);
+  box-shadow: 0 0.062rem 0.188rem rgba(0, 0, 0, 0.3);
+  border: 0.062rem solid var(--border-gray);
+}
+
+.theme-dark .compatibility-grid-row:hover {
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.6);
+}
+
+.theme-dark .compatibility-vehicle-text {
+  color: var(--text-primary);
+}
+
+.theme-dark .compatibility-years-text {
+  color: var(--text-secondary);
+}
