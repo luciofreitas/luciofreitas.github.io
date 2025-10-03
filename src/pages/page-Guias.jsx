@@ -106,10 +106,9 @@ function PageGuias() {
             </div>
           )}
 
-          {/* Grid de Cards dos Guias Fixos */}
+          {/* Guias Oficiais */}
           <h3 className="section-title">📖 Guias Oficiais</h3>
           <div className="guias-grid">
-            {/* Todos os cards agora navegam para páginas dedicadas */}
             {guiasFixos.map(guia => (
               <div key={guia.id} className="guia-card">
                 <div className="guia-header">
@@ -143,42 +142,82 @@ function PageGuias() {
             ))}
           </div>
 
-          {/* Grid de Cards dos Guias Fixos */}
-          <h3 className="section-title">📖 Guias Oficiais</h3>
-          <div className="guias-grid">
-            {/* Todos os cards agora navegam para páginas dedicadas */}
-            {guiasFixos.map(guia => (
-              <div key={guia.id} className="guia-card">
-                <div className="guia-header">
-                  <div className="guia-icone">{guia.icone}</div>
-                  <div className="guia-categoria">{guia.categoria}</div>
-                </div>
-                
-                <div className="guia-content">
-                  <h3 className="guia-titulo">{guia.titulo}</h3>
-                  <p className="guia-subtitulo">{guia.subtitulo}</p>
-                  <p className="guia-descricao">{guia.descricao}</p>
-                  
-                  {/* Sistema de Avaliação */}
-                  <div className="guia-avaliacao">
-                    <ComponenteEstrelas 
-                      guiaId={guia.id}
-                      mediaAtual={avaliacoes[guia.id]?.media || 0}
-                      totalVotos={avaliacoes[guia.id]?.total || 0}
-                      votosUsuario={votosUsuario}
-                      onAvaliar={avaliarGuia}
-                    />
-                  </div>
-                </div>
+          {/* Guias da Comunidade - sempre exibe o título */}
+          <h3 className="section-title">� Guias da Comunidade</h3>
+          {guiasCustomizados.length > 0 ? (
+            <div className="guias-grid">
+              {guiasCustomizados.map(guia => {
+                const isAutor = usuarioLogado?.email === guia.autorEmail;
+                const averageRating = guiasService.calculateAverageRating(guia);
+                const isOculto = guia.status === 'oculto';
 
-                <div className="guia-footer">
-                  <span className="guia-cta" onClick={() => navigate(guia.rota)}>
-                    Ver guia completo →
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                return (
+                  <div key={guia.id} className={`guia-card ${isOculto ? 'guia-oculto' : ''}`}>
+                    <div className="guia-header">
+                      <div className="guia-icone">📄</div>
+                      <div className="guia-categoria">{guia.categoria}</div>
+                      {isAutor && (
+                        <div className="guia-author-badge" title="Você é o autor deste guia">
+                          👤 Seu Guia
+                        </div>
+                      )}
+                    </div>
+
+                    {guia.imagem && (
+                      <div className="guia-imagem">
+                        <img src={guia.imagem} alt={guia.titulo} />
+                      </div>
+                    )}
+                    
+                    <div className="guia-content">
+                      <h3 className="guia-titulo">{guia.titulo}</h3>
+                      <p className="guia-descricao">{guia.descricao}</p>
+                      
+                      {isOculto && isAutor && (
+                        <div className="guia-status-warning">
+                          ⚠️ Este guia está oculto devido a avaliações baixas. Edite-o para melhorar!
+                        </div>
+                      )}
+
+                      <div className="guia-avaliacao">
+                        <RatingStars
+                          rating={averageRating}
+                          totalRatings={guia.ratings.length}
+                          onRate={(rating) => handleAvaliarGuiaCustomizado(guia.id, rating)}
+                          readOnly={isAutor || !usuarioLogado}
+                          size="medium"
+                        />
+                        {guia.views > 0 && (
+                          <span className="guia-views">👁️ {guia.views} visualizações</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="guia-footer">
+                      {isAutor && (
+                        <button 
+                          className="btn-editar-guia"
+                          onClick={() => navigate(`/criar-guia/${guia.id}`)}
+                        >
+                          ✏️ Editar
+                        </button>
+                      )}
+                      <span 
+                        className="guia-cta" 
+                        onClick={() => handleVerGuiaCustomizado(guia.id)}
+                      >
+                        Ver guia completo →
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="guias-empty-state">
+              <p>Nenhum guia da comunidade criado ainda. {isPro ? 'Seja o primeiro!' : 'Seja Pro para criar o primeiro guia!'}</p>
+            </div>
+          )}
 
           {/* Informações adicionais */}
           <div className="guias-footer">
