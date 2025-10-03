@@ -17,6 +17,7 @@ import BuscarPeca from './pages/page-BuscarPeca';
 import PagePerfil from './pages/page-Perfil';
 import PageRecalls from './pages/page-Recalls';
 import PageGuias from './pages/page-Guias';
+import PageCriarGuia from './pages/page-CriarGuia';
 import PageConfiguracoes from './pages/page-Configuracoes';
 import TabelaFIPE from './pages/page-TabelaFIPE';
 import ManutencaoPreventiva from './pages/page-ManutencaoPreventiva';
@@ -85,6 +86,17 @@ export default function App() {
             <Route path="/guias" element={<PageGuias />} />
             {/* Redirecionamento da rota antiga glossario para guias */}
             <Route path="/glossario" element={<Navigate to="/guias" replace />} />
+            {/* Rotas para criar/editar guias (Pro apenas) */}
+            <Route path="/criar-guia" element={
+              <ProtectedRoute>
+                <PageCriarGuia />
+              </ProtectedRoute>
+            } />
+            <Route path="/criar-guia/:guiaId" element={
+              <ProtectedRoute>
+                <PageCriarGuia />
+              </ProtectedRoute>
+            } />
             <Route path="/manutencao-preventiva" element={<ManutencaoPreventiva />} />
             <Route path="/pecas-originais-vs-compativeis" element={<PecasOriginaisVsCompativeis />} />
             <Route path="/luzes-do-painel" element={<LuzesDoPainel />} />

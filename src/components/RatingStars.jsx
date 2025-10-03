@@ -1,0 +1,81 @@
+// RatingStars.jsx - Componente para exibir e permitir avaliação por estrelas
+
+import React, { useState } from 'react';
+import './RatingStars.css';
+
+function RatingStars({ 
+  rating = 0, 
+  totalRatings = 0, 
+  onRate = null, 
+  readOnly = false,
+  size = 'medium'
+}) {
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isRating, setIsRating] = useState(false);
+
+  const handleStarClick = (starValue) => {
+    if (!readOnly && onRate) {
+      setIsRating(true);
+      onRate(starValue);
+      // Reset após um curto delay para feedback visual
+      setTimeout(() => setIsRating(false), 300);
+    }
+  };
+
+  const handleStarHover = (starValue) => {
+    if (!readOnly) {
+      setHoverRating(starValue);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!readOnly) {
+      setHoverRating(0);
+    }
+  };
+
+  const displayRating = hoverRating || rating;
+
+  return (
+    <div className={`rating-stars-container ${size} ${readOnly ? 'read-only' : 'interactive'}`}>
+      <div 
+        className="stars-wrapper" 
+        onMouseLeave={handleMouseLeave}
+      >
+        {[1, 2, 3, 4, 5].map((starValue) => (
+          <button
+            key={starValue}
+            type="button"
+            className={`star-button ${starValue <= displayRating ? 'filled' : 'empty'} ${isRating ? 'animating' : ''}`}
+            onClick={() => handleStarClick(starValue)}
+            onMouseEnter={() => handleStarHover(starValue)}
+            disabled={readOnly}
+            aria-label={`${starValue} ${starValue === 1 ? 'estrela' : 'estrelas'}`}
+          >
+            <svg 
+              viewBox="0 0 24 24" 
+              fill={starValue <= displayRating ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </button>
+        ))}
+      </div>
+      
+      {totalRatings > 0 && (
+        <div className="rating-info">
+          <span className="rating-average">{rating.toFixed(1)}</span>
+          <span className="rating-count">({totalRatings} {totalRatings === 1 ? 'avaliação' : 'avaliações'})</span>
+        </div>
+      )}
+
+      {!readOnly && totalRatings === 0 && (
+        <span className="rating-prompt">Seja o primeiro a avaliar</span>
+      )}
+    </div>
+  );
+}
+
+export default RatingStars;
