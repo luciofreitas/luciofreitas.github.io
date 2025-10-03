@@ -82,7 +82,7 @@ function PageGuias() {
               <div className="pro-notice-content">
                 <h3>Crie seus próprios guias!</h3>
                 <p>
-                  Assinantes <strong>Pro</strong> podem criar e compartilhar guias customizados com a comunidade.
+                  Assinantes <strong>Pro</strong> podem <span className="highlight-orange">criar</span> e <span className="highlight-orange">compartilhar</span> guias customizados com a comunidade.
                   <button 
                     className="btn-seja-pro-inline"
                     onClick={() => navigate('/seja-pro')}
