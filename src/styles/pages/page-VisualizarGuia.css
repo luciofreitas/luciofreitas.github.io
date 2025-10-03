@@ -1,0 +1,322 @@
+/* page-VisualizarGuia.css - Estilos para visualização completa de guia */
+
+.visualizar-guia {
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Botão voltar */
+.btn-voltar-inline {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-voltar-inline:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* Cabeçalho do guia */
+.guia-header-full {
+  margin-bottom: 2rem;
+}
+
+.guia-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.guia-categoria-badge {
+  display: inline-block;
+  background: var(--color-primary);
+  color: white;
+  padding: 0.375rem 1rem;
+  border-radius: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.guia-author-badge {
+  display: inline-block;
+  background: #FFA500;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.375rem 1rem;
+  border-radius: 1.5rem;
+  border: 2px solid #FF8C00;
+  box-shadow: 0 2px 4px rgba(255, 165, 0, 0.2);
+}
+
+.guia-titulo-full {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.guia-info {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.guia-autor,
+.guia-data,
+.guia-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guia-rating-section {
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-gray);
+  margin-bottom: 2rem;
+}
+
+/* Imagem do guia */
+.guia-imagem-full {
+  width: 100%;
+  max-height: 25rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.guia-imagem-full img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Seções de conteúdo */
+.guia-descricao-section,
+.guia-conteudo-section {
+  margin-bottom: 2.5rem;
+}
+
+.guia-descricao-section h3,
+.guia-conteudo-section h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guia-descricao-texto {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border-radius: 0.5rem;
+  border-left: 4px solid var(--color-primary);
+}
+
+.guia-conteudo-texto {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+}
+
+.guia-conteudo-texto p {
+  margin-bottom: 1rem;
+}
+
+.guia-conteudo-texto p:last-child {
+  margin-bottom: 0;
+}
+
+/* Ações do guia */
+.guia-actions {
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-editar-guia-full {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(255, 123, 0, 0.3);
+}
+
+.btn-editar-guia-full:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 123, 0, 0.4);
+}
+
+/* Aviso de guia oculto */
+.guia-warning-oculto {
+  background: #fef3c7;
+  border: 2px solid #fde68a;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
+
+.guia-warning-oculto h3 {
+  color: #92400e;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.guia-warning-oculto p {
+  color: #78350f;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Rodapé informativo */
+.guia-footer-info {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-gray);
+  text-align: center;
+}
+
+.guia-footer-info p {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Loading e Not Found */
+.loading-message,
+.not-found-message {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.not-found-message h2 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.not-found-message p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.btn-voltar {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-voltar:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Dark Mode */
+.theme-dark .guia-titulo-full {
+  color: var(--text-primary-dark);
+}
+
+.theme-dark .guia-descricao-section h3,
+.theme-dark .guia-conteudo-section h3 {
+  color: var(--text-primary-dark);
+}
+
+.theme-dark .guia-descricao-texto,
+.theme-dark .guia-conteudo-texto {
+  color: var(--text-primary-dark);
+}
+
+.theme-dark .guia-rating-section {
+  background: var(--bg-card-dark);
+  border-color: #374151;
+}
+
+.theme-dark .guia-descricao-texto {
+  background: var(--bg-card-dark);
+}
+
+.theme-dark .guia-footer-info {
+  background: var(--bg-card-dark);
+  border-color: #374151;
+}
+
+.theme-dark .guia-warning-oculto {
+  background: #451a03;
+  border-color: #78350f;
+}
+
+.theme-dark .guia-warning-oculto h3 {
+  color: #fde68a;
+}
+
+.theme-dark .guia-warning-oculto p {
+  color: #fef3c7;
+}
+
+.theme-dark .not-found-message h2 {
+  color: var(--text-primary-dark);
+}
+
+/* Responsividade */
+@media (max-width: 48rem) {
+  .visualizar-guia {
+    padding: 1rem;
+  }
+
+  .guia-titulo-full {
+    font-size: 1.75rem;
+  }
+
+  .guia-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .guia-descricao-texto,
+  .guia-conteudo-texto {
+    font-size: 1rem;
+  }
+
+  .guia-imagem-full {
+    max-height: 15rem;
+  }
+}

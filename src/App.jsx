@@ -18,6 +18,7 @@ import PagePerfil from './pages/page-Perfil';
 import PageRecalls from './pages/page-Recalls';
 import PageGuias from './pages/page-Guias';
 import PageCriarGuia from './pages/page-CriarGuia';
+import PageVisualizarGuia from './pages/page-VisualizarGuia';
 import PageConfiguracoes from './pages/page-Configuracoes';
 import TabelaFIPE from './pages/page-TabelaFIPE';
 import ManutencaoPreventiva from './pages/page-ManutencaoPreventiva';
@@ -84,6 +85,8 @@ export default function App() {
             <Route path="/parceiros" element={<Parceiros />} />
             <Route path="/recalls" element={<PageRecalls />} />
             <Route path="/guias" element={<PageGuias />} />
+            {/* Rota para visualizar guia específico */}
+            <Route path="/guia/:guiaId" element={<PageVisualizarGuia />} />
             {/* Redirecionamento da rota antiga glossario para guias */}
             <Route path="/glossario" element={<Navigate to="/guias" replace />} />
             {/* Rotas para criar/editar guias (Pro apenas) */}
