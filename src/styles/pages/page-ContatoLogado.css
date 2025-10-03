@@ -202,3 +202,35 @@
   #contato-logado .contato-logado-info { margin-top: 1.5rem; color: #6b7280; text-align: center !important; line-height: 1.6; display: flex; flex-direction: column; align-items: center; }
   #contato-logado .contato-logado-info p { text-align: center !important; margin: 0.25rem auto !important; display: block; width: 100%; }
 }
+
+/* ===== DARK MODE ===== */
+.theme-dark .contato-logado-section {
+  background: var(--bg-white);
+}
+
+.theme-dark .contatologado-intro {
+  background: #1e293b; /* Slate-800 - mesmo que guias-intro */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .contatologado-intro p {
+  color: var(--text-primary); /* Texto branco */
+}
+
+.theme-dark .contato-logado-user-info {
+  background: var(--bg-gray-neutral);
+  border-color: var(--border-gray);
+}
+
+.theme-dark .contato-logado-user-info h3,
+.theme-dark .contato-logado-user-info p {
+  color: var(--text-primary);
+}
+
+.theme-dark #contato-logado .contato-logado-info {
+  color: var(--text-secondary);
+}
+
+.theme-dark #contato-logado .contato-logado-info p {
+  color: var(--text-secondary);
+}

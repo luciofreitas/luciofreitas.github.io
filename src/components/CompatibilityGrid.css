@@ -99,6 +99,12 @@
     text-align: center;
   }
   
+  /* Esconde os headers "Anos" e "Contato" em mobile */
+  .compatibility-header-years,
+  .compatibility-header-contact {
+    display: none;
+  }
+  
   .compatibility-grid-header {
     padding: 0.5rem;
   }
