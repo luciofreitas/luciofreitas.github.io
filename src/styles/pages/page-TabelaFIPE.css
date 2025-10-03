@@ -200,6 +200,102 @@
   font-size: 0.9rem !important;
 }
 
+/* Dark mode styles */
+.theme-dark .fipe-intro {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .fipe-intro p {
+  color: #ffffff;
+}
+
+.theme-dark .fipe-filtros {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .filtro-label {
+  color: #ffffff;
+}
+
+.theme-dark .filtro-input,
+.theme-dark .filtro-select {
+  background: #0f172a;
+  border-color: #334155;
+  color: #ffffff;
+}
+
+.theme-dark .filtro-input:focus,
+.theme-dark .filtro-select:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+.theme-dark .filtro-btn-limpar {
+  background: #475569;
+  color: #ffffff;
+}
+
+.theme-dark .filtro-btn-limpar:hover {
+  background: #64748b;
+}
+
+.theme-dark .fipe-resultados-info p {
+  color: #94a3b8;
+}
+
+.theme-dark .fipe-resultados-info strong {
+  color: #60a5fa;
+}
+
+.theme-dark .fipe-tabela-container {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .fipe-tabela thead {
+  background: #334155;
+}
+
+.theme-dark .fipe-tabela thead th {
+  color: #ffffff;
+  border-bottom-color: #475569;
+}
+
+.theme-dark .fipe-tabela tbody tr {
+  border-bottom-color: #334155;
+}
+
+.theme-dark .fipe-tabela tbody tr:hover {
+  background: #0f172a;
+}
+
+.theme-dark .fipe-tabela tbody td {
+  color: #ffffff;
+}
+
+.theme-dark .fipe-preco {
+  color: #60a5fa;
+}
+
+.theme-dark .fipe-sem-resultados {
+  color: #94a3b8;
+}
+
+.theme-dark .fipe-aviso {
+  background: #422006;
+  border-color: #78350f;
+}
+
+.theme-dark .fipe-aviso p {
+  color: #fef3c7;
+}
+
+.theme-dark .fipe-atualizacao {
+  color: #fde68a;
+}
+
 /* Responsividade */
 @media (max-width: 48rem) {
   #tabela-fipe {
