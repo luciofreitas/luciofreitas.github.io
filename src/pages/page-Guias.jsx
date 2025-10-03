@@ -214,9 +214,9 @@ function PageGuias() {
               })}
             </div>
           ) : (
-            <div className="guias-empty-state">
-              <p>Nenhum guia da comunidade criado ainda. {isPro ? 'Seja o primeiro!' : 'Seja Pro para criar o primeiro guia!'}</p>
-            </div>
+            <p className="guias-empty-message">
+              Nenhum guia da comunidade criado ainda. {isPro ? 'Seja o primeiro!' : 'Seja Pro para criar o primeiro guia!'}
+            </p>
           )}
 
           {/* Informações adicionais */}
