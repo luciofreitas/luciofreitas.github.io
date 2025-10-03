@@ -35,7 +35,6 @@ function Menu() {
     { id: 'tabela-fipe', label: 'Tabela FIPE', onClick: () => navigate('/tabela-fipe') },
     { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
     { id: 'guias', label: 'Guias', onClick: () => navigate('/guias') },
-    { id: 'parceiros', label: 'Parceiros', onClick: () => navigate('/parceiros') },
     { id: 'contato', label: 'Contato', onClick: () => navigate('/contato-logado') }
   ];
 
