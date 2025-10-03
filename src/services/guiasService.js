@@ -129,7 +129,7 @@ class GuiasService {
   // Calcular média de avaliações
   calculateAverageRating(guia) {
     if (!guia.ratings || guia.ratings.length === 0) {
-      return null;
+      return 0;
     }
 
     const sum = guia.ratings.reduce((acc, r) => acc + r.rating, 0);
@@ -174,6 +174,8 @@ class GuiasService {
 
   // Obter guia por ID
   getGuiaById(guiaId) {
+    // Recarregar do localStorage para garantir dados atualizados
+    this.guias = this.loadGuias();
     return this.guias.find(g => g.id === guiaId);
   }
 

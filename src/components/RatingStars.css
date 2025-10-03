@@ -35,7 +35,6 @@
 
 .star-button.empty svg {
   color: #d1d5db;
-  stroke: #9ca3af;
 }
 
 .interactive .star-button:hover {
@@ -108,7 +107,6 @@
 /* Dark Mode */
 .theme-dark .star-button.empty svg {
   color: #475569;
-  stroke: #64748b;
 }
 
 .theme-dark .rating-average {
