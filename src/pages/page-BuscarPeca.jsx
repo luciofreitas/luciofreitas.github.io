@@ -394,6 +394,9 @@ export default function BuscarPeca() {
     };
     try {
     const data = await apiService.filtrarPecas(filtros);
+    console.log('🔍 Filtros aplicados:', filtros);
+    console.log('📦 Dados retornados da API:', data);
+    console.log('📋 Peças encontradas:', data.pecas?.length || 0);
     // A API retorna data.pecas, não data.results
     const pecasFiltradas = data.pecas || [];
       setPecas(pecasFiltradas);

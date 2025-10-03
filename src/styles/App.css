@@ -1432,3 +1432,36 @@ input, textarea, button, select {
     appearance: none;
   }
 }
+
+/* ===== DARK MODE - MODAL DE COMPATIBILIDADE ===== */
+
+.theme-dark .modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.theme-dark .compat-modal {
+  background: var(--bg-white);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+.theme-dark .app-compat-header {
+  border-bottom: 0.062rem solid var(--border-gray);
+  background: linear-gradient(90deg, var(--bg-gray-neutral), var(--bg-white));
+}
+
+.theme-dark .app-compat-title {
+  color: var(--color-primary-light);
+}
+
+.theme-dark .app-compat-close {
+  color: var(--text-secondary);
+}
+
+.theme-dark .app-compat-close:hover {
+  background: var(--bg-gray-100);
+  color: var(--text-primary);
+}
+
+.theme-dark .app-compat-body::after {
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.2));
+}

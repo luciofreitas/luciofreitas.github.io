@@ -60,9 +60,25 @@ function findById(list, id){ return list.find(x => String(x.id) === String(id));
 // Load legacy parts DB (used to serve /api/pecas/* endpoints to keep frontend unchanged)
 let PARTS_DB = [];
 try{
-  const partsPath = path.join(__dirname, '..', 'src', 'parts_db.json');
-  if(fs.existsSync(partsPath)){
-    PARTS_DB = JSON.parse(fs.readFileSync(partsPath, 'utf8'));
+  // Try multiple locations for parts_db.json
+  const possiblePaths = [
+    path.join(__dirname, 'parts_db.json'),           // backend/parts_db.json
+    path.join(__dirname, '..', 'data', 'parts_db.json'), // data/parts_db.json
+    path.join(__dirname, '..', 'src', 'data', 'parts_db.json'), // src/data/parts_db.json
+  ];
+  
+  let loaded = false;
+  for (const partsPath of possiblePaths) {
+    if(fs.existsSync(partsPath)){
+      PARTS_DB = JSON.parse(fs.readFileSync(partsPath, 'utf8'));
+      console.log(`Loaded parts_db.json from: ${partsPath} (${PARTS_DB.length} parts)`);
+      loaded = true;
+      break;
+    }
+  }
+  
+  if (!loaded) {
+    console.warn('Could not find parts_db.json in any expected location');
   }
 }catch(e){
   console.warn('Could not load parts_db.json:', e.message);
@@ -127,12 +143,15 @@ function extract_models(){
 function extract_years(){
   try{
     const years = new Set();
-    const re = /\d{4}/g;
     (PARTS_DB||[]).forEach(part => {
       try{
         (part.applications||[]).forEach(app => {
           if(typeof app === 'string'){
-            let m; while((m = re.exec(app))){ years.add(m[0]); }
+            // Create a new regex for each string to avoid state issues
+            const matches = app.match(/\d{4}/g);
+            if(matches){
+              matches.forEach(y => years.add(y));
+            }
           } else if(typeof app === 'object' && app.years){
             (app.years||[]).forEach(y => years.add(String(y)));
           }
@@ -190,16 +209,29 @@ app.get('/api/pecas/fabricantes', (req, res) => res.json({ fabricantes: get_uniq
 // Aggregated metadata endpoint used by the frontend
 app.get('/api/pecas/meta', (req, res) => {
   try{
+    console.log('Building /api/pecas/meta response...');
+    const grupos = get_unique('category');
+    console.log('  grupos:', grupos.length);
+    const marcas = extract_brands();
+    console.log('  marcas:', marcas.length);
+    const modelos = extract_models();
+    console.log('  modelos:', modelos.length);
+    const anos = extract_years();
+    console.log('  anos:', anos.length);
+    const fabricantes = get_unique('manufacturer');
+    console.log('  fabricantes:', fabricantes.length);
+    
     return res.json({
-      grupos: get_unique('category'),
+      grupos,
       pecas: PARTS_DB,
-      marcas: extract_brands(),
-      modelos: extract_models(),
-      anos: extract_years(),
-      fabricantes: get_unique('manufacturer')
+      marcas,
+      modelos,
+      anos,
+      fabricantes
     });
   }catch(err){
     console.error('Failed to build /api/pecas/meta:', err && err.message ? err.message : err);
+    console.error('Stack:', err.stack);
     return res.status(500).json({ grupos: [], pecas: [], marcas: [], modelos: [], anos: [], fabricantes: [] });
   }
 });
