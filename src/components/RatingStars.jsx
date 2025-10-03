@@ -54,9 +54,7 @@ function RatingStars({
           >
             <svg 
               viewBox="0 0 24 24" 
-              fill={starValue <= displayRating ? 'currentColor' : 'none'}
-              stroke="currentColor"
-              strokeWidth="1.5"
+              fill="currentColor"
             >
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
@@ -64,7 +62,7 @@ function RatingStars({
         ))}
       </div>
       
-      {totalRatings > 0 && (
+      {totalRatings > 0 && rating > 0 && (
         <div className="rating-info">
           <span className="rating-average">{rating.toFixed(1)}</span>
           <span className="rating-count">({totalRatings} {totalRatings === 1 ? 'avaliação' : 'avaliações'})</span>
@@ -73,6 +71,10 @@ function RatingStars({
 
       {!readOnly && totalRatings === 0 && (
         <span className="rating-prompt">Seja o primeiro a avaliar</span>
+      )}
+      
+      {readOnly && totalRatings === 0 && (
+        <span className="rating-prompt">Sem avaliações ainda</span>
       )}
     </div>
   );
