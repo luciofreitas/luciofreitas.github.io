@@ -196,6 +196,15 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  outline: none;
+}
+
+.btn-cancel:focus,
+.btn-cancel:active,
+.btn-submit:focus,
+.btn-submit:active {
+  outline: none;
+  box-shadow: none;
 }
 
 .btn-cancel {

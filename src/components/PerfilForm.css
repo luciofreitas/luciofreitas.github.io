@@ -37,6 +37,19 @@ button.login-submit {
   transition: background 0.2s ease !important;
   min-width: 7.5rem !important;
   box-sizing: border-box !important;
+  outline: none !important;
+}
+
+.btn-save:focus,
+.btn-save:active,
+button.btn-save:focus,
+button.btn-save:active,
+.login-submit:focus,
+.login-submit:active,
+button.login-submit:focus,
+button.login-submit:active {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .btn-save:hover,
@@ -63,6 +76,19 @@ button.btn.btn-cancel {
   min-width: 7.5rem !important;
   box-sizing: border-box !important;
   box-shadow: none !important; /* Remove o box-shadow dos botões primários */
+  outline: none !important;
+}
+
+.btn-cancel:focus,
+.btn-cancel:active,
+button.btn-cancel:focus,
+button.btn-cancel:active,
+.btn.btn-cancel:focus,
+.btn.btn-cancel:active,
+button.btn.btn-cancel:focus,
+button.btn.btn-cancel:active {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .btn-cancel:hover,
