@@ -1,11 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Menu from '../components/Menu';
+import { AuthContext } from '../App';
 import '../styles/pages/page-TabelaFIPE.css';
 
 export default function TabelaFIPE() {
+  const { usuarioLogado } = useContext(AuthContext) || {};
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMarca, setFilterMarca] = useState('');
   const [filterAno, setFilterAno] = useState('');
+  
+  // Verifica se o usuário é Pro
+  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
 
   // Dados fictícios da Tabela FIPE - em produção viriam de uma API
   const dadosFIPE = [
@@ -153,7 +160,19 @@ export default function TabelaFIPE() {
                       <td data-label="Marca">{item.marca}</td>
                       <td data-label="Modelo">{item.modelo}</td>
                       <td data-label="Ano">{item.ano}</td>
-                      <td data-label="Preço Médio" className="fipe-preco">{item.preco}</td>
+                      <td data-label="Preço Médio" className="fipe-preco">
+                        <div className="fipe-preco-wrapper">
+                          <span className={isPro ? '' : 'fipe-preco-blur'}>{item.preco}</span>
+                          {!isPro && (
+                            <div className="fipe-preco-lock">
+                              <img src="./padlock.png" alt="Cadeado" className="fipe-padlock-icon" />
+                              <div className="fipe-preco-tooltip">
+                                Seja Pro para visualizar os preços da Tabela FIPE
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -167,6 +186,25 @@ export default function TabelaFIPE() {
               </div>
             )}
           </div>
+
+          {/* CTA para usuários não-Pro */}
+          {!isPro && dadosFiltrados.length > 0 && (
+            <div className="fipe-cta-pro">
+              <div className="fipe-cta-content">
+                <h3>🔓 Desbloqueie os Preços da Tabela FIPE</h3>
+                <p>
+                  Assine a Versão Pro e tenha acesso completo aos preços atualizados 
+                  de todos os veículos da Tabela FIPE, além de outros benefícios exclusivos!
+                </p>
+                <button 
+                  className="fipe-cta-button"
+                  onClick={() => navigate('/seja-pro')}
+                >
+                  Assinar Versão Pro
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Aviso sobre atualização */}
           <div className="fipe-aviso">
