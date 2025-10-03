@@ -177,6 +177,19 @@ button.btn.btn-cancel,
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  outline: none !important;
+}
+
+button.btn-cancel:focus,
+button.btn-cancel:active,
+button.btn.btn-cancel:focus,
+button.btn.btn-cancel:active,
+.btn-cancel:focus,
+.btn-cancel:active,
+.btn.btn-cancel:focus,
+.btn.btn-cancel:active {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 button.btn-cancel:hover,
