@@ -218,7 +218,7 @@ function Menu() {
               nome={usuarioLogado?.nome}
               isPro={proActive}
               onPerfil={handleNavigation(() => navigate('/perfil'))}
-              onPro={handleNavigation(() => navigate(proActive ? '/versaoProAssinado' : '/versaoPro'))}
+              onPro={handleNavigation(() => navigate(proActive ? '/versao-pro-assinado' : '/versao-pro'))}
               onLogout={handleNavigation(() => {
                 // limpa estado/localStorage e redireciona para a tela de login
                 setUsuarioLogado(null);
