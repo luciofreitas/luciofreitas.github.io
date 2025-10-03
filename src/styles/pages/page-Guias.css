@@ -80,6 +80,22 @@
   text-decoration-thickness: 2px;
 }
 
+/* Estado vazio dos guias da comunidade */
+.guias-empty-state {
+  text-align: center;
+  padding: clamp(2rem, 4vw, 3rem);
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: clamp(0.65rem, 1.2vw, 0.75rem);
+  margin-bottom: clamp(1.5rem, 2.5vw, 2rem);
+}
+
+.guias-empty-state p {
+  color: #64748b;
+  margin: 0;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+}
+
 /* Grid de Cards dos Guias */
 .guias-grid {
   display: grid;
@@ -875,6 +891,16 @@
 
 .theme-dark .btn-seja-pro-inline:hover {
   color: #93c5fd;
+}
+
+/* Estado vazio - dark mode */
+.theme-dark .guias-empty-state {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+.theme-dark .guias-empty-state p {
+  color: #94a3b8;
 }
 
 /* Cards dos Guias - dark mode */
