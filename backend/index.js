@@ -30,26 +30,35 @@ const csvData = {
 
 // Attempt Postgres connection if environment variables provided
 let pgClient = null;
+// Try to build a pg Client config from common env vars. Support DATABASE_URL or individual PG* vars.
+function buildPgConfig(){
+  if(process.env.DATABASE_URL) return { connectionString: process.env.DATABASE_URL };
+  const host = process.env.PGHOST || process.env.PG_HOST;
+  const port = process.env.PGPORT || process.env.PG_PORT || 5432;
+  const user = process.env.PGUSER || process.env.PG_USER;
+  const password = process.env.PGPASSWORD || process.env.PG_PASSWORD;
+  const database = process.env.PGDATABASE || process.env.PG_DATABASE;
+  if(!host || !user || !password || !database) return null;
+  return { host, port: Number(port), user, password, database };
+}
+
 async function tryConnectPg(){
-  const conn = process.env.DATABASE_URL || process.env.PGHOST;
-  if(!conn) return null;
+  const cfg = buildPgConfig();
+  if(!cfg) return null;
   try{
-    const client = new Client({ connectionString: process.env.DATABASE_URL });
+    const client = new Client(cfg);
     await client.connect();
     // handle async errors from the postgres client so they don't crash the Node process
     client.on('error', err => {
       console.error('Postgres client emitted error, falling back to CSV and clearing client:', err && err.message ? err.message : err);
-      // mark global pgClient null so later requests use CSV fallback
       try { pgClient = null; } catch(e){}
-      // best-effort close
       try { client.end().catch(() => {}); } catch(e){}
     });
-    // quick test query
     await client.query('SELECT 1');
     console.log('Connected to Postgres for backend API');
     return client;
   }catch(err){
-    console.warn('Postgres connection failed, falling back to CSV:', err.message);
+    console.warn('Postgres connection failed, falling back to CSV:', err && err.message ? err.message : err);
     return null;
   }
 }

@@ -4,7 +4,8 @@
   "description": "Simple API that serves seed CSV data for parts/compatibility MVP",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "migrate": "node migrate.js"
   },
   "dependencies": {
     "express": "^4.18.2",
