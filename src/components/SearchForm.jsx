@@ -1,6 +1,7 @@
 import React from 'react';
 import './SearchForm.css';
 import CustomDropdown from './CustomDropdown';
+import LoadingSpinner from './LoadingSpinner';
 
 function SearchForm({
   selectedGrupo,
@@ -101,7 +102,14 @@ function SearchForm({
         <div className="search-form-buttons-row">
           <div className="search-form-buttons">
             <button className="search-form-btn search-form-btn-primary" type="submit" disabled={loading}>
-              {loading ? 'Buscando...' : 'Buscar'}
+              {loading ? (
+                <span className="loading-inline">
+                  <LoadingSpinner size="small" color="primary" />
+                  Buscando...
+                </span>
+              ) : (
+                'Buscar'
+              )}
             </button>
             <button type="button" className="search-form-btn search-form-btn-secondary" onClick={onClear}>
               Limpar

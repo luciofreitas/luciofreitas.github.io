@@ -41,6 +41,12 @@ export default function PageCadastro() {
       existing.push({ nome: nome.trim(), email: email.trim(), senha, criadoEm: new Date().toISOString() });
       localStorage.setItem(key, JSON.stringify(existing));
       setSuccess('Cadastro realizado com sucesso!');
+      
+      // Mensagem de sucesso com Toast
+      if (window.showToast) {
+        window.showToast('Cadastro realizado com sucesso! Redirecionando para o login...', 'success', 2000);
+      }
+      
       // redireciona para tela de login após sucesso, mantendo a mensagem visível por 2s
       setTimeout(() => {
         try { navigate('/login', { state: { email: email.trim() } }); } catch (e) { /* ignore */ }
