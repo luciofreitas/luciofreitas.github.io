@@ -1,15 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Menu from '../components/Menu';
 import '../styles/pages/page-Recalls.css';
 import recallsData from '../data/recalls.json';
+import { AuthContext } from '../App';
+import { getCars } from '../services/carService';
 
 function PageRecalls() {
+  const { usuarioLogado } = useContext(AuthContext) || {};
   const [recalls, setRecalls] = useState([]);
   const [filteredRecalls, setFilteredRecalls] = useState([]);
   const [searchMarca, setSearchMarca] = useState('');
   const [searchModelo, setSearchModelo] = useState('');
   const [searchAno, setSearchAno] = useState('');
   const [selectedRisk, setSelectedRisk] = useState('');
+  const [carros, setCarros] = useState([]);
+  const [carroSelecionado, setCarroSelecionado] = useState('');
+
+  // Carrega carros do usuário quando logado
+  useEffect(() => {
+    if (usuarioLogado) {
+      const userId = usuarioLogado.id || usuarioLogado.email;
+      const userCars = getCars(userId);
+      setCarros(userCars);
+    } else {
+      setCarros([]);
+      setCarroSelecionado('');
+    }
+  }, [usuarioLogado]);
+
+  // Quando seleciona um carro, preenche os campos de busca
+  const handleCarroChange = (e) => {
+    const carId = e.target.value;
+    setCarroSelecionado(carId);
+    
+    if (!carId) {
+      // Se desmarcou, não limpa os campos (permite busca manual)
+      return;
+    }
+
+    const carro = carros.find(c => c.id === carId);
+    if (carro) {
+      setSearchMarca(carro.marca);
+      setSearchModelo(carro.modelo);
+      setSearchAno(carro.ano.toString());
+    }
+  };
 
   useEffect(() => {
     setRecalls(recallsData);
@@ -82,6 +117,26 @@ function PageRecalls() {
 
           {/* Filtros de busca */}
           <div className="recalls-search">
+            {/* Dropdown de carros - só aparece se usuário logado e tiver carros */}
+            {usuarioLogado && carros.length > 0 && (
+              <div className="recalls-car-selector">
+                <label htmlFor="carro-selecionado">Buscar recalls para um carro específico (opcional)</label>
+                <select
+                  id="carro-selecionado"
+                  value={carroSelecionado}
+                  onChange={handleCarroChange}
+                  className="recalls-input"
+                >
+                  <option value="">-- Busca geral (deixar em branco) --</option>
+                  {carros.map(carro => (
+                    <option key={carro.id} value={carro.id}>
+                      {carro.marca} {carro.modelo} {carro.ano}{carro.isDefault ? ' ⭐' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
             <div className="search-row">
               <div className="search-field">
                 <label htmlFor="marca">Marca</label>

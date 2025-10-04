@@ -1,0 +1,415 @@
+/* Página Meus Carros */
+
+.meus-carros-intro {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.meus-carros-intro p {
+  color: #475569;
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* Botão adicionar */
+.add-car-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.btn-add-car {
+  background: #0052cc;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.2);
+}
+
+.btn-add-car:hover {
+  background: #003a99;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+}
+
+/* Formulário de carro */
+.car-form-container {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-title {
+  color: #0052cc;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.car-form .form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.car-form .form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.car-form label {
+  color: #172b4d;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.car-form input,
+.car-form select,
+.car-form textarea {
+  padding: 0.75rem;
+  border: 1px solid #dfe1e6;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+  background: white;
+}
+
+.car-form select {
+  cursor: pointer;
+}
+
+.car-form select:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.car-form input:focus,
+.car-form select:focus,
+.car-form textarea:focus {
+  outline: none;
+  border-color: #0052cc;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+}
+
+.car-form textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-submit,
+.btn-cancel {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-submit {
+  background: #ff7b00;
+  color: white;
+  box-shadow: 0 2px 4px rgba(255, 123, 0, 0.2);
+}
+
+.btn-submit:hover {
+  background: #e06800;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 123, 0, 0.3);
+}
+
+.btn-cancel {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-cancel:hover {
+  background: #d1d5db;
+}
+
+/* Lista de carros */
+.cars-list {
+  margin-top: 2rem;
+}
+
+.list-title {
+  color: #0052cc;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.cars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.car-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.car-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.car-card-default {
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+}
+
+.default-badge {
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  background: #fbbf24;
+  color: #78350f;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+}
+
+.car-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.car-title {
+  color: #172b4d;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.car-year {
+  background: #0052cc;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.car-details {
+  margin-bottom: 1rem;
+}
+
+.car-info {
+  color: #64748b;
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.car-info strong {
+  color: #172b4d;
+  font-weight: 600;
+}
+
+.car-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-set-default,
+.btn-edit,
+.btn-delete {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-set-default {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.btn-set-default:hover {
+  background: #fde68a;
+  transform: translateY(-1px);
+}
+
+.btn-edit {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.btn-edit:hover {
+  background: #c7d2fe;
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.btn-delete:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+}
+
+/* Estado vazio */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 0.75rem;
+  margin-top: 2rem;
+}
+
+.empty-state p {
+  color: #475569;
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+}
+
+/* Dark mode */
+.theme-dark .meus-carros-intro {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+.theme-dark .meus-carros-intro p {
+  color: #94a3b8;
+}
+
+.theme-dark .car-form-container {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+.theme-dark .form-title {
+  color: #60a5fa;
+}
+
+.theme-dark .car-form label {
+  color: #f8fafc;
+}
+
+.theme-dark .car-form input,
+.theme-dark .car-form select,
+.theme-dark .car-form textarea {
+  background: #0f172a;
+  border-color: #475569;
+  color: #f8fafc;
+}
+
+.theme-dark .car-form select:disabled {
+  background: #1e293b;
+}
+
+.theme-dark .car-form input:focus,
+.theme-dark .car-form select:focus,
+.theme-dark .car-form textarea:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+.theme-dark .btn-cancel {
+  background: #475569;
+  color: #f8fafc;
+}
+
+.theme-dark .btn-cancel:hover {
+  background: #64748b;
+}
+
+.theme-dark .list-title {
+  color: #60a5fa;
+}
+
+.theme-dark .car-card {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+.theme-dark .car-card-default {
+  background: linear-gradient(135deg, #422006 0%, #1e293b 100%);
+}
+
+.theme-dark .car-header {
+  border-bottom-color: #475569;
+}
+
+.theme-dark .car-title {
+  color: #f8fafc;
+}
+
+.theme-dark .car-info {
+  color: #94a3b8;
+}
+
+.theme-dark .car-info strong {
+  color: #cbd5e1;
+}
+
+.theme-dark .empty-state {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+.theme-dark .empty-state p {
+  color: #94a3b8;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .car-form .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .cars-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .btn-submit,
+  .btn-cancel {
+    width: 100%;
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './MenuUsuario.css';
 
-function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onLogout }) {
+function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLogout }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -80,6 +80,7 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onPro, onLogout }) {
           {/* Nome do usuário como primeiro item do dropdown (apenas no mobile) - não clicável */}
           <div className="dropdown-item dropdown-user-name dropdown-user-name-header">Olá, {nome}</div>
           <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button>
+          <button className="dropdown-item" onClick={() => { setOpen(false); onMeusCarros(); }}>Meus Carros</button>
           <button className="dropdown-item" onClick={() => { setOpen(false); onPro(); }}>Versão Pro</button>
           <button className="dropdown-item dropdown-item-logout" onClick={() => { setOpen(false); onLogout(); }}>Sair</button>
         </div>
