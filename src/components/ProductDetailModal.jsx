@@ -120,7 +120,6 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
 
                 <div className="product-codes">
                   <div><strong>Fabricante:</strong> {productDetails.fabricante}</div>
-                  <div><strong>Código:</strong> {productDetails.numero_peca}</div>
                   {productDetails.codigos?.oem && (
                     <div><strong>Códigos OEM:</strong> {productDetails.codigos.oem.join(', ')}</div>
                   )}
@@ -187,9 +186,6 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
               <div className="tab-content">
                 {activeTab === 'geral' && (
                   <div className="tab-panel">
-                    <h3>Descrição</h3>
-                    <p>{productDetails.descricao}</p>
-                    
                     <h3>Como Adquirir</h3>
                     <div className="workshop-info">
                       <div>🏪 Consulte preços e disponibilidade com nossas oficinas parceiras</div>
