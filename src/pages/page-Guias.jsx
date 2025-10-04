@@ -83,12 +83,12 @@ function PageGuias() {
                 <h3>Crie seus próprios guias!</h3>
                 <p>
                   Assinantes <strong>Pro</strong> podem <span className="highlight-orange">criar</span> e <span className="highlight-orange">compartilhar</span> guias customizados com a comunidade.
-                  <button 
+                  <a 
                     className="btn-seja-pro-inline"
-                    onClick={() => navigate('/seja-pro')}
+                    href="#/versao-pro"
                   >
-                    Seja Pro →
-                  </button>
+                    Versão Pro →
+                  </a>
                 </p>
               </div>
             </div>
