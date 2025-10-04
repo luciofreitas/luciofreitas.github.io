@@ -53,6 +53,12 @@ export default function Login() {
     setError('');
     if (setUsuarioLogado) setUsuarioLogado(usuario);
     try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
+    
+    // Mensagem de boas-vindas com Toast
+    if (window.showToast) {
+      window.showToast(`Bem-vindo(a), ${usuario.nome || 'Usuário'}!`, 'success', 3000);
+    }
+    
     navigate('/buscar-pecas');
   }
 
@@ -123,6 +129,12 @@ export default function Login() {
                           const usuario = { id: user.uid, nome: user.displayName || '', email: user.email || '' };
                           try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
                           if (setUsuarioLogado) setUsuarioLogado(usuario);
+                          
+                          // Mensagem de boas-vindas com Toast
+                          if (window.showToast) {
+                            window.showToast(`Bem-vindo(a), ${usuario.nome || 'Usuário'}!`, 'success', 3000);
+                          }
+                          
                           navigate('/buscar-pecas');
                         } catch (err) {
                           console.error('Unexpected error:', err);

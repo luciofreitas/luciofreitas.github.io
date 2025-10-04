@@ -1117,20 +1117,37 @@ html body {
 .btn-primary {
   background-color: var(--color-primary);
   color: var(--text-inverse);
+  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.2);
 }
 
 .btn-primary:hover:not(:disabled) {
   background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.2);
 }
 
 .btn-secondary {
   background-color: var(--bg-gray-100);
   color: var(--text-primary);
   border: 1px solid var(--border-gray);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--bg-gray-200);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  border-color: #94a3b8;
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .btn:disabled {
@@ -1465,3 +1482,61 @@ input, textarea, button, select {
 .theme-dark .app-compat-body::after {
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.2));
 }
+
+/* ===== RESPONSIVE UTILITIES ===== */
+/* Touch target size - mínimo 44x44px para acessibilidade mobile */
+@media (max-width: 768px) {
+  button,
+  a.btn,
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation; /* Otimiza toque em dispositivos móveis */
+  }
+  
+  /* Espaçamento adequado em mobile */
+  .page-content {
+    padding: 1rem;
+  }
+  
+  /* Aumenta tap targets em formulários */
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px; /* Previne zoom automático no iOS */
+  }
+  
+  /* Grid responsivo com gap adequado */
+  .search-form-row {
+    gap: 1rem;
+  }
+}
+
+/* Breakpoints específicos */
+@media (max-width: 480px) {
+  /* Mobile pequeno - força elementos em coluna */
+  .search-form-row {
+    flex-direction: column;
+  }
+  
+  .search-form-field {
+    width: 100%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet - ajustes intermediários */
+  .page-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop - máxima usabilidade */
+  .page-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+

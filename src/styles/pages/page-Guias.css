@@ -18,7 +18,7 @@
 }
 
 .guias-intro p {
-  color: #64748b;
+  color: #475569;
   margin: 0;
   font-size: clamp(0.95rem, 2vw, 1.1rem);
   line-height: 1.6;
@@ -44,7 +44,7 @@
 }
 
 .pro-notice-content p {
-  color: #64748b;
+  color: #475569;
   margin: 0;
   font-size: clamp(0.9rem, 1.8vw, 0.95rem);
   line-height: 1.6;
@@ -83,7 +83,7 @@
 /* Mensagem quando não há guias da comunidade */
 .guias-empty-message {
   text-align: center;
-  color: #64748b;
+  color: #475569;
   margin: 0 0 clamp(1.5rem, 2.5vw, 2rem) 0;
   font-size: clamp(0.95rem, 2vw, 1.05rem);
 }
