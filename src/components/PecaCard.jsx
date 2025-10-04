@@ -12,8 +12,6 @@ function PecaCard({ peca, onViewCompatibility, onViewDetails }) {
       <h3 className="peca-card-title">{peca.name}</h3>
       <p className="peca-card-info"><strong>Categoria:</strong> {peca.category}</p>
       <p className="peca-card-info"><strong>Fabricante:</strong> {peca.manufacturer}</p>
-      <p className="peca-card-info"><strong>Código:</strong> {peca.partNumber}</p>
-      <p className="peca-card-info"><strong>Descrição:</strong> {peca.description}</p>
       
       {peca.specifications && (
         <div className="peca-card-specs">
