@@ -17,6 +17,11 @@ html, body, #root, .app {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Remove outline preto ao clicar com mouse (mantém acessibilidade com teclado) */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* Normalização de cores para evitar herança indesejada */
 h1, h2, h3, h4, h5, h6 {
   color: inherit !important;
