@@ -15,6 +15,7 @@ import Parceiros from './pages/page-Parceiros';
 import ContatoLogado from './pages/page-ContatoLogado';
 import BuscarPeca from './pages/page-BuscarPeca';
 import PagePerfil from './pages/page-Perfil';
+import PageMeusCarros from './pages/page-MeusCarros';
 import PageRecalls from './pages/page-Recalls';
 import PageGuias from './pages/page-Guias';
 import PageCriarGuia from './pages/page-CriarGuia';
@@ -107,6 +108,11 @@ export default function App() {
             <Route path="/perfil" element={
               <ProtectedRoute>
                 <PagePerfil />
+              </ProtectedRoute>
+            } />
+            <Route path="/meus-carros" element={
+              <ProtectedRoute>
+                <PageMeusCarros />
               </ProtectedRoute>
             } />
             <Route path="/configuracoes" element={

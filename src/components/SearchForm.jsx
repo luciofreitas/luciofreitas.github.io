@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './SearchForm.css';
 import CustomDropdown from './CustomDropdown';
 import LoadingSpinner from './LoadingSpinner';
+import { AuthContext } from '../App';
+import { getCars } from '../services/carService';
 
 function SearchForm({
   selectedGrupo,
@@ -32,8 +34,60 @@ function SearchForm({
   warningFabricante,
   emptyFieldsWarning
 }) {
+  const { usuarioLogado } = useContext(AuthContext) || {};
+  const [carros, setCarros] = useState([]);
+  const [carroSelecionado, setCarroSelecionado] = useState('');
+
+  // Carrega carros do usuário quando logado
+  useEffect(() => {
+    if (usuarioLogado) {
+      const userId = usuarioLogado.id || usuarioLogado.email;
+      const userCars = getCars(userId);
+      setCarros(userCars);
+    } else {
+      setCarros([]);
+      setCarroSelecionado('');
+    }
+  }, [usuarioLogado]);
+
+  // Quando seleciona um carro, preenche os campos
+  const handleCarroChange = (carId) => {
+    setCarroSelecionado(carId);
+    
+    if (!carId) {
+      // Se desmarcou, não faz nada (permite busca geral)
+      return;
+    }
+
+    const carro = carros.find(c => c.id === carId);
+    if (carro) {
+      setSelectedMarca(carro.marca);
+      setSelectedModelo(carro.modelo);
+      // Converte ano para string, pois pode estar como número
+      setSelectedAno(String(carro.ano));
+    }
+  };
+
   return (
   <form className="search-form" onSubmit={onSearch} aria-label="Formulário de busca de peças">
+      {/* Dropdown de carros - só aparece se usuário logado e tiver carros */}
+      {usuarioLogado && carros.length > 0 && (
+        <div className="search-form-car-selector">
+          <label htmlFor="carro-selecionado">Buscar para um carro específico (opcional)</label>
+          <CustomDropdown
+            options={[
+              { value: '', label: '-- Busca geral (deixar em branco) --' },
+              ...carros.map(c => ({
+                value: c.id,
+                label: `${c.marca} ${c.modelo} ${c.ano}${c.isDefault ? ' ⭐' : ''}`
+              }))
+            ]}
+            value={carroSelecionado}
+            onChange={handleCarroChange}
+            placeholder="Selecione um carro cadastrado"
+          />
+        </div>
+      )}
       <div className="search-form-row">
         <div className="search-form-field">
           <label htmlFor="grupo">Grupo</label>

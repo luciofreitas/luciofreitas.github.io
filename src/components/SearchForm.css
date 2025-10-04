@@ -11,6 +11,33 @@
   box-sizing: border-box;
 }
 
+/* Seletor de carro */
+.search-form-car-selector {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 2px solid #3b82f6;
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.search-form-car-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.theme-dark .search-form-car-selector {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  border-color: #60a5fa;
+}
+
+.theme-dark .search-form-car-selector label {
+  color: #dbeafe;
+}
+
 .search-form-row {
   display: flex;
   gap: 1.5rem;

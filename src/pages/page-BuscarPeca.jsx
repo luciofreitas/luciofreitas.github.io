@@ -401,7 +401,18 @@ export default function BuscarPeca() {
     const pecasFiltradas = data.pecas || [];
       setPecas(pecasFiltradas);
       if (pecasFiltradas.length === 0) {
-        setError('Nenhuma peça encontrada para os filtros selecionados.');
+        const filtrosAtivos = [];
+        if (filtros.marca) filtrosAtivos.push(`Marca: ${filtros.marca}`);
+        if (filtros.modelo) filtrosAtivos.push(`Modelo: ${filtros.modelo}`);
+        if (filtros.ano) filtrosAtivos.push(`Ano: ${filtros.ano}`);
+        if (filtros.grupo) filtrosAtivos.push(`Grupo: ${filtros.grupo}`);
+        if (filtros.categoria) filtrosAtivos.push(`Peça: ${filtros.categoria}`);
+        if (filtros.fabricante) filtrosAtivos.push(`Fabricante: ${filtros.fabricante}`);
+        
+        const mensagem = filtrosAtivos.length > 0 
+          ? `Nenhuma peça encontrada para: ${filtrosAtivos.join(', ')}. Tente remover alguns filtros ou buscar por termos mais genéricos.`
+          : 'Nenhuma peça encontrada para os filtros selecionados.';
+        setError(mensagem);
       } else {
         setModalTitle(`Encontradas ${pecasFiltradas.length} peça(s)`);
         setModalContent(renderPecasModal(pecasFiltradas));
