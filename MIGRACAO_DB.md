@@ -24,33 +24,33 @@
 
 ## 🚀 Passo a Passo para Ativar
 
-### Passo 1: Verificar Docker e PostgreSQL
+### Passo 1: Configurar Supabase
 
-```powershell
-# Verificar se docker está rodando
-docker --version
-
-# Levantar PostgreSQL via docker-compose
-docker-compose up -d
-
-# Verificar se está rodando
-docker ps
-```
+Siga o guia completo em **SUPABASE_SETUP.md** para:
+1. Criar projeto no Supabase
+2. Obter DATABASE_URL
+3. Configurar Firebase Admin SDK
 
 ### Passo 2: Configurar Variáveis de Ambiente
 
-Crie ou edite o arquivo `.env` na raiz do projeto **backend**:
+Copie o template e preencha com suas credenciais:
+
+```powershell
+cd backend
+copy .env.template .env
+```
+
+Edite `backend/.env` com:
 
 ```env
-# backend/.env
-PGHOST=localhost
-PGPORT=5432
-PGUSER=postgres
-PGPASSWORD=postgres
-PGDATABASE=pecas_db
+# PostgreSQL via Supabase (nuvem)
+DATABASE_URL=postgresql://postgres:SUA_SENHA@db.xxxx.supabase.co:5432/postgres
 
-# OU use DATABASE_URL (alternativa)
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pecas_db
+# Habilitar SSL (obrigatório para Supabase)
+PGSSL=true
+
+# Firebase Admin SDK (JSON em linha única)
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
 ```
 
 ### Passo 3: Instalar Dependências do Backend
@@ -119,24 +119,41 @@ curl http://localhost:3001/api/pecas/todas
 
 ### Verificar se o Banco Está Populado
 
-```powershell
-# Conectar ao PostgreSQL via Docker
-docker exec -it <CONTAINER_ID> psql -U postgres -d pecas_db
+Use o **Supabase Dashboard**:
 
-# Dentro do psql:
-\dt                              # Listar tabelas
-SELECT COUNT(*) FROM products;   # Contar produtos
-SELECT * FROM products LIMIT 5;  # Ver 5 produtos
-\q                               # Sair
+1. Acesse https://supabase.com/dashboard
+2. Vá em **Table Editor**
+3. Verifique as tabelas criadas:
+   - manufacturers
+   - users
+   - products
+   - applications
+   - cars
+   - guias
+   - reviews
+   - payments
+
+Ou use **SQL Editor**:
+```sql
+-- Contar produtos
+SELECT COUNT(*) FROM products;
+
+-- Ver 5 produtos
+SELECT * FROM products LIMIT 5;
+
+-- Ver tabelas
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public';
 ```
 
 ### Verificar Logs do Backend
 
 O backend deve mostrar:
+- ✅ `Firebase Admin SDK initialized`
 - ✅ `Connected to Postgres for backend API`
 - ✅ `Parts API listening on http://0.0.0.0:3001 (pg=true)`
 
-Se aparecer `(pg=false)`, significa que não conseguiu conectar ao PostgreSQL e está usando CSV fallback.
+Se aparecer `(pg=false)`, significa que não conseguiu conectar ao Supabase. Verifique DATABASE_URL no `.env`.
 
 ## 🔄 Comportamento com Fallback
 
@@ -175,19 +192,28 @@ src/
 ## 🐛 Troubleshooting
 
 ### Erro: "No Postgres configuration detected"
-**Solução:** Criar arquivo `backend/.env` com as variáveis corretas
+**Solução:** 
+1. Copiar template: `copy backend\.env.template backend\.env`
+2. Preencher DATABASE_URL e FIREBASE_SERVICE_ACCOUNT_JSON
+3. Ver SUPABASE_SETUP.md para guia completo
 
-### Erro: "Connection refused"
-**Solução:** Verificar se PostgreSQL está rodando (`docker ps`)
+### Erro: "Connection refused" ou "ENOTFOUND"
+**Solução:** 
+1. Verificar DATABASE_URL no backend/.env
+2. Confirmar projeto Supabase está ativo
+3. Verificar se senha no DATABASE_URL está correta
+
+### Erro: "self-signed certificate"
+**Solução:** Confirmar que `PGSSL=true` está no `.env`
 
 ### Erro: "Products table already has data"
 **Solução:** Normal! A migração não sobrescreve dados existentes
 
 ### Backend mostra `(pg=false)`
 **Solução:** Verificar:
-1. PostgreSQL está rodando?
-2. Variáveis de ambiente corretas?
-3. Firewall bloqueando porta 5432?
+1. DATABASE_URL está correto no backend/.env?
+2. Supabase projeto está ativo?
+3. SSL habilitado com PGSSL=true?
 
 ## 📝 Próximos Passos Opcionais
 

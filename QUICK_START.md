@@ -1,57 +1,68 @@
-# 🚀 Quick Start - Migração para PostgreSQL
+# 🚀 Quick Start - Supabase + Firebase
 
-## Comandos Rápidos (Windows PowerShell)
+## ⚡ Comandos Rápidos (Windows PowerShell)
 
-### 1️⃣ Setup Automático (Mais Fácil)
+### 1️⃣ Configurar Backend
 ```powershell
 cd backend
-.\setup-migration.ps1
+
+# Copiar template de configuração
+copy .env.template .env
+
+# Edite backend/.env com suas credenciais:
+# - DATABASE_URL do Supabase
+# - FIREBASE_SERVICE_ACCOUNT_JSON do Firebase
+# Veja SUPABASE_SETUP.md para detalhes
 ```
 
-### 2️⃣ Iniciar Backend
+### 2️⃣ Executar Migração (primeira vez)
+```powershell
+cd backend
+npm install
+npm run migrate
+```
+
+### 3️⃣ Iniciar Backend
 ```powershell
 cd backend
 npm start
 ```
 
-### 3️⃣ Iniciar Frontend (em outro terminal)
+### 4️⃣ Iniciar Frontend (em outro terminal)
 ```powershell
 npm run dev
 ```
 
-### 4️⃣ Abrir no navegador
+### 5️⃣ Abrir no navegador
 ```
 http://localhost:5173
 ```
 
 ---
 
-## Comandos Manuais (Passo a Passo)
+## 📋 Passo a Passo Completo
 
+### 1. Configurar Supabase
+Veja o guia completo em **SUPABASE_SETUP.md**
+
+### 2. Instalar dependências
 ```powershell
-# 1. Levantar PostgreSQL
-docker-compose up -d
-
-# 2. Criar arquivo .env no backend (se não existir)
-# backend/.env:
-# PGHOST=localhost
-# PGPORT=5432
-# PGUSER=postgres
-# PGPASSWORD=postgres
-# PGDATABASE=pecas_db
-
-# 3. Instalar dependências
 cd backend
 npm install
+```
 
-# 4. Executar migração
+### 3. Executar migração
+```powershell
 npm run migrate
+```
 
-# 5. Iniciar backend
+### 4. Iniciar backend
+```powershell
 npm start
+```
 
-# 6. Em outro terminal, iniciar frontend
-cd ..
+### 5. Iniciar frontend (outro terminal)
+```powershell
 npm run dev
 ```
 
@@ -79,24 +90,22 @@ curl http://localhost:3001/api/pecas/todas
 ## 🐛 Troubleshooting
 
 ### Erro: "No Postgres configuration detected"
-**Solução:** Criar `backend/.env` com as variáveis corretas
-
-### Erro: "Connection refused"
 **Solução:** 
-```powershell
-# Verificar se PostgreSQL está rodando
-docker ps
+1. Copie o template: `copy backend\.env.template backend\.env`
+2. Preencha DATABASE_URL e FIREBASE_SERVICE_ACCOUNT_JSON
+3. Veja SUPABASE_SETUP.md para detalhes
 
-# Se não estiver, levantar:
-docker-compose up -d
-```
+### Erro: "Connection refused" ou "ENOTFOUND"
+**Solução:** 
+1. Verifique se DATABASE_URL está correto no backend/.env
+2. Confirme que o projeto Supabase está ativo
+3. Teste conexão no Supabase Dashboard → SQL Editor
 
 ### Backend mostra (pg=false)
-**Solução:** Verificar arquivo `.env` e executar migração:
-```powershell
-cd backend
-node migrate.js
-```
+**Solução:** 
+1. Verificar DATABASE_URL no `backend/.env`
+2. Executar migração: `cd backend; npm run migrate`
+3. Reiniciar backend: `npm start`
 
 ---
 
