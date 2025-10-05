@@ -657,6 +657,27 @@ app.get('/api/guias', async (req, res) => {
   res.json([]);
 });
 
+// DEBUG: return ALL guias (no status filter) for diagnosis. REMOVE AFTER DIAGNOSIS.
+app.get('/api/debug/guias-all', async (req, res) => {
+  if (pgClient) {
+    try {
+      const result = await pgClient.query('SELECT * FROM guias ORDER BY criado_em DESC');
+      const mapped = result.rows.map(r => snakeToCamelKeys(r));
+      return res.json(mapped);
+    } catch (err) {
+      console.error('PG query failed /api/debug/guias-all:', err && err.message ? err.message : err);
+      return res.status(500).json({ error: err.message || String(err) });
+    }
+  }
+  // fallback to data file
+  const guiasPath = path.join(__dirname, '..', 'data', 'guias.json');
+  if (fs.existsSync(guiasPath)) {
+    const guias = JSON.parse(fs.readFileSync(guiasPath, 'utf8'));
+    return res.json(guias);
+  }
+  return res.json([]);
+});
+
 app.post('/api/guias', async (req, res) => {
   const guia = req.body;
   if(pgClient){
