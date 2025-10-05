@@ -8,8 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
-dist-ssr
+# dist - Comentado para permitir deploy no GitHub Pages
+# dist-ssr
 *.local
 
 db/data/
