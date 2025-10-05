@@ -15,24 +15,46 @@ function PageVisualizarGuia() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    // Buscar o guia
-    const guiaEncontrado = guiasService.getGuiaById(guiaId);
-    
-    if (!guiaEncontrado) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
+    // Buscar o guia (async) e aplicar verificações de permissão
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const guiaEncontrado = await guiasService.getGuiaById(guiaId);
 
-    // Verificar se o guia está oculto e se o usuário não é o autor
-    if (guiaEncontrado.status === 'oculto' && usuarioLogado?.email !== guiaEncontrado.autorEmail) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
+        if (!mounted) return;
 
-    setGuia(guiaEncontrado);
-    setLoading(false);
+        if (!guiaEncontrado) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+
+        // Verificar se o guia está oculto e se o usuário não é o autor
+        if (guiaEncontrado.status === 'oculto' && usuarioLogado?.email !== guiaEncontrado.autorEmail) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+
+        // Garantir campos mínimos
+        guiaEncontrado.descricao = guiaEncontrado.descricao || '';
+        guiaEncontrado.conteudo = guiaEncontrado.conteudo || '';
+        guiaEncontrado.ratings = guiaEncontrado.ratings || [];
+        guiaEncontrado.views = guiaEncontrado.views || 0;
+
+        setGuia(guiaEncontrado);
+        setLoading(false);
+      } catch (err) {
+        console.error('Erro ao carregar guia:', err);
+        if (mounted) {
+          setNotFound(true);
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => { mounted = false; };
   }, [guiaId, usuarioLogado]);
 
   const handleAvaliar = (rating) => {
