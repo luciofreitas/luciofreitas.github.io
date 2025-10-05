@@ -657,35 +657,13 @@ app.get('/api/guias', async (req, res) => {
   res.json([]);
 });
 
-// DEBUG: return ALL guias (no status filter) for diagnosis. REMOVE AFTER DIAGNOSIS.
-app.get('/api/debug/guias-all', async (req, res) => {
-  if (pgClient) {
-    try {
-      const result = await pgClient.query('SELECT * FROM guias ORDER BY criado_em DESC');
-      const mapped = result.rows.map(r => snakeToCamelKeys(r));
-      return res.json(mapped);
-    } catch (err) {
-      console.error('PG query failed /api/debug/guias-all:', err && err.message ? err.message : err);
-      return res.status(500).json({ error: err.message || String(err) });
-    }
-  }
-  // fallback to data file
-  const guiasPath = path.join(__dirname, '..', 'data', 'guias.json');
-  if (fs.existsSync(guiasPath)) {
-    const guias = JSON.parse(fs.readFileSync(guiasPath, 'utf8'));
-    return res.json(guias);
-  }
-  return res.json([]);
-});
+// Note: temporary debug endpoints removed. Use normal /api/guias and server logs for diagnosis.
 
 app.post('/api/guias', async (req, res) => {
   const guia = req.body;
-  // Debug: log received payload to console and to a local debug file so we can confirm arrival
+  // Log minimal info about incoming payload (avoid writing debug files in production)
   try {
-    console.info('Received POST /api/guias payload:', typeof guia === 'object' ? JSON.stringify(guia) : String(guia));
-    const debugPath = path.join(__dirname, 'received_guias_debug.log');
-    const line = JSON.stringify({ ts: new Date().toISOString(), payload: guia }) + '\n';
-    try { fs.appendFileSync(debugPath, line, 'utf8'); } catch(e){ console.warn('Failed to write received_guias_debug.log:', e && e.message ? e.message : e); }
+    console.info('Received POST /api/guias id=%s autor=%s', guia && guia.id ? guia.id : '(no-id)', guia && guia.autorEmail ? guia.autorEmail : '(no-author)');
   } catch(e) { console.warn('Failed to log incoming guia payload:', e && e.message ? e.message : e); }
   if(pgClient){
     try{
@@ -703,22 +681,7 @@ app.post('/api/guias', async (req, res) => {
   return res.status(500).json({ error: 'Database not available' });
 });
 
-// Temporary debug endpoint: return received POST payloads from the debug log
-app.get('/api/debug/received-guia-logs', (req, res) => {
-  try {
-    const debugPath = path.join(__dirname, 'received_guias_debug.log');
-    if(!fs.existsSync(debugPath)) return res.json([]);
-    const raw = fs.readFileSync(debugPath, 'utf8').trim();
-    if(!raw) return res.json([]);
-    const lines = raw.split(/\n+/).map(l => {
-      try { return JSON.parse(l); } catch(e){ return { raw: l }; }
-    });
-    return res.json(lines.reverse()); // mostrar mais recente primeiro
-  } catch(err){
-    console.error('Failed to read received_guia logs:', err && err.message ? err.message : err);
-    return res.status(500).json({ error: 'Failed to read debug logs' });
-  }
-});
+// Debug logs file endpoint removed.
 
 app.put('/api/guias/:id', async (req, res) => {
   const { id } = req.params;
