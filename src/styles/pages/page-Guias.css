@@ -109,6 +109,38 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Make all guide cards uniform height and layout */
+.guia-card {
+  display: flex;
+  flex-direction: column;
+  /* Set a consistent min and max height so cards align visually. Adjust as needed. */
+  min-height: 18rem; /* minimum height */
+  height: 100%;
+}
+
+/* Ensure header, content and footer behave consistently */
+.guia-header {
+  flex: 0 0 auto; /* fixed at top */
+}
+.guia-content {
+  flex: 1 1 auto; /* grow to fill space */
+  overflow: hidden;
+}
+.guia-footer {
+  flex: 0 0 auto; /* fixed footer */
+}
+
+/* For community list which is usually a single wide card, ensure it matches fixed card height when in grid */
+.guias-grid .guia-card {
+  align-items: stretch;
+}
+
+/* If content is longer, allow inner description to scroll rather than growing card height */
+.guia-content .guia-descricao {
+  max-height: 8.5rem;
+  overflow: auto;
+}
+
 .guia-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0,0,0,0.12);
