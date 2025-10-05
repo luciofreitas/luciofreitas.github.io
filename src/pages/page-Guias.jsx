@@ -24,8 +24,17 @@ function PageGuias() {
 
   // Carregar guias customizados
   useEffect(() => {
-    const guiasVisiveis = guiasService.getVisibleGuias(usuarioLogado?.email);
-    setGuiasCustomizados(guiasVisiveis);
+    let mounted = true;
+    (async () => {
+      try {
+        const guiasVisiveis = await guiasService.getVisibleGuias(usuarioLogado?.email);
+        if (mounted) setGuiasCustomizados(guiasVisiveis || []);
+      } catch (e) {
+        console.error('Erro ao carregar guias visíveis:', e);
+        if (mounted) setGuiasCustomizados([]);
+      }
+    })();
+    return () => { mounted = false; };
   }, [usuarioLogado]);
 
   // Guia do glossário (Luzes do Painel)
