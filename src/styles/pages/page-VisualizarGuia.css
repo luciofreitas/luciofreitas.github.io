@@ -27,6 +27,18 @@
   text-decoration: underline;
 }
 
+/* Plain link style for back link (no button effect) */
+.voltar-link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+}
+.voltar-link:hover {
+  text-decoration: underline;
+}
+
 /* Cabeçalho do guia */
 .guia-header-full {
   margin-bottom: 2rem;

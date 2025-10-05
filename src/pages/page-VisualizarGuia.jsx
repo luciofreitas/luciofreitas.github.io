@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Menu from '../components/Menu';
 import RatingStars from '../components/RatingStars';
 import { guiasService } from '../services/guiasService';
@@ -118,9 +118,7 @@ function PageVisualizarGuia() {
       <div className="page-wrapper menu-page">
         <div className="page-content visualizar-guia">
           {/* Botão voltar */}
-          <button className="btn-voltar-inline" onClick={() => navigate('/guias')}>
-            ← Voltar para Guias
-          </button>
+          <Link to="/guias" className="voltar-link">← Voltar para Guias</Link>
 
           {/* Cabeçalho do guia */}
           <div className="guia-header-full">
