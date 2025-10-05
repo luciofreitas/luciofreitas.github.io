@@ -27,7 +27,14 @@ function PageGuias() {
     let mounted = true;
     (async () => {
       try {
+        const apiBase = window.__API_BASE || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+        console.debug('[guias] runtime api base =', apiBase);
+      } catch (err) {
+        console.debug('[guias] error reading api base', err);
+      }
+      try {
         const guiasVisiveis = await guiasService.getVisibleGuias(usuarioLogado?.email);
+        console.debug('[guias] fetched visible guias (raw) =', guiasVisiveis);
         if (mounted) setGuiasCustomizados(guiasVisiveis || []);
       } catch (e) {
         console.error('Erro ao carregar guias visíveis:', e);

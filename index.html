@@ -28,6 +28,28 @@
       })();
     } catch(e) { console.warn('Runtime API base injection failed', e); }
   </script>
+  <!-- TEMP DEBUG: try a fetch to /api/guias on every page load and log outcome. Remove after diagnosis. -->
+  <script>
+    (function(){
+      try {
+  var api = window.__API_BASE || 'https://luciofreitas-github-io.onrender.com';
+        var url = (api.endsWith('/') ? api.slice(0, -1) : api) + '/api/guias';
+        console.debug('[debug-fetch] attempting fetch to', url);
+        fetch(url).then(function(res){
+          console.debug('[debug-fetch] status', res.status, res.statusText);
+          return res.json().then(function(json){
+            console.debug('[debug-fetch] json', json);
+          }).catch(function(errJson){
+            console.warn('[debug-fetch] json parse error', errJson);
+          });
+        }).catch(function(err){
+          console.error('[debug-fetch] fetch error', err);
+        });
+      } catch(err){
+        console.error('[debug-fetch] setup error', err);
+      }
+    })();
+  </script>
   <!-- Vite dev server uses /src/main.jsx; include the standard Vite entry so builds emit bundles correctly -->
   <script type="module" src="/src/main.jsx"></script>
   </head>
