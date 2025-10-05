@@ -19,11 +19,17 @@ class GuiasService {
   async loadGuias() {
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-      const response = await fetch(`${baseUrl}/api/guias`);
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const url = `${baseUrl}/api/guias`;
+      console.debug('[guiasService] loadGuias: attempting fetch', url);
+      const response = await fetch(url);
+      console.debug('[guiasService] loadGuias: response status', response.status);
       if (response.ok) {
         this.guias = await response.json();
+        console.debug('[guiasService] loadGuias: received', this.guias && this.guias.length, 'items');
         return this.guias;
+      } else {
+        console.warn('[guiasService] loadGuias: non-ok response', response.status, response.statusText);
       }
     } catch (error) {
       console.warn('API loadGuias failed, falling back to localStorage:', error);
@@ -68,16 +74,22 @@ class GuiasService {
 
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-      const response = await fetch(`${baseUrl}/api/guias`, {
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const url = `${baseUrl}/api/guias`;
+      console.debug('[guiasService] createGuia: POST', url, newGuia);
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGuia)
       });
+      console.debug('[guiasService] createGuia: response status', response.status);
       if (response.ok) {
         const result = await response.json();
+        console.debug('[guiasService] createGuia: created', result);
         await this.loadGuias(); // Recarregar lista
         return newGuia;
+      } else {
+        console.warn('[guiasService] createGuia: non-ok response', response.status, response.statusText);
       }
     } catch (error) {
       console.warn('API createGuia failed, falling back to localStorage:', error);
