@@ -94,6 +94,18 @@ function buildPgConfig(){
   return config;
 }
 
+// Helper: convert snake_case keys from Postgres to camelCase expected by the frontend
+function snakeToCamelKeys(obj){
+  if(!obj || typeof obj !== 'object') return obj;
+  const out = {};
+  for(const k of Object.keys(obj)){
+    const v = obj[k];
+    const camel = k.replace(/_([a-z])/g, (_, c)=> c.toUpperCase());
+    out[camel] = v;
+  }
+  return out;
+}
+
 async function tryConnectPg(){
   const cfg = buildPgConfig();
   if(!cfg) return null;
@@ -627,7 +639,13 @@ app.get('/api/guias', async (req, res) => {
   if(pgClient){
     try{
       const result = await pgClient.query('SELECT * FROM guias WHERE status = $1 ORDER BY criado_em DESC', ['ativo']);
-      return res.json(result.rows);
+      // Map snake_case DB columns to camelCase keys expected by frontend
+      const mapped = result.rows.map(row => {
+        const r = snakeToCamelKeys(row);
+        // also normalize nested JSON fields if any (keep as-is for now)
+        return r;
+      });
+      return res.json(mapped);
     }catch(err){ console.error('PG query failed /api/guias:', err.message); }
   }
   // Fallback para JSON local
@@ -644,12 +662,11 @@ app.post('/api/guias', async (req, res) => {
   if(pgClient){
     try{
       const id = guia.id || `guia_${Date.now()}`;
-      await pgClient.query(
-        `INSERT INTO guias(id, autor_email, titulo, descricao, categoria, conteudo, imagem, criado_em, atualizado_em, status)
-         VALUES($1, $2, $3, $4, $5, $6, $7, now(), now(), $8)`,
-        [id, guia.autorEmail, guia.titulo, guia.descricao, guia.categoria, guia.conteudo, guia.imagem || null, guia.status || 'ativo']
-      );
-      return res.json({ success: true, id });
+      const insertSql = `INSERT INTO guias(id, autor_email, titulo, descricao, categoria, conteudo, imagem, criado_em, atualizado_em, status)
+         VALUES($1, $2, $3, $4, $5, $6, $7, now(), now(), $8) RETURNING *`;
+      const result = await pgClient.query(insertSql, [id, guia.autorEmail, guia.titulo, guia.descricao, guia.categoria, guia.conteudo, guia.imagem || null, guia.status || 'ativo']);
+      const created = result.rows && result.rows[0] ? snakeToCamelKeys(result.rows[0]) : { id };
+      return res.json({ success: true, id, guia: created });
     }catch(err){ 
       console.error('Error creating guia:', err.message); 
       return res.status(500).json({ error: err.message }); 
