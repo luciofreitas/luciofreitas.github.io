@@ -3,8 +3,8 @@ import { glossarioMockData } from '../data/glossarioData.js';
 class ApiService {
   constructor() {
     this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    // Usar variável de ambiente ou detectar baseado no hostname
-    this.baseUrl = (import.meta.env && import.meta.env.VITE_API_BASE) || (this.isLocal ? '' : '');
+    // Preferir base injetada em runtime (window.__API_BASE) — útil para GitHub Pages
+    this.baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || (import.meta.env && import.meta.env.VITE_API_BASE) || (this.isLocal ? 'http://localhost:3001' : '');
   }
 
   async fetchWithFallback(apiPath, fallbackData = null) {
