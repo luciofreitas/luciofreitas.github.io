@@ -52,7 +52,11 @@ let pgClient = null;
 // Try to build a pg Client config from common env vars. Support DATABASE_URL or individual PG* vars.
 function buildPgConfig(){
   if(process.env.DATABASE_URL) {
-    const config = { connectionString: process.env.DATABASE_URL };
+    const config = { 
+      connectionString: process.env.DATABASE_URL,
+      // Forçar uso de IPv4 (Render pode não suportar IPv6)
+      options: '-c client_encoding=UTF8'
+    };
     // Habilitar SSL se configurado (obrigatório para Supabase)
     if(process.env.PGSSL === 'true') {
       // Aceitar certificados self-signed (comum em desenvolvimento)
