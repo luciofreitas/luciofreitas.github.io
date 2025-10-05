@@ -16,7 +16,7 @@ export async function getCars(userId) {
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
   try {
-    const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
     const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`);
     if (response.ok) {
       const cars = await response.json();
@@ -47,7 +47,7 @@ export async function saveCars(userId, cars) {
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
   try {
-    const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
     const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -107,7 +107,7 @@ export async function removeCar(userId, carId) {
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
   try {
-    const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
     const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars/${encodeURIComponent(carId)}`, {
       method: 'DELETE'
     });

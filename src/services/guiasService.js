@@ -19,7 +19,7 @@ class GuiasService {
   async loadGuias() {
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
       const response = await fetch(`${baseUrl}/api/guias`);
       if (response.ok) {
         this.guias = await response.json();
@@ -68,7 +68,7 @@ class GuiasService {
 
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
       const response = await fetch(`${baseUrl}/api/guias`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -118,7 +118,7 @@ class GuiasService {
 
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
       const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -152,7 +152,7 @@ class GuiasService {
 
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
       const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
         method: 'DELETE'
       });
