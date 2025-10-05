@@ -680,6 +680,13 @@ app.get('/api/debug/guias-all', async (req, res) => {
 
 app.post('/api/guias', async (req, res) => {
   const guia = req.body;
+  // Debug: log received payload to console and to a local debug file so we can confirm arrival
+  try {
+    console.info('Received POST /api/guias payload:', typeof guia === 'object' ? JSON.stringify(guia) : String(guia));
+    const debugPath = path.join(__dirname, 'received_guias_debug.log');
+    const line = JSON.stringify({ ts: new Date().toISOString(), payload: guia }) + '\n';
+    try { fs.appendFileSync(debugPath, line, 'utf8'); } catch(e){ console.warn('Failed to write received_guias_debug.log:', e && e.message ? e.message : e); }
+  } catch(e) { console.warn('Failed to log incoming guia payload:', e && e.message ? e.message : e); }
   if(pgClient){
     try{
       const id = guia.id || `guia_${Date.now()}`;
@@ -694,6 +701,23 @@ app.post('/api/guias', async (req, res) => {
     }
   }
   return res.status(500).json({ error: 'Database not available' });
+});
+
+// Temporary debug endpoint: return received POST payloads from the debug log
+app.get('/api/debug/received-guia-logs', (req, res) => {
+  try {
+    const debugPath = path.join(__dirname, 'received_guias_debug.log');
+    if(!fs.existsSync(debugPath)) return res.json([]);
+    const raw = fs.readFileSync(debugPath, 'utf8').trim();
+    if(!raw) return res.json([]);
+    const lines = raw.split(/\n+/).map(l => {
+      try { return JSON.parse(l); } catch(e){ return { raw: l }; }
+    });
+    return res.json(lines.reverse()); // mostrar mais recente primeiro
+  } catch(err){
+    console.error('Failed to read received_guia logs:', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'Failed to read debug logs' });
+  }
 });
 
 app.put('/api/guias/:id', async (req, res) => {
