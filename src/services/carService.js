@@ -14,18 +14,16 @@ const isLocal = () => {
 export async function getCars(userId) {
   if (!userId) return [];
   
-  // Tentar API primeiro (quando backend disponível)
-  if (isLocal()) {
-    try {
-      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`);
-      if (response.ok) {
-        const cars = await response.json();
-        return cars;
-      }
-    } catch (error) {
-      console.warn('API getCars failed, falling back to localStorage:', error);
+  // Tentar API primeiro (tanto em localhost quanto em produção)
+  try {
+    const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`);
+    if (response.ok) {
+      const cars = await response.json();
+      return cars;
     }
+  } catch (error) {
+    console.warn('API getCars failed, falling back to localStorage:', error);
   }
   
   // Fallback para localStorage
@@ -47,21 +45,19 @@ export async function getCars(userId) {
 export async function saveCars(userId, cars) {
   if (!userId) return false;
   
-  // Tentar API primeiro
-  if (isLocal()) {
-    try {
-      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cars })
-      });
-      if (response.ok) {
-        return true;
-      }
-    } catch (error) {
-      console.warn('API saveCars failed, falling back to localStorage:', error);
+  // Tentar API primeiro (tanto em localhost quanto em produção)
+  try {
+    const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cars })
+    });
+    if (response.ok) {
+      return true;
     }
+  } catch (error) {
+    console.warn('API saveCars failed, falling back to localStorage:', error);
   }
   
   // Fallback para localStorage
@@ -109,19 +105,17 @@ export async function addCar(userId, car) {
 export async function removeCar(userId, carId) {
   if (!userId || !carId) return false;
   
-  // Tentar API primeiro
-  if (isLocal()) {
-    try {
-      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars/${encodeURIComponent(carId)}`, {
-        method: 'DELETE'
-      });
-      if (response.ok) {
-        return true;
-      }
-    } catch (error) {
-      console.warn('API removeCar failed, falling back to localStorage:', error);
+  // Tentar API primeiro (tanto em localhost quanto em produção)
+  try {
+    const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars/${encodeURIComponent(carId)}`, {
+      method: 'DELETE'
+    });
+    if (response.ok) {
+      return true;
     }
+  } catch (error) {
+    console.warn('API removeCar failed, falling back to localStorage:', error);
   }
   
   // Fallback localStorage

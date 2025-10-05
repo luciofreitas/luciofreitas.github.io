@@ -13,23 +13,20 @@ const isLocal = () => {
 class GuiasService {
   constructor() {
     this.guias = [];
-    this.useApi = isLocal();
   }
 
   // Carregar guias do backend ou localStorage
   async loadGuias() {
-    // Tentar API primeiro
-    if (this.useApi) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-        const response = await fetch(`${baseUrl}/api/guias`);
-        if (response.ok) {
-          this.guias = await response.json();
-          return this.guias;
-        }
-      } catch (error) {
-        console.warn('API loadGuias failed, falling back to localStorage:', error);
+    // Tentar API primeiro (tanto localhost quanto produção)
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const response = await fetch(`${baseUrl}/api/guias`);
+      if (response.ok) {
+        this.guias = await response.json();
+        return this.guias;
       }
+    } catch (error) {
+      console.warn('API loadGuias failed, falling back to localStorage:', error);
     }
 
     // Fallback localStorage
@@ -69,23 +66,21 @@ class GuiasService {
       views: 0
     };
 
-    // Tentar API primeiro
-    if (this.useApi) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-        const response = await fetch(`${baseUrl}/api/guias`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newGuia)
-        });
-        if (response.ok) {
-          const result = await response.json();
-          await this.loadGuias(); // Recarregar lista
-          return newGuia;
-        }
-      } catch (error) {
-        console.warn('API createGuia failed, falling back to localStorage:', error);
+    // Tentar API primeiro (tanto localhost quanto produção)
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const response = await fetch(`${baseUrl}/api/guias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newGuia)
+      });
+      if (response.ok) {
+        const result = await response.json();
+        await this.loadGuias(); // Recarregar lista
+        return newGuia;
       }
+    } catch (error) {
+      console.warn('API createGuia failed, falling back to localStorage:', error);
     }
 
     // Fallback localStorage
@@ -121,22 +116,20 @@ class GuiasService {
       status: 'ativo' // Volta para ativo após edição
     };
 
-    // Tentar API primeiro
-    if (this.useApi) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-        const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedGuia)
-        });
-        if (response.ok) {
-          await this.loadGuias(); // Recarregar lista
-          return updatedGuia;
-        }
-      } catch (error) {
-        console.warn('API updateGuia failed, falling back to localStorage:', error);
+    // Tentar API primeiro (tanto localhost quanto produção)
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedGuia)
+      });
+      if (response.ok) {
+        await this.loadGuias(); // Recarregar lista
+        return updatedGuia;
       }
+    } catch (error) {
+      console.warn('API updateGuia failed, falling back to localStorage:', error);
     }
 
     // Fallback localStorage
@@ -157,20 +150,18 @@ class GuiasService {
       throw new Error('Apenas o autor pode deletar este guia');
     }
 
-    // Tentar API primeiro
-    if (this.useApi) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-        const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
-          method: 'DELETE'
-        });
-        if (response.ok) {
-          await this.loadGuias(); // Recarregar lista
-          return true;
-        }
-      } catch (error) {
-        console.warn('API deleteGuia failed, falling back to localStorage:', error);
+    // Tentar API primeiro (tanto localhost quanto produção)
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        await this.loadGuias(); // Recarregar lista
+        return true;
       }
+    } catch (error) {
+      console.warn('API deleteGuia failed, falling back to localStorage:', error);
     }
 
     // Fallback localStorage
