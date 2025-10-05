@@ -3,20 +3,20 @@ import { glossarioMockData } from '../data/glossarioData.js';
 class ApiService {
   constructor() {
     this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    this.baseUrl = this.isLocal ? '' : '';
+    // Usar variável de ambiente ou detectar baseado no hostname
+    this.baseUrl = (import.meta.env && import.meta.env.VITE_API_BASE) || (this.isLocal ? '' : '');
   }
 
   async fetchWithFallback(apiPath, fallbackData = null) {
-    // Try API first (works locally with backend)
-    if (this.isLocal) {
-      try {
-        const response = await fetch(apiPath);
-        if (response.ok) {
-          return await response.json();
-        }
-      } catch (error) {
-        console.warn(`API call failed for ${apiPath}, falling back to local data:`, error);
+    // Try API first (backend quando disponível)
+    const fullUrl = this.baseUrl + apiPath;
+    try {
+      const response = await fetch(fullUrl);
+      if (response.ok) {
+        return await response.json();
       }
+    } catch (error) {
+      console.warn(`API call failed for ${fullUrl}, falling back to local data:`, error);
     }
 
     // Fallback to local JSON data for GitHub Pages

@@ -26,3 +26,12 @@ db/
 *.sw?
 
 .env.local
+.env
+
+# Backend environment variables (NUNCA commitar!)
+backend/.env
+backend/.env.local
+
+# Firebase service account (NUNCA commitar!)
+*firebase-adminsdk*.json
+firebase-service-account.json

@@ -1,26 +1,49 @@
 // guiasService.js - Serviço para gerenciar guias customizados dos usuários Pro
+// Migrado para usar API com fallback para localStorage
 
 const STORAGE_KEY = 'user_custom_guias';
 const EVALUATION_PERIOD_DAYS = 7; // Período de avaliação em dias
 const MIN_RATING_THRESHOLD = 3.0; // Nota mínima para manter visível
 
+// Helper para detectar ambiente local
+const isLocal = () => {
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+};
+
 class GuiasService {
   constructor() {
-    this.guias = this.loadGuias();
+    this.guias = [];
+    this.useApi = isLocal();
   }
 
-  // Carregar guias do localStorage
-  loadGuias() {
+  // Carregar guias do backend ou localStorage
+  async loadGuias() {
+    // Tentar API primeiro
+    if (this.useApi) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+        const response = await fetch(`${baseUrl}/api/guias`);
+        if (response.ok) {
+          this.guias = await response.json();
+          return this.guias;
+        }
+      } catch (error) {
+        console.warn('API loadGuias failed, falling back to localStorage:', error);
+      }
+    }
+
+    // Fallback localStorage
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      this.guias = stored ? JSON.parse(stored) : [];
+      return this.guias;
     } catch (error) {
       console.error('Erro ao carregar guias:', error);
       return [];
     }
   }
 
-  // Salvar guias no localStorage
+  // Salvar guias no localStorage (fallback apenas)
   saveGuias() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.guias));
@@ -30,7 +53,7 @@ class GuiasService {
   }
 
   // Criar novo guia
-  createGuia(guiaData, autorEmail) {
+  async createGuia(guiaData, autorEmail) {
     const newGuia = {
       id: `guia_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       autorEmail: autorEmail,
@@ -46,13 +69,33 @@ class GuiasService {
       views: 0
     };
 
+    // Tentar API primeiro
+    if (this.useApi) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+        const response = await fetch(`${baseUrl}/api/guias`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newGuia)
+        });
+        if (response.ok) {
+          const result = await response.json();
+          await this.loadGuias(); // Recarregar lista
+          return newGuia;
+        }
+      } catch (error) {
+        console.warn('API createGuia failed, falling back to localStorage:', error);
+      }
+    }
+
+    // Fallback localStorage
     this.guias.push(newGuia);
     this.saveGuias();
     return newGuia;
   }
 
   // Atualizar guia existente
-  updateGuia(guiaId, guiaData, autorEmail) {
+  async updateGuia(guiaId, guiaData, autorEmail) {
     const index = this.guias.findIndex(g => g.id === guiaId);
     
     if (index === -1) {
@@ -66,8 +109,8 @@ class GuiasService {
       throw new Error('Apenas o autor pode editar este guia');
     }
 
-    // Atualizar dados
-    this.guias[index] = {
+    // Preparar dados atualizados
+    const updatedGuia = {
       ...guia,
       titulo: guiaData.titulo || guia.titulo,
       descricao: guiaData.descricao || guia.descricao,
@@ -78,12 +121,32 @@ class GuiasService {
       status: 'ativo' // Volta para ativo após edição
     };
 
+    // Tentar API primeiro
+    if (this.useApi) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+        const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedGuia)
+        });
+        if (response.ok) {
+          await this.loadGuias(); // Recarregar lista
+          return updatedGuia;
+        }
+      } catch (error) {
+        console.warn('API updateGuia failed, falling back to localStorage:', error);
+      }
+    }
+
+    // Fallback localStorage
+    this.guias[index] = updatedGuia;
     this.saveGuias();
     return this.guias[index];
   }
 
   // Deletar guia
-  deleteGuia(guiaId, autorEmail) {
+  async deleteGuia(guiaId, autorEmail) {
     const guia = this.guias.find(g => g.id === guiaId);
     
     if (!guia) {
@@ -94,6 +157,23 @@ class GuiasService {
       throw new Error('Apenas o autor pode deletar este guia');
     }
 
+    // Tentar API primeiro
+    if (this.useApi) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+        const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          await this.loadGuias(); // Recarregar lista
+          return true;
+        }
+      } catch (error) {
+        console.warn('API deleteGuia failed, falling back to localStorage:', error);
+      }
+    }
+
+    // Fallback localStorage
     this.guias = this.guias.filter(g => g.id !== guiaId);
     this.saveGuias();
     return true;
@@ -160,7 +240,8 @@ class GuiasService {
   }
 
   // Obter todos os guias visíveis (filtrados por status e usuário)
-  getVisibleGuias(currentUserEmail = null) {
+  async getVisibleGuias(currentUserEmail = null) {
+    await this.loadGuias(); // Recarregar do backend/localStorage
     return this.guias.filter(guia => {
       // Autor sempre vê seus próprios guias
       if (currentUserEmail && guia.autorEmail === currentUserEmail) {
@@ -173,9 +254,9 @@ class GuiasService {
   }
 
   // Obter guia por ID
-  getGuiaById(guiaId) {
-    // Recarregar do localStorage para garantir dados atualizados
-    this.guias = this.loadGuias();
+  async getGuiaById(guiaId) {
+    // Recarregar do backend/localStorage para garantir dados atualizados
+    await this.loadGuias();
     return this.guias.find(g => g.id === guiaId);
   }
 

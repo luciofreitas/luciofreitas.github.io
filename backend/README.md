@@ -1,27 +1,84 @@
-Parts API (CSV seed-based)
+Parts API (PostgreSQL + CSV fallback)
 
-This simple Node.js API loads the CSV files from `db/seeds` and exposes a few endpoints useful for prototyping the frontend.
+Este backend Node.js serve dados de peças automotivas e agora suporta **PostgreSQL** com fallback para CSV.
 
-Quick start:
+## 🚀 Quick Start - Migração para PostgreSQL
 
-1. From the project root, install dependencies for the backend:
+### Opção 1: Script Automático (Recomendado - Windows)
+```powershell
+cd backend
+.\setup-migration.ps1
+```
 
-   cd backend; npm install
+### Opção 2: Manual
 
-2. Start the API:
+1. Instalar dependências:
+   ```powershell
+   cd backend
+   npm install
+   ```
 
+2. Configurar PostgreSQL:
+   ```powershell
+   # Criar arquivo .env com:
+   PGHOST=localhost
+   PGPORT=5432
+   PGUSER=postgres
+   PGPASSWORD=postgres
+   PGDATABASE=pecas_db
+   ```
+
+3. Levantar PostgreSQL:
+   ```powershell
+   docker-compose up -d
+   ```
+
+4. Executar migração:
+   ```powershell
+   npm run migrate
+   # ou: node migrate.js
+   ```
+
+5. Iniciar backend:
+   ```powershell
    npm start
+   ```
 
-Default port: 3001
+Default port: **3001**
 
-Endpoints:
-- GET /api/products
-- GET /api/product/:id
-- GET /api/product/sku/:sku
-- GET /api/vehicles
-- GET /api/fitments
-- GET /api/equivalences
-- GET /api/compatibility/sku/:sku
+## 📡 Endpoints
+
+### Produtos/Peças (legado - mantido para compatibilidade)
+- `GET /api/pecas/todas` - Todas as peças
+- `GET /api/pecas/meta` - Metadados (grupos, marcas, modelos, anos)
+- `POST /api/pecas/filtrar` - Filtrar peças
+- `GET /api/pecas/:id` - Peça por ID
+
+### Novos Endpoints (PostgreSQL)
+- **Guias**
+  - `GET /api/guias` - Listar guias ativos
+  - `POST /api/guias` - Criar guia
+  - `PUT /api/guias/:id` - Atualizar guia
+  - `DELETE /api/guias/:id` - Deletar guia
+
+- **Carros do Usuário**
+  - `GET /api/users/:userId/cars` - Carros do usuário
+  - `POST /api/users/:userId/cars` - Adicionar carro
+  - `PUT /api/users/:userId/cars` - Atualizar carros (batch)
+  - `DELETE /api/users/:userId/cars/:carId` - Remover carro
+
+- **Pagamentos**
+  - `POST /api/payments` - Registrar pagamento
+  - `GET /api/users/:userEmail/payments` - Histórico de pagamentos
+
+### Legado CSV (mantido para compatibilidade)
+- `GET /api/products`
+- `GET /api/product/:id`
+- `GET /api/product/sku/:sku`
+- `GET /api/vehicles`
+- `GET /api/fitments`
+- `GET /api/equivalences`
+- `GET /api/compatibility/sku/:sku`
 
 If you prefer a Postgres-ready environment, start the DB with Docker Compose:
 

@@ -6,8 +6,27 @@ const { parse } = require('csv-parse/sync');
 const cors = require('cors');
 const { Client } = require('pg');
 
+// Firebase Admin SDK (opcional - para verificação de tokens)
+let admin = null;
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    admin = require('firebase-admin');
+    admin.initializeApp({
+      credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON))
+    });
+    console.log('Firebase Admin SDK initialized');
+  }
+} catch (err) {
+  console.warn('Firebase Admin SDK not initialized:', err.message);
+}
+
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 const DATA_DIR = path.join(__dirname, '..', 'db', 'seeds');
@@ -32,14 +51,27 @@ const csvData = {
 let pgClient = null;
 // Try to build a pg Client config from common env vars. Support DATABASE_URL or individual PG* vars.
 function buildPgConfig(){
-  if(process.env.DATABASE_URL) return { connectionString: process.env.DATABASE_URL };
+  if(process.env.DATABASE_URL) {
+    const config = { connectionString: process.env.DATABASE_URL };
+    // Habilitar SSL se configurado (obrigatório para Supabase)
+    if(process.env.PGSSL === 'true') {
+      // Aceitar certificados self-signed (comum em desenvolvimento)
+      config.ssl = { rejectUnauthorized: false };
+    }
+    return config;
+  }
   const host = process.env.PGHOST || process.env.PG_HOST;
   const port = process.env.PGPORT || process.env.PG_PORT || 5432;
   const user = process.env.PGUSER || process.env.PG_USER;
   const password = process.env.PGPASSWORD || process.env.PG_PASSWORD;
   const database = process.env.PGDATABASE || process.env.PG_DATABASE;
   if(!host || !user || !password || !database) return null;
-  return { host, port: Number(port), user, password, database };
+  const config = { host, port: Number(port), user, password, database };
+  // Habilitar SSL se configurado
+  if(process.env.PGSSL === 'true') {
+    config.ssl = { rejectUnauthorized: false };
+  }
+  return config;
 }
 
 async function tryConnectPg(){
@@ -503,6 +535,253 @@ app.get('/api/compatibility/sku/:sku', async (req, res) => {
   const productFitments = csvData.fitments.filter(f => String(f.product_id) === String(product.id)).map(f => ({ ...f, vehicle: findById(csvData.vehicles, f.vehicle_id) }));
   const eqs = csvData.equivalences.filter(e => String(e.product_id) === String(product.id) || String(e.equivalent_product_id) === String(product.id)).map(e => ({ ...e, product: findById(csvData.products, e.product_id), equivalent: findById(csvData.products, e.equivalent_product_id) }));
   res.json({ product, fitments: productFitments, equivalences: eqs });
+});
+
+// ============ AUTENTICAÇÃO FIREBASE + BANCO ============
+
+// Verificar token Firebase e sincronizar usuário no banco
+app.post('/api/auth/verify', async (req, res) => {
+  if (!admin) {
+    return res.status(503).json({ error: 'Firebase Admin SDK not configured' });
+  }
+
+  const authHeader = req.headers.authorization || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : req.body.idToken;
+  
+  if (!idToken) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    // Verificar token com Firebase
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const uid = decoded.uid;
+    const email = decoded.email || null;
+    const nome = decoded.name || null;
+
+    // Sincronizar usuário no banco (se Postgres disponível)
+    if (pgClient) {
+      try {
+        await pgClient.query(
+          `INSERT INTO users(id, email, nome, criado_em, atualizado_em)
+           VALUES($1, $2, $3, now(), now())
+           ON CONFLICT (id) DO UPDATE SET 
+             email = EXCLUDED.email, 
+             nome = EXCLUDED.nome, 
+             atualizado_em = now()`,
+          [uid, email, nome]
+        );
+
+        const result = await pgClient.query(
+          'SELECT id, email, nome, is_pro, criado_em FROM users WHERE id = $1',
+          [uid]
+        );
+
+        return res.json({ 
+          success: true, 
+          user: result.rows[0],
+          uid 
+        });
+      } catch (dbErr) {
+        console.error('Database error during user sync:', dbErr.message);
+        // Continua mesmo se o DB falhar
+      }
+    }
+
+    // Retorna sucesso mesmo sem DB
+    return res.json({ 
+      success: true, 
+      user: { id: uid, email, nome },
+      uid 
+    });
+  } catch (err) {
+    console.error('Token verification failed:', err.message);
+    return res.status(401).json({ error: 'Invalid token', details: err.message });
+  }
+});
+
+// ============ NOVOS ENDPOINTS PARA MIGRAÇÃO DB ============
+
+// Endpoints de Guias
+app.get('/api/guias', async (req, res) => {
+  if(pgClient){
+    try{
+      const result = await pgClient.query('SELECT * FROM guias WHERE status = $1 ORDER BY criado_em DESC', ['ativo']);
+      return res.json(result.rows);
+    }catch(err){ console.error('PG query failed /api/guias:', err.message); }
+  }
+  // Fallback para JSON local
+  const guiasPath = path.join(__dirname, '..', 'data', 'guias.json');
+  if(fs.existsSync(guiasPath)){
+    const guias = JSON.parse(fs.readFileSync(guiasPath, 'utf8'));
+    return res.json(guias);
+  }
+  res.json([]);
+});
+
+app.post('/api/guias', async (req, res) => {
+  const guia = req.body;
+  if(pgClient){
+    try{
+      const id = guia.id || `guia_${Date.now()}`;
+      await pgClient.query(
+        `INSERT INTO guias(id, autor_email, titulo, descricao, categoria, conteudo, imagem, criado_em, atualizado_em, status)
+         VALUES($1, $2, $3, $4, $5, $6, $7, now(), now(), $8)`,
+        [id, guia.autorEmail, guia.titulo, guia.descricao, guia.categoria, guia.conteudo, guia.imagem || null, guia.status || 'ativo']
+      );
+      return res.json({ success: true, id });
+    }catch(err){ 
+      console.error('Error creating guia:', err.message); 
+      return res.status(500).json({ error: err.message }); 
+    }
+  }
+  return res.status(500).json({ error: 'Database not available' });
+});
+
+app.put('/api/guias/:id', async (req, res) => {
+  const { id } = req.params;
+  const guia = req.body;
+  if(pgClient){
+    try{
+      await pgClient.query(
+        `UPDATE guias SET titulo=$1, descricao=$2, categoria=$3, conteudo=$4, imagem=$5, atualizado_em=now() WHERE id=$6`,
+        [guia.titulo, guia.descricao, guia.categoria, guia.conteudo, guia.imagem, id]
+      );
+      return res.json({ success: true });
+    }catch(err){ 
+      console.error('Error updating guia:', err.message); 
+      return res.status(500).json({ error: err.message }); 
+    }
+  }
+  return res.status(500).json({ error: 'Database not available' });
+});
+
+app.delete('/api/guias/:id', async (req, res) => {
+  const { id } = req.params;
+  if(pgClient){
+    try{
+      await pgClient.query('UPDATE guias SET status=$1 WHERE id=$2', ['inativo', id]);
+      return res.json({ success: true });
+    }catch(err){ 
+      console.error('Error deleting guia:', err.message); 
+      return res.status(500).json({ error: err.message }); 
+    }
+  }
+  return res.status(500).json({ error: 'Database not available' });
+});
+
+// Endpoints de Carros do Usuário
+app.get('/api/users/:userId/cars', async (req, res) => {
+  const { userId } = req.params;
+  if(pgClient){
+    try{
+      const result = await pgClient.query('SELECT * FROM cars WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+      return res.json(result.rows);
+    }catch(err){ 
+      console.error('PG query failed /api/users/:userId/cars:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+  res.json([]);
+});
+
+app.post('/api/users/:userId/cars', async (req, res) => {
+  const { userId } = req.params;
+  const car = req.body;
+  if(pgClient){
+    try{
+      const id = car.id || `car_${Date.now()}`;
+      await pgClient.query(
+        `INSERT INTO cars(id, user_id, marca, modelo, ano, dados, created_at)
+         VALUES($1, $2, $3, $4, $5, $6, now())`,
+        [id, userId, car.marca, car.modelo, car.ano, JSON.stringify(car)]
+      );
+      return res.json({ success: true, id });
+    }catch(err){ 
+      console.error('Error creating car:', err.message); 
+      return res.status(500).json({ error: err.message }); 
+    }
+  }
+  return res.status(500).json({ error: 'Database not available' });
+});
+
+app.put('/api/users/:userId/cars', async (req, res) => {
+  const { userId } = req.params;
+  const { cars } = req.body;
+  if(pgClient){
+    try{
+      // Deletar carros antigos e inserir novos (batch update simplificado)
+      await pgClient.query('DELETE FROM cars WHERE user_id = $1', [userId]);
+      for(const car of cars){
+        const id = car.id || `car_${Date.now()}_${Math.random()}`;
+        await pgClient.query(
+          `INSERT INTO cars(id, user_id, marca, modelo, ano, dados)
+           VALUES($1, $2, $3, $4, $5, $6)`,
+          [id, userId, car.marca, car.modelo, car.ano, JSON.stringify(car)]
+        );
+      }
+      return res.json({ success: true });
+    }catch(err){ 
+      console.error('Error updating cars:', err.message); 
+      return res.status(500).json({ error: err.message }); 
+    }
+  }
+  return res.status(500).json({ error: 'Database not available' });
+});
+
+app.delete('/api/users/:userId/cars/:carId', async (req, res) => {
+  const { userId, carId } = req.params;
+  if(pgClient){
+    try{
+      await pgClient.query('DELETE FROM cars WHERE id = $1 AND user_id = $2', [carId, userId]);
+      return res.json({ success: true });
+    }catch(err){ 
+      console.error('Error deleting car:', err.message); 
+      return res.status(500).json({ error: err.message }); 
+    }
+  }
+  return res.status(500).json({ error: 'Database not available' });
+});
+
+// Endpoints de Pagamentos
+app.post('/api/payments', async (req, res) => {
+  const payment = req.body;
+  if(pgClient){
+    try{
+      const result = await pgClient.query(
+        `INSERT INTO payments(user_email, amount, currency, date, card_last4, status, metadata)
+         VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+        [
+          payment.userEmail, 
+          payment.amount, 
+          payment.currency || 'BRL', 
+          payment.date || new Date(), 
+          payment.cardLast4,
+          payment.status || 'completed',
+          JSON.stringify(payment.metadata || {})
+        ]
+      );
+      return res.json({ success: true, id: result.rows[0].id });
+    }catch(err){ 
+      console.error('Error creating payment:', err.message); 
+      return res.status(500).json({ error: err.message }); 
+    }
+  }
+  return res.status(500).json({ error: 'Database not available' });
+});
+
+app.get('/api/users/:userEmail/payments', async (req, res) => {
+  const { userEmail } = req.params;
+  if(pgClient){
+    try{
+      const result = await pgClient.query(
+        'SELECT * FROM payments WHERE user_email = $1 ORDER BY date DESC', 
+        [userEmail]
+      );
+      return res.json(result.rows);
+    }catch(err){ console.error('PG query failed /api/users/:userEmail/payments:', err.message); }
+  }
+  res.json([]);
 });
 
 // Express JSON error handler (catch any thrown errors in routes)

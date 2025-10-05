@@ -40,14 +40,17 @@ function SearchForm({
 
   // Carrega carros do usuário quando logado
   useEffect(() => {
-    if (usuarioLogado) {
-      const userId = usuarioLogado.id || usuarioLogado.email;
-      const userCars = getCars(userId);
-      setCarros(userCars);
-    } else {
-      setCarros([]);
-      setCarroSelecionado('');
-    }
+    const loadUserCars = async () => {
+      if (usuarioLogado) {
+        const userId = usuarioLogado.id || usuarioLogado.email;
+        const userCars = await getCars(userId);
+        setCarros(userCars);
+      } else {
+        setCarros([]);
+        setCarroSelecionado('');
+      }
+    };
+    loadUserCars();
   }, [usuarioLogado]);
 
   // Quando seleciona um carro, preenche os campos

@@ -48,9 +48,9 @@ export default function MeusCarros() {
     }
   }, [marca, isEditing]);
 
-  const loadCars = () => {
+  const loadCars = async () => {
     if (usuarioLogado) {
-      const userCars = getCars(usuarioLogado.id || usuarioLogado.email);
+      const userCars = await getCars(usuarioLogado.id || usuarioLogado.email);
       setCars(userCars);
     }
   };
@@ -85,7 +85,7 @@ export default function MeusCarros() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Se selecionou "Outro" no modelo, precisa preencher o campo custom
@@ -109,18 +109,18 @@ export default function MeusCarros() {
     };
 
     if (isEditing && editingCarId) {
-      updateCar(userId, editingCarId, carData);
+      await updateCar(userId, editingCarId, carData);
       if (window.showToast) {
         window.showToast('Carro atualizado com sucesso!', 'success', 3000);
       }
     } else {
-      addCar(userId, carData);
+      await addCar(userId, carData);
       if (window.showToast) {
         window.showToast('Carro cadastrado com sucesso!', 'success', 3000);
       }
     }
 
-    loadCars();
+    await loadCars();
     resetForm();
   };
 
@@ -136,21 +136,21 @@ export default function MeusCarros() {
     setShowForm(true);
   };
 
-  const handleDelete = (carId) => {
+  const handleDelete = async (carId) => {
     if (window.confirm('Tem certeza que deseja excluir este carro?')) {
       const userId = usuarioLogado.id || usuarioLogado.email;
-      removeCar(userId, carId);
-      loadCars();
+      await removeCar(userId, carId);
+      await loadCars();
       if (window.showToast) {
         window.showToast('Carro removido com sucesso!', 'success', 3000);
       }
     }
   };
 
-  const handleSetDefault = (carId) => {
+  const handleSetDefault = async (carId) => {
     const userId = usuarioLogado.id || usuarioLogado.email;
-    setDefaultCar(userId, carId);
-    loadCars();
+    await setDefaultCar(userId, carId);
+    await loadCars();
     if (window.showToast) {
       window.showToast('Carro definido como padrão!', 'success', 2000);
     }
