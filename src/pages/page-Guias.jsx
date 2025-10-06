@@ -59,8 +59,14 @@ function PageGuias() {
     }
     guiasService.addRating(guiaId, usuarioLogado.email, rating);
     // Recarregar guias para atualizar rating
-    const guiasAtualizados = guiasService.getVisibleGuias(usuarioLogado?.email);
-    setGuiasCustomizados(guiasAtualizados);
+    (async () => {
+      try {
+        const guiasAtualizados = await guiasService.getVisibleGuias(usuarioLogado?.email);
+        setGuiasCustomizados(guiasAtualizados || []);
+      } catch (err) {
+        console.error('Erro ao recarregar guias após avaliação:', err);
+      }
+    })();
   };
 
   // Handler para incrementar visualizações
