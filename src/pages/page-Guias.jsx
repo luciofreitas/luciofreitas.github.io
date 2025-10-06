@@ -197,7 +197,7 @@ function PageGuias() {
                       <div className="guia-avaliacao">
                         <RatingStars
                           rating={averageRating}
-                          totalRatings={guia.ratings.length}
+                          totalRatings={(guia.ratings || []).length}
                           onRate={(rating) => handleAvaliarGuiaCustomizado(guia.id, rating)}
                           readOnly={isAutor || !usuarioLogado}
                           size="medium"
