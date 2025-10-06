@@ -13,16 +13,29 @@ function PageVisualizarGuia() {
   const [guia, setGuia] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
     // Buscar o guia (async) e aplicar verificações de permissão
     let mounted = true;
-    (async () => {
+    let timeoutId = null;
+
+    const load = async () => {
       try {
+        setLoadError(null);
         setLoading(true);
+        // timeout: se demorar mais que 8s, mostrar erro para o usuário
+        timeoutId = setTimeout(() => {
+          if (!mounted) return;
+          setLoadError('Tempo de carregamento excedido. Verifique sua conexão e tente novamente.');
+          setLoading(false);
+        }, 8000);
+
         const guiaEncontrado = await guiasService.getGuiaById(guiaId);
 
         if (!mounted) return;
+
+        clearTimeout(timeoutId);
 
         if (!guiaEncontrado) {
           setNotFound(true);
@@ -48,14 +61,28 @@ function PageVisualizarGuia() {
       } catch (err) {
         console.error('Erro ao carregar guia:', err);
         if (mounted) {
-          setNotFound(true);
+          setLoadError('Erro ao carregar o guia. Veja o console para detalhes.');
           setLoading(false);
         }
       }
-    })();
+    };
 
-    return () => { mounted = false; };
+    load();
+
+    return () => { mounted = false; if (timeoutId) clearTimeout(timeoutId); };
   }, [guiaId, usuarioLogado]);
+
+  const handleRetry = () => {
+    setNotFound(false);
+    setLoadError(null);
+    setLoading(true);
+    // Force reload by invoking effect (change a state) - simplest is to call load via a small helper
+    // We'll call guiasService.getGuiaById directly here and re-use the existing logic by navigating to same route
+    // which will retrigger the effect because of guiaId dependency. Instead, just trigger a re-render.
+    // Use a small state flip to force effect re-run if needed.
+    // For simplicity, reload the page (safe and quick for this troubleshooting step).
+    window.location.reload();
+  };
 
   const handleAvaliar = (rating) => {
     if (!usuarioLogado?.email) {
@@ -84,6 +111,25 @@ function PageVisualizarGuia() {
         <div className="page-wrapper menu-page">
           <div className="page-content">
             <div className="loading-message">Carregando guia...</div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <>
+        <Menu />
+        <div className="page-wrapper menu-page">
+          <div className="page-content">
+            <div className="not-found-message">
+              <h2>⚠️ Problema ao carregar</h2>
+              <p>{loadError}</p>
+              <div style={{ marginTop: '1rem' }}>
+                <button className="btn-voltar" onClick={handleRetry}>Tentar novamente</button>
+              </div>
+            </div>
           </div>
         </div>
       </>
