@@ -715,6 +715,22 @@ app.delete('/api/guias/:id', async (req, res) => {
   return res.status(500).json({ error: 'Database not available' });
 });
 
+// TEMP DEBUG: check DB connection and quick guias sampling
+app.get('/api/debug/check-guia-db', async (req, res) => {
+  try {
+    const status = { pgClient: !!pgClient };
+    if (!pgClient) return res.json({ ...status, msg: 'pgClient not available' });
+
+    const countRes = await pgClient.query('SELECT count(*) as cnt FROM guias');
+    const cnt = countRes && countRes.rows && countRes.rows[0] ? Number(countRes.rows[0].cnt) : null;
+    const sample = await pgClient.query('SELECT id, autor_email, titulo, status, criado_em FROM guias ORDER BY criado_em DESC LIMIT 10');
+    return res.json({ ...status, count: cnt, sample: sample.rows });
+  } catch (err) {
+    console.error('debug check-guia-db failed:', err && err.message ? err.message : err);
+    return res.status(500).json({ error: err && err.message ? err.message : String(err) });
+  }
+});
+
 // Endpoints de Carros do Usuário
 app.get('/api/users/:userId/cars', async (req, res) => {
   const { userId } = req.params;
