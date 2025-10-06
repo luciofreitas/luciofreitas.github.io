@@ -66,6 +66,8 @@ const csvData = {
 
 // Attempt Postgres connection if environment variables provided
 let pgClient = null;
+// Which column stores the user's human name in the users table. Some DBs/schemas use 'name', others 'nome'.
+let userNameColumn = 'name';
 // Try to build a pg Client config from common env vars. Support DATABASE_URL or individual PG* vars.
 function buildPgConfig(){
   if(process.env.DATABASE_URL) {
@@ -121,6 +123,16 @@ async function tryConnectPg(){
     });
     await client.query('SELECT 1');
     console.log('Connected to Postgres for backend API');
+    // detect users.name vs users.nome column to avoid schema mismatch
+    try {
+      const cols = await client.query("SELECT column_name FROM information_schema.columns WHERE table_name='users'");
+      const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+      if (names.indexOf('name') >= 0) userNameColumn = 'name';
+      else if (names.indexOf('nome') >= 0) userNameColumn = 'nome';
+      console.log('Detected users name column:', userNameColumn);
+    } catch (e) {
+      console.warn('Could not detect users table columns:', e && e.message ? e.message : e);
+    }
     return client;
   }catch(err){
     console.warn('Postgres connection failed, falling back to CSV:', err && err.message ? err.message : err);
@@ -662,13 +674,13 @@ app.post('/api/users', async (req, res) => {
   try {
     if (pgClient) {
       const passwordHash = hashPassword(senha);
-      const q = `INSERT INTO users(email, name, password_hash, created_at)
-                 VALUES($1, $2, $3, now())
-                 ON CONFLICT (email) DO NOTHING
-                 RETURNING id, email, name, is_pro, pro_since, created_at`;
-      const r = await pgClient.query(q, [normalizedEmail, nome || null, passwordHash]);
-      if (r.rowCount > 0) return res.status(201).json(r.rows[0]);
-      const existing = await pgClient.query('SELECT id, email, name, is_pro, pro_since, created_at FROM users WHERE email = $1', [normalizedEmail]);
+  const q = `INSERT INTO users(email, ${userNameColumn}, password_hash, created_at)
+         VALUES($1, $2, $3, now())
+         ON CONFLICT (email) DO NOTHING
+         RETURNING id, email, ${userNameColumn} as name, is_pro, pro_since, created_at`;
+  const r = await pgClient.query(q, [normalizedEmail, nome || null, passwordHash]);
+  if (r.rowCount > 0) return res.status(201).json(r.rows[0]);
+  const existing = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, is_pro, pro_since, created_at FROM users WHERE email = $1`, [normalizedEmail]);
       if (existing.rowCount > 0) return res.status(409).json({ error: 'user exists', user: existing.rows[0] });
       return res.status(500).json({ error: 'could not create user' });
     }
@@ -691,7 +703,7 @@ app.post('/api/auth/login', async (req, res) => {
   const normalizedEmail = String(email).trim().toLowerCase();
   try {
     if (pgClient) {
-      const r = await pgClient.query('SELECT id, email, name, password_hash, is_pro, pro_since, created_at FROM users WHERE lower(email) = $1', [normalizedEmail]);
+  const r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, password_hash, is_pro, pro_since, created_at FROM users WHERE lower(email) = $1`, [normalizedEmail]);
       if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
       const u = r.rows[0];
       if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
