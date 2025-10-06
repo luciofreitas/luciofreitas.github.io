@@ -21,15 +21,18 @@ class GuiasService {
     try {
       const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
       const url = `${baseUrl}/api/guias`;
+      console.debug('[guiasService] loadGuias: baseUrl=', baseUrl);
       console.debug('[guiasService] loadGuias: attempting fetch', url);
       const response = await fetch(url);
       console.debug('[guiasService] loadGuias: response status', response.status);
       if (response.ok) {
         this.guias = await response.json();
-        console.debug('[guiasService] loadGuias: received', this.guias && this.guias.length, 'items');
+        console.debug('[guiasService] loadGuias: received', this.guias && this.guias.length, 'items', this.guias.map(g=>g.id).slice(0,10));
         return this.guias;
       } else {
-        console.warn('[guiasService] loadGuias: non-ok response', response.status, response.statusText);
+        let text = '';
+        try { text = await response.text(); } catch(e) { text = '<failed to read response text>'; }
+        console.warn('[guiasService] loadGuias: non-ok response', response.status, response.statusText, text);
       }
     } catch (error) {
       console.warn('API loadGuias failed, falling back to localStorage:', error);
