@@ -16,7 +16,6 @@ export default function PageCadastro() {
   const navigate = useNavigate();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   function validate() {
     const e = {};
     if (!nome || !nome.trim()) e.nome = 'Nome é obrigatório.';
@@ -34,33 +33,55 @@ export default function PageCadastro() {
     setSuccess('');
     if (!validate()) return;
 
-    // Simular persistência em localStorage (clientes estáticos)
-    try {
-      const key = 'usuarios';
-      const existing = JSON.parse(localStorage.getItem(key) || '[]');
-      existing.push({ nome: nome.trim(), email: email.trim(), senha, criadoEm: new Date().toISOString() });
-      localStorage.setItem(key, JSON.stringify(existing));
-      setSuccess('Cadastro realizado com sucesso!');
-      
-      // Mensagem de sucesso com Toast
-      if (window.showToast) {
-        window.showToast('Cadastro realizado com sucesso! Redirecionando para o login...', 'success', 2000);
+    // Try to create user via API; fallback to localStorage when unavailable
+    (async () => {
+      try {
+        const apiBase = window.__API_BASE || '';
+        const resp = await fetch(`${apiBase}/api/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome: nome.trim(), email: email.trim(), senha }),
+        });
+
+        if (resp.status === 201) {
+          setSuccess('Cadastro realizado com sucesso!');
+          if (window.showToast) window.showToast('Cadastro realizado com sucesso! Redirecionando para o login...', 'success', 2000);
+          setTimeout(() => { try { navigate('/login', { state: { email: email.trim() } }); } catch (e) {} }, 1500);
+          setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+          return;
+        }
+
+        if (resp.status === 409) {
+          // User exists
+          const body = await resp.json().catch(() => ({}));
+          setErrors({ form: 'Usuário já existe. Tente recuperar a senha ou entre em contato.' });
+          console.warn('User exists:', body);
+          return;
+        }
+
+        // Other non-OK: fall back to localStorage
+        console.warn('API /api/users returned non-201 status, falling back to localStorage', resp.status);
+      } catch (err) {
+        // Network or other error -> fallback
+        console.warn('Failed to call /api/users, falling back to localStorage', err && err.message);
       }
-      
-      // redireciona para tela de login após sucesso, mantendo a mensagem visível por 2s
-      setTimeout(() => {
-        try { navigate('/login', { state: { email: email.trim() } }); } catch (e) { /* ignore */ }
-      }, 2000);
-      setNome('');
-      setEmail('');
-      setSenha('');
-      setConfirmSenha('');
-      setErrors({});
-    } catch (err) {
-      setErrors({ form: 'Erro ao salvar os dados localmente. Verifique o console.' });
-      // eslint-disable-next-line no-console
-      console.error('Erro salvando usuário:', err);
-    }
+
+      // Fallback persistence in localStorage
+      try {
+        const key = 'usuarios';
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        existing.push({ nome: nome.trim(), email: email.trim(), senha, criadoEm: new Date().toISOString() });
+        localStorage.setItem(key, JSON.stringify(existing));
+        setSuccess('Cadastro (local) realizado com sucesso!');
+        if (window.showToast) window.showToast('Cadastro realizado (local). Redirecionando para o login...', 'success', 2000);
+        setTimeout(() => { try { navigate('/login', { state: { email: email.trim() } }); } catch (e) {} }, 1500);
+        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+      } catch (err) {
+        setErrors({ form: 'Erro ao salvar os dados localmente. Verifique o console.' });
+        // eslint-disable-next-line no-console
+        console.error('Erro salvando usuário localmente:', err);
+      }
+    })();
   }
 
   return (

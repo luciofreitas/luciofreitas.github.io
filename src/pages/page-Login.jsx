@@ -48,18 +48,49 @@ export default function Login() {
     e.preventDefault();
     const normalizedEmail = String(email || '').trim().toLowerCase();
     const normalizedSenha = String(senha || '');
-    const usuario = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmail && String(u.senha || '') === normalizedSenha);
-    if (!usuario) { setError('E-mail ou senha incorretos.'); return; }
-    setError('');
-    if (setUsuarioLogado) setUsuarioLogado(usuario);
-    try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
-    
-    // Mensagem de boas-vindas com Toast
-    if (window.showToast) {
-      window.showToast(`Bem-vindo(a), ${usuario.nome || 'Usuário'}!`, 'success', 3000);
-    }
-    
-    navigate('/buscar-pecas');
+
+    (async () => {
+      try {
+        const apiBase = window.__API_BASE || '';
+        const resp = await fetch(`${apiBase}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail, senha: normalizedSenha }),
+          credentials: 'include'
+        });
+
+        if (resp.ok) {
+          const body = await resp.json().catch(() => ({}));
+          const usuario = (body && body.user) ? body.user : null;
+          if (usuario) {
+            setError('');
+            if (setUsuarioLogado) setUsuarioLogado(usuario);
+            try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
+            if (window.showToast) window.showToast(`Bem-vindo(a), ${usuario.name || usuario.nome || 'Usuário'}!`, 'success', 3000);
+            navigate('/buscar-pecas');
+            return;
+          }
+        }
+
+        // If API returns 401 or other non-ok, fall back to local users
+        if (resp.status === 401) {
+          setError('E-mail ou senha incorretos.');
+          return;
+        }
+        console.warn('Login API failed, falling back to local users', resp.status);
+      } catch (err) {
+        console.warn('Login API unreachable, falling back to local users', err && err.message);
+      }
+
+      // Fallback to existing local lookup
+      const usuario = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmail && String(u.senha || '') === normalizedSenha);
+      if (!usuario) { setError('E-mail ou senha incorretos.'); return; }
+      setError('');
+      if (setUsuarioLogado) setUsuarioLogado(usuario);
+      try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
+      if (window.showToast) window.showToast(`Bem-vindo(a), ${usuario.nome || 'Usuário'}!`, 'success', 3000);
+      navigate('/buscar-pecas');
+    })();
   }
 
   return (

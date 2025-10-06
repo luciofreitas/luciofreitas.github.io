@@ -5,6 +5,7 @@ const path = require('path');
 const { parse } = require('csv-parse/sync');
 const cors = require('cors');
 const { Client } = require('pg');
+const crypto = require('crypto');
 
 // Firebase Admin SDK (opcional - para verificação de tokens)
 let admin = null;
@@ -629,6 +630,82 @@ app.post('/api/auth/verify', async (req, res) => {
   } catch (err) {
     console.error('Token verification failed:', err.message);
     return res.status(401).json({ error: 'Invalid token', details: err.message });
+  }
+});
+
+// Simple password hashing helpers (PBKDF2) - stores as salt$hash
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derived = crypto.pbkdf2Sync(String(password), salt, 100000, 64, 'sha512').toString('hex');
+  return `${salt}$${derived}`;
+}
+
+function verifyPassword(password, stored) {
+  if (!stored || typeof stored !== 'string') return false;
+  const parts = stored.split('$');
+  if (parts.length !== 2) return false;
+  const salt = parts[0];
+  const hash = parts[1];
+  const derived = crypto.pbkdf2Sync(String(password), salt, 100000, 64, 'sha512').toString('hex');
+  try {
+    return crypto.timingSafeEqual(Buffer.from(derived, 'hex'), Buffer.from(hash, 'hex'));
+  } catch (e) {
+    return false;
+  }
+}
+
+// Create user (try DB, fallback to csvData.users)
+app.post('/api/users', async (req, res) => {
+  const { nome, email, senha } = req.body || {};
+  if (!email || !senha) return res.status(400).json({ error: 'email and senha are required' });
+  const normalizedEmail = String(email).trim().toLowerCase();
+  try {
+    if (pgClient) {
+      const passwordHash = hashPassword(senha);
+      const q = `INSERT INTO users(email, name, password_hash, created_at)
+                 VALUES($1, $2, $3, now())
+                 ON CONFLICT (email) DO NOTHING
+                 RETURNING id, email, name, is_pro, pro_since, created_at`;
+      const r = await pgClient.query(q, [normalizedEmail, nome || null, passwordHash]);
+      if (r.rowCount > 0) return res.status(201).json(r.rows[0]);
+      const existing = await pgClient.query('SELECT id, email, name, is_pro, pro_since, created_at FROM users WHERE email = $1', [normalizedEmail]);
+      if (existing.rowCount > 0) return res.status(409).json({ error: 'user exists', user: existing.rows[0] });
+      return res.status(500).json({ error: 'could not create user' });
+    }
+    // Fallback
+    const id = `local_${Date.now()}`;
+    const user = { id, email: normalizedEmail, nome: nome || '', is_pro: false, criado_em: new Date().toISOString() };
+    csvData.users = csvData.users || [];
+    csvData.users.push(user);
+    return res.status(201).json(user);
+  } catch (err) {
+    console.error('Error creating user:', err.message);
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Login endpoint
+app.post('/api/auth/login', async (req, res) => {
+  const { email, senha } = req.body || {};
+  if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
+  const normalizedEmail = String(email).trim().toLowerCase();
+  try {
+    if (pgClient) {
+      const r = await pgClient.query('SELECT id, email, name, password_hash, is_pro, pro_since, created_at FROM users WHERE lower(email) = $1', [normalizedEmail]);
+      if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
+      const u = r.rows[0];
+      if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
+      const safe = { id: u.id, email: u.email, name: u.name, is_pro: u.is_pro, pro_since: u.pro_since, created_at: u.created_at };
+      return res.json({ success: true, user: safe });
+    }
+    // Fallback to CSV/local data
+    const users = (csvData.users || []).concat([]);
+    const found = users.find(x => String(x.email || '').trim().toLowerCase() === normalizedEmail && String(x.senha || '') === String(senha));
+    if (!found) return res.status(401).json({ error: 'invalid credentials' });
+    return res.json({ success: true, user: { id: found.id, email: found.email, name: found.nome || found.name } });
+  } catch (err) {
+    console.error('Login error:', err.message);
+    return res.status(500).json({ error: 'internal error' });
   }
 });
 
