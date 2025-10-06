@@ -47,10 +47,10 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
     <div className="user-menu-root">
       <button
         ref={buttonRef}
-        className="user-button icon-only"
+        className={`user-button icon-only ${isPro ? 'user-pro' : ''}`}
         onClick={() => setOpen(v => !v)}
-  aria-haspopup="true"
-  aria-expanded={open}
+        aria-haspopup="true"
+        aria-expanded={open}
       >
         {/* Desktop e Mobile: ambos mostram ícone, mas com tamanhos diferentes */}
         <span className="user-icon-desktop">
@@ -63,9 +63,7 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
           </svg>
         </span>
-        {isPro && (
-          <span className="pro-badge">PRO</span>
-        )}
+        {/* Removed inline PRO badge; visual indication is handled by coloring the icon via .user-pro */}
       </button>
 
       {open && (
@@ -78,7 +76,12 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
           }}
         >
           {/* Nome do usuário como primeiro item do dropdown (apenas no mobile) - não clicável */}
-          <div className="dropdown-item dropdown-user-name dropdown-user-name-header">Olá, {nome}</div>
+          <div className="dropdown-item dropdown-user-name dropdown-user-name-header">
+            <div className="dropdown-user-name-row">Olá, {nome}</div>
+            {isPro && (
+              <div className="dropdown-user-subtitle">Assinante Pro</div>
+            )}
+          </div>
           <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button>
           <button className="dropdown-item" onClick={() => { setOpen(false); onMeusCarros(); }}>Meus Carros</button>
           <button className="dropdown-item" onClick={() => { setOpen(false); onPro(); }}>Versão Pro</button>

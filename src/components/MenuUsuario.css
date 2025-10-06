@@ -43,6 +43,20 @@
   justify-content: center;
 }
 
+/* When the user is Pro, color the avatar icon orange to indicate status */
+.user-menu-root .user-button.user-pro .user-icon-desktop svg,
+.user-menu-root .user-button.user-pro .user-icon-mobile svg {
+  color: #f59e0b; /* uses currentColor inside SVG when fill='currentColor' */
+  fill: #f59e0b !important;
+}
+
+/* Slight orange circular background on desktop icon for emphasis */
+.user-menu-root .user-button.user-pro .user-icon-desktop {
+  background-color: rgba(245,158,11,0.12) !important;
+  border-radius: 999px !important;
+  padding: 0.25rem !important;
+}
+
 .user-icon-mobile {
   display: none !important;
 }
@@ -203,6 +217,14 @@
   border-radius: 0.25rem;
   font-weight: bold;
   margin-left: 0.25rem;
+}
+
+/* Subtitle shown below the user name in the dropdown when the user is Pro */
+.dropdown-user-subtitle {
+  font-size: 0.8rem;
+  color: #6b7280; /* gray-500 */
+  margin-top: 0.25rem;
+  font-weight: 600;
 }
 
 /* Dropdown do menu do usuário (visual mais leve) - stronger specificity */
