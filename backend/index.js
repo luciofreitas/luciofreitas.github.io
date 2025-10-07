@@ -1026,5 +1026,17 @@ process.on('unhandledRejection', (reason) => {
 const PORT = process.env.PORT || 3001;
 (async () => {
   pgClient = await tryConnectPg();
+  // Safe environment checks (do not print secrets). These help confirm which env vars
+  // are available at runtime without exposing full keys in logs.
+  try {
+    console.log('ENV CHECK: DATABASE_URL_PRESENT=' + (!!process.env.DATABASE_URL));
+    if (process.env.DATABASE_URL) console.log('ENV CHECK: DATABASE_URL_PREFIX=' + String(process.env.DATABASE_URL).slice(0,12));
+    console.log('ENV CHECK: PGSSLMODE=' + (process.env.PGSSLMODE || process.env.PGSSLMODE || process.env.PGSSL || 'null'));
+    console.log('ENV CHECK: SUPABASE_SERVICE_ROLE_KEY_PRESENT=' + (!!process.env.SUPABASE_SERVICE_ROLE_KEY));
+    console.log('ENV CHECK: NODE_TLS_REJECT_UNAUTHORIZED=' + (process.env.NODE_TLS_REJECT_UNAUTHORIZED || 'null'));
+  } catch(e) {
+    console.warn('ENV CHECK failed:', e && e.message ? e.message : e);
+  }
+
   app.listen(PORT, '0.0.0.0', () => console.log(`Parts API listening on http://0.0.0.0:${PORT} (pg=${pgClient?true:false})`));
 })();
