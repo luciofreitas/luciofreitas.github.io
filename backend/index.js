@@ -666,6 +666,56 @@ function verifyPassword(password, stored) {
   }
 }
 
+// --- Supabase REST fallback helpers (use when Postgres is not reachable) ---
+async function createUserRest({ nome, email, senha, is_pro = false }){
+  if(!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase REST not configured');
+  const url = `${process.env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/users`;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const password_hash = hashPassword(senha);
+  const body = { email: String(email).trim().toLowerCase(), nome: nome || null, password_hash, is_pro };
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey': key,
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+  const text = await res.text();
+  if(!res.ok){
+    // Try to parse JSON error if any
+    try{ const j = JSON.parse(text); throw new Error(JSON.stringify(j)); }catch(e){ throw new Error(`${res.status} ${text}`); }
+  }
+  // PostgREST returns an array with the created row
+  try{ const j = JSON.parse(text); return j[0]; }catch(e){ return null; }
+}
+
+async function loginUserRest(email, senha){
+  if(!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase REST not configured');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const base = process.env.SUPABASE_URL.replace(/\/$/, '');
+  const q = `${base}/rest/v1/users?email=eq.${encodeURIComponent(String(email).trim().toLowerCase())}`;
+  const res = await fetch(q, { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } });
+  if(!res.ok) throw new Error(`Supabase REST query failed: ${res.status}`);
+  const rows = await res.json();
+  if(!rows || rows.length === 0) return null;
+  const u = rows[0];
+  if(!u.password_hash) return null;
+  if(!verifyPassword(senha, u.password_hash)) return null;
+  // Normalize fields to match existing API
+  const safe = {
+    id: u.id,
+    email: u.email,
+    name: u.nome || u.name,
+    is_pro: u.is_pro || false,
+    pro_since: u.pro_since || null,
+    created_at: u.created_at || u.criado_em || null
+  };
+  return safe;
+}
+
 // Create user (try DB, fallback to csvData.users)
 app.post('/api/users', async (req, res) => {
   const { nome, email, senha } = req.body || {};
@@ -684,7 +734,17 @@ app.post('/api/users', async (req, res) => {
       if (existing.rowCount > 0) return res.status(409).json({ error: 'user exists', user: existing.rows[0] });
       return res.status(500).json({ error: 'could not create user' });
     }
-    // Fallback
+    // If Postgres not available, try Supabase REST fallback if configured
+    if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
+      try{
+        const created = await createUserRest({ nome, email: normalizedEmail, senha, is_pro: false });
+        if(created) return res.status(201).json({ id: created.id, email: created.email, name: created.nome || created.name, is_pro: created.is_pro });
+      }catch(e){
+        console.warn('Supabase REST create user failed:', e && e.message ? e.message : e);
+        // fallthrough to CSV
+      }
+    }
+    // Fallback to CSV/local
     const id = `local_${Date.now()}`;
     const user = { id, email: normalizedEmail, nome: nome || '', is_pro: false, criado_em: new Date().toISOString() };
     csvData.users = csvData.users || [];
@@ -709,6 +769,16 @@ app.post('/api/auth/login', async (req, res) => {
       if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
       const safe = { id: u.id, email: u.email, name: u.name, is_pro: u.is_pro, pro_since: u.pro_since, created_at: u.created_at };
       return res.json({ success: true, user: safe });
+    }
+    // Try Supabase REST fallback if configured
+    if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
+      try{
+        const user = await loginUserRest(normalizedEmail, senha);
+        if(user) return res.json({ success: true, user });
+      }catch(e){
+        console.warn('Supabase REST login failed:', e && e.message ? e.message : e);
+        // fallthrough to CSV
+      }
     }
     // Fallback to CSV/local data
     const users = (csvData.users || []).concat([]);
