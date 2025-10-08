@@ -533,7 +533,7 @@ app.get('/api/luzes-painel', (req, res) => {
 
 app.get('/api/fitments', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM fitments'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/fitments:', err.message);} } res.json(csvData.fitments); });
 app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM equivalences'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/equivalences:', err.message);} } res.json(csvData.equivalences); });
-app.get('/api/users', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT id,email,name,is_pro,pro_since,created_at FROM users'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
+app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs that use 'nome' or 'name' for the user's display name */ const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, pro_since, created_at FROM users"); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
 
 app.get('/api/product/:id', async (req, res) => {
   if(pgClient){
