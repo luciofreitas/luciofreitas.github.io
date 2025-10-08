@@ -12,7 +12,8 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "test-db": "node scripts/test-db.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
