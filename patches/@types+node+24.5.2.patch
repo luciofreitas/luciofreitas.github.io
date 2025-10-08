@@ -1,0 +1,17 @@
+diff --git a/node_modules/@types/node/globals.d.ts b/node_modules/@types/node/globals.d.ts
+index af46ec1..ef7c8d1 100644
+--- a/node_modules/@types/node/globals.d.ts
++++ b/node_modules/@types/node/globals.d.ts
+@@ -136,10 +136,12 @@ declare namespace NodeJS {
+     }
+ 
+     interface Dict<T> {
++        // @ts-ignore: duplicate index signature across declaration merging in some TS environments
+         [key: string]: T | undefined;
+     }
+ 
+     interface ReadOnlyDict<T> {
++        // @ts-ignore: duplicate index signature across declaration merging in some TS environments
+         readonly [key: string]: T | undefined;
+     }
+ 
