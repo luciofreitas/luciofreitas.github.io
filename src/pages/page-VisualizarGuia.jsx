@@ -97,11 +97,14 @@ function PageVisualizarGuia() {
       return;
     }
 
-    guiasService.addRating(guiaId, usuarioLogado.email, rating);
-    
-    // Atualizar o guia
-    const guiaAtualizado = guiasService.getGuiaById(guiaId);
-    setGuia(guiaAtualizado);
+    // addRating é síncrono no fallback localStorage e já retorna o guia atualizado
+    // usar o retorno imediato evita chamar a versão async getGuiaById sem await
+    try {
+      const guiaAtualizado = guiasService.addRating(guiaId, usuarioLogado.email, rating);
+      setGuia(guiaAtualizado);
+    } catch (err) {
+      console.error('Erro ao avaliar guia:', err);
+    }
   };
 
   if (loading) {
@@ -192,7 +195,7 @@ function PageVisualizarGuia() {
             <div className="guia-rating-section">
               <RatingStars
                 rating={averageRating}
-                totalRatings={guia.ratings.length}
+                totalRatings={(guia.ratings && guia.ratings.length) || 0}
                 onRate={handleAvaliar}
                 readOnly={isAutor || !usuarioLogado}
                 size="large"
