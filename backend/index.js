@@ -65,8 +65,7 @@ const csvData = {
 };
 
 // Temporary in-memory store for the last user-create error (for debugging only)
-// Disabled for production to avoid leaking internal error details. To re-enable, uncomment.
-// let lastUserCreateError = null;
+let lastUserCreateError = null;
 
 // Attempt Postgres connection if environment variables provided
 let pgClient = null;
@@ -162,18 +161,16 @@ async function tryConnectPg(){
       console.warn('Could not detect users table columns:', e && e.message ? e.message : e);
     }
     return client;
-    } catch (err) {
-    console.error('Error creating user:', err && err.stack ? err.stack : err);
-    // Debug storage disabled in production. If you need to capture the last error,
-    // re-enable the `lastUserCreateError` variable at the top of this file and
-    // uncomment the assignment below.
-    // try { lastUserCreateError = { time: new Date().toISOString(), message: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null }; } catch(e){}
-    if (debugMode) {
-      // Return less-detailed error even when debugging is requested to avoid leaking sensitive info
-      return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err) });
-    }
-    return res.status(500).json({ error: 'internal error' });
+  }catch(err){
+    console.warn('Postgres connection failed, falling back to CSV:', err && err.message ? err.message : err);
+    return null;
   }
+}
+
+// Helpers for CSV fallback
+function findById(list, id){ return list.find(x => String(x.id) === String(id)); }
+
+// Load legacy parts DB (used to serve /api/pecas/* endpoints to keep frontend unchanged)
 let PARTS_DB = [];
 try{
   // Try multiple locations for parts_db.json
@@ -760,44 +757,9 @@ app.post('/api/users', async (req, res) => {
       // HOTFIX: minimal INSERT to maximize compatibility across schemas.
       // Insert only email, name and password hash. Avoid optional columns like created_at/is_pro/pro_since
       const passwordHash = hashPassword(senha);
-      // Determine how to provide an id value: prefer sequence (serial) via pg_get_serial_sequence, else compute max(id)+1
-      let insertQuery = null;
-      let insertParams = null;
+      const q = `INSERT INTO users(email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
       try {
-        const seqRes = await pgClient.query("SELECT pg_get_serial_sequence('users','id') as seq");
-        const seqName = seqRes && seqRes.rows && seqRes.rows[0] ? seqRes.rows[0].seq : null;
-        if (seqName) {
-          // sequence exists, use nextval(seq)
-          insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES(nextval('${seqName}'), $1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
-          insertParams = [normalizedEmail, nome || null, passwordHash];
-        } else {
-          // No sequence — check id column data type
-          const colTypeRes = await pgClient.query("SELECT data_type FROM information_schema.columns WHERE table_name='users' AND column_name='id'");
-          const idType = colTypeRes && colTypeRes.rows && colTypeRes.rows[0] ? String(colTypeRes.rows[0].data_type).toLowerCase() : null;
-          // If id is numeric, compute max(id::bigint)+1; otherwise generate a UUID in JS and insert string id
-          if (idType && (idType.includes('int') || idType.includes('numeric'))) {
-            const maxRes = await pgClient.query('SELECT COALESCE(MAX(id::bigint),0)+1 as next_id FROM users');
-            const nextId = (maxRes && maxRes.rows && maxRes.rows[0]) ? maxRes.rows[0].next_id : 1;
-            insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
-            insertParams = [nextId, normalizedEmail, nome || null, passwordHash];
-          } else {
-            // non-numeric id (text/uuid) — generate a UUID locally
-            let newId;
-            try { newId = crypto.randomUUID(); } catch(e) { newId = crypto.randomBytes(16).toString('hex'); }
-            insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
-            insertParams = [newId, normalizedEmail, nome || null, passwordHash];
-          }
-        }
-      } catch (seqErr) {
-        console.warn('Could not determine id sequence or type for users table, falling back to UUID id generation:', seqErr && seqErr.message ? seqErr.message : seqErr);
-        // fallback: generate a uuid
-        let newId;
-        try { newId = crypto.randomUUID(); } catch(e) { newId = crypto.randomBytes(16).toString('hex'); }
-        insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
-        insertParams = [newId, normalizedEmail, nome || null, passwordHash];
-      }
-      try {
-        const r = await pgClient.query(insertQuery, insertParams);
+        const r = await pgClient.query(q, [normalizedEmail, nome || null, passwordHash]);
         if (r.rowCount > 0) return res.status(201).json(r.rows[0]);
         const existing = await pgClient.query(`SELECT id, email, ${userNameColumn} as name FROM users WHERE email = $1`, [normalizedEmail]);
         if (existing.rowCount > 0) return res.status(409).json({ error: 'user exists', user: existing.rows[0] });
@@ -827,17 +789,17 @@ app.post('/api/users', async (req, res) => {
   } catch (err) {
     console.error('Error creating user:', err && err.stack ? err.stack : err);
     // store for remote debugging via endpoint
-    try { lastUserCreateError = { time: new Date().toISOString(), message: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null }; } catch(e){}
+    // Debug storage disabled in production. To capture this error re-enable lastUserCreateError at the top.
+    // try { lastUserCreateError = { time: new Date().toISOString(), message: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null }; } catch(e){}
     if (debugMode) {
-      // Return detailed error for debugging when explicitly requested via X-Debug header
-      return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null });
+      // Return less-detailed error even when debugging to avoid leaking stack traces
+      return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err) });
     }
     return res.status(500).json({ error: 'internal error' });
   }
 });
 
-// Debug endpoints removed for production. If you need to re-enable for troubleshooting,
-// uncomment the route below and the `lastUserCreateError` variable near the top.
+// Debug: read the last user create error (temporary) - disabled in production
 /*
 app.get('/api/debug/last-user-error', (req, res) => {
   if (!lastUserCreateError) return res.status(404).json({ error: 'no error recorded' });
@@ -852,46 +814,19 @@ app.post('/api/auth/login', async (req, res) => {
   const normalizedEmail = String(email).trim().toLowerCase();
   try {
     if (pgClient) {
-      // Build the desired select list including optional metadata columns
       const selectCols = ['id', 'email', `${userNameColumn} as name`, `${userPasswordColumn} as password_hash`];
       if (userHasIsPro) selectCols.push('is_pro');
       if (userHasProSince) selectCols.push('pro_since');
       if (userCreatedAtColumn) selectCols.push(userCreatedAtColumn + ' as created_at');
-
-      let r = null;
-      try {
-        r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
-      } catch (e) {
-        // If query fails because an optional column doesn't exist, retry with a minimal select
-        const msg = e && e.message ? String(e.message).toLowerCase() : '';
-        if (msg.includes('does not exist') || msg.includes('column') && msg.includes('does not exist')) {
-          console.warn('PG login query failed due to missing column(s), retrying with minimal select:', e.message || e);
-          try {
-            const minimalCols = ['id', 'email', `${userNameColumn} as name`, `${userPasswordColumn} as password_hash`];
-            r = await pgClient.query(`SELECT ${minimalCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
-          } catch (e2) {
-            console.error('PG login query retry failed:', e2 && e2.message ? e2.message : e2);
-            r = null;
-          }
-        } else {
-          // Not a missing-column error: rethrow to be handled by outer catch
-          throw e;
-        }
-      }
-
-      if (!r) {
-        // Give up on PG auth and fallthrough to Supabase/CSV fallbacks
-        console.warn('Skipping Postgres authentication due to query failures');
-      } else {
-        if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
-        const u = r.rows[0];
-        if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
-        const safe = { id: u.id, email: u.email, name: u.name };
-        if (userHasIsPro && Object.prototype.hasOwnProperty.call(u, 'is_pro')) safe.is_pro = u.is_pro;
-        if (userHasProSince && Object.prototype.hasOwnProperty.call(u, 'pro_since')) safe.pro_since = u.pro_since;
-        if (userCreatedAtColumn && Object.prototype.hasOwnProperty.call(u, 'created_at')) safe.created_at = u.created_at;
-        return res.json({ success: true, user: safe });
-      }
+      const r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
+      if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
+      const u = r.rows[0];
+      if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
+      const safe = { id: u.id, email: u.email, name: u.name };
+      if (userHasIsPro) safe.is_pro = u.is_pro;
+      if (userHasProSince) safe.pro_since = u.pro_since;
+      if (userCreatedAtColumn) safe.created_at = u.created_at;
+      return res.json({ success: true, user: safe });
     }
     // Try Supabase REST fallback if configured
     if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
