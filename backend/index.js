@@ -900,6 +900,19 @@ app.get('/api/debug/check-guia-db', async (req, res) => {
   }
 });
 
+// Temporary debug helper: echo headers and body when X-Debug-Key is provided.
+// This endpoint is intentionally minimal and should be removed after diagnosis.
+app.post('/api/debug/echo-headers', (req, res) => {
+  try {
+    const key = String(req.headers['x-debug-key'] || '');
+    if (key !== 'let-me-debug') return res.status(403).json({ error: 'forbidden' });
+    // Return headers and parsed JSON body for debugging
+    return res.json({ headers: req.headers, body: req.body });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
 // Endpoints de Carros do Usuário
 app.get('/api/users/:userId/cars', async (req, res) => {
   const { userId } = req.params;
