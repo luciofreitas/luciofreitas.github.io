@@ -70,7 +70,14 @@ let lastUserCreateError = null;
 // Attempt Postgres connection if environment variables provided
 let pgClient = null;
 // Which column stores the user's human name in the users table. Some DBs/schemas use 'name', others 'nome'.
+// Which column stores the user's human name in the users table. Some DBs/schemas use 'name', others 'nome'.
 let userNameColumn = 'name';
+// Which column stores the user's password hash. Common names: password_hash, senha, senha_hash, password
+let userPasswordColumn = 'password_hash';
+// Optional user metadata columns (may not exist in every schema)
+let userCreatedAtColumn = null;
+let userHasIsPro = false;
+let userHasProSince = false;
 // Try to build a pg Client config from common env vars. Support DATABASE_URL or individual PG* vars.
 function buildPgConfig(){
   if(process.env.DATABASE_URL) {
@@ -137,7 +144,19 @@ async function tryConnectPg(){
       const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
       if (names.indexOf('name') >= 0) userNameColumn = 'name';
       else if (names.indexOf('nome') >= 0) userNameColumn = 'nome';
-      console.log('Detected users name column:', userNameColumn);
+      // detect common password/hash column names
+      if (names.indexOf('password_hash') >= 0) userPasswordColumn = 'password_hash';
+      else if (names.indexOf('senha_hash') >= 0) userPasswordColumn = 'senha_hash';
+      else if (names.indexOf('senha') >= 0) userPasswordColumn = 'senha';
+      else if (names.indexOf('password') >= 0) userPasswordColumn = 'password';
+      else userPasswordColumn = 'password_hash';
+  // detect created_at / criado_em
+  if (names.indexOf('created_at') >= 0) userCreatedAtColumn = 'created_at';
+  else if (names.indexOf('criado_em') >= 0) userCreatedAtColumn = 'criado_em';
+  // detect pro flags
+  userHasIsPro = names.indexOf('is_pro') >= 0 || names.indexOf('ispro') >= 0;
+  userHasProSince = names.indexOf('pro_since') >= 0 || names.indexOf('pro_since') >= 0 || names.indexOf('pro_since') >= 0;
+  console.log('Detected users name column:', userNameColumn, 'password column:', userPasswordColumn, 'createdAt:', userCreatedAtColumn, 'hasIsPro:', userHasIsPro, 'hasProSince:', userHasProSince);
     } catch (e) {
       console.warn('Could not detect users table columns:', e && e.message ? e.message : e);
     }
@@ -675,12 +694,14 @@ function verifyPassword(password, stored) {
 }
 
 // --- Supabase REST fallback helpers (use when Postgres is not reachable) ---
-async function createUserRest({ nome, email, senha, is_pro = false }){
+async function createUserRest({ nome, email, senha, is_pro = false, passwordColumn = null }){
   if(!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase REST not configured');
   const url = `${process.env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/users`;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const password_hash = hashPassword(senha);
-  const body = { email: String(email).trim().toLowerCase(), nome: nome || null, password_hash, is_pro };
+  const body = { email: String(email).trim().toLowerCase(), nome: nome || null, is_pro };
+  const col = passwordColumn || userPasswordColumn || 'password_hash';
+  body[col] = password_hash;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -710,8 +731,9 @@ async function loginUserRest(email, senha){
   const rows = await res.json();
   if(!rows || rows.length === 0) return null;
   const u = rows[0];
-  if(!u.password_hash) return null;
-  if(!verifyPassword(senha, u.password_hash)) return null;
+  const pwCol = userPasswordColumn || 'password_hash';
+  if(!u[pwCol]) return null;
+  if(!verifyPassword(senha, u[pwCol])) return null;
   // Normalize fields to match existing API
   const safe = {
     id: u.id,
@@ -732,21 +754,26 @@ app.post('/api/users', async (req, res) => {
   const debugMode = String(req.headers['x-debug'] || '').toLowerCase() === 'true';
   try {
     if (pgClient) {
+      // HOTFIX: minimal INSERT to maximize compatibility across schemas.
+      // Insert only email, name and password hash. Avoid optional columns like created_at/is_pro/pro_since
       const passwordHash = hashPassword(senha);
-  const q = `INSERT INTO users(email, ${userNameColumn}, password_hash, created_at)
-         VALUES($1, $2, $3, now())
-         ON CONFLICT (email) DO NOTHING
-         RETURNING id, email, ${userNameColumn} as name, is_pro, pro_since, created_at`;
-  const r = await pgClient.query(q, [normalizedEmail, nome || null, passwordHash]);
-  if (r.rowCount > 0) return res.status(201).json(r.rows[0]);
-  const existing = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, is_pro, pro_since, created_at FROM users WHERE email = $1`, [normalizedEmail]);
-      if (existing.rowCount > 0) return res.status(409).json({ error: 'user exists', user: existing.rows[0] });
-      return res.status(500).json({ error: 'could not create user' });
+      const q = `INSERT INTO users(email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
+      try {
+        const r = await pgClient.query(q, [normalizedEmail, nome || null, passwordHash]);
+        if (r.rowCount > 0) return res.status(201).json(r.rows[0]);
+        const existing = await pgClient.query(`SELECT id, email, ${userNameColumn} as name FROM users WHERE email = $1`, [normalizedEmail]);
+        if (existing.rowCount > 0) return res.status(409).json({ error: 'user exists', user: existing.rows[0] });
+        return res.status(500).json({ error: 'could not create user' });
+      } catch (e) {
+        console.error('PG create user failed (hotfix):', e && e.stack ? e.stack : e);
+        // Let outer catch handle storing lastUserCreateError and returning appropriate response
+        throw e;
+      }
     }
     // If Postgres not available, try Supabase REST fallback if configured
     if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
       try{
-        const created = await createUserRest({ nome, email: normalizedEmail, senha, is_pro: false });
+        const created = await createUserRest({ nome, email: normalizedEmail, senha, is_pro: false, passwordColumn: userPasswordColumn });
         if(created) return res.status(201).json({ id: created.id, email: created.email, name: created.nome || created.name, is_pro: created.is_pro });
       }catch(e){
         console.warn('Supabase REST create user failed:', e && e.message ? e.message : e);
@@ -784,11 +811,18 @@ app.post('/api/auth/login', async (req, res) => {
   const normalizedEmail = String(email).trim().toLowerCase();
   try {
     if (pgClient) {
-  const r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, password_hash, is_pro, pro_since, created_at FROM users WHERE lower(email) = $1`, [normalizedEmail]);
+      const selectCols = ['id', 'email', `${userNameColumn} as name`, `${userPasswordColumn} as password_hash`];
+      if (userHasIsPro) selectCols.push('is_pro');
+      if (userHasProSince) selectCols.push('pro_since');
+      if (userCreatedAtColumn) selectCols.push(userCreatedAtColumn + ' as created_at');
+      const r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
       if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
       const u = r.rows[0];
       if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
-      const safe = { id: u.id, email: u.email, name: u.name, is_pro: u.is_pro, pro_since: u.pro_since, created_at: u.created_at };
+      const safe = { id: u.id, email: u.email, name: u.name };
+      if (userHasIsPro) safe.is_pro = u.is_pro;
+      if (userHasProSince) safe.pro_since = u.pro_since;
+      if (userCreatedAtColumn) safe.created_at = u.created_at;
       return res.json({ success: true, user: safe });
     }
     // Try Supabase REST fallback if configured
