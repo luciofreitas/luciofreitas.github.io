@@ -768,19 +768,30 @@ app.post('/api/users', async (req, res) => {
           insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES(nextval('${seqName}'), $1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
           insertParams = [normalizedEmail, nome || null, passwordHash];
         } else {
-          // no sequence: compute a new id from max(id)+1
-          const maxRes = await pgClient.query('SELECT COALESCE(MAX(id),0)+1 as next_id FROM users');
-          const nextId = (maxRes && maxRes.rows && maxRes.rows[0]) ? maxRes.rows[0].next_id : 1;
-          insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
-          insertParams = [nextId, normalizedEmail, nome || null, passwordHash];
+          // No sequence — check id column data type
+          const colTypeRes = await pgClient.query("SELECT data_type FROM information_schema.columns WHERE table_name='users' AND column_name='id'");
+          const idType = colTypeRes && colTypeRes.rows && colTypeRes.rows[0] ? String(colTypeRes.rows[0].data_type).toLowerCase() : null;
+          // If id is numeric, compute max(id::bigint)+1; otherwise generate a UUID in JS and insert string id
+          if (idType && (idType.includes('int') || idType.includes('numeric'))) {
+            const maxRes = await pgClient.query('SELECT COALESCE(MAX(id::bigint),0)+1 as next_id FROM users');
+            const nextId = (maxRes && maxRes.rows && maxRes.rows[0]) ? maxRes.rows[0].next_id : 1;
+            insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
+            insertParams = [nextId, normalizedEmail, nome || null, passwordHash];
+          } else {
+            // non-numeric id (text/uuid) — generate a UUID locally
+            let newId;
+            try { newId = crypto.randomUUID(); } catch(e) { newId = crypto.randomBytes(16).toString('hex'); }
+            insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
+            insertParams = [newId, normalizedEmail, nome || null, passwordHash];
+          }
         }
       } catch (seqErr) {
-        console.warn('Could not determine id sequence for users table, falling back to simple insert with generated id:', seqErr && seqErr.message ? seqErr.message : seqErr);
-        // fallback: compute next id
-        const maxRes = await pgClient.query('SELECT COALESCE(MAX(id),0)+1 as next_id FROM users');
-        const nextId = (maxRes && maxRes.rows && maxRes.rows[0]) ? maxRes.rows[0].next_id : 1;
+        console.warn('Could not determine id sequence or type for users table, falling back to UUID id generation:', seqErr && seqErr.message ? seqErr.message : seqErr);
+        // fallback: generate a uuid
+        let newId;
+        try { newId = crypto.randomUUID(); } catch(e) { newId = crypto.randomBytes(16).toString('hex'); }
         insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
-        insertParams = [nextId, normalizedEmail, nome || null, passwordHash];
+        insertParams = [newId, normalizedEmail, nome || null, passwordHash];
       }
       try {
         const r = await pgClient.query(insertQuery, insertParams);
