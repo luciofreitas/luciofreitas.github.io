@@ -64,6 +64,9 @@ const csvData = {
   users: loadCSV('users.csv')
 };
 
+// Temporary in-memory store for the last user-create error (for debugging only)
+let lastUserCreateError = null;
+
 // Attempt Postgres connection if environment variables provided
 let pgClient = null;
 // Which column stores the user's human name in the users table. Some DBs/schemas use 'name', others 'nome'.
@@ -758,12 +761,20 @@ app.post('/api/users', async (req, res) => {
     return res.status(201).json(user);
   } catch (err) {
     console.error('Error creating user:', err && err.stack ? err.stack : err);
+    // store for remote debugging via endpoint
+    try { lastUserCreateError = { time: new Date().toISOString(), message: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null }; } catch(e){}
     if (debugMode) {
       // Return detailed error for debugging when explicitly requested via X-Debug header
       return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null });
     }
     return res.status(500).json({ error: 'internal error' });
   }
+});
+
+// Debug: read the last user create error (temporary)
+app.get('/api/debug/last-user-error', (req, res) => {
+  if (!lastUserCreateError) return res.status(404).json({ error: 'no error recorded' });
+  return res.json(lastUserCreateError);
 });
 
 // Login endpoint
