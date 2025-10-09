@@ -23,10 +23,21 @@
   justify-content: center;
 }
 
+/* Remove default focus outline for pointer interactions; keep a subtle ring for keyboard users */
 .star-button:focus {
-  outline: 2px solid #0052CC;
-  outline-offset: 2px;
+  outline: none;
+}
+.star-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0,82,204,0.08);
   border-radius: 0.25rem;
+}
+
+/* Ensure star buttons are above potential overlays and accept pointer events reliably */
+.star-button {
+  position: relative;
+  z-index: 1;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .star-button.filled svg {
