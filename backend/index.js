@@ -726,6 +726,7 @@ app.post('/api/users', async (req, res) => {
   const { nome, email, senha } = req.body || {};
   if (!email || !senha) return res.status(400).json({ error: 'email and senha are required' });
   const normalizedEmail = String(email).trim().toLowerCase();
+  const debugMode = String(req.headers['x-debug'] || '').toLowerCase() === 'true';
   try {
     if (pgClient) {
       const passwordHash = hashPassword(senha);
@@ -756,7 +757,11 @@ app.post('/api/users', async (req, res) => {
     csvData.users.push(user);
     return res.status(201).json(user);
   } catch (err) {
-    console.error('Error creating user:', err.message);
+    console.error('Error creating user:', err && err.stack ? err.stack : err);
+    if (debugMode) {
+      // Return detailed error for debugging when explicitly requested via X-Debug header
+      return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null });
+    }
     return res.status(500).json({ error: 'internal error' });
   }
 });
