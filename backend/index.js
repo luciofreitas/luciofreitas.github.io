@@ -757,9 +757,33 @@ app.post('/api/users', async (req, res) => {
       // HOTFIX: minimal INSERT to maximize compatibility across schemas.
       // Insert only email, name and password hash. Avoid optional columns like created_at/is_pro/pro_since
       const passwordHash = hashPassword(senha);
-      const q = `INSERT INTO users(email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
+      // Determine how to provide an id value: prefer sequence (serial) via pg_get_serial_sequence, else compute max(id)+1
+      let insertQuery = null;
+      let insertParams = null;
       try {
-        const r = await pgClient.query(q, [normalizedEmail, nome || null, passwordHash]);
+        const seqRes = await pgClient.query("SELECT pg_get_serial_sequence('users','id') as seq");
+        const seqName = seqRes && seqRes.rows && seqRes.rows[0] ? seqRes.rows[0].seq : null;
+        if (seqName) {
+          // sequence exists, use nextval(seq)
+          insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES(nextval('${seqName}'), $1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
+          insertParams = [normalizedEmail, nome || null, passwordHash];
+        } else {
+          // no sequence: compute a new id from max(id)+1
+          const maxRes = await pgClient.query('SELECT COALESCE(MAX(id),0)+1 as next_id FROM users');
+          const nextId = (maxRes && maxRes.rows && maxRes.rows[0]) ? maxRes.rows[0].next_id : 1;
+          insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
+          insertParams = [nextId, normalizedEmail, nome || null, passwordHash];
+        }
+      } catch (seqErr) {
+        console.warn('Could not determine id sequence for users table, falling back to simple insert with generated id:', seqErr && seqErr.message ? seqErr.message : seqErr);
+        // fallback: compute next id
+        const maxRes = await pgClient.query('SELECT COALESCE(MAX(id),0)+1 as next_id FROM users');
+        const nextId = (maxRes && maxRes.rows && maxRes.rows[0]) ? maxRes.rows[0].next_id : 1;
+        insertQuery = `INSERT INTO users(id, email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
+        insertParams = [nextId, normalizedEmail, nome || null, passwordHash];
+      }
+      try {
+        const r = await pgClient.query(insertQuery, insertParams);
         if (r.rowCount > 0) return res.status(201).json(r.rows[0]);
         const existing = await pgClient.query(`SELECT id, email, ${userNameColumn} as name FROM users WHERE email = $1`, [normalizedEmail]);
         if (existing.rowCount > 0) return res.status(409).json({ error: 'user exists', user: existing.rows[0] });
