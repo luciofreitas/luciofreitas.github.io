@@ -156,6 +156,7 @@ function PageVisualizarGuia() {
   }
 
   const isAutor = usuarioLogado?.email === guia.autorEmail;
+  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
   const averageRating = guiasService.calculateAverageRating(guia);
 
   return (
@@ -209,16 +210,26 @@ function PageVisualizarGuia() {
           {/* Descrição */}
           <div className="guia-descricao-section">
             <h3>📝 Descrição</h3>
-            <p className="guia-descricao-texto">{guia.descricao}</p>
+            <p className="guia-descricao-texto">{(!isPro && !isAutor) ? (guia.descricao ? guia.descricao.split('\n').slice(0,2).join('\n') + '...' : '') : guia.descricao}</p>
           </div>
 
           {/* Conteúdo principal */}
           <div className="guia-conteudo-section">
             <h3>📖 Conteúdo</h3>
             <div className="guia-conteudo-texto">
-              {guia.conteudo.split('\n').map((paragrafo, index) => (
-                paragrafo.trim() && <p key={index}>{paragrafo}</p>
-              ))}
+              {(() => {
+                const paragraphs = guia.conteudo.split('\n').filter(Boolean);
+                if(!isPro && !isAutor){
+                  return paragraphs.slice(0,3).map((p, idx) => <p key={idx}>{p}</p>).concat(
+                    <div key="locked-cta" className="visual-lock-cta">
+                      <button className="btn-locked" onClick={() => navigate('/versao-pro')}>🔒 Somente Pro — Assine para ler o conteúdo completo</button>
+                    </div>
+                  );
+                }
+                return paragraphs.map((paragrafo, index) => (
+                  paragrafo.trim() && <p key={index}>{paragrafo}</p>
+                ));
+              })()}
             </div>
           </div>
 

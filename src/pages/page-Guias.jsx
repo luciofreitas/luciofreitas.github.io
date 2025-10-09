@@ -167,7 +167,7 @@ function PageGuias() {
                 const isOculto = guia.status === 'oculto';
 
                 return (
-                  <div key={guia.id} className={`guia-card ${isOculto ? 'guia-oculto' : ''}`}>
+                  <div key={guia.id} className={`guia-card ${isOculto ? 'guia-oculto' : ''} ${(!isPro && !isAutor) ? 'locked' : ''}`}>
                     <div className="guia-header">
                       <div className="guia-icone">📄</div>
                       <div className="guia-categoria">{guia.categoria}</div>
@@ -217,12 +217,22 @@ function PageGuias() {
                           ✏️ Editar
                         </button>
                       )}
-                      <span 
-                        className="guia-cta" 
-                        onClick={() => handleVerGuiaCustomizado(guia.id)}
-                      >
-                        Ver guia completo →
-                      </span>
+
+                      {/* Locked CTA for non-Pro users (visual only) */}
+                      {(!isPro && !isAutor) ? (
+                        <div className="guia-locked-wrapper">
+                          <button className="btn-locked" onClick={() => navigate('/versao-pro')}>
+                            🔒 Somente Pro — Assine para abrir
+                          </button>
+                        </div>
+                      ) : (
+                        <span 
+                          className="guia-cta" 
+                          onClick={() => handleVerGuiaCustomizado(guia.id)}
+                        >
+                          Ver guia completo →
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

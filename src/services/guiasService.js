@@ -4,11 +4,18 @@
 const STORAGE_KEY = 'user_custom_guias';
 const EVALUATION_PERIOD_DAYS = 7; // Período de avaliação em dias
 const MIN_RATING_THRESHOLD = 3.0; // Nota mínima para manter visível
+const PREVIEW_LENGTH = 200; // chars for preview
 
 // Helper para detectar ambiente local
 const isLocal = () => {
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 };
+
+function makePreviewText(text){
+  if(!text) return '';
+  if(text.length <= PREVIEW_LENGTH) return text;
+  return text.slice(0, PREVIEW_LENGTH).replace(/\s+\S*$/, '') + '...';
+}
 
 class GuiasService {
   constructor() {

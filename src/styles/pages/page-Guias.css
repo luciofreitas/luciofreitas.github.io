@@ -762,6 +762,52 @@
   line-height: 1.6;
 }
 
+/* Locked CTA for non-Pro users */
+.guia-locked-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.btn-locked {
+  background: linear-gradient(90deg,#f59e0b,#fb923c);
+  color: white;
+  border: none;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(251,146,60,0.18);
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.btn-locked:hover { transform: translateY(-2px); }
+
+/* Subtle blur effect for CTA region when locked */
+.guia-locked-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0; /* cover bottom area */
+  height: 4.5rem; /* same as footer height approx */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+/* Also visually indicate locked card by dimming the CTA text */
+.guia-locked-wrapper .btn-locked {
+  filter: grayscale(0.02) saturate(1.05);
+}
+
+/* If you want to blur the whole card content when locked, apply this helper class */
+.guia-card.locked .guia-content,
+.guia-card.locked .guia-imagem {
+  filter: blur(2px) grayscale(0.02);
+  opacity: 0.9;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
 /* Responsividade */
 /* Grid já é responsivo com clamp(), não precisa sobrescrever */
 

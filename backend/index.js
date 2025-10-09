@@ -77,8 +77,13 @@ function buildPgConfig(){
       options: '-c client_encoding=UTF8'
     };
     // Habilitar SSL se configurado (obrigatório para Supabase)
-    if(process.env.PGSSL === 'true') {
-      // Aceitar certificados self-signed (comum em desenvolvimento)
+    // Detect common signals: explicit PGSSL env, PGSSLMODE=require, or sslmode=require in the DATABASE_URL
+    const wantsSsl = (process.env.PGSSL && String(process.env.PGSSL).toLowerCase() === 'true')
+      || (process.env.PGSSLMODE && String(process.env.PGSSLMODE).toLowerCase() === 'require')
+      || (/([?&])sslmode=require/i).test(String(process.env.DATABASE_URL || ''));
+    if (wantsSsl) {
+      // Accept self-signed certificates (common in some Supabase setups).
+      // This sets the pg client to use TLS but not reject self-signed certs.
       config.ssl = { rejectUnauthorized: false };
     }
     return config;
@@ -746,7 +751,7 @@ app.post('/api/users', async (req, res) => {
     }
     // Fallback to CSV/local
     const id = `local_${Date.now()}`;
-    const user = { id, email: normalizedEmail, nome: nome || '', is_pro: false, criado_em: new Date().toISOString() };
+    const user = { id, email: normalizedEmail, nome: nome || '', senha: senha, is_pro: false, criado_em: new Date().toISOString() };
     csvData.users = csvData.users || [];
     csvData.users.push(user);
     return res.status(201).json(user);

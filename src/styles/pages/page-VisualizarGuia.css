@@ -266,6 +266,25 @@
   transform: translateY(-2px);
 }
 
+/* Visual lock CTA shown in content preview for non-Pro users */
+.visual-lock-cta {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.visual-lock-cta .btn-locked {
+  padding: 0.9rem 1.2rem;
+  font-size: 1rem;
+}
+
+/* Slight dimming of full content when locked (if desired) */
+.visualizar-guia.locked .guia-conteudo-texto,
+.visualizar-guia.locked .guia-descricao-texto {
+  filter: blur(1px);
+  opacity: 0.95;
+}
+
 /* Dark Mode */
 .theme-dark .guia-titulo-full {
   color: var(--text-primary-dark);
