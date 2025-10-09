@@ -6,10 +6,20 @@
   gap: 0.75rem;
 }
 
+/* ensure stars container is above potential overlays (desktop) */
+.rating-stars-container {
+  position: relative;
+  z-index: 9999;
+}
+
 .stars-wrapper {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.stars-wrapper, .star-button {
+  pointer-events: auto !important;
 }
 
 .star-button {
