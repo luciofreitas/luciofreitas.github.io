@@ -63,8 +63,6 @@ export default function PerfilForm({
     if (local.senhaAtual || local.novaSenha || local.confirmNovaSenha) {
       if (!local.senhaAtual) {
         newErrors.senhaAtual = 'Senha atual é obrigatória para alterar senha';
-      } else if (usuarioLogado && local.senhaAtual !== usuarioLogado.senha) {
-        newErrors.senhaAtual = 'Senha atual incorreta';
       }
 
       if (!local.novaSenha) {
@@ -120,6 +118,33 @@ export default function PerfilForm({
   function handleSave() {
     if (!validateForm()) {
       return;
+    }
+
+    // If the user provided senhaAtual, verify it server-side before proceeding
+    if (local.senhaAtual) {
+      try {
+        const resp = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/auth/verify-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: usuarioLogado.email, senha: local.senhaAtual })
+        });
+        if (!resp.ok) {
+          if (resp.status === 401) {
+            setErrors(prev => ({ ...prev, senhaAtual: 'Senha atual incorreta' }));
+            return;
+          }
+          setErrors(prev => ({ ...prev, senhaAtual: 'Erro ao verificar senha atual' }));
+          return;
+        }
+        const j = await resp.json();
+        if (!j || !j.success) {
+          setErrors(prev => ({ ...prev, senhaAtual: 'Senha atual incorreta' }));
+          return;
+        }
+      } catch (err) {
+        setErrors(prev => ({ ...prev, senhaAtual: 'Erro ao verificar senha atual' }));
+        return;
+      }
     }
 
     if (!usuarioLogado) {

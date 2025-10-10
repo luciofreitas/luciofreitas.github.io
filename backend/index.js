@@ -868,6 +868,40 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Verify current password (for profile password changes)
+app.post('/api/auth/verify-password', async (req, res) => {
+  const { email, senha } = req.body || {};
+  if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
+  const normalizedEmail = String(email).trim().toLowerCase();
+  try {
+    if (pgClient) {
+      const selectCols = [`${userPasswordColumn} as password_hash`];
+      const r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
+      if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
+      const u = r.rows[0];
+      if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
+      return res.json({ success: true });
+    }
+    // Try Supabase REST fallback if configured
+    if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
+      try{
+        const user = await loginUserRest(normalizedEmail, senha);
+        if(user) return res.json({ success: true });
+      }catch(e){
+        console.warn('Supabase REST verify-password failed:', e && e.message ? e.message : e);
+      }
+    }
+    // Fallback CSV/local
+    const users = (csvData.users || []).concat([]);
+    const found = users.find(x => String(x.email || '').trim().toLowerCase() === normalizedEmail && String(x.senha || '') === String(senha));
+    if (!found) return res.status(401).json({ error: 'invalid credentials' });
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Verify password error:', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
 // ============ NOVOS ENDPOINTS PARA MIGRAÇÃO DB ============
 
 // Endpoints de Guias
