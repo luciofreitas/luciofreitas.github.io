@@ -63,10 +63,16 @@ export default function Login() {
           const body = await resp.json().catch(() => ({}));
           const usuario = (body && body.user) ? body.user : null;
           if (usuario) {
+            // Normalize user object so both `nome` and `name` exist (some backends return one or the other)
+            const normalizedUsuario = {
+              ...usuario,
+              nome: (usuario.nome || usuario.name || '').trim(),
+              name: (usuario.name || usuario.nome || '').trim()
+            };
             setError('');
-            if (setUsuarioLogado) setUsuarioLogado(usuario);
-            try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
-            if (window.showToast) window.showToast(`Bem-vindo(a), ${usuario.name || usuario.nome || 'Usuário'}!`, 'success', 3000);
+            if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+            try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+            if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
             navigate('/buscar-pecas');
             return;
           }

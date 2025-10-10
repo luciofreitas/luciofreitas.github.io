@@ -753,11 +753,13 @@ async function loginUserRest(email, senha){
   const pwCol = userPasswordColumn || 'password_hash';
   if(!u[pwCol]) return null;
   if(!verifyPassword(senha, u[pwCol])) return null;
-  // Normalize fields to match existing API
+  // Normalize fields to match existing API and include both 'name' and 'nome'
+  const displayName = ((u.nome || u.name) || '').trim();
   const safe = {
     id: u.id,
     email: u.email,
-    name: u.nome || u.name,
+    name: displayName,
+    nome: displayName,
     is_pro: u.is_pro || false,
     pro_since: u.pro_since || null,
     created_at: u.created_at || u.criado_em || null
@@ -839,9 +841,10 @@ app.post('/api/auth/login', async (req, res) => {
       if (userCreatedAtColumn) selectCols.push(userCreatedAtColumn + ' as created_at');
       const r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
       if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
-      const u = r.rows[0];
-      if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
-      const safe = { id: u.id, email: u.email, name: u.name };
+  const u = r.rows[0];
+  if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
+  const displayName = ((u.name || u.nome) || '').trim();
+  const safe = { id: u.id, email: u.email, name: displayName, nome: displayName };
       if (userHasIsPro) safe.is_pro = u.is_pro;
       if (userHasProSince) safe.pro_since = u.pro_since;
       if (userCreatedAtColumn) safe.created_at = u.created_at;
@@ -860,8 +863,9 @@ app.post('/api/auth/login', async (req, res) => {
     // Fallback to CSV/local data
     const users = (csvData.users || []).concat([]);
     const found = users.find(x => String(x.email || '').trim().toLowerCase() === normalizedEmail && String(x.senha || '') === String(senha));
-    if (!found) return res.status(401).json({ error: 'invalid credentials' });
-    return res.json({ success: true, user: { id: found.id, email: found.email, name: found.nome || found.name } });
+  if (!found) return res.status(401).json({ error: 'invalid credentials' });
+  const displayNameCsv = ((found.nome || found.name) || '').trim();
+  return res.json({ success: true, user: { id: found.id, email: found.email, name: displayNameCsv, nome: displayNameCsv } });
   } catch (err) {
     console.error('Login error:', err.message);
     return res.status(500).json({ error: 'internal error' });
