@@ -1177,3 +1177,32 @@ const PORT = process.env.PORT || 3001;
     }
   }catch(e){/* ignore */}
 })();
+
+// Serve frontend build (if exists) - place after app.listen to ensure APIs are registered first
+try{
+  const distPath = path.join(__dirname, '..', 'dist');
+  if (fs.existsSync(distPath)){
+    console.log('Serving static frontend from', distPath);
+    // Ensure .jsx is served as application/javascript (workaround if any stale refs exist)
+    app.use((req, res, next) => {
+      if (req.path.endsWith('.jsx')) {
+        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      }
+      next();
+    });
+    app.use(express.static(distPath, {
+      setHeaders: (res, filepath) => {
+        if (filepath.endsWith('.jsx')) {
+          res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+        }
+      }
+    }));
+
+    // SPA fallback: serve index.html for any other GET request not handled by API
+    app.get('*', (req, res) => {
+      try{
+        res.sendFile(path.join(distPath, 'index.html'));
+      }catch(e){ res.status(500).send('error'); }
+    });
+  }
+}catch(e){ console.warn('Could not serve dist folder:', e && e.message ? e.message : e); }

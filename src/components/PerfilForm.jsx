@@ -115,7 +115,7 @@ export default function PerfilForm({
     try { onChange({ target: { name, value: formattedValue } }); } catch (err) { /* ignore */ }
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!validateForm()) {
       return;
     }
