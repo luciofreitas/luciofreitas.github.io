@@ -1110,4 +1110,17 @@ const PORT = process.env.PORT || 3001;
   }
 
   app.listen(PORT, '0.0.0.0', () => console.log(`Parts API listening on http://0.0.0.0:${PORT} (pg=${pgClient?true:false})`));
+
+  // Optional: initialize Supabase Realtime subscription if env vars present
+  try{
+    const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } = process.env;
+    if(SUPABASE_URL && (SUPABASE_ANON_KEY || SUPABASE_SERVICE_ROLE_KEY)){
+      try{
+        const { initSupabaseRealtime } = require('./supabaseRealtime');
+        initSupabaseRealtime({ url: SUPABASE_URL, key: SUPABASE_ANON_KEY || SUPABASE_SERVICE_ROLE_KEY, appEmitter: app });
+      }catch(e){
+        console.warn('Could not initialize supabase realtime module:', e && e.message ? e.message : e);
+      }
+    }
+  }catch(e){/* ignore */}
 })();
