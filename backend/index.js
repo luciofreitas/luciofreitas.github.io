@@ -166,6 +166,25 @@ async function tryConnectPg(){
     return null;
   }
 }
+// Retry wrapper around tryConnectPg with progressive backoff
+async function connectWithRetry(retries = 5) {
+  for (let i = 1; i <= retries; i++) {
+    try {
+      const client = await tryConnectPg();
+      if (client) return client;
+      console.warn(`Postgres connection attempt ${i} failed (no client).`);
+    } catch (err) {
+      console.error(`Postgres connection attempt ${i} errored:`, err && err.message ? err.message : err);
+    }
+    if (i < retries) {
+      const delay = 3000 * i; // backoff: 3s, 6s, 9s...
+      console.log(`Retrying Postgres connection in ${delay / 1000}s...`);
+      await new Promise(res => setTimeout(res, delay));
+    }
+  }
+  console.error('Postgres: failed to connect after multiple attempts. Continuing without postgres (CSV fallback active).');
+  return null;
+}
 
 // Helpers for CSV fallback
 function findById(list, id){ return list.find(x => String(x.id) === String(id)); }
@@ -1096,7 +1115,7 @@ process.on('unhandledRejection', (reason) => {
 // Start server after attempting PG connect
 const PORT = process.env.PORT || 3001;
 (async () => {
-  pgClient = await tryConnectPg();
+  pgClient = await connectWithRetry(5);
   // Safe environment checks (do not print secrets). These help confirm which env vars
   // are available at runtime without exposing full keys in logs.
   try {
