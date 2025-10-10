@@ -7,6 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import ToggleCar from '../components/ToggleCar';
 import { signInWithGooglePopup } from '../firebaseAuth';
+import supabase from '../supabase';
 import { FaGoogle } from 'react-icons/fa';
 
 const usuariosDemoGlobais = [
@@ -51,41 +52,58 @@ export default function Login() {
 
     (async () => {
       try {
-        const apiBase = window.__API_BASE || '';
-        const resp = await fetch(`${apiBase}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: normalizedEmail, senha: normalizedSenha }),
-          credentials: 'include'
-        });
-
-        if (resp.ok) {
-          const body = await resp.json().catch(() => ({}));
-          const usuario = (body && body.user) ? body.user : null;
-          if (usuario) {
-            // Normalize user object so both `nome` and `name` exist (some backends return one or the other)
-            const normalizedUsuario = {
-              ...usuario,
-              nome: (usuario.nome || usuario.name || '').trim(),
-              name: (usuario.name || usuario.nome || '').trim()
-            };
-            setError('');
-            if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
-            try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
-            if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
-            navigate('/buscar-pecas');
-            return;
-          }
-        }
-
-        // If API returns 401 or other non-ok, fall back to local users
-        if (resp.status === 401) {
+        // Try Supabase Auth sign-in (frontend) and then verify token with backend
+        const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password: normalizedSenha });
+        if (error) {
+          console.warn('Supabase auth signIn error:', error);
           setError('E-mail ou senha incorretos.');
           return;
         }
-        console.warn('Login API failed, falling back to local users', resp.status);
+
+        const session = data && data.session ? data.session : null;
+        const accessToken = session && session.access_token ? session.access_token : null;
+        if (!accessToken) {
+          console.warn('Supabase signIn returned no access token');
+          setError('Erro ao efetuar login. Tente novamente.');
+          return;
+        }
+
+        // Send token to backend for verification/upsert
+        const apiBase = window.__API_BASE || '';
+        const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+          body: JSON.stringify({ access_token: accessToken }),
+        });
+
+        if (!resp.ok) {
+          console.warn('Backend supabase-verify failed', resp.status);
+          setError('Erro ao verificar conta. Tente novamente.');
+          return;
+        }
+
+        const body = await resp.json().catch(() => ({}));
+        const usuario = (body && body.user) ? body.user : null;
+        if (!usuario) {
+          setError('Erro ao obter dados do usuário.');
+          return;
+        }
+
+        const normalizedUsuario = {
+          ...usuario,
+          nome: (usuario.nome || usuario.name || '').trim(),
+          name: (usuario.name || usuario.nome || '').trim(),
+          access_token: accessToken
+        };
+
+        setError('');
+        if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+        try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+        if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+        navigate('/buscar-pecas');
+        return;
       } catch (err) {
-        console.warn('Login API unreachable, falling back to local users', err && err.message);
+        console.warn('Login flow failed, falling back to local users', err && err.message);
       }
 
       // Fallback to existing local lookup

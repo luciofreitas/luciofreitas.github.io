@@ -46,6 +46,30 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Helper: verify Supabase access token using service role key (server-side)
+async function verifySupabaseAccessToken(accessToken){
+  if(!accessToken) return null;
+  if(!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  try{
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+    if(error || !data || !data.user) return null;
+    return data.user; // contains id, email, user_metadata, etc.
+  }catch(e){
+    console.warn('verifySupabaseAccessToken error:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+// Helper: extract supabase user from request Authorization header if present
+async function getSupabaseUserFromReq(req){
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  if(!token) return null;
+  return await verifySupabaseAccessToken(token);
+}
+
 const DATA_DIR = path.join(__dirname, '..', 'db', 'seeds');
 function loadCSV(filename){
   const p = path.join(DATA_DIR, filename);
@@ -691,6 +715,63 @@ app.post('/api/auth/verify', async (req, res) => {
   }
 });
 
+// Verify Supabase access token (recommended flow when frontend uses Supabase Auth)
+app.post('/api/auth/supabase-verify', async (req, res) => {
+  // Accept token via Authorization header (Bearer) or body.access_token
+  const authHeader = req.headers.authorization || '';
+  const accessToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : (req.body && req.body.access_token);
+  if (!accessToken) return res.status(400).json({ error: 'access_token required (use Authorization: Bearer <token> or body.access_token)' });
+
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(503).json({ error: 'Supabase server-side credentials not configured' });
+  }
+
+  try {
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+    // Verify token and get user
+    const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+    if (error || !data || !data.user) {
+      console.warn('supabase verify: token invalid or no user', error && error.message ? error.message : error);
+      return res.status(401).json({ error: 'invalid token', details: error ? error.message : 'no user' });
+    }
+
+    const sbUser = data.user;
+    const uid = sbUser.id;
+    const email = sbUser.email || null;
+    // prefer user_metadata.name or common fields
+    const meta = sbUser.user_metadata || {};
+    const nome = (meta.name || meta.nome || meta.full_name || sbUser.email || '').trim();
+
+    // Try to persist/upsert into users table if Postgres available
+    if (pgClient) {
+      try {
+        await pgClient.query(
+          `INSERT INTO users(id, email, nome, criado_em, atualizado_em)
+           VALUES($1, $2, $3, now(), now())
+           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, nome = EXCLUDED.nome, atualizado_em = now()`,
+          [uid, email, nome]
+        );
+        const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, criado_em FROM users WHERE id = $1", [uid]);
+        if (r.rowCount > 0) {
+          const row = r.rows[0];
+          const displayName = (row.name || '').trim();
+          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, is_pro: row.is_pro, created_at: row.criado_em || null } });
+        }
+      } catch (e) {
+        console.warn('supabase-verify: DB upsert failed, continuing with token user:', e && e.message ? e.message : e);
+      }
+    }
+
+    // Fallback: return user info from Supabase token
+    return res.json({ success: true, user: { id: uid, email, name: nome, nome } });
+  } catch (err) {
+    console.error('supabase-verify error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
 // Simple password hashing helpers (PBKDF2) - stores as salt$hash
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
@@ -1036,6 +1117,14 @@ app.get('/api/users/:userId/cars', async (req, res) => {
 app.post('/api/users/:userId/cars', async (req, res) => {
   const { userId } = req.params;
   const car = req.body;
+  // If Authorization header present, verify token and ensure token user id matches userId
+  try {
+    const tokenUser = await getSupabaseUserFromReq(req);
+    if (req.headers.authorization && !tokenUser) return res.status(401).json({ error: 'invalid token' });
+    if (tokenUser && tokenUser.id !== userId) return res.status(403).json({ error: 'forbidden' });
+  } catch (e) {
+    console.warn('auth check failed for POST /api/users/:userId/cars', e && e.message ? e.message : e);
+  }
   if(pgClient){
     try{
       const id = car.id || `car_${Date.now()}`;
@@ -1056,6 +1145,13 @@ app.post('/api/users/:userId/cars', async (req, res) => {
 app.put('/api/users/:userId/cars', async (req, res) => {
   const { userId } = req.params;
   const { cars } = req.body;
+  try {
+    const tokenUser = await getSupabaseUserFromReq(req);
+    if (req.headers.authorization && !tokenUser) return res.status(401).json({ error: 'invalid token' });
+    if (tokenUser && tokenUser.id !== userId) return res.status(403).json({ error: 'forbidden' });
+  } catch (e) {
+    console.warn('auth check failed for PUT /api/users/:userId/cars', e && e.message ? e.message : e);
+  }
   if(pgClient){
     try{
       // Deletar carros antigos e inserir novos (batch update simplificado)
@@ -1079,6 +1175,13 @@ app.put('/api/users/:userId/cars', async (req, res) => {
 
 app.delete('/api/users/:userId/cars/:carId', async (req, res) => {
   const { userId, carId } = req.params;
+  try {
+    const tokenUser = await getSupabaseUserFromReq(req);
+    if (req.headers.authorization && !tokenUser) return res.status(401).json({ error: 'invalid token' });
+    if (tokenUser && tokenUser.id !== userId) return res.status(403).json({ error: 'forbidden' });
+  } catch (e) {
+    console.warn('auth check failed for DELETE /api/users/:userId/cars/:carId', e && e.message ? e.message : e);
+  }
   if(pgClient){
     try{
       await pgClient.query('DELETE FROM cars WHERE id = $1 AND user_id = $2', [carId, userId]);
