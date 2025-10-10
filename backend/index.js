@@ -1290,13 +1290,27 @@ try{
   const distPath = path.join(__dirname, '..', 'dist');
   if (fs.existsSync(distPath)){
     console.log('Serving static frontend from', distPath);
-    // Ensure .jsx is served as application/javascript (workaround if any stale refs exist)
+    // SECURITY: Do not expose raw source files from /src/ or serve .jsx files directly.
+    // Some hosts or older build artifacts may accidentally expose .jsx with a non-JS MIME (text/jsx)
+    // which breaks module loading in browsers. Deny direct requests to /src/* and any .jsx file.
     app.use((req, res, next) => {
-      if (req.path.endsWith('.jsx')) {
+      try {
+        if (String(req.path || '').startsWith('/src/') || String(req.path || '').endsWith('.jsx')) {
+          console.warn('Blocked request for source file or .jsx:', req.path);
+          return res.status(404).send('Not Found');
+        }
+      } catch (e) { /* ignore */ }
+      next();
+    });
+
+    // Ensure .jsx extension (if present in built assets) is served as application/javascript
+    app.use((req, res, next) => {
+      if (req.path && req.path.endsWith('.jsx')) {
         res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
       }
       next();
     });
+
     app.use(express.static(distPath, {
       setHeaders: (res, filepath) => {
         if (filepath.endsWith('.jsx')) {
