@@ -1,0 +1,135 @@
+/* Skeleton.css - Loading placeholders */
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  display: block;
+  border-radius: 0.25rem;
+}
+
+.skeleton--animate {
+  animation: skeleton-loading 1.2s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Text skeleton */
+.skeleton-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-text__line {
+  margin-bottom: 0.25rem;
+}
+
+.skeleton-text__line:last-child {
+  margin-bottom: 0;
+}
+
+/* Avatar skeleton */
+.skeleton-avatar {
+  flex-shrink: 0;
+}
+
+/* Button skeleton */
+.skeleton-button {
+  display: inline-block;
+}
+
+/* Card skeleton */
+.skeleton-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.skeleton-card__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.skeleton-card__header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.skeleton-card__content {
+  margin-bottom: 1rem;
+}
+
+.skeleton-card__actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* User menu skeleton */
+.skeleton-user-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: transparent;
+}
+
+.skeleton-user-menu__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .skeleton {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+  }
+  
+  .skeleton-card {
+    background: #1f2937;
+    border-color: #374151;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton--animate {
+    animation: none;
+    background: #f0f0f0;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .skeleton--animate {
+      background: #374151;
+    }
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .skeleton {
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 1rem,
+      currentColor 1rem,
+      currentColor 1.125rem
+    );
+    opacity: 0.3;
+  }
+}

@@ -1,0 +1,220 @@
+/* Inputs DaisyUI delicados e limpos no login - compatibilidade cross-browser */
+.input {
+  background-color: var(--form-background) !important;
+  color: var(--text-primary) !important;
+  /* default border: claro (removendo borda preta) */
+  border: 0.062rem solid var(--form-border) !important;
+  border-radius: 0.625rem !important;
+  box-shadow: none !important;
+  font-size: 1em;
+  padding: 0.5rem 0.75rem;
+  /* Compatibilidade cross-browser */
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.4;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Força cor de texto para todos os navegadores */
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+/* Inputs DaisyUI sempre claros no login */
+.input {
+  background-color: var(--form-background) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Focus state: stronger blue outline without changing layout */
+.input:focus {
+  outline: none !important;
+  border-color: var(--form-border-focus) !important;
+  box-shadow: 0 0 0 0.25rem rgba(0, 82, 204, 0.08) !important;
+  /* Compatibilidade cross-browser para focus */
+  -webkit-box-shadow: 0 0 0 0.25rem rgba(0, 82, 204, 0.08) !important;
+  -moz-box-shadow: 0 0 0 0.25rem rgba(0, 82, 204, 0.08) !important;
+}
+
+/* Títulos dos cards Entrar/Registrar - compatibilidade cross-browser */
+.login-section-title {
+  color: #172B4D !important; /* Gray-800 - cor escura consistente */
+  font-size: 1.5rem !important; /* 24px */
+  font-weight: 600 !important; /* semi-bold */
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  margin-bottom: 1rem !important;
+  line-height: 1.2 !important;
+  /* Força estilos para todos os navegadores */
+  -webkit-text-fill-color: #172B4D !important;
+  -webkit-text-stroke: none !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Força estilos específicos para navegadores baseados em Chromium (Opera GX, Edge) */
+.login-section-title {
+  color: #172B4D !important;
+}
+
+/* Força padding zero nos h2 dos formulários de login e registro */
+
+.login-page-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+}
+.login-page-logo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-width: 16.25rem;
+  margin-bottom: 0;
+}
+.login-page-logo {
+  height: 5.625rem;
+  margin-right: 2.5rem;
+  margin-top: 2em;
+  margin-left: 2em;
+}
+.login-page-content-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.login-page-header {
+  margin-top: 0;
+  width: 100%;
+  max-width: 43.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-page-header h2 {
+  /* Match the global `page-heading` appearance used across the site */
+  color: #0052CC !important;
+  font-weight: 400 !important;
+  font-size: 2rem !important;
+  margin-bottom: 0.5em;
+  padding-top: 0 !important; /* remove top padding */
+  padding-bottom: 0 !important; /* remove bottom padding */
+  text-align: center;
+  width: 100%;
+}
+
+/* Login page title now uses global .page-title class for consistency
+.page-heading.login-heading.page-title {
+  color: #0052CC !important;
+  text-align: center !important;
+  margin-bottom: 1.5rem !important;
+  margin-top: 0 !important;
+  font-weight: 600 !important;
+  font-size: 2rem !important;
+  display: block !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+*/
+.login-page-header p {
+  max-width: 37.5rem;
+  text-align: center;
+  color: #172B4D;
+  font-size: 1.1em;
+  margin-bottom: 2em;
+  margin-left: 0;
+}
+/* New: center and align the two form cards horizontally */
+.login-forms-row {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 2rem;
+  box-sizing: border-box;
+}
+.login-forms-row .login-form-card { max-width: 28rem; width: 100%; }
+
+/* .form-containers removed project-wide. Layout handled by card classes and parent containers. */
+
+/* Fix: limit card widths so Entrar / Registrar don't grow too large on wide screens */
+.login-form-card {
+  box-sizing: border-box;
+  /* prefer a compact card width while remaining responsive */
+  flex: 0 1 22.5rem; /* don't grow to fill all space */
+  max-width: 26.25rem; /* cap maximum width */
+  width: 100%;
+  padding: 1rem;
+  background: #FFFFFF;
+  border-radius: 0.75rem;
+  border: 0.062rem solid #e5e7eb;
+}
+
+/* Make sure second card aligns nicely when side-by-side */
+/* Removed .form-containers related spacing between login cards. */
+
+/* Forgot password link styling inside the Entrar card */
+.login-forgot-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end; /* align link to the right */
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.login-forgot-link {
+  color: #0052CC;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.login-forgot-link:hover {
+  text-decoration: underline;
+}
+@media (max-width: 56.25rem) {
+  .login-page-main {
+    flex-direction: column;
+    align-items: center;
+  }
+  .login-page-logo-wrapper {
+    align-items: center;
+    min-width: 0;
+    margin-bottom: 2em;
+  }
+  .login-page-logo {
+    margin-bottom: 2em;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .login-page-content-center {
+    min-height: auto;
+  }
+  .login-page-header h2, .login-page-header p {
+    text-align: center !important;
+    margin-left: 0 !important;
+  }
+  /* Responsive adjustments for login-forms-row */
+  .login-forms-row {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  /* Reduce card width on mobile so Entrar/Registrar don't span full width */
+  .login-forms-row .login-form-card {
+    max-width: 20rem !important; /* ~320px, narrower card on mobile */
+    flex: 0 1 20rem !important;
+    width: 90% !important; /* Allow slight breathing room on very small screens */
+    box-sizing: border-box !important;
+  }
+}
