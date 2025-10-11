@@ -1,0 +1,214 @@
+/* page-Perfil.css - Estilos para a página de perfil do usuário */
+
+#perfil {
+  padding: 0 1rem;
+  background: #FFFFFF;
+  /* Centraliza o conteúdo no mobile e mantém alinhamento consistente */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.perfil-error {
+  text-align: center;
+  padding: 2rem;
+  color: #ef4444;
+}
+
+.perfil-card {
+  max-width: 26.25rem; /* igual ao login */
+  width: 100%;
+  margin: 1rem auto;
+  background: #FFFFFF;
+  border: 0.062rem solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 1.5rem; /* padding igual ao login */
+}
+
+.single-card {
+  border: 0.062rem solid #e5e7eb;
+}
+
+.perfil-card-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.perfil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--form-label-color);
+  font-size: 0.875rem;
+  text-align: left; /* ensure label text is left-aligned */
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 0.062rem solid var(--form-border);
+  box-sizing: border-box;
+  font-size: 1rem;
+  background: var(--form-background);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  color: var(--text-primary);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 0.188rem rgba(0, 82, 204, 0.1);
+}
+
+.form-input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 0.188rem rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input {
+  padding-right: 5rem;
+}
+
+.toggle-pw {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.toggle-pw:hover {
+  color: #172B4D;
+  background-color: #f3f4f6;
+}
+
+.toggle-pw.on {
+  color: #0052CC;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.btn-save {
+  padding: 0.5rem 1rem !important;
+  background: #0052CC !important;
+  color: #fff !important;
+  border: 0.062rem solid transparent !important;
+  border-radius: 0.5rem !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: background 0.2s ease !important;
+  min-width: 7.5rem !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+  line-height: normal !important;
+}
+
+.btn-save:hover {
+  background: #003A99;
+}
+
+.btn-save:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+button.btn-cancel,
+button.btn.btn-cancel,
+.btn-cancel,
+.btn.btn-cancel {
+  padding: 0.5rem 1rem !important;
+  background: #f3f4f6 !important;
+  color: #172B4D !important;
+  border: 0.062rem solid #d1d5db !important;
+  border-radius: 0.5rem !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: background 0.2s ease !important;
+  min-width: 7.5rem !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+  line-height: normal !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+button.btn-cancel:hover,
+button.btn.btn-cancel:hover,
+.btn-cancel:hover,
+.btn.btn-cancel:hover {
+  background: #e5e7eb !important;
+}
+
+/* Responsividade */
+@media (max-width: 48rem) {
+  /* Centraliza o card no mobile */
+  .perfil-card {
+    margin: 1rem auto; /* centralizado */
+    width: 100%;
+    padding: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn-save,
+  .btn-cancel {
+    width: 100%;
+    max-width: 18.75rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  #perfil {
+    padding: 0 0.75rem; /* um pouco mais de respiro nas laterais */
+  }
+
+  .perfil-card {
+    margin: 0.75rem auto; /* centralizado */
+    width: 100%;
+    padding: 1rem;
+  }
+}
+

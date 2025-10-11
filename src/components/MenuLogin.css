@@ -1,0 +1,1089 @@
+/* MenuLogin.css - Estilos para o componente de menu de login */
+
+/* ===== ESTRUTURA BÁSICA DO MENU ===== */
+
+/* Header do site */
+.site-header {
+  position: fixed;
+  top: 0 !important;
+  left: 0;
+  right: 0;
+  height: 4.5rem;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  background: #0052CC !important; /* Fundo azul padrão para todas as resoluções */
+  z-index: 1000;
+  box-shadow: 0 0.125rem 0.375rem rgba(0,0,0,0.08);
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+/* Container principal do menu */
+.menu-login-root {
+  position: relative !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important; /* Alinha tudo à esquerda, depois ajustamos individualmente */
+  padding: 0 2rem 0 0.5rem !important; /* Padding mínimo à esquerda */
+  padding-bottom: 0.5rem !important; /* espaço visual para underline */
+  height: 100% !important;
+  box-sizing: border-box !important;
+  top: 0 !important;
+  margin: 0 !important;
+}
+
+/* Área da logo - sempre à esquerda */
+.menu-login-logo {
+  display: flex !important;
+  align-items: center !important;
+  margin-left: 0 !important; /* Remove margem para ficar na extrema esquerda */
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  /* Removendo largura fixa para acomodar logo + texto */
+  min-width: 12.5rem !important; /* Largura mínima para garantir que o texto caiba */
+  flex-shrink: 0 !important; /* Evita que a logo encolha */
+  position: relative !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+  order: 1 !important; /* Sempre primeiro na ordem */
+  justify-self: flex-start !important; /* Força alinhamento à esquerda */
+}
+
+/* Ensure logo stays left in desktop versions (overrides any centering) */
+@media (min-width: 48.1rem) {
+  .menu-login-logo {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    order: 1 !important; /* First item - leftmost */
+  }
+}
+
+.menu-login-logo img {
+  /* size the logo proportionally to header height so it scales across viewports */
+  height: calc(4.5rem * 0.7);
+  width: calc(4.5rem * 0.7);
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-login-logo img:hover {
+  transform: scale(1.05);
+}
+
+/* Área central do menu - centralizado absolutamente em desktop */
+.menu-login-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  order: 2 !important; /* Segunda posição na ordem */
+}
+
+/* Centralização absoluta apenas em desktop (768px+) */
+@media (min-width: 48rem) {
+  .menu-login-center {
+    /* Centralização absoluta baseada na viewport */
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    /* Removido margin-left para usar centralização absoluta */
+  }
+}
+
+/* Navegação do menu */
+.menu-nav {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Lista de itens do menu */
+.menu-list {
+  display: flex;
+  gap: clamp(1rem, 2.5vw, 2.5rem); /* Espaçamento responsivo que escala com viewport */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  flex-wrap: nowrap;
+  /* Garantindo que os itens fiquem centralizados sem ajustes relativos */
+  justify-content: center;
+}
+
+/* Responsive spacing for different desktop resolutions */
+@media (min-width: 48rem) and (max-width: 64rem) {
+  /* Small desktop: 768px - 1024px */
+  .menu-list {
+    gap: 1.2rem;
+  }
+  .menu-login-item {
+    font-size: 0.9rem;
+    padding: 0.3em 0.7em;
+  }
+  /* Centralização mantida via position absolute - removido margin-left */
+}
+
+@media (min-width: 64rem) and (max-width: 80rem) {
+  /* Medium desktop: 1024px - 1280px */
+  .menu-list {
+    gap: 1.5rem;
+  }
+  .menu-login-item {
+    font-size: 1rem;
+    padding: 0.35em 0.9em;
+  }
+  /* Centralização mantida via position absolute - removido margin-left */
+}
+
+@media (min-width: 80rem) and (max-width: 96rem) {
+  /* Large desktop: 1280px - 1536px */
+  .menu-list {
+    gap: 2rem;
+  }
+  .menu-login-item {
+    font-size: 1.1rem;
+    padding: 0.4em 1em;
+  }
+  /* Centralização mantida via position absolute - removido margin-left */
+}
+
+@media (min-width: 96rem) {
+  /* Extra large desktop: 1536px+ */
+  .menu-list {
+    gap: 2.5rem;
+  }
+  .menu-login-item {
+    font-size: 1.2rem;
+    padding: 0.45em 1.1em;
+  }
+  /* Centralização mantida via position absolute - removido margin-left */
+}
+
+/* Estilo para indicador acima do item do menu ao hover */
+a.menu-login-item {
+  color: #ffffff !important; /* Branco para contrastar com fundo azul - aplicado globalmente */
+  font-weight: 600 !important;
+  font-size: 1rem;
+  padding: 0.35em 0.9em;
+  border-radius: 0.5rem;
+  position: relative;
+  text-decoration: none;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.2s;
+}
+
+.menu-login-item:hover {
+  background: rgba(255, 255, 255, 0.15); /* Hover semi-transparente */
+}
+
+.menu-login-item::before {
+  /* hide legacy/top indicator (replaced by bottom underline) */
+  display: none !important;
+}
+
+/* Bottom yellow underline for top-level menu items (appears on hover/focus) */
+.menu-login-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0.375rem;
+  left: 50%;
+  width: 0;
+  height: 0.188rem;
+  background: #fbbf24; /* yellow */
+  border-radius: 0.125rem;
+  transform: translateX(-50%);
+  transition: width 0.28s ease;
+}
+
+.menu-login-item:hover::after,
+.menu-login-item:focus::after {
+  width: 60%;
+}
+
+/* Ajuste para itens específicos que podem ser mais longos - removido max-width para permitir espaçamento natural */
+.menu-login-item.nosso-projeto {
+  /* max-width removido para permitir espaçamento igual entre todos os itens */
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ===== RESPONSIVIDADE DO MENU ===== */
+
+/* Versão responsiva para resolução 1366x768 e similares */
+@media screen and (max-width: 85.375rem) {
+  /* Menu responsivo */
+  .menu-responsive {
+  padding: 0 0.5rem;
+  }
+  
+  .menu-responsive .menu-login-logo {
+    left: 0.5rem;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  
+  .menu-responsive .menu-login-logo img {
+  height: calc(4.5rem * 0.7);
+  width: calc(4.5rem * 0.7);
+  }
+  
+  .menu-responsive .menu-list {
+    gap: 0.5rem;
+    margin: 0 auto; /* Mantém centralizado */
+  }
+  
+  .menu-responsive .menu-login-item {
+    font-size: 0.812rem;
+    padding: 0.25em 0.5em;
+  }
+}
+
+/* NOTE: All menu colors are now applied globally at the base level.
+   The menu uses blue background (#0052CC) with white text (#ffffff) as the default for all resolutions.
+   No conditional overrides needed - consistent styling everywhere.
+*/
+
+/* Dispositivos móveis - REMOVIDO: regras antigas que conflitavam com hamburger menu
+   As regras mobile agora estão no final do arquivo na seção "Mobile responsive styles"
+*/
+
+/* Remove default focus outline / black border on user buttons - context specific */
+.menu-login .user-button, 
+.menu-login .user-logout-button {
+  outline: none;
+  box-shadow: none;
+  border: none;
+  background: transparent;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  color: #ffffff !important; /* Branco para contrastar com fundo azul - aplicado só no context menu-login */
+  text-decoration: none;
+}
+
+.menu-login .user-button:focus, 
+.menu-login .user-logout-button:focus {
+  outline: none;
+  box-shadow: none;
+  text-decoration: none;
+}
+
+/* Dropdown items should use the same hover selection effect as top menu links */
+.dropdown-item {
+  padding: 0.5rem 0.75rem !important;
+  margin-right: 0 !important;
+  position: relative;
+  display: block;
+  text-align: left;
+  color: #172B4D;
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* Linha amarela no hover dos itens do dropdown */
+.dropdown-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0.125rem;
+  left: 50%;
+  width: 0;
+  height: 0.188rem;
+  background: #fbbf24;
+  border-radius: 0.125rem;
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+}
+
+/* Dropdown: usar linha amarela em vez de mudança de cor */
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: transparent;
+  color: #172B4D;
+}
+
+.dropdown-item:hover::after {
+  width: 80%;
+}
+
+.dropdown-item:focus-visible {
+  color: #172B4D;
+}
+
+/* Remove mouse-click/active outline; preserve keyboard focus visuals via :focus-visible */
+.dropdown-item:active,
+.dropdown-item:focus {
+  /* remove the yellow border that appears on click */
+  outline: none;
+  box-shadow: none;
+}
+
+/* Keep an accessible focus ring only for keyboard users */
+.dropdown-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(251,191,36,0.12), 0 0 0 0.125rem rgba(251,191,36,0.18);
+  border-radius: 0.5rem;
+}
+
+.dropdown-item:focus-visible {
+  box-shadow: 0 0 0 0.25rem rgba(251,191,36,0.12), 0 0 0 0.125rem rgba(251,191,36,0.18);
+}
+
+/* Ensure the top-bar indicator from .menu-login-item does not appear on dropdown items */
+.dropdown-item::before {
+  display: none !important;
+}
+
+/* Give the user menu trigger the same bottom underline behaviour as top-level items - ONLY in MenuLogin context */
+.menu-login .user-button::before { display: none !important; }
+.menu-login .user-button::after {
+  content: '';
+  position: absolute;
+  bottom: 0.375rem;
+  left: 50%;
+  width: 0;
+  height: 0.188rem;
+  background: #fbbf24;
+  border-radius: 0.125rem;
+  transform: translateX(-50%);
+  transition: width 0.28s ease;
+}
+.menu-login .user-button:hover::after, .menu-login .user-button:focus::after {
+  width: 60%;
+}
+
+/* ensure logout item does not show any unexpected top border/line (blue) */
+.dropdown-item.logout-item, .user-logout-button.logout-item {
+  border-top: none !important;
+  background: transparent !important;
+}
+
+/* Accessible focus visuals */
+.user-button:focus-visible, .user-logout-button:focus-visible, 
+.user-button:focus-visible, .user-logout-button:focus-visible, 
+.dropdown-item:focus-visible, .menu-login-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(251,191,36,0.12), 0 0 0 0.125rem rgba(251,191,36,0.18);
+  border-radius: 0.5rem;
+}
+
+/* Make dropdown items keyboard-focusable */
+.dropdown-item:focus {
+  background: transparent;
+}
+
+/* Ensure the grouped menu + logo container uses the same blue background as header */
+.menu-login-container {
+  background: #0052CC !important; /* Mesmo azul do header */
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+/* Layout classes to replace inline styles */
+.menu-login-root { 
+  position: relative; 
+  width: 100%; 
+  display: flex; 
+  align-items: center; 
+  padding: 0 2rem; 
+}
+
+.menu-login-logo { 
+  display: flex; 
+  align-items: center; 
+  align-self: center; 
+  margin-left: 0.5rem; 
+}
+
+.menu-login-logo img { 
+  height: 4.375rem; 
+  cursor: pointer; 
+  vertical-align: middle; 
+  transition: transform 0.2s ease;
+}
+
+.menu-login-logo img:hover {
+  transform: scale(1.05);
+}
+
+.menu-login-center { 
+  flex: 1; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+/* Center the menu relative to the viewport (monitor) on larger screens
+   so menu items stay visually centered even if the logo is absent or has variable width. */
+@media (min-width: 48.062rem) {
+  .menu-login-center {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translateX(-50%) translateY(-50%) !important;
+    width: auto !important;
+    z-index: 5 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    pointer-events: auto !important;
+    display: flex !important;
+    height: 100% !important;
+  }
+
+  /* Ensure the header container remains full-width and other elements don't shift
+     (logo stays at left, user controls to the right). */
+  .menu-login-root {
+    position: relative !important;
+  }
+}
+
+/* Defensive rule: ensure MenuLogin stays blue even if other global CSS attempts to override it */
+.site-header {
+  background: #0052CC !important;
+}
+
+.menu-login-right {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.75rem !important;
+  position: relative !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+  order: 3 !important; /* Sempre por último na ordem */
+  flex-shrink: 0 !important; /* Não encolhe */
+}
+
+/* ALIGNMENT OVERRIDES: force consistent vertical centering of menu items */
+/* Use CSS variable set by MenuLogin component JS; fallback to 4.5rem */
+.site-header,
+.menu-login-root { 
+  position: relative; 
+  width: 100%; 
+  display: flex; 
+  align-items: center; 
+  padding: 0; 
+}
+
+.menu-list {
+  /* Ensure the list fills the header height so children can center correctly */
+  height: 4.5rem !important;
+  align-items: center !important;
+}
+
+.menu-list > li {
+  display: flex !important;
+  align-items: center !important;
+  /* Use header height so flex centering aligns with logo and header */
+  height: 4.5rem !important;
+}
+
+.menu-login-item {
+  display: inline-flex !important; /* keep inline flow but ensure flex centering */
+  align-items: center !important;
+  /* Let the anchor size to content; vertical centering is handled by parent li */
+  height: auto !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1 !important;
+}
+
+  .menu-login-logo img { 
+  max-height: calc(4.5rem + 1rem) !important;
+  height: auto !important;
+}
+
+/* Reduce chance of pseudo-element being clipped by header children */
+.site-header * {
+  overflow: visible !important;
+}
+
+/* Menu list styles - classes customizadas para evitar conflito com DaisyUI */
+.custom-menu-list {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.custom-nav {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Classe específica para layout compacto - SEMPRE ATIVA */
+.menu-compact {
+  padding: 0 0.5rem !important;
+}
+
+.menu-compact .menu-login-logo {
+  margin-left: 0 !important;
+}
+
+.menu-compact .menu-login-logo img {
+  height: 2.812rem !important;
+}
+
+.menu-compact .custom-menu-list {
+  gap: 0.5rem !important;
+}
+
+.menu-compact .menu-login-item {
+  font-size: 0.812rem !important;
+  padding: 0.25em 0.5em !important;
+  white-space: nowrap !important;
+}
+
+/* Regras específicas para resolução pequena - SEMPRE APLICADAS em 85.375rem */
+@media (max-width: 85.375rem) {
+  .menu-login-root { 
+    padding: 0 0.5rem !important;
+  }
+  
+  .menu-login-logo { 
+    margin-left: 0 !important;
+  }
+  
+  .menu-login-logo img { 
+    height: 2.812rem !important;
+  }
+  
+  .menu-list {
+    gap: 0.5rem !important;
+  }
+  
+  .menu-login-item {
+    font-size: 0.812rem !important;
+    padding: 0.25em 0.5em !important;
+  }
+}
+
+.menu-login-center { 
+  flex: 1; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+.menu-login-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto; /* push user controls to the far right of the header */
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Menu list styles */
+.menu-list {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+/* Responsividade */
+@media (min-width: 100rem) {
+  .menu-login-root { 
+    padding-left: 3rem; 
+    padding-right: 3rem; 
+  }
+  .menu-login-logo img { 
+    height: 7rem; 
+  }
+}
+
+/* OVERRIDE FINAL - Força aplicação dos estilos independente de qualquer framework */
+.menu-compact,
+.menu-compact * {
+  box-sizing: border-box !important;
+}
+
+.menu-compact {
+  padding: 0 0.5rem !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.menu-compact .menu-login-logo {
+  margin-left: 0 !important;
+  margin-right: 0.5rem !important;
+}
+
+.menu-compact .menu-login-logo img {
+  height: 2.812rem !important;
+  width: auto !important;
+}
+
+.menu-compact .custom-menu-list {
+  gap: 0.5rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.menu-compact .menu-login-item {
+  font-size: 0.812rem !important;
+  padding: 0.25em 0.5em !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+  border: none !important;
+  background: none !important;
+  text-decoration: none !important;
+  color: #172B4D !important;
+}
+
+/* >>> Simplified: No more conditional overrides - all styling is now applied at the base level */
+/* This ensures consistent blue header with white text across all pages and resolutions */
+
+.menu-login-logo img {
+  /* allow the SVG/native color to show (do not force white) */
+  filter: none !important;
+  transition: transform 0.2s ease, filter 0.2s ease !important;
+}
+
+/* Menu underline styling - now applied globally */
+
+.menu-login-item:hover {
+  background: transparent !important;
+}
+
+.menu-login-item::before {
+  display: none !important; /* disable old top indicator */
+}
+
+.menu-login-item::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%) scaleX(0);
+  width: 60%;
+  height: 0.188rem; /* thinner marker */
+  background: #fbbf24; /* yellow */
+  border-radius: 0.188rem;
+  transition: transform 0.18s ease;
+  transform-origin: center;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.menu-login-item:hover::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+/* Ensure compact mode doesn't force dark text */
+.menu-compact .menu-login-item {
+  color: #ffffff !important;
+}
+
+.menu-compact .user-button, .menu-compact .user-logout-button {
+  color: #ffffff !important;
+  text-decoration: none !important;
+  position: relative;
+}
+
+/* Linha amarela para user-button em modo compact - ONLY in compact mode */
+.menu-compact .user-button::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 0.188rem;
+  background: #fbbf24;
+  border-radius: 0.125rem;
+  transform: translateX(-50%);
+  transition: width 0.24s cubic-bezier(.2,.9,.3,1), opacity 0.2s;
+  z-index: 2;
+  pointer-events: none;
+  display: block !important;
+}
+
+.menu-compact .user-button:hover::after,
+.menu-compact .user-button:focus::after,
+.menu-compact .user-button:focus-visible::after {
+  width: 80% !important;
+  opacity: 1 !important;
+}
+
+/* Mobile: smaller underline */
+@media (max-width: 48rem) {
+  .menu-login-item::after {
+    width: 40% !important;
+  height: 0.125rem !important;
+  bottom: -5px !important;
+  }
+}
+
+/* REMOVIDO: Regra mobile duplicada que conflitava com hamburger menu
+   As regras mobile definitivas estão no final do arquivo
+*/
+
+/* Global menu item hover/focus/active states - now applied to all instances */
+.menu-login-item:hover,
+.menu-login-item:focus,
+.menu-login-item:active {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+/* Also ensure the user button (name/avatar) keeps white color on hover/focus ONLY in MenuLogin context */
+.menu-login .user-button:hover,
+.menu-login .user-button:focus,
+.menu-login .user-button:active {
+  color: #ffffff !important;
+}
+
+/* Force white text for the user button inside the blue header (overrides MenuUsuario.css) */
+.menu-login .user-menu-root .user-button,
+.menu-login .user-menu-root .user-button:visited {
+  color: #ffffff !important;
+}
+
+.menu-login .user-menu-root .user-button:hover,
+.menu-login .user-menu-root .user-button:focus,
+.menu-login .user-menu-root .user-button:active {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+/* Não herdar branco para dentro do dropdown (itens devem ser cinza escuro) */
+.menu-login .user-menu-root .user-dropdown,
+.menu-login .user-menu-root .user-dropdown * {
+  color: initial !important;
+}
+
+/* ===== MOBILE HAMBURGER MENU ===== */
+
+/* Hide hamburger button on desktop, show on mobile */
+.mobile-menu-toggle {
+  display: none; /* Hidden by default */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+  z-index: 1001; /* Above other elements */
+  position: relative;
+}
+
+.mobile-menu-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Hamburger lines */
+.hamburger-line {
+  display: block;
+  width: 1.5rem;
+  height: 2px;
+  background-color: white;
+  margin: 3px 0;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+/* Animated hamburger to X */
+.mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+  transform: translateY(5px) rotate(45deg);
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+  transform: translateY(-5px) rotate(-45deg);
+}
+
+/* Mobile responsive styles */
+@media (max-width: 48rem) {
+  /* Show hamburger button on mobile - alinhado verticalmente */
+  .mobile-menu-toggle {
+    display: flex !important; 
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative !important;
+    flex-shrink: 0 !important; /* Não encolhe */
+    width: 40px !important; /* Largura fixa do hamburger */
+    height: 40px !important;
+    z-index: 20 !important; /* Acima da logo */
+    margin-right: 0.5rem !important; /* Espaço pequeno entre hamburger e onde a logo vai começar */
+    /* Garante alinhamento vertical com a logo */
+    align-self: center !important;
+  }
+
+  /* Reduce padding on mobile and ensure proper layout for logo centrada */
+  .menu-login-root {
+    padding: 1rem 0.5rem !important; /* Aumenta padding vertical para dar mais espaço */
+    justify-content: flex-start !important; /* Alinhamento à esquerda para controle preciso */
+    min-height: 140px !important; /* Altura maior para acomodar logo completa de 88px + padding aumentado */
+    align-items: center !important;
+    position: relative !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important; /* Permite que a logo seja visível mesmo se sair um pouco do container */
+    display: flex !important;
+    gap: 0 !important; /* Remove gaps padrão */
+  }
+
+  /* Evita que a navegação central se comporte como barra horizontal no topo */
+  .menu-login-center .menu-nav,
+  .menu-login-center .menu-list {
+    display: block !important;
+  }
+
+  /* MOBILE ONLY: Logo alinhada horizontalmente com o hamburguer - OVERRIDE todas outras regras */
+  .menu-login-root .menu-login-logo,
+  .menu-responsive .menu-login-logo,
+  .site-header .menu-login-root .menu-login-logo {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important; /* Alinha com o centro vertical do container, igual ao hamburguer */
+    transform: translate(-50%, -50%) !important;
+    /* Ajusta o deslocamento para considerar o hamburger como limite esquerdo */
+    margin-left: 20px !important; /* Compensa metade da largura do hamburger (40px/2) */
+    width: 300.52px !important; /* Força largura exata */
+    height: 88px !important; /* Força altura exata */
+    padding: 0 !important;
+    margin: 0 !important;
+    margin-left: 20px !important; /* Reforça a compensação do hamburger */
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 10 !important; /* Garante que fique acima de outros elementos, mas abaixo do hamburger e user menu */
+    min-width: 300.52px !important;
+    max-width: 300.52px !important;
+    min-height: 88px !important;
+    max-height: 88px !important;
+    /* Garante que não seja cortada */
+    overflow: visible !important;
+    /* OVERRIDE regras anteriores */
+    order: unset !important;
+    flex-shrink: unset !important;
+    justify-self: unset !important;
+  }
+
+  /* Logo container interno - deve manter toda a estrutura */
+  .menu-login-logo .logo-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 300.52px !important;
+    height: 88px !important;
+    gap: 0.5rem !important; /* Espaço entre imagem e texto */
+    overflow: visible !important; /* Garante que nada seja cortado */
+  }
+
+  /* Logo image com dimensões proporcionais */
+  .menu-login-logo .logo-image {
+    width: auto !important;
+    height: 88px !important; /* Altura total disponível */
+    max-width: 150px !important; /* Limita largura para deixar espaço para texto */
+    object-fit: contain !important;
+    border: none !important;
+    outline: none !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* SHOW logo text in mobile - texto ao lado da imagem */
+  .menu-login-logo .logo-text-container {
+    display: flex !important; /* Mostra o texto da logo */
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    flex: 1 !important;
+    height: 88px !important;
+  }
+
+  /* Títulos da logo */
+  .menu-login-logo .logo-title {
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    color: white !important;
+  }
+
+  .menu-login-logo .logo-subtitle {
+    font-size: 0.8rem !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Hamburger menu dropdown positioning */
+  .hamburger-menu-root .user-dropdown {
+    position: fixed !important;
+    /* top and left will be set via CSS custom properties from JS */
+    top: var(--dropdown-top, 0);
+    left: var(--dropdown-left, 0);
+    /* Remove any right positioning that might conflict */
+    right: auto !important;
+  }
+
+  /* User menu à direita - posição fixa */
+  .menu-login-right {
+    position: relative !important;
+    display: flex !important; /* Show user menu in mobile */
+    flex-shrink: 0 !important; /* Não encolhe */
+    align-items: center !important;
+    z-index: 20 !important; /* Acima da logo */
+    margin-left: auto !important; /* Empurra para a direita */
+  }
+
+  /* Hide desktop navigation by default on mobile - show as dropdown popup EXACTLY like user menu */
+  .menu-login-center {
+    display: none !important; /* Esconde completamente no estado fechado */
+    position: fixed !important; /* Fixed positioning like user menu */
+    top: auto !important; /* Will be positioned with JS */
+    left: auto !important; /* Will be positioned with JS */
+    right: auto !important;
+    width: auto !important; /* Auto width like user dropdown */
+    min-width: 11.25rem !important; /* Same min-width as user dropdown */
+    background: #FFFFFF !important; /* White background like user dropdown */
+    border-radius: 0.5rem !important;
+    border: 0.062rem solid rgba(16,24,40,0.06) !important; /* Same border as user dropdown */
+    box-shadow: 0 0.375rem 1.125rem rgba(16,24,40,0.15) !important; /* Same shadow as user dropdown */
+    padding: 0.5rem !important; /* Same padding as user dropdown */
+    transform: translateY(-10px) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all 0.3s ease !important;
+    z-index: 99999 !important; /* Very high z-index to ensure it stays above modals */
+    margin-top: 0.25rem !important; /* Same margin as user dropdown */
+    pointer-events: auto !important; /* Ensure it's clickable */
+  }
+
+  /* Show mobile menu when open */
+  .menu-login-center.mobile-open {
+    display: block !important; /* Aparece apenas quando ativo */
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Stack navigation items vertically like user dropdown */
+  .menu-nav .menu-list {
+    flex-direction: column !important;
+    padding: 0 !important; /* No padding like user dropdown */
+    margin: 0 !important;
+    gap: 0.25rem !important; /* Same gap as user dropdown */
+    list-style: none !important;
+  }
+
+  .menu-nav .menu-list li {
+    margin: 0 !important;
+    width: 100%;
+  }
+
+  /* Style items EXACTLY like user dropdown items */
+  .menu-nav .menu-list .menu-login-item {
+    display: block !important;
+    padding: 0.5rem 0.75rem !important; /* Same padding as dropdown items */
+    border: none !important; /* No borders like user dropdown */
+    background-color: transparent !important;
+    color: #172B4D !important; /* Same text color as dropdown items */
+    font-size: 0.875rem !important; /* Same font size as dropdown items */
+    border-radius: 0.375rem !important; /* Same border radius as dropdown items */
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    text-decoration: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    position: relative !important; /* For the yellow underline */
+    box-shadow: none !important; /* remove qualquer efeito de barra */
+  }
+
+  /* Hover effect EXACTLY like user dropdown */
+  .menu-nav .menu-list .menu-login-item:hover {
+    background-color: rgba(0, 0, 0, 0.03) !important; /* Same light hover as dropdown */
+  }
+
+  /* Yellow underline effect EXACTLY like user dropdown */
+  .menu-nav .menu-list .menu-login-item::after {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    bottom: 0.375rem !important;
+    left: 50% !important;
+    width: 0 !important;
+    height: 0.188rem !important;
+    background: #fbbf24 !important;
+    border-radius: 0.125rem !important;
+    transform: translateX(-50%) !important;
+    transition: width 0.28s ease !important;
+    pointer-events: none !important;
+  }
+
+  .menu-nav .menu-list .menu-login-item:hover::after,
+  .menu-nav .menu-list .menu-login-item:focus::after {
+    width: 80% !important;
+  }
+
+  /* User menu styling in mobile - make it dropdown too */
+  .menu-login-right .menu-usuario-dropdown {
+    position: relative;
+  }
+
+  /* Adjust user menu for mobile */
+  .menu-login-right .menu-login-item {
+    font-size: 0.875rem !important;
+    padding: 0.5rem !important;
+    white-space: nowrap;
+  }
+
+  /* Hide get started button on mobile */
+  .get-started-button {
+    display: none !important;
+  }
+}
+
+/* ===== POSICIONAMENTO DO MENU DIREITO ===== */
+
+/* Posicionamento no menu-login-right */
+.menu-login-right {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.75rem !important;
+  position: relative !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+  order: 3 !important; /* Garante que fica depois do centro */
+  flex-shrink: 0 !important;
+}
+
+/* GARANTIR FONT-WEIGHT 600 PARA ITENS DO MENU */
+.menu-login-item {
+  font-weight: 600 !important;
+}
+
+a.menu-login-item {
+  font-weight: 600 !important;
+}

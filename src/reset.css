@@ -1,0 +1,17 @@
+/* Reset CSS for menu positioning */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden;
+}
+html {
+  /* Prevent box-sizing issues */
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+#root, .app {
+  margin: 0 !important;
+  padding: 0 !important;
+}
