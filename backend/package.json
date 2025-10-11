@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon --watch server.js --delay 250ms --exec \"node server.js\"",
+  "dev": "node server.js",
     "migrate": "node migrate.js",
     "smoke": "node scripts/smoke-test.js"
   },
@@ -23,6 +23,5 @@
     "ws": "^8.13.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
   }
 }
