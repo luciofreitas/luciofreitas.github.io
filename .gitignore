@@ -55,3 +55,7 @@ backend/.env.local
 # Firebase service account (NUNCA commitar!)
 *firebase-adminsdk*.json
 firebase-service-account.json
+
+#Email para fins de teste E2E
+email: teste2epecaautomotiva@gmail.com
+senha: lf261192
