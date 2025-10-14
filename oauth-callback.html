@@ -7,42 +7,50 @@
   </head>
   <body>
     <p id="status">Finalizando autenticação...</p>
-    <pre id="debug" style="white-space:pre-wrap;word-break:break-word;max-width:100%;"></pre>
     <script>
       (function(){
         try {
           const hash = window.location.hash && window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash || '';
           const params = Object.fromEntries(new URLSearchParams(hash));
 
-          // Write debug info to localStorage so user can inspect later from main tab
-          try {
-            const debugObj = { ts: new Date().toISOString(), url: window.location.href, params };
-            localStorage.setItem('oauth-callback-debug', JSON.stringify(debugObj));
-          } catch (e) {
-            // localStorage may be restricted in some contexts; ignore
-          }
-
-          // Show debug info on the page for easy screenshot (temporary)
-          try {
-            const el = document.getElementById('debug');
-            if (el) el.textContent = JSON.stringify(params, null, 2);
-            const st = document.getElementById('status'); if (st) st.textContent = 'Autenticação recebida — fechando automaticamente.';
-          } catch (e) {}
-
           // Send only to opener if it exists
           if (window.opener && !window.opener.closed) {
-            // Use wildcard targetOrigin for compatibility but the opener should verify origin
-            window.opener.postMessage({ type: 'supabase_oauth', payload: params }, '*');
+            try {
+              window.opener.postMessage({ type: 'supabase_oauth', payload: params }, window.location.origin);
+            } catch (e) {
+              // Fallback to wildcard if origin posting fails
+              try { window.opener.postMessage({ type: 'supabase_oauth', payload: params }, '*'); } catch (e2) {}
+            }
           }
-        } catch (e) {
-          // ignore errors but show them
-          try { document.getElementById('debug').textContent = 'oauth-callback error: ' + String(e); } catch (er) {}
-          console.error('oauth-callback error', e);
-        } finally {
-          // close after a short delay to allow message delivery and for you to capture screenshot
+
+          // Wait for an ACK from the opener before closing to ensure message delivered and processed
+          let closed = false;
+          function closeWindow() {
+            if (closed) return; closed = true;
+            try { window.close(); } catch (e) { /* ignore */ }
+          }
+
+          function onMessage(ev) {
+            try {
+              if (!ev || !ev.data) return;
+              if (ev.data && ev.data.type === 'supabase_oauth_ack') {
+                // opener confirmed processing; close now
+                closeWindow();
+              }
+            } catch (e) {}
+          }
+
+          window.addEventListener('message', onMessage, false);
+
+          // Fallback: close after 6s if no ACK received
           setTimeout(() => {
-            try { window.close(); } catch(e) { /* ignore */ }
-          }, 1200);
+            window.removeEventListener('message', onMessage, false);
+            closeWindow();
+          }, 6000);
+
+        } catch (e) {
+          console.error('oauth-callback error', e);
+          try { setTimeout(() => window.close(), 1500); } catch(e) {}
         }
       })();
     </script>
