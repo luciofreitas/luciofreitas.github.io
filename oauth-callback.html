@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>OAuth callback</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+  </head>
+  <body>
+    <p>Finalizando autenticação...</p>
+    <script>
+      (function(){
+        try {
+          const hash = window.location.hash && window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash || '';
+          const params = Object.fromEntries(new URLSearchParams(hash));
+          // Send only to opener if it exists
+          if (window.opener && !window.opener.closed) {
+            // Use wildcard targetOrigin for compatibility but the opener should verify origin
+            window.opener.postMessage({ type: 'supabase_oauth', payload: params }, '*');
+          }
+        } catch (e) {
+          // ignore errors
+          console.error('oauth-callback error', e);
+        } finally {
+          // close after short delay to allow message delivery
+          setTimeout(() => window.close(), 250);
+        }
+      })();
+    </script>
+  </body>
+</html>
