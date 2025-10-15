@@ -734,13 +734,18 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
       // ignore
     }
 
+
     // Also consult user_metadata and raw_user_meta_data for possible picture/name fields
     try {
       if (!providerName) {
         providerName = meta.name || meta.nome || meta.full_name || meta.given_name || meta.family_name || (fullUser && fullUser.raw_user_meta_data && (fullUser.raw_user_meta_data.name || fullUser.raw_user_meta_data.full_name));
       }
       if (!providerAvatar) {
-        providerAvatar = meta.avatar_url || meta.picture || (fullUser && fullUser.raw_user_meta_data && (fullUser.raw_user_meta_data.picture || fullUser.raw_user_meta_data.avatar_url)) || (sbUserFromToken && (sbUserFromToken.avatar_url || sbUserFromToken.picture));
+        // Prioritize raw_user_meta_data which often contains the provider's picture
+        if (fullUser && fullUser.raw_user_meta_data) {
+          providerAvatar = fullUser.raw_user_meta_data.picture || fullUser.raw_user_meta_data.avatar_url || providerAvatar;
+        }
+        providerAvatar = providerAvatar || meta.avatar_url || meta.picture || (sbUserFromToken && (sbUserFromToken.avatar_url || sbUserFromToken.picture));
       }
     } catch (e) {
       // ignore
@@ -749,6 +754,12 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
     // Determine display name and avatar using metadata, provider data or email fallback
     const nome = (providerName || meta.name || meta.nome || meta.full_name || '').trim() || (email ? email.split('@')[0].replace(/[._-]+/g,' ').split(' ').map(s=>s? (s.charAt(0).toUpperCase()+s.slice(1)):'').join(' ') : '');
     const photoURL = (providerAvatar || meta.avatar_url || meta.picture || null);
+
+    // Log when we found a provider avatar to help debug missing photos
+    try {
+      if (photoURL) console.info('supabase-verify: resolved photoURL for user', uid, photoURL);
+      else console.info('supabase-verify: no photoURL resolved for user', uid);
+    } catch(e){ }
 
     // Try to persist/upsert into users table if Postgres available
     if (pgClient) {
