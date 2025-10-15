@@ -89,10 +89,17 @@ export default function Login() {
           return;
         }
 
+        function displayNameFromEmail(email){
+          if(!email || typeof email !== 'string') return '';
+          const local = email.split('@')[0] || '';
+          return local.replace(/[._-]+/g,' ').split(' ').map(s => s ? (s.charAt(0).toUpperCase() + s.slice(1)) : '').join(' ').trim();
+        }
+
+        const inferredName = (usuario.nome || usuario.name || '').trim() || displayNameFromEmail(usuario.email || usuario.email_address || usuario.mail);
         const normalizedUsuario = {
           ...usuario,
-          nome: (usuario.nome || usuario.name || '').trim(),
-          name: (usuario.name || usuario.nome || '').trim(),
+          nome: inferredName,
+          name: inferredName,
           access_token: accessToken
         };
 

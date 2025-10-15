@@ -89,12 +89,20 @@ export default function App() {
                 const body = await resp.json().catch(() => ({}));
                 const usuario = (body && body.user) ? body.user : null;
                 if (usuario) {
+                  function displayNameFromEmail(email){
+                    if(!email || typeof email !== 'string') return '';
+                    const local = email.split('@')[0] || '';
+                    // replace dots/underscores/dashes with spaces and capitalize words
+                    return local.replace(/[._-]+/g,' ').split(' ').map(s => s ? (s.charAt(0).toUpperCase() + s.slice(1)) : '').join(' ').trim();
+                  }
+
+                  const inferredName = (usuario.nome || usuario.name || '').trim() || displayNameFromEmail(usuario.email || usuario.email_address || usuario.mail);
                   const normalizedUsuario = {
-                    ...usuario,
-                    nome: (usuario.nome || usuario.name || '').trim(),
-                    name: (usuario.name || usuario.nome || '').trim(),
-                    access_token: accessToken
-                  };
+                      ...usuario,
+                      nome: inferredName,
+                      name: inferredName,
+                      access_token: accessToken
+                    };
                   setUsuarioLogado(normalizedUsuario);
                   try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
                 }
