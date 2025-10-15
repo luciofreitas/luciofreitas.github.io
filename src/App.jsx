@@ -60,6 +60,58 @@ export default function App() {
     setAuthLoaded(true);
   }, []);
 
+  // Handle Supabase OAuth redirect flow: when Supabase redirects back with
+  // session info in the URL, capture the session and verify/upsert on backend.
+  React.useEffect(() => {
+    (async () => {
+      try {
+        // Lazy import supabase client to avoid circular deps in modules
+        const { default: supabase } = await import('./supabase');
+        // Supabase v2 provides getSessionFromUrl to read the session after redirect
+        if (supabase && typeof supabase.auth.getSessionFromUrl === 'function') {
+          const { data, error } = await supabase.auth.getSessionFromUrl();
+          if (error) {
+            console.warn('supabase getSessionFromUrl error:', error);
+            return;
+          }
+          const session = data && data.session ? data.session : null;
+          if (session && session.access_token) {
+            const accessToken = session.access_token;
+            // Call backend verify endpoint to upsert user and get canonical profile
+            const apiBase = window.__API_BASE || '';
+            try {
+              const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                body: JSON.stringify({ access_token: accessToken })
+              });
+              if (resp.ok) {
+                const body = await resp.json().catch(() => ({}));
+                const usuario = (body && body.user) ? body.user : null;
+                if (usuario) {
+                  const normalizedUsuario = {
+                    ...usuario,
+                    nome: (usuario.nome || usuario.name || '').trim(),
+                    name: (usuario.name || usuario.nome || '').trim(),
+                    access_token: accessToken
+                  };
+                  setUsuarioLogado(normalizedUsuario);
+                  try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+                }
+              } else {
+                console.warn('Backend supabase-verify returned', resp.status);
+              }
+            } catch (e) {
+              console.warn('Failed to call backend supabase-verify', e);
+            }
+          }
+        }
+      } catch (e) {
+        // ignore - allows app to work even if supabase client unavailable
+      }
+    })();
+  }, [setUsuarioLogado]);
+
   return (
     <ThemeProvider>
       <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
