@@ -5,7 +5,7 @@
 1. **`backend/.env.template`** - Template de configuração com:
    - DATABASE_URL para Supabase
    - PGSSL=true para SSL
-   - FIREBASE_SERVICE_ACCOUNT_JSON para autenticação
+   - (Opcional) FIREBASE_SERVICE_ACCOUNT_JSON para autenticação via Firebase Admin (preencher somente se usar)
 
 2. **`SUPABASE_SETUP.md`** - Guia completo passo a passo:
    - Como criar projeto no Supabase
@@ -47,7 +47,7 @@ copy .env.template .env
 # Editar .env e preencher:
 # - DATABASE_URL (do Supabase)
 # - PGSSL=true
-# - FIREBASE_SERVICE_ACCOUNT_JSON (do Firebase Console)
+# - (Opcional) FIREBASE_SERVICE_ACCOUNT_JSON (do Firebase Console) - preencher apenas se precisar do Firebase Admin
 ```
 
 ### 3. Instalar Dependências

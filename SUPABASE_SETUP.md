@@ -57,10 +57,11 @@ Este guia mostra como configurar o Supabase para usar como banco de dados Postgr
 4. Clique em **"Generate new private key"**
 5. Baixe o arquivo JSON (ex: `firebase-adminsdk.json`)
 
-### 3.2 Preparar JSON em linha única
+### 3.2 Preparar JSON em linha única (opcional)
 - Abra o arquivo JSON baixado
 - Copie todo o conteúdo (é um objeto JSON grande)
-- **Importante**: Vai usar isso no arquivo `.env` (uma única linha)
+- **Observação**: este JSON só precisa ser adicionado ao `.env` se você realmente for usar
+  o Firebase Admin SDK no backend para validação de tokens. Caso contrário, ignore esta etapa.
 
 ---
 
