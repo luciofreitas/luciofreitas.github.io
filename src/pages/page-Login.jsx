@@ -180,8 +180,14 @@ export default function Login() {
                             return;
                           }
                           
-                          // persist user locally and navigate
-                          const usuario = { id: user.uid, nome: user.displayName || '', email: user.email || '' };
+                          // persist user locally (include displayName and photo) and navigate
+                          const usuario = {
+                            id: user.uid,
+                            nome: user.displayName || '',
+                            name: user.displayName || '',
+                            email: user.email || '',
+                            photoURL: user.photoURL || ''
+                          };
                           try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
                           if (setUsuarioLogado) setUsuarioLogado(usuario);
                           
