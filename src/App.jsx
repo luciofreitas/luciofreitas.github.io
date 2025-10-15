@@ -49,15 +49,46 @@ export default function App() {
   const [authLoaded, setAuthLoaded] = useState(false);
 
   React.useEffect(() => {
-    try {
-      const stored = localStorage.getItem('usuario-logado');
-      if (stored) {
-        setUsuarioLogado(JSON.parse(stored));
+    async function initFromStorage(){
+      try {
+        const storedRaw = localStorage.getItem('usuario-logado') || 'null';
+        const stored = JSON.parse(storedRaw);
+        if (stored) {
+          // Normalize old key photo_url to photoURL
+          if (!stored.photoURL && stored.photo_url) stored.photoURL = stored.photo_url;
+          setUsuarioLogado(stored);
+
+          // If we have a token but no photoURL, try to refresh profile from backend
+          if (stored.access_token && !stored.photoURL) {
+            try {
+              const apiBase = window.__API_BASE || '';
+              const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${stored.access_token}` },
+                body: JSON.stringify({ access_token: stored.access_token })
+              });
+              if (resp.ok) {
+                const body = await resp.json().catch(() => ({}));
+                const usuario = (body && body.user) ? body.user : null;
+                if (usuario) {
+                  // normalize returned fields
+                  if (!usuario.photoURL && usuario.photo_url) usuario.photoURL = usuario.photo_url;
+                  const refreshed = { ...usuario, access_token: stored.access_token };
+                  setUsuarioLogado(refreshed);
+                  try { localStorage.setItem('usuario-logado', JSON.stringify(refreshed)); } catch (e) {}
+                }
+              }
+            } catch (e) {
+              // ignore refresh errors - keep existing stored user
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse usuario-logado from localStorage', e);
       }
-    } catch (e) {
-      console.warn('Failed to parse usuario-logado from localStorage', e);
+      setAuthLoaded(true);
     }
-    setAuthLoaded(true);
+    initFromStorage();
   }, []);
 
   // Handle Supabase OAuth redirect flow: when Supabase redirects back with
