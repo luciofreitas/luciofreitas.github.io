@@ -1,0 +1,155 @@
+/* CompatibilityGrid.css - Estilos para o grid de compatibilidade */
+
+.compatibility-grid {
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  padding-bottom: 1rem; /* Padding controlado para parar no último item */
+  box-shadow: 0 0.125rem 0.625rem rgba(224,224,224,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  z-index: 10;
+  margin-bottom: 0; /* Remove margem extra */
+}
+
+.compatibility-grid-header {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) 8.75rem 7.5rem;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  align-items: center;
+  border-bottom: 0.125rem solid #f3f4f6;
+  font-weight: 700;
+  color: #172B4D;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+}
+
+.compatibility-header-vehicle {
+  text-align: left;
+}
+
+.compatibility-header-years,
+.compatibility-header-contact {
+  text-align: center;
+}
+
+.compatibility-grid-row {
+  background: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.062rem 0.188rem rgba(0,0,0,0.05);
+  padding: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) 8.75rem 7.5rem;
+  gap: 0.75rem;
+  align-items: center;
+  transition: all 0.2s ease;
+  border: 0.062rem solid #f3f4f6;
+  position: relative;
+  z-index: 5;
+}
+
+.compatibility-grid-row:hover {
+  box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+.compatibility-grid-vehicle {
+  overflow: hidden;
+}
+
+.compatibility-vehicle-text {
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  font-weight: 500;
+  color: #172B4D;
+  line-height: 1.4;
+}
+
+.compatibility-grid-years {
+  text-align: center;
+}
+
+.compatibility-years-text {
+  white-space: normal;
+  color: #172B4D;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.compatibility-grid-contact {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Responsividade */
+@media (max-width: 48rem) {
+  .compatibility-grid-header,
+  .compatibility-grid-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .compatibility-header-vehicle {
+    text-align: center;
+  }
+  
+  /* Esconde os headers "Anos" e "Contato" em mobile */
+  .compatibility-header-years,
+  .compatibility-header-contact {
+    display: none;
+  }
+  
+  .compatibility-grid-header {
+    padding: 0.5rem;
+  }
+  
+  .compatibility-grid-row {
+    padding: 1rem 0.5rem;
+  }
+  
+  .compatibility-vehicle-text {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+  
+  .compatibility-years-text {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* ===== DARK MODE ===== */
+
+.theme-dark .compatibility-grid {
+  background: var(--bg-gray-neutral);
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .compatibility-grid-header {
+  border-bottom: 0.125rem solid var(--border-gray);
+  color: var(--text-primary);
+  background: var(--bg-white);
+}
+
+.theme-dark .compatibility-grid-row {
+  background: var(--bg-white);
+  box-shadow: 0 0.062rem 0.188rem rgba(0, 0, 0, 0.3);
+  border: 0.062rem solid var(--border-gray);
+}
+
+.theme-dark .compatibility-grid-row:hover {
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.6);
+}
+
+.theme-dark .compatibility-vehicle-text {
+  color: var(--text-primary);
+}
+
+.theme-dark .compatibility-years-text {
+  color: var(--text-secondary);
+}

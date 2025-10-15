@@ -1,0 +1,108 @@
+/* page-NossoProjeto.css - Estilos específicos da página Nosso Projeto */
+
+#nosso-projeto {
+  padding: 0 1rem 2rem 1rem;
+  background: #FFFFFF;
+  max-width: 50rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.nossoprojeto-intro {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+  display: table; /* shrink-to-fit the width to content and allow margin: auto centering */
+  max-width: 100%;
+}
+
+.nossoprojeto-intro p {
+  color: #64748b;
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Dark mode styles */
+.theme-dark .nossoprojeto-intro {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .nossoprojeto-intro p {
+  color: #ffffff;
+}
+
+.theme-dark .nosso-projeto-body {
+  color: #ffffff;
+}
+
+/* Title now uses .page-title class from App.css - keeping this for reference
+.nosso-projeto__title {
+  color: #0052CC;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 0;
+  font-weight: 600;
+  font-size: 2rem;
+  display: block;
+  padding: 0;
+}
+*/
+
+.nosso-projeto-content {
+  /* Match QuemSomos content container and text flow */
+  max-width: 50rem;
+  margin: 0 auto;
+  line-height: 1.8;
+  color: #172B4D;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.nosso-projeto-body {
+  line-height: 1.8;
+  text-align: justify;
+}
+
+/* Responsividade */
+@media (max-width: 48rem) {
+  #nosso-projeto {
+    padding: 1rem 0.5rem 2rem 0.5rem;
+  }
+}
+
+/* Full HD - 1920x1080 */
+@media (min-width: 118.75rem) and (max-width: 121.25rem) {
+  /* NossoProjeto spacing */
+  #nosso-projeto { padding: 0 1rem 2rem 1rem; background: #FFFFFF; max-width: 50rem; margin: 0 auto; text-align: center; }
+  .nosso-projeto-content { max-width: 50rem; margin: 0 auto; line-height: 1.8; color: #172B4D; text-align: justify; text-justify: inter-word; }
+}
+
+/* HD - 1366x768 */
+@media (min-width: 85.312rem) and (max-width: 85.375rem) {
+  /* Title styles now handled by .page-title class */
+}
+
+/* --- Test forced parity: aplicar apenas para diagnóstico --- */
+.quem-somos-body,
+.nosso-projeto-body,
+.quem-somos-content,
+.nosso-projeto-content {
+  font-size: clamp(0.875rem, 1.8vw, 1rem) !important; /* ~14px a 16px */
+  line-height: 1.8 !important;
+  font-weight: 400 !important;
+  max-width: 50rem !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  text-align: justify !important;
+  text-justify: inter-word !important;
+  hyphens: auto !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Fim do bloco de teste */

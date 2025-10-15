@@ -1,0 +1,132 @@
+/* page-VersaoPro_Assinado.css - Estilos específicos da página Versão Pro Assinado */
+
+.versao-pro-assinado-section {
+  padding: 0 1rem;
+  background: #FFFFFF;
+}
+
+.versao-pro-assinado-container {
+  max-width: 56.25rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.versao-pro-assinado-intro {
+  color: #172B4D;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.versao-pro-assinado-actions {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.versao-pro-assinado-btn-primary {
+  padding: 0.75rem 1.5rem;
+  background: #0052CC;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.versao-pro-assinado-btn-primary:hover {
+  background: #003A99;
+}
+
+.versao-pro-assinado-btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background: #f3f4f6;
+  color: #172B4D;
+  border: 0.062rem solid #d1d5db;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.versao-pro-assinado-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.versao-pro-assinado-benefits {
+  margin-top: 3rem;
+  text-align: left;
+  max-width: 45rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.versao-pro-assinado-benefits-title {
+  color: #172B4D;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.versao-pro-assinado-benefits-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  line-height: 1.6;
+  color: #172B4D;
+}
+
+.versao-pro-assinado-benefits-list li {
+  margin-bottom: 0.5rem;
+}
+
+.versao-pro-assinado-empty {
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 0.062rem solid #e5e7eb;
+}
+
+.versao-pro-assinado-note {
+  margin-top: 1.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Responsividade */
+@media (max-width: 48rem) {
+  .versao-pro-assinado-section {
+    padding: 0 0.5rem;
+  }
+  
+  .versao-pro-assinado-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .versao-pro-assinado-btn-primary,
+  .versao-pro-assinado-btn-secondary {
+    width: 100%;
+    max-width: 18.75rem;
+  }
+}
+
+/* Full HD - 1920x1080 */
+@media (min-width: 118.75rem) and (max-width: 121.25rem) {
+  /* VersaoPro_Assinado */
+  .versao-pro-assinado-section { padding: 0 1rem; background: #FFFFFF; }
+  .versao-pro-assinado-container { max-width: 56.25rem; margin: 0 auto; text-align: center; }
+  .versao-pro-assinado-intro { color: #172B4D; margin-top: 0; }
+  .versao-pro-assinado-actions { margin-top: 1.125rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+  .versao-pro-assinado-btn-primary { padding: 0.625rem 1rem; background: #0052CC; color: #fff; border: none; border-radius: 0.5rem; cursor: pointer; }
+  .versao-pro-assinado-btn-secondary { padding: 0.625rem 1rem; background: #f3f4f6; color: #172B4D; border: none; border-radius: 0.5rem; cursor: pointer; }
+  .versao-pro-assinado-benefits { margin-top: 1.5rem; text-align: left; max-width: 45rem; margin-left: auto; margin-right: auto; }
+  .versao-pro-assinado-benefits-title { color: #172B4D; font-size: 1.1rem; }
+  .versao-pro-assinado-benefits-list { margin-top: 0.5rem; line-height: 1.6; }
+  .versao-pro-assinado-empty { color: #6b7280; }
+  .versao-pro-assinado-note { margin-top: 0.75rem; color: #6b7280; font-size: 0.812rem; }
+}

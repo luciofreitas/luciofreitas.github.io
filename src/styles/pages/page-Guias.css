@@ -1,0 +1,1119 @@
+/* Página Guias - Hub de guias automotivos */
+
+/* Wrapper para centralizar .guias-intro */
+.guias-intro-wrapper {
+  width: 100%;
+  text-align: center;
+}
+
+.guias-intro {
+  background: #F4F5F7;
+  border: 1px solid #e2e8f0;
+  border-radius: clamp(0.65rem, 1.2vw, 0.75rem);
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  margin-bottom: 2rem;
+  text-align: center;
+  display: inline-block;
+  max-width: 90%;
+}
+
+.guias-intro p {
+  color: #475569;
+  margin: 0;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.6;
+}
+
+/* Aviso Pro */
+.guias-pro-notice {
+  margin-bottom: 2rem;
+  padding: 0;
+  text-align: center;
+}
+
+.pro-notice-icon {
+  display: none;
+}
+
+.pro-notice-content {
+  display: inline-block;
+}
+
+.pro-notice-content h3 {
+  display: none;
+}
+
+.pro-notice-content p {
+  color: #475569;
+  margin: 0;
+  font-size: clamp(0.9rem, 1.8vw, 0.95rem);
+  line-height: 1.6;
+  display: inline;
+}
+
+.pro-notice-content strong {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pro-notice-content .highlight-orange {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.btn-seja-pro-inline {
+  background: transparent;
+  color: #3b82f6;
+  border: none;
+  padding: 0;
+  margin-left: 0.25rem;
+  font-weight: 500;
+  font-size: clamp(0.9rem, 1.8vw, 0.95rem);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btn-seja-pro-inline:hover {
+  color: #2563eb;
+  text-decoration-thickness: 2px;
+}
+
+/* Mensagem quando não há guias da comunidade */
+.guias-empty-message {
+  text-align: center;
+  color: #475569;
+  margin: 0 0 clamp(1.5rem, 2.5vw, 2rem) 0;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+}
+
+/* Grid de Cards dos Guias */
+.guias-grid {
+  display: grid;
+  /* Grid responsivo que se adapta automaticamente de 280px a 400px por card */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(17.5rem, 30vw, 25rem)), 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: clamp(1.5rem, 2.5vw, 2rem);
+  align-items: start; /* ensures grid cells align at top before cards stretch */
+}
+
+.guia-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-left: clamp(0.2rem, 0.5vw, 0.25rem) solid #f59e0b; /* ~3px a 4px fluido */
+  border-radius: clamp(0.65rem, 1.2vw, 0.75rem); /* ~10px a 12px fluido */
+  box-shadow: 0 clamp(0.2rem, 0.5vw, 0.25rem) clamp(1rem, 2vw, 1.25rem) rgba(0,0,0,0.08);
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Make all guide cards uniform height and layout */
+.guia-card {
+  display: flex;
+  flex-direction: column;
+  /* Set a consistent min and max height so cards align visually. Adjust as needed. */
+  min-height: 20rem; /* slightly larger to match reference */
+  max-height: 26rem; /* cap so very long content doesn't expand the card too much */
+  height: 100%;
+}
+
+/* Ensure header, content and footer behave consistently */
+.guia-header {
+  flex: 0 0 auto; /* fixed at top */
+}
+.guia-content {
+  flex: 1 1 auto; /* grow to fill space */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.guia-footer {
+  flex: 0 0 auto; /* fixed footer */
+}
+
+/* For community list which is usually a single wide card, ensure it matches fixed card height when in grid */
+.guias-grid .guia-card {
+  align-items: stretch;
+}
+
+/* If content is longer, allow inner description to scroll rather than growing card height */
+.guia-content .guia-descricao {
+  /* limit description to keep cards uniform; allow internal scroll if needed */
+  max-height: 6.5rem;
+  overflow: auto;
+}
+
+/* Ensure footer and image sizes are consistent so cards keep the same visual height */
+.guia-imagem {
+  height: 8rem; /* reserve consistent space for images */
+}
+
+.guia-footer {
+  flex: 0 0 auto; /* fixed footer */
+  padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
+}
+
+/* When grid places multiple cards in a row, force them to stretch to same height */
+.guias-grid > * {
+  display: flex;
+  flex-direction: column;
+}
+
+.guia-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+@supports not (width: clamp(1rem, 2vw, 1.5rem)) {
+  .guias-grid {
+    gap: 1.5rem;
+  }
+  .guia-card {
+    border-radius: 0.75rem;
+  }
+}
+
+/* Sistema de Avaliação */
+.guia-avaliacao {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sistema-avaliacao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.estrelas-container {
+  display: flex;
+  gap: clamp(0.15rem, 0.4vw, 0.25rem);
+  align-items: center;
+}
+
+.estrela {
+  transition: color 0.2s, transform 0.1s;
+  user-select: none;
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+}
+
+.estrela-interativa:hover {
+  transform: scale(1.15);
+}
+
+.avaliacao-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: clamp(0.75rem, 1.6vw, 0.875rem);
+  flex-wrap: wrap;
+}
+
+.media-nota {
+  font-weight: 600;
+  color: #172B4D;
+}
+
+.total-votos {
+  color: #6b7280;
+}
+
+.voto-confirmado {
+  background: #ecfdf5;
+  color: #065f46;
+  padding: clamp(0.2rem, 0.4vw, 0.25rem) clamp(0.5rem, 1vw, 0.75rem);
+  border-radius: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
+  font-size: clamp(0.65rem, 1.2vw, 0.75rem);
+  font-weight: 500;
+  align-self: flex-start;
+  border: 1px solid #a7f3d0;
+}
+
+/* Card expandido do Glossário */
+.glossario-card.expanded {
+  grid-column: 1 / -1;
+  cursor: default;
+  transform: none;
+}
+
+.glossario-card.expanded:hover {
+  transform: none;
+}
+
+.guia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.guia-icone {
+  font-size: 2.5rem;
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.guia-categoria {
+  background: #0052CC;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  padding: clamp(0.2rem, 0.5vw, 0.25rem) clamp(0.5rem, 1vw, 0.75rem);
+  border-radius: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
+  font-size: 0.75rem;
+  font-size: clamp(0.65rem, 1.2vw, 0.75rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.guia-content {
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.guia-titulo {
+  font-size: 1.25rem;
+  font-size: clamp(1.1rem, 2.5vw, 1.25rem);
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.guia-subtitulo {
+  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 1rem 0;
+}
+
+.guia-descricao {
+  color: #64748b;
+  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Botão criar guia (Pro) */
+.criar-guia-section {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.btn-criar-guia {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #e06800 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(255, 123, 0, 0.3);
+}
+
+.btn-criar-guia:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 123, 0, 0.4);
+}
+
+/* Títulos de seção */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Badge de autor */
+.guia-author-badge {
+  background: #FFA500;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  margin-left: auto;
+  border: 2px solid #FF8C00;
+  box-shadow: 0 2px 4px rgba(255, 165, 0, 0.2);
+}
+
+/* Imagem do guia */
+.guia-imagem {
+  width: 100%;
+  height: 12rem;
+  overflow: hidden;
+}
+
+.guia-imagem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Status de ocultação */
+.guia-status-warning {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  color: #92400e;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Card oculto */
+.guia-oculto {
+  opacity: 0.7;
+  border-left-color: #dc3545;
+}
+
+/* Visualizações */
+.guia-views {
+  display: inline-block;
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-left: 1rem;
+}
+
+/* Botão editar guia */
+.btn-editar-guia {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-editar-guia:hover {
+  background: #e06800;
+}
+
+.guia-footer {
+  padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.guia-cta {
+  color: #1A66FF;
+  font-weight: 600;
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.guia-cta:hover {
+  color: #0052CC;
+}
+
+/* Conteúdo expandido do Glossário */
+.glossario-content {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1.5rem;
+}
+
+/* Seção de Filtros */
+.filtros-section {
+  margin-bottom: 2rem;
+}
+
+.filtros-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
+  margin-bottom: 1rem;
+}
+
+.filtro-group {
+  display: flex;
+  flex-direction: column;
+  min-width: clamp(8rem, 15vw, 9.375rem); /* ~128px a 150px */
+  flex: 1;
+}
+
+.filtro-group label {
+  font-weight: 600;
+  color: #172B4D;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.filtro-group input,
+.filtro-group select {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.filtro-group input:focus:not(:focus-visible),
+.filtro-group select:focus:not(:focus-visible) {
+  outline: none;
+  border-color: #1A66FF;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filtro-group input:focus-visible,
+.filtro-group select:focus-visible {
+  border-color: #1A66FF;
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
+  outline: 2px solid rgba(59,130,246,0.18);
+  outline-offset: 3px;
+}
+
+.busca-input {
+  min-width: clamp(12rem, 25vw, 15.625rem); /* ~192px a 250px */
+}
+
+.btn-limpar-filtros {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: #1A66FF;
+  border: 1px solid #1A66FF;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.resultados-info {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+  padding: 0.5rem;
+}
+
+/* Loading e Error States */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(10rem, 20vh, 12.5rem); /* ~160px a 200px */
+}
+
+.loading-spinner {
+  width: clamp(2rem, 4vw, 2.5rem); /* ~32px a 40px */
+  height: clamp(2rem, 4vw, 2.5rem);
+  border: clamp(0.2rem, 0.4vw, 0.25rem) solid #e2e8f0;
+  border-left: clamp(0.2rem, 0.4vw, 0.25rem) solid #1A66FF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  text-align: center;
+  padding: 2rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
+  margin: 2rem 0;
+}
+
+.error-container h2 {
+  color: #0052CC !important;
+  margin-bottom: 1rem;
+}
+
+/* Grid de Luzes */
+.luzes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(18rem, 35vw, 21.875rem)), 1fr)); /* ~288px a 350px */
+  gap: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: clamp(1.5rem, 2.5vw, 2rem);
+}
+
+.luz-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.luz-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.luz-header {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.luz-icone {
+  font-size: 2.5rem;
+  margin-right: 1rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.luz-info {
+  flex: 1;
+}
+
+.luz-nome {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.luz-indicators {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.prioridade-badge {
+  padding: 0.25rem 0.75rem;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cor-indicator {
+  width: clamp(0.875rem, 1.5vw, 1rem); /* ~14px a 16px */
+  height: clamp(0.875rem, 1.5vw, 1rem);
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0,0,0,0.1);
+}
+
+/* Conteúdo do Card das Luzes */
+.luz-content {
+  padding: 1.5rem;
+}
+
+.luz-descricao {
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
+  border-left: 4px solid #1A66FF;
+}
+
+.luz-section {
+  margin-bottom: 1.5rem;
+}
+
+.luz-section h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.acoes-list,
+.causas-list {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.acoes-list li {
+  color: #059669;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.causas-list li {
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+}
+
+.no-results p {
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Footer do Glossário */
+.glossario-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cores-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(12rem, 25vw, 15.625rem)), 1fr)); /* ~192px a 250px */
+  gap: clamp(0.75rem, 1.5vw, 1rem);
+}
+
+.cor-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
+}
+
+.cor-dot {
+  width: clamp(1rem, 2vw, 1.25rem); /* ~16px a 20px */
+  height: clamp(1rem, 2vw, 1.25rem);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0,0,0,0.1);
+}
+
+.disclaimer {
+  background: #fef3cd;
+  border: 1px solid #f59e0b;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.disclaimer p {
+  color: #92400e;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Footer dos Guias */
+.guias-footer {
+  margin-top: 3rem;
+}
+
+.info-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-section h3 {
+  color: #1e293b;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-section p {
+  color: #64748b;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Locked CTA for non-Pro users */
+.guia-locked-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.btn-locked {
+  background: linear-gradient(90deg,#f59e0b,#fb923c);
+  color: white;
+  border: none;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(251,146,60,0.18);
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.btn-locked:hover { transform: translateY(-2px); }
+
+/* Subtle blur effect for CTA region when locked */
+.guia-locked-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0; /* cover bottom area */
+  height: 4.5rem; /* same as footer height approx */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+/* Also visually indicate locked card by dimming the CTA text */
+.guia-locked-wrapper .btn-locked {
+  filter: grayscale(0.02) saturate(1.05);
+}
+
+/* If you want to blur the whole card content when locked, apply this helper class */
+.guia-card.locked .guia-content,
+.guia-card.locked .guia-imagem {
+  filter: blur(2px) grayscale(0.02);
+  opacity: 0.9;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+/* Responsividade */
+/* Grid já é responsivo com clamp(), não precisa sobrescrever */
+
+@media (max-width: 768px) {
+  /* Mantém apenas ajustes específicos de mobile */
+  
+  .guia-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .guia-icone {
+    margin-bottom: 0.25rem;
+    font-size: 2.5rem;
+  }
+  
+  .guia-titulo {
+    font-size: 1.25rem;
+  }
+  
+  .guia-subtitulo {
+    font-size: 1rem;
+  }
+  
+  .guia-descricao {
+    font-size: 0.95rem;
+  }
+  
+  /* Sistema de Avaliação no Mobile */
+  .sistema-avaliacao {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .estrelas-container {
+    justify-content: center;
+  }
+  
+  .avaliacao-info {
+    justify-content: center;
+  }
+  
+  .voto-confirmado {
+    align-self: center;
+  }
+  
+  .guias-intro {
+    max-width: 95%;
+  }
+  
+  .filtros-row {
+    flex-direction: column;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    align-items: flex-start;
+    max-width: clamp(20rem, 65vw, 32.5rem); /* ~320px a 520px - fluido */
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .filtro-group {
+    min-width: unset;
+  }
+  
+  .busca-input {
+    min-width: unset;
+  }
+  
+  .btn-limpar-filtros {
+    align-self: center;
+    width: auto;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .luzes-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .luz-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .luz-icone {
+    margin-right: 0;
+  }
+  
+  .cores-legend {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .guias-grid {
+    padding: 0;
+  }
+  
+  .guia-card:hover {
+    transform: none;
+  }
+  
+  .guias-intro {
+    max-width: 100%;
+  }
+}
+
+/* ===== DARK MODE ===== */
+.theme-dark .guias-intro {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .guias-intro p {
+  color: var(--text-primary); /* Texto branco */
+}
+
+/* Títulos de seção - dark mode */
+.theme-dark .section-title {
+  color: var(--text-primary-dark);
+}
+
+/* Botão criar guia - dark mode */
+.theme-dark .btn-criar-guia {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #e06800 100%);
+}
+
+/* Status warning - dark mode */
+.theme-dark .guia-status-warning {
+  background: #451a03;
+  border-color: #78350f;
+  color: #fef3c7;
+}
+
+/* Card oculto - dark mode */
+.theme-dark .guia-oculto {
+  opacity: 0.6;
+}
+
+/* Visualizações - dark mode */
+.theme-dark .guia-views {
+  color: #9ca3af;
+}
+
+/* Botão editar - dark mode */
+.theme-dark .btn-editar-guia {
+  background: var(--color-primary);
+}
+
+.theme-dark .btn-editar-guia:hover {
+  background: #e06800;
+}
+
+/* Aviso Pro - dark mode */
+.theme-dark .pro-notice-content p {
+  color: #94a3b8;
+}
+
+.theme-dark .pro-notice-content strong {
+  color: #f8fafc;
+}
+
+.theme-dark .pro-notice-content .highlight-orange {
+  color: #fb923c;
+}
+
+.theme-dark .btn-seja-pro-inline {
+  color: #60a5fa;
+}
+
+.theme-dark .btn-seja-pro-inline:hover {
+  color: #93c5fd;
+}
+
+/* Mensagem vazia - dark mode */
+.theme-dark .guias-empty-message {
+  color: #94a3b8;
+}
+
+/* Cards dos Guias - dark mode */
+.theme-dark .guia-card {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  border-left-color: #f59e0b; /* Mantém a borda laranja */
+  box-shadow: 0 clamp(0.2rem, 0.5vw, 0.25rem) clamp(1rem, 2vw, 1.25rem) rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .guia-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+}
+
+.theme-dark .guia-header {
+  background: #1e293b; /* Slate-800 */
+  border-bottom-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .guia-titulo {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .guia-subtitulo {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+.theme-dark .guia-descricao {
+  color: #94a3b8; /* Slate-400 */
+}
+
+.theme-dark .guia-footer {
+  background: #0f172a; /* Slate-900 */
+  border-top-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .guia-cta {
+  color: #60a5fa; /* Blue-400 */
+}
+
+/* Sistema de Avaliação - dark mode */
+.theme-dark .guia-avaliacao {
+  border-top-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .media-nota {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .total-votos {
+  color: #94a3b8; /* Slate-400 */
+}
+
+.theme-dark .voto-confirmado {
+  background: #14532d; /* Green-900 com opacidade */
+  color: #86efac; /* Green-300 */
+  border-color: #166534; /* Green-800 */
+}
+
+/* Filtros - dark mode */
+.theme-dark .filtros-container {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .busca-input {
+  background: #0f172a; /* Slate-900 */
+  border-color: #475569; /* Slate-600 */
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .busca-input::placeholder {
+  color: #64748b; /* Slate-500 */
+}
+
+.theme-dark .busca-input:focus {
+  border-color: #3b82f6; /* Blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.theme-dark .filtro-select {
+  background: #0f172a; /* Slate-900 */
+  border-color: #475569; /* Slate-600 */
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .filtro-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.theme-dark .filtro-label {
+  color: #f1f5f9; /* Slate-100 */
+}
+
+.theme-dark .btn-limpar-filtros {
+  background: #334155; /* Slate-700 */
+  color: #f8fafc; /* Slate-50 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .btn-limpar-filtros:hover {
+  background: #475569; /* Slate-600 */
+}
+
+/* Mensagem sem resultados - dark mode */
+.theme-dark .no-results {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+  color: #94a3b8; /* Slate-400 */
+}
+
+.theme-dark .no-results p {
+  color: #cbd5e1; /* Slate-300 */
+}
+
+/* Seção de informação (Dica) - dark mode */
+.theme-dark .info-section {
+  background: #1e293b; /* Slate-800 */
+  border-color: #475569; /* Slate-600 */
+}
+
+.theme-dark .info-section h3 {
+  color: #f8fafc; /* Slate-50 */
+}
+
+.theme-dark .info-section p {
+  color: #94a3b8; /* Slate-400 */
+}
