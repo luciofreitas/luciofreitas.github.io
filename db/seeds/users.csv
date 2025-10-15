@@ -1,3 +1,0 @@
-id,email,name,password_hash,is_pro,pro_since,created_at
-1,admin@example.com,Admin,$2y$12$examplehash,1,2025-01-01,2025-01-01
-2,guest@example.com,Guest,$2y$12$guest,0,,2025-07-01

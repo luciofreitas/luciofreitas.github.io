@@ -1,4 +1,0 @@
-id,manufacturer_id,sku,mpn,name,description,attributes,active,created_at
-1,1,MM-ALT-001,,Alternator 90A,Alternator 90A,"{}",true,2025-01-01
-2,2,BOS-BRK-002,,Brake Pad Front,Brake Pad Front,"{}",true,2025-01-01
-3,3,VA-WTR-003,,Water Pump,Water Pump,"{}",true,2025-01-01
