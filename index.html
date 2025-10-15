@@ -19,29 +19,30 @@
   <script>
     try {
       (function(){
-        var prod = 'https://luciofreitas-github-io.onrender.com';
+        // Production API base intentionally left unset to avoid references to removed hosted backends.
+        // If you wish to configure a production API base, set window.__API_BASE externally before this script runs.
+        var prod = null;
         if (typeof window !== 'undefined' && window.location && window.location.hostname) {
-          if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            window.__API_BASE = prod;
-            console.log('[runtime] API base set to', prod);
+          if (prod) {
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+              window.__API_BASE = prod;
+              console.log('[runtime] API base set to', prod);
+            }
+          } else {
+            console.log('[runtime] API base not set (removed hardcoded Render URL)');
           }
         }
       })();
     } catch(e) { console.warn('Runtime API base injection failed', e); }
   </script>
-  <!-- Runtime Supabase client config injection (public anon key only) -->
+  <!-- Supabase configuration removed from runtime (service deprecated) -->
   <script>
     try {
-      // These values are safe to expose to the browser (anon public key)
-      window.__SUPABASE_URL = 'https://nishmqdbtcqrnxbvssvw.supabase.co';
-      window.__SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pc2htcWRidGNxcm54YnZzc3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MjQ2MzAsImV4cCI6MjA3NTIwMDYzMH0.GI44PF1t5VyJZ74RMJjQrkoxW3BmBL7lD3NnqxMEIsI';
-      // Provide fallbacks for code that checks REACT_APP_* or VITE_* keys
-      window.REACT_APP_SUPABASE_URL = window.REACT_APP_SUPABASE_URL || window.__SUPABASE_URL;
-      window.REACT_APP_SUPABASE_ANON_KEY = window.REACT_APP_SUPABASE_ANON_KEY || window.__SUPABASE_ANON_KEY;
-      // Also make Vite-style env accessible if code expects import.meta.env
-      try { window.__RUNTIME_ENV__ = window.__RUNTIME_ENV__ || {}; window.__RUNTIME_ENV__.VITE_SUPABASE_URL = window.__SUPABASE_URL; window.__RUNTIME_ENV__.VITE_SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY; } catch(e){}
-      console.log('[runtime] Supabase client config injected');
-    } catch(e) { console.warn('Runtime Supabase injection failed', e); }
+      // Supabase has been removed from this build. If you need Supabase again,
+      // restore runtime configuration or set window.__SUPABASE_URL / window.__SUPABASE_ANON_KEY before this script.
+      window.__SUPABASE_DISABLED = true;
+      console.warn('[runtime] Supabase disabled in this build.');
+    } catch(e) { console.warn('Runtime supabase disable marker failed', e); }
   </script>
   <!-- debug script removed -->
   <!-- Vite dev server uses /src/main.jsx; include the standard Vite entry so builds emit bundles correctly -->
