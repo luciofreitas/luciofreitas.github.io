@@ -753,16 +753,16 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
     // Try to persist/upsert into users table if Postgres available
     if (pgClient) {
       try {
-        await pgClient.query(
-          `INSERT INTO users(id, email, nome, photo_url, criado_em, atualizado_em)
+        // Use the detected users name column to avoid referencing a non-existent column
+        const nameCol = userNameColumn || 'name';
+        const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
            VALUES($1, $2, $3, $4, now(), now())
-           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, nome = EXCLUDED.nome, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`,
-          [uid, email, nome, photoURL]
-        );
-        const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, photo_url, is_pro, criado_em FROM users WHERE id = $1", [uid]);
+           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
+        await pgClient.query(insertSql, [uid, email, nome, photoURL]);
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em FROM users WHERE id = $1`, [uid]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
-          const displayName = (row.name || '').trim();
+          const displayName = ((row.name || '') + '').trim();
           return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro, created_at: row.criado_em || null } });
         }
       } catch (e) {
