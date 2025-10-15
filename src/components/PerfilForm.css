@@ -1,0 +1,79 @@
+.perfil-form { display: flex; flex-direction: column; gap: 1rem; }
+
+.form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.form-group label { font-weight: 600; color: #172B4D; font-size: 0.85rem; text-transform: uppercase; }
+
+.form-input { padding: 0.75rem; border: 0.062rem solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; }
+
+.password-field { display: flex; align-items: center; gap: 0.5rem; }
+
+.toggle-pw { background: transparent; border: none; color: #0052CC; cursor: pointer; padding: 0.25rem 0.5rem; }
+
+.form-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+
+/* Botão Salvar - mantém o estilo primário */
+.btn-save,
+button.btn-save,
+.login-submit,
+button.login-submit { 
+  background: #0052CC !important;
+  color: #fff !important;
+  padding: 0.75rem 2rem !important;
+  border-radius: 0.5rem !important;
+  border: 0.062rem solid transparent !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: background 0.2s ease !important;
+  min-width: 7.5rem !important;
+  box-sizing: border-box !important;
+}
+
+.btn-save:hover,
+button.btn-save:hover,
+.login-submit:hover,
+button.login-submit:hover {
+  background: #003A99 !important;
+}
+
+/* Botão Cancelar - precisa sobrescrever os estilos globais de .btn */
+.btn-cancel,
+button.btn-cancel,
+.btn.btn-cancel,
+button.btn.btn-cancel { 
+  background: #f3f4f6 !important;
+  color: #172B4D !important;
+  padding: 0.75rem 2rem !important;
+  border-radius: 0.5rem !important;
+  border: 0.062rem solid #d1d5db !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  transition: background 0.2s ease !important;
+  min-width: 7.5rem !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important; /* Remove o box-shadow dos botões primários */
+}
+
+.btn-cancel:hover,
+button.btn-cancel:hover,
+.btn.btn-cancel:hover,
+button.btn.btn-cancel:hover {
+  background: #e5e7eb !important;
+  color: #172B4D !important;
+}
+
+/* Estilos para mensagens de erro */
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.form-input.error,
+.input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 0.125rem rgba(239, 68, 68, 0.1);
+}
