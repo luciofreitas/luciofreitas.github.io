@@ -684,26 +684,71 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
       fullUser = sbUserFromToken;
     }
 
+    // DEBUG: safe summary of fields received from Supabase admin API
+    try {
+      const safeSummary = {
+        uid: uid,
+        email: email,
+        hasUserMetadata: !!(fullUser && fullUser.user_metadata),
+        userMetadataKeys: fullUser && fullUser.user_metadata ? Object.keys(fullUser.user_metadata) : [],
+        hasRawMeta: !!(fullUser && fullUser.raw_user_meta_data),
+        rawMetaKeys: fullUser && fullUser.raw_user_meta_data ? Object.keys(fullUser.raw_user_meta_data) : [],
+        identitiesCount: Array.isArray(fullUser && fullUser.identities) ? fullUser.identities.length : 0,
+        // For identities, list which likely picture/name keys exist in the first identity (if any)
+        identityCandidateKeys: (function(){
+          try{
+            const ids = fullUser && fullUser.identities ? fullUser.identities : (sbUserFromToken && sbUserFromToken.identities ? sbUserFromToken.identities : []);
+            if(!Array.isArray(ids) || ids.length === 0) return [];
+            const id0 = ids[0] && (ids[0].identity_data || ids[0]) || {};
+            const candidateKeys = [];
+            ['avatar_url','picture','picture_url','profile_image_url','pictureUrl','name','full_name','login','given_name','family_name'].forEach(k => { if(Object.prototype.hasOwnProperty.call(id0,k)) candidateKeys.push(k); });
+            return candidateKeys;
+          }catch(e){ return []; }
+        })()
+      };
+      console.info('supabase-verify debug summary:', JSON.stringify(safeSummary));
+    } catch (e) {
+      console.warn('supabase-verify debug failed to build summary', e && e.message ? e.message : e);
+    }
+
     const meta = (fullUser && fullUser.user_metadata) ? fullUser.user_metadata : (sbUserFromToken.user_metadata || {});
 
-    // Try identities (OAuth providers) for display name and avatar
+    // Try identities (OAuth providers) for display name and avatar. Providers may store
+    // fields under several possible keys (name, full_name, login, avatar_url, picture, picture_url,
+    // profile_image_url or nested under user_info). Check multiple candidates to maximize coverage
+    // for Google and other providers.
     let providerName = null;
     let providerAvatar = null;
     try {
       const ids = fullUser && fullUser.identities ? fullUser.identities : (sbUserFromToken.identities || []);
-      if (Array.isArray(ids) && ids.length > 0) {
-        const id0 = ids[0];
-        const idData = id0.identity_data || id0;
-        providerName = idData.name || idData.login || idData.full_name || providerName;
-        providerAvatar = idData.avatar_url || idData.picture || providerAvatar;
+      if (Array.isArray(ids)) {
+        for (const id of ids) {
+          const idData = (id && (id.identity_data || id)) || {};
+          // name candidates
+          providerName = providerName || idData.name || idData.full_name || idData.login || (idData.user_info && (idData.user_info.name || idData.user_info.full_name));
+          // avatar/picture candidates
+          providerAvatar = providerAvatar || idData.avatar_url || idData.picture || idData.picture_url || idData.profile_image_url || (idData.user_info && (idData.user_info.picture || idData.user_info.avatar_url));
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Also consult user_metadata and raw_user_meta_data for possible picture/name fields
+    try {
+      if (!providerName) {
+        providerName = meta.name || meta.nome || meta.full_name || meta.given_name || meta.family_name || (fullUser && fullUser.raw_user_meta_data && (fullUser.raw_user_meta_data.name || fullUser.raw_user_meta_data.full_name));
+      }
+      if (!providerAvatar) {
+        providerAvatar = meta.avatar_url || meta.picture || (fullUser && fullUser.raw_user_meta_data && (fullUser.raw_user_meta_data.picture || fullUser.raw_user_meta_data.avatar_url)) || (sbUserFromToken && (sbUserFromToken.avatar_url || sbUserFromToken.picture));
       }
     } catch (e) {
       // ignore
     }
 
     // Determine display name and avatar using metadata, provider data or email fallback
-    const nome = (meta.name || meta.nome || meta.full_name || providerName || '').trim() || (email ? email.split('@')[0].replace(/[._-]+/g,' ').split(' ').map(s=>s? (s.charAt(0).toUpperCase()+s.slice(1)):'').join(' ') : '');
-    const photoURL = (meta.avatar_url || meta.picture || providerAvatar || null);
+    const nome = (providerName || meta.name || meta.nome || meta.full_name || '').trim() || (email ? email.split('@')[0].replace(/[._-]+/g,' ').split(' ').map(s=>s? (s.charAt(0).toUpperCase()+s.slice(1)):'').join(' ') : '');
+    const photoURL = (providerAvatar || meta.avatar_url || meta.picture || null);
 
     // Try to persist/upsert into users table if Postgres available
     if (pgClient) {
