@@ -662,42 +662,71 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
     const { createClient } = require('@supabase/supabase-js');
     const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-    // Verify token and get user
+    // Verify token and get user (from token) then fetch full user via admin API for richer metadata
     const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
     if (error || !data || !data.user) {
       console.warn('supabase verify: token invalid or no user', error && error.message ? error.message : error);
       return res.status(401).json({ error: 'invalid token', details: error ? error.message : 'no user' });
     }
 
-    const sbUser = data.user;
-    const uid = sbUser.id;
-    const email = sbUser.email || null;
-    // prefer user_metadata.name or common fields
-    const meta = sbUser.user_metadata || {};
-    const nome = (meta.name || meta.nome || meta.full_name || sbUser.email || '').trim();
+    const sbUserFromToken = data.user;
+    const uid = sbUserFromToken.id;
+    const email = sbUserFromToken.email || null;
+
+    // Try to get full user record using admin API (requires service role key)
+    let fullUser = null;
+    try {
+      const adminRes = await supabaseAdmin.auth.admin.getUserById(uid);
+      if (adminRes && adminRes.data && adminRes.data.user) fullUser = adminRes.data.user;
+    } catch (e) {
+      // If admin API fails, fall back to token user (still valid for basic info)
+      console.warn('supabase verify: admin.getUserById failed, falling back to token user', e && e.message ? e.message : e);
+      fullUser = sbUserFromToken;
+    }
+
+    const meta = (fullUser && fullUser.user_metadata) ? fullUser.user_metadata : (sbUserFromToken.user_metadata || {});
+
+    // Try identities (OAuth providers) for display name and avatar
+    let providerName = null;
+    let providerAvatar = null;
+    try {
+      const ids = fullUser && fullUser.identities ? fullUser.identities : (sbUserFromToken.identities || []);
+      if (Array.isArray(ids) && ids.length > 0) {
+        const id0 = ids[0];
+        const idData = id0.identity_data || id0;
+        providerName = idData.name || idData.login || idData.full_name || providerName;
+        providerAvatar = idData.avatar_url || idData.picture || providerAvatar;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Determine display name and avatar using metadata, provider data or email fallback
+    const nome = (meta.name || meta.nome || meta.full_name || providerName || '').trim() || (email ? email.split('@')[0].replace(/[._-]+/g,' ').split(' ').map(s=>s? (s.charAt(0).toUpperCase()+s.slice(1)):'').join(' ') : '');
+    const photoURL = (meta.avatar_url || meta.picture || providerAvatar || null);
 
     // Try to persist/upsert into users table if Postgres available
     if (pgClient) {
       try {
         await pgClient.query(
-          `INSERT INTO users(id, email, nome, criado_em, atualizado_em)
-           VALUES($1, $2, $3, now(), now())
-           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, nome = EXCLUDED.nome, atualizado_em = now()`,
-          [uid, email, nome]
+          `INSERT INTO users(id, email, nome, photo_url, criado_em, atualizado_em)
+           VALUES($1, $2, $3, $4, now(), now())
+           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, nome = EXCLUDED.nome, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`,
+          [uid, email, nome, photoURL]
         );
-        const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, criado_em FROM users WHERE id = $1", [uid]);
+        const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, photo_url, is_pro, criado_em FROM users WHERE id = $1", [uid]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
           const displayName = (row.name || '').trim();
-          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, is_pro: row.is_pro, created_at: row.criado_em || null } });
+          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro, created_at: row.criado_em || null } });
         }
       } catch (e) {
         console.warn('supabase-verify: DB upsert failed, continuing with token user:', e && e.message ? e.message : e);
       }
     }
 
-    // Fallback: return user info from Supabase token
-    return res.json({ success: true, user: { id: uid, email, name: nome, nome } });
+  // Fallback: return user info from Supabase token (include photo if available)
+  return res.json({ success: true, user: { id: uid, email, name: nome, nome, photoURL: photoURL || null } });
   } catch (err) {
     console.error('supabase-verify error:', err && err.stack ? err.stack : err);
     return res.status(500).json({ error: 'internal error' });
