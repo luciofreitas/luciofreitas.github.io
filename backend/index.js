@@ -7,19 +7,10 @@ const cors = require('cors');
 const { Client } = require('pg');
 const crypto = require('crypto');
 
-// Firebase Admin SDK (opcional - para verificação de tokens)
-let admin = null;
-try {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-    admin = require('firebase-admin');
-    admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON))
-    });
-    console.log('Firebase Admin SDK initialized');
-  }
-} catch (err) {
-  console.warn('Firebase Admin SDK not initialized:', err.message);
-}
+// Firebase Admin SDK removed: this project now uses Supabase for auth verification.
+// If you previously used Firebase Admin for token verification, the behavior is
+// intentionally disabled. To re-enable Firebase Admin, restore FIREBASE_SERVICE_ACCOUNT_JSON
+// usage and add the dependency back to backend/package.json.
 
 const app = express();
 // CORS: permitir solicitações do frontend hospedado no GitHub Pages e do próprio Render
