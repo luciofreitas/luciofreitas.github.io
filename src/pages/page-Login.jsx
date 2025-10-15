@@ -164,7 +164,10 @@ export default function Login() {
                         try {
                           // Start Supabase OAuth flow for Google. This will return a redirect URL
                           // which for SPAs we can follow to complete the OAuth flow.
-                          const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+                          // Use redirect flow explicitly to avoid popup/opener cross-origin issues
+                          // Provide a redirectTo that matches the app origin (HashRouter will handle routing)
+                          const redirectTo = window.location.origin + '/';
+                          const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
                           if (error) {
                             console.error('Supabase Google sign-in error:', error);
                             setError('Erro no login com Google. Tente novamente.');
