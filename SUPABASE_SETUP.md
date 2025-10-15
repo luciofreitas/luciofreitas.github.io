@@ -5,7 +5,7 @@ Este guia mostra como configurar o Supabase para usar como banco de dados Postgr
 ## 📋 Pré-requisitos
 
 - Conta no Supabase (gratuita): https://supabase.com
-- Conta Firebase já configurada (para autenticação)
+<!-- Firebase (opcional) -->
 - Node.js instalado
 - Backend do projeto com dependências instaladas
 
@@ -50,11 +50,11 @@ Este guia mostra como configurar o Supabase para usar como banco de dados Postgr
 
 ## Passo 3: Configurar Firebase Admin SDK
 
-### 3.1 Obter credenciais do Firebase
+### 3.1 Obter credenciais do Firebase (opcional)
 1. Acesse [Firebase Console](https://console.firebase.google.com)
 2. Selecione seu projeto
 3. Vá em **⚙️ Project Settings** → **Service Accounts**
-4. Clique em **"Generate new private key"**
+4. Clique em **"Generate new private key"** (somente se for usar Firebase Admin no backend)
 5. Baixe o arquivo JSON (ex: `firebase-adminsdk.json`)
 
 ### 3.2 Preparar JSON em linha única (opcional)
@@ -140,7 +140,6 @@ npm start
 
 **Saída esperada:**
 ```
-Firebase Admin SDK initialized
 Connected to Postgres for backend API
 Parts API listening on http://0.0.0.0:3001 (pg=true)
 ```
@@ -254,7 +253,7 @@ SELECT id, titulo, autor_email, status FROM guias;
 **Solução**: Verificar se substituiu `[YOUR-PASSWORD]` na DATABASE_URL pela senha correta
 
 ### Erro: "Firebase Admin SDK not configured"
-**Solução**: Verificar se `FIREBASE_SERVICE_ACCOUNT_JSON` está correto no `.env`
+**Solução**: Se você pretende usar Firebase Admin no backend, verifique se `FIREBASE_SERVICE_ACCOUNT_JSON` está correto no `.env`. Caso contrário, ignore esta mensagem — o Firebase Admin é opcional.
 
 ### Backend mostra (pg=false)
 **Solução**: 
@@ -301,4 +300,4 @@ SELECT id, titulo, autor_email, status FROM guias;
 
 ---
 
-Pronto! 🎉 Seu backend agora está conectado ao Supabase e sincronizando usuários do Firebase!
+Pronto! 🎉 Seu backend agora está conectado ao Supabase (e pode sincronizar usuários via Firebase Admin se você habilitar essa opção).

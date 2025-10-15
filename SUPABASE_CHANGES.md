@@ -76,7 +76,7 @@ curl http://localhost:3001/api/pecas/todas
 
 - [ ] Criar projeto no Supabase
 - [ ] Copiar DATABASE_URL do Supabase
-- [ ] Baixar JSON do Firebase Service Account
+<!-- Baixar JSON do Firebase Service Account (opcional) -->
 - [ ] Criar arquivo `backend/.env` baseado no template
 - [ ] Executar `npm install` no backend
 - [ ] Executar `npm run migrate`

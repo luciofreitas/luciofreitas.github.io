@@ -6,7 +6,7 @@ import usuariosData from '../data/usuarios.json';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import ToggleCar from '../components/ToggleCar';
-import { signInWithGooglePopup } from '../firebaseAuth';
+// Using Supabase OAuth for Google login instead of Firebase
 import supabase from '../supabase';
 import { FaGoogle } from 'react-icons/fa';
 
@@ -162,41 +162,22 @@ export default function Login() {
                         setError('');
                         
                         try {
-                          const { user, error } = await signInWithGooglePopup();
-                          
+                          // Start Supabase OAuth flow for Google. This will return a redirect URL
+                          // which for SPAs we can follow to complete the OAuth flow.
+                          const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
                           if (error) {
-                            console.error('Google sign-in error:', error);
-                            
-                            // Tratamento específico de erros
-                            if (error.code === 'auth/cancelled-popup-request') {
-                              setError('Login cancelado. Por favor, tente novamente.');
-                            } else if (error.code === 'auth/popup-blocked') {
-                              setError('Popup bloqueado. Permita popups para este site.');
-                            } else if (error.code === 'auth/popup-closed-by-user') {
-                              setError('Popup fechado. Tente novamente.');
-                            } else {
-                              setError('Erro no login com Google. Tente novamente.');
-                            }
+                            console.error('Supabase Google sign-in error:', error);
+                            setError('Erro no login com Google. Tente novamente.');
+                            setGoogleLoading(false);
                             return;
                           }
-                          
-                          // persist user locally (include displayName and photo) and navigate
-                          const usuario = {
-                            id: user.uid,
-                            nome: user.displayName || '',
-                            name: user.displayName || '',
-                            email: user.email || '',
-                            photoURL: user.photoURL || ''
-                          };
-                          try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
-                          if (setUsuarioLogado) setUsuarioLogado(usuario);
-                          
-                          // Mensagem de boas-vindas com Toast
-                          if (window.showToast) {
-                            window.showToast(`Bem-vindo(a), ${usuario.nome || 'Usuário'}!`, 'success', 3000);
+                          if (data && data.url) {
+                            if (window.showToast) window.showToast('Redirecionando para o provedor de login...', 'info', 2000);
+                            // Redirect to Supabase-hosted OAuth URL
+                            window.location.href = data.url;
+                            return;
                           }
-                          
-                          navigate('/buscar-pecas');
+                          setError('Não foi possível iniciar o login com Google. Tente novamente.');
                         } catch (err) {
                           console.error('Unexpected error:', err);
                           setError('Erro inesperado. Tente novamente.');

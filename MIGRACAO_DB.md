@@ -50,7 +50,7 @@ DATABASE_URL=postgresql://postgres:SUA_SENHA@db.xxxx.supabase.co:5432/postgres
 PGSSL=true
 
 # Firebase Admin SDK (JSON em linha única) - opcional
-# FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+# FIREBASE_SERVICE_ACCOUNT_JSON (opcional) - cole o JSON de service account somente se for usar Firebase Admin no backend
 ```
 
 ### Passo 3: Instalar Dependências do Backend
@@ -194,7 +194,7 @@ src/
 ### Erro: "No Postgres configuration detected"
 **Solução:** 
 1. Copiar template: `copy backend\.env.template backend\.env`
-2. Preencher DATABASE_URL (e, opcionalmente, FIREBASE_SERVICE_ACCOUNT_JSON se usar Firebase Admin)
+2. Preencher DATABASE_URL. Se você usar Firebase Admin no backend, adicione também FIREBASE_SERVICE_ACCOUNT_JSON (opcional).
 3. Ver SUPABASE_SETUP.md para guia completo
 
 ### Erro: "Connection refused" ou "ENOTFOUND"
