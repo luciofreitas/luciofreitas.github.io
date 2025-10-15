@@ -1,4 +1,4 @@
-# 🚀 Quick Start - Supabase + Firebase
+# 🚀 Quick Start - Supabase
 
 ## ⚡ Comandos Rápidos (Windows PowerShell)
 
@@ -11,7 +11,7 @@ copy .env.template .env
 
 # Edite backend/.env com suas credenciais:
 # - DATABASE_URL do Supabase
-# - (Opcional) FIREBASE_SERVICE_ACCOUNT_JSON do Firebase apenas se você usar Firebase Admin no backend
+# - (Opcional) FIREBASE_SERVICE_ACCOUNT_JSON do Firebase apenas se você usar integrações legadas (não recomendado)
 # Veja SUPABASE_SETUP.md para detalhes
 ```
 
@@ -92,7 +92,7 @@ curl http://localhost:3001/api/pecas/todas
 ### Erro: "No Postgres configuration detected"
 **Solução:** 
 1. Copie o template: `copy backend\.env.template backend\.env`
-2. Preencha DATABASE_URL (adicione FIREBASE_SERVICE_ACCOUNT_JSON somente se necessário)
+2. Preencha DATABASE_URL (adicione credenciais necessárias, não inclua segredos no frontend)
 3. Veja SUPABASE_SETUP.md para detalhes
 
 ### Erro: "Connection refused" ou "ENOTFOUND"

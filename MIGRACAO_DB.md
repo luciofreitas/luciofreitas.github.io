@@ -29,7 +29,7 @@
 Siga o guia completo em **SUPABASE_SETUP.md** para:
 1. Criar projeto no Supabase
 2. Obter DATABASE_URL
-3. (Opcional) Configurar Firebase Admin SDK — somente se for usar validação de tokens no backend
+3. (Opcional) Configurar integrações legadas — não é necessário usar Firebase para o fluxo padrão
 
 ### Passo 2: Configurar Variáveis de Ambiente
 
@@ -49,8 +49,7 @@ DATABASE_URL=postgresql://postgres:SUA_SENHA@db.xxxx.supabase.co:5432/postgres
 # Habilitar SSL (obrigatório para Supabase)
 PGSSL=true
 
-# Firebase Admin SDK (JSON em linha única) - opcional
-# FIREBASE_SERVICE_ACCOUNT_JSON (opcional) - cole o JSON de service account somente se for usar Firebase Admin no backend
+# (Opcional) Integrações legadas - não use Firebase como dependência do fluxo padrão
 ```
 
 ### Passo 3: Instalar Dependências do Backend

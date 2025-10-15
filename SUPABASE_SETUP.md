@@ -48,20 +48,11 @@ Este guia mostra como configurar o Supabase para usar como banco de dados Postgr
 
 ---
 
-## Passo 3: Configurar Firebase Admin SDK
+## Passo 3: (Opcional) Integrações adicionais
 
-### 3.1 Obter credenciais do Firebase (opcional)
-1. Acesse [Firebase Console](https://console.firebase.google.com)
-2. Selecione seu projeto
-3. Vá em **⚙️ Project Settings** → **Service Accounts**
-4. Clique em **"Generate new private key"** (somente se for usar Firebase Admin no backend)
-5. Baixe o arquivo JSON (ex: `firebase-adminsdk.json`)
-
-### 3.2 Preparar JSON em linha única (opcional)
-- Abra o arquivo JSON baixado
-- Copie todo o conteúdo (é um objeto JSON grande)
-- **Observação**: este JSON só precisa ser adicionado ao `.env` se você realmente for usar
-  o Firebase Admin SDK no backend para validação de tokens. Caso contrário, ignore esta etapa.
+Este projeto usa Supabase para autenticação e banco de dados. Se você tiver integrações adicionais
+de autenticação ou migração (por exemplo sistemas legados), trate-as separadamente. Não há necessidade
+de configurar Firebase para o fluxo principal descrito aqui.
 
 ---
 
@@ -82,9 +73,6 @@ DATABASE_URL=postgresql://postgres:SUA_SENHA_AQUI@db.xxxxxx.supabase.co:5432/pos
 
 # Habilitar SSL (obrigatório para Supabase)
 PGSSL=true
-
-# Firebase Admin SDK (cole o JSON completo em uma única linha)
-FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"seu-projeto",...}
 
 # Porta do servidor
 PORT=3001
@@ -252,8 +240,8 @@ SELECT id, titulo, autor_email, status FROM guias;
 ### Erro: "password authentication failed"
 **Solução**: Verificar se substituiu `[YOUR-PASSWORD]` na DATABASE_URL pela senha correta
 
-### Erro: "Firebase Admin SDK not configured"
-**Solução**: Se você pretende usar Firebase Admin no backend, verifique se `FIREBASE_SERVICE_ACCOUNT_JSON` está correto no `.env`. Caso contrário, ignore esta mensagem — o Firebase Admin é opcional.
+### Erro: "Service credentials not configured"
+**Solução**: Se o backend reportar falta de credenciais para operações administrativas (p.ex. service role key), verifique se `DATABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` (quando necessário) foram adicionados ao `.env`.
 
 ### Backend mostra (pg=false)
 **Solução**: 
@@ -291,11 +279,11 @@ SELECT id, titulo, autor_email, status FROM guias;
 
 ---
 
+
 ## 📚 Recursos Adicionais
 
 - [Documentação Supabase](https://supabase.com/docs)
 - [Guia PostgreSQL](https://supabase.com/docs/guides/database)
-- [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup)
 - [Connection Pooling](https://supabase.com/docs/guides/database/connecting-to-postgres#connection-pooler)
 
 ---

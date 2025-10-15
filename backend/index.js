@@ -643,68 +643,9 @@ app.get('/api/compatibility/sku/:sku', async (req, res) => {
   res.json({ product, fitments: productFitments, equivalences: eqs });
 });
 
-// ============ AUTENTICAÇÃO FIREBASE + BANCO ============
-
-// Verificar token Firebase e sincronizar usuário no banco
-app.post('/api/auth/verify', async (req, res) => {
-  if (!admin) {
-    return res.status(503).json({ error: 'Firebase Admin SDK not configured' });
-  }
-
-  const authHeader = req.headers.authorization || '';
-  const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : req.body.idToken;
-  
-  if (!idToken) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  try {
-    // Verificar token com Firebase
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    const uid = decoded.uid;
-    const email = decoded.email || null;
-    const nome = decoded.name || null;
-
-    // Sincronizar usuário no banco (se Postgres disponível)
-    if (pgClient) {
-      try {
-        await pgClient.query(
-          `INSERT INTO users(id, email, nome, criado_em, atualizado_em)
-           VALUES($1, $2, $3, now(), now())
-           ON CONFLICT (id) DO UPDATE SET 
-             email = EXCLUDED.email, 
-             nome = EXCLUDED.nome, 
-             atualizado_em = now()`,
-          [uid, email, nome]
-        );
-
-        const result = await pgClient.query(
-          'SELECT id, email, nome, is_pro, criado_em FROM users WHERE id = $1',
-          [uid]
-        );
-
-        return res.json({ 
-          success: true, 
-          user: result.rows[0],
-          uid 
-        });
-      } catch (dbErr) {
-        console.error('Database error during user sync:', dbErr.message);
-        // Continua mesmo se o DB falhar
-      }
-    }
-
-    // Retorna sucesso mesmo sem DB
-    return res.json({ 
-      success: true, 
-      user: { id: uid, email, nome },
-      uid 
-    });
-  } catch (err) {
-    console.error('Token verification failed:', err.message);
-    return res.status(401).json({ error: 'Invalid token', details: err.message });
-  }
-});
+// Firebase verification endpoint removed.
+// The project no longer uses Firebase for client auth verification. Use
+// /api/auth/supabase-verify for Supabase-authenticated users instead.
 
 // Verify Supabase access token (recommended flow when frontend uses Supabase Auth)
 app.post('/api/auth/supabase-verify', async (req, res) => {
