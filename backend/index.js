@@ -751,9 +751,9 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
       // ignore
     }
 
-    // Determine display name and avatar using metadata, provider data or email fallback
-    const nome = (providerName || meta.name || meta.nome || meta.full_name || '').trim() || (email ? email.split('@')[0].replace(/[._-]+/g,' ').split(' ').map(s=>s? (s.charAt(0).toUpperCase()+s.slice(1)):'').join(' ') : '');
-    const photoURL = (providerAvatar || meta.avatar_url || meta.picture || null);
+  // Determine display name and avatar using metadata, provider data or email fallback
+  const nome = (providerName || meta.name || meta.nome || meta.full_name || '').trim() || (email ? email.split('@')[0].replace(/[._-]+/g,' ').split(' ').map(s=>s? (s.charAt(0).toUpperCase()+s.slice(1)):'').join(' ') : '');
+  let photoURL = (providerAvatar || meta.avatar_url || meta.picture || null);
 
     // Log when we found a provider avatar to help debug missing photos
     try {
@@ -761,15 +761,58 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
       else console.info('supabase-verify: no photoURL resolved for user', uid);
     } catch(e){ }
 
+    // If no photoURL resolved yet, attempt one extra fetch from Supabase admin user record (auth.users)
+    // This uses the service role key and is only attempted when available. It can find `raw_user_meta_data.picture` or `avatar_url`.
+    try {
+      if (!photoURL && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        try {
+          // Reuse supabaseAdmin if available (created above)
+          if (supabaseAdmin && typeof supabaseAdmin.auth !== 'undefined' && typeof supabaseAdmin.auth.admin !== 'undefined' && typeof supabaseAdmin.auth.admin.getUserById === 'function'){
+            const adminRes2 = await supabaseAdmin.auth.admin.getUserById(uid);
+            if (adminRes2 && adminRes2.data && adminRes2.data.user) {
+              const au = adminRes2.data.user;
+              if (au && au.raw_user_meta_data) {
+                photoURL = photoURL || au.raw_user_meta_data.picture || au.raw_user_meta_data.avatar_url || null;
+              }
+              // also vendor avatar at top-level fields
+              photoURL = photoURL || (au && (au.avatar_url || au.picture)) || photoURL;
+              if (photoURL) console.info('supabase-verify: resolved photoURL from admin.getUserById fallback', uid, photoURL);
+            }
+          }
+        } catch (e) {
+          console.warn('supabase-verify: admin.getUserById fallback failed', e && e.message ? e.message : e);
+        }
+      }
+    } catch(e) {
+      // ignore
+    }
+
     // Try to persist/upsert into users table if Postgres available
     if (pgClient) {
       try {
-        // Use the detected users name column to avoid referencing a non-existent column
-        const nameCol = userNameColumn || 'name';
+        // Re-check the users table columns to avoid stale detection (race/late-connection cases)
+        let nameCol = userNameColumn || 'name';
+        try {
+          const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users'");
+          const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+          if (names.indexOf('nome') >= 0) nameCol = 'nome';
+          else if (names.indexOf('name') >= 0) nameCol = 'name';
+        } catch (e) {
+          // ignore and fall back to previously-detected column
+        }
+
+        // Build SQL specifically for the detected name column to avoid referencing a missing column
         const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
            VALUES($1, $2, $3, $4, now(), now())
            ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
-        await pgClient.query(insertSql, [uid, email, nome, photoURL]);
+        try {
+          await pgClient.query(insertSql, [uid, email, nome, photoURL]);
+        } catch (e) {
+          // Log full SQL and params at debug level so we can see what failed without exposing secrets
+          console.warn('supabase-verify: Upsert query failed. nameCol=', nameCol, 'sql=', insertSql, 'params=', [uid, email, nome, photoURL]);
+          throw e;
+        }
+
         const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em FROM users WHERE id = $1`, [uid]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
