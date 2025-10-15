@@ -57,16 +57,24 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
           <img src={photoURL} alt={nome ? `Avatar de ${nome}` : 'Avatar do usuário'} className="user-avatar" />
         ) : (
           <>
-            <span className="user-icon-desktop">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
-              </svg>
-            </span>
-            <span className="user-icon-mobile" aria-hidden>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
-              </svg>
-            </span>
+            {/* Initials fallback: show a circular badge with initials derived from nome */}
+            <span className="user-initials-desktop" aria-hidden>{(function(){
+              try{
+                if(!nome) return '';
+                const parts = String(nome).trim().split(/\s+/).filter(Boolean);
+                if(parts.length === 0) return '';
+                if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+                return (parts[0].charAt(0) + parts[parts.length-1].charAt(0)).toUpperCase();
+              }catch(e){ return '' }
+            })()}</span>
+            <span className="user-initials-mobile" aria-hidden>{(function(){
+              try{
+                if(!nome) return '';
+                const parts = String(nome).trim().split(/\s+/).filter(Boolean);
+                if(parts.length === 0) return '';
+                return parts[0].charAt(0).toUpperCase();
+              }catch(e){ return '' }
+            })()}</span>
           </>
         )}
       </button>

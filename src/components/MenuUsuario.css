@@ -61,6 +61,23 @@
   display: none !important;
 }
 
+/* Initials avatar fallback styles */
+.user-initials-desktop, .user-initials-mobile {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important; /* light blue gradient */
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+}
+
+/* Mobile adjustments for smaller initials badge */
+.user-initials-mobile { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }
+
 /* Mobile: esconder ícone grande, mostrar ícone pequeno */
 @media (max-width: 48rem) {
   .user-icon-desktop {
