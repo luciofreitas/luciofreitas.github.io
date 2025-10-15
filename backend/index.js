@@ -596,6 +596,19 @@ app.get('/api/fitments', async (req, res) => { if(pgClient){ try{ const r = awai
 app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM equivalences'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/equivalences:', err.message);} } res.json(csvData.equivalences); });
 app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs that use 'nome' or 'name' for the user's display name */ const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, pro_since, created_at FROM users"); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
 
+// Temporary debug endpoint: report users table columns and runtime detection
+app.get('/api/debug/users-columns', async (req, res) => {
+  try {
+    if (!pgClient) return res.json({ ok: false, reason: 'no pgClient' });
+    const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' ORDER BY ordinal_position");
+    const names = (cols.rows || []).map(r => String(r.column_name));
+    return res.json({ ok: true, detectedUserNameColumn: userNameColumn, runtimePid: process.pid, time: new Date().toISOString(), columns: names });
+  } catch (e) {
+    console.error('debug/users-columns failed:', e && e.message ? e.message : e);
+    return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
+  }
+});
+
 app.get('/api/product/:id', async (req, res) => {
   if(pgClient){
     try{
