@@ -6,14 +6,14 @@ let viteEnv = null;
 try { viteEnv = (typeof import.meta !== 'undefined' && import.meta && import.meta.env) ? import.meta.env : null; } catch (e) { viteEnv = null; }
 
 const url = (viteEnv && (viteEnv.VITE_SUPABASE_URL))
-  || process.env.REACT_APP_SUPABASE_URL
-  || process.env.SUPABASE_URL
+  || (typeof process !== 'undefined' && process.env && process.env.REACT_APP_SUPABASE_URL)
+  || (typeof process !== 'undefined' && process.env && process.env.SUPABASE_URL)
   || (typeof window !== 'undefined' && window.__SUPABASE_URL)
   || '';
 
 const anonKey = (viteEnv && (viteEnv.VITE_SUPABASE_ANON_KEY))
-  || process.env.REACT_APP_SUPABASE_ANON_KEY
-  || process.env.SUPABASE_ANON_KEY
+  || (typeof process !== 'undefined' && process.env && process.env.REACT_APP_SUPABASE_ANON_KEY)
+  || (typeof process !== 'undefined' && process.env && process.env.SUPABASE_ANON_KEY)
   || (typeof window !== 'undefined' && window.__SUPABASE_ANON_KEY)
   || '';
 

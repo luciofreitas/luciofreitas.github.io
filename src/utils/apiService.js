@@ -163,8 +163,13 @@ class ApiService {
           });
           console.log(`✅ Filtrado: ${beforeCount} → ${filtered.length} peças`);
         }
-        if (filtros.peca) {
-          filtered = filtered.filter(p => p.name === filtros.peca);
+        // Support both 'peca' and 'categoria' keys (page sends 'categoria')
+        const pecaFiltro = (filtros.peca || filtros.categoria || '').toString().toLowerCase().trim();
+        if (pecaFiltro) {
+          filtered = filtered.filter(p => {
+            const nome = (p.name || '').toString().toLowerCase().trim();
+            return nome === pecaFiltro;
+          });
         }
         if (filtros.marca) {
           // Filter by vehicle brand (extracted from applications)

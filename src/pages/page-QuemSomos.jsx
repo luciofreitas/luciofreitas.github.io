@@ -34,7 +34,7 @@ export default function QuemSomos() {
               {/* Card Membro 1 */}
               <div className="equipe-card">
                 <div className="equipe-card-photo">
-                  <img src="/path/to/rafael.jpg" alt="Rafael" className="equipe-photo" />
+                  <img src="/fotos-socios/rafael.jpg" alt="Rafael" className="equipe-photo" />
                 </div>
                 <div className="equipe-card-content">
                   <h4 className="equipe-nome">Rafael de Almeida</h4>
