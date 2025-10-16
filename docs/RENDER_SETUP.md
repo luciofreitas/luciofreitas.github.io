@@ -43,6 +43,21 @@ Invoke-RestMethod -Uri 'https://luciofreitas-github-io.onrender.com' -UseBasicPa
 # render services logs <SERVICE-NAME>
 ```
 
+Script helper
+-------------
+Um helper PowerShell foi adicionado em `scripts/check_render_service.ps1`. Ele:
+- testa root e health endpoint do domínio fornecido;
+- repete tentativas de health;
+- se o Render CLI estiver instalado e você fornecer `ServiceName`, tenta listar serviços e pegar logs.
+
+Uso:
+
+```powershell
+.
+\scripts\check_render_service.ps1 -Domain 'luciofreitas-github-io.onrender.com' -ServiceName 'lucio-backend'
+```
+
+
 5) Possíveis causas de 404 no domínio customizado
 -----------------------------------------------
 - O domínio está associado a um Static Site em vez de um Web Service. Static Sites servem apenas arquivos estáticos e não rodam Node/Express.
