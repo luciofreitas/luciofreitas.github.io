@@ -7,19 +7,10 @@ const cors = require('cors');
 const { Client } = require('pg');
 const crypto = require('crypto');
 
-// Firebase Admin SDK (opcional - para verificação de tokens)
-let admin = null;
-try {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-    admin = require('firebase-admin');
-    admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON))
-    });
-    console.log('Firebase Admin SDK initialized');
-  }
-} catch (err) {
-  console.warn('Firebase Admin SDK not initialized:', err.message);
-}
+// Firebase Admin SDK removed: this project now uses Supabase for auth verification.
+// If you previously used Firebase Admin for token verification, the behavior is
+// intentionally disabled. To re-enable Firebase Admin, restore FIREBASE_SERVICE_ACCOUNT_JSON
+// usage and add the dependency back to backend/package.json.
 
 const app = express();
 // CORS: permitir solicitações do frontend hospedado no GitHub Pages e do próprio Render
@@ -605,6 +596,19 @@ app.get('/api/fitments', async (req, res) => { if(pgClient){ try{ const r = awai
 app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM equivalences'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/equivalences:', err.message);} } res.json(csvData.equivalences); });
 app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs that use 'nome' or 'name' for the user's display name */ const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, pro_since, created_at FROM users"); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
 
+// Temporary debug endpoint: report users table columns and runtime detection
+app.get('/api/debug/users-columns', async (req, res) => {
+  try {
+    if (!pgClient) return res.json({ ok: false, reason: 'no pgClient' });
+    const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' ORDER BY ordinal_position");
+    const names = (cols.rows || []).map(r => String(r.column_name));
+    return res.json({ ok: true, detectedUserNameColumn: userNameColumn, runtimePid: process.pid, time: new Date().toISOString(), columns: names });
+  } catch (e) {
+    console.error('debug/users-columns failed:', e && e.message ? e.message : e);
+    return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
+  }
+});
+
 app.get('/api/product/:id', async (req, res) => {
   if(pgClient){
     try{
@@ -652,68 +656,9 @@ app.get('/api/compatibility/sku/:sku', async (req, res) => {
   res.json({ product, fitments: productFitments, equivalences: eqs });
 });
 
-// ============ AUTENTICAÇÃO FIREBASE + BANCO ============
-
-// Verificar token Firebase e sincronizar usuário no banco
-app.post('/api/auth/verify', async (req, res) => {
-  if (!admin) {
-    return res.status(503).json({ error: 'Firebase Admin SDK not configured' });
-  }
-
-  const authHeader = req.headers.authorization || '';
-  const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : req.body.idToken;
-  
-  if (!idToken) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  try {
-    // Verificar token com Firebase
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    const uid = decoded.uid;
-    const email = decoded.email || null;
-    const nome = decoded.name || null;
-
-    // Sincronizar usuário no banco (se Postgres disponível)
-    if (pgClient) {
-      try {
-        await pgClient.query(
-          `INSERT INTO users(id, email, nome, criado_em, atualizado_em)
-           VALUES($1, $2, $3, now(), now())
-           ON CONFLICT (id) DO UPDATE SET 
-             email = EXCLUDED.email, 
-             nome = EXCLUDED.nome, 
-             atualizado_em = now()`,
-          [uid, email, nome]
-        );
-
-        const result = await pgClient.query(
-          'SELECT id, email, nome, is_pro, criado_em FROM users WHERE id = $1',
-          [uid]
-        );
-
-        return res.json({ 
-          success: true, 
-          user: result.rows[0],
-          uid 
-        });
-      } catch (dbErr) {
-        console.error('Database error during user sync:', dbErr.message);
-        // Continua mesmo se o DB falhar
-      }
-    }
-
-    // Retorna sucesso mesmo sem DB
-    return res.json({ 
-      success: true, 
-      user: { id: uid, email, nome },
-      uid 
-    });
-  } catch (err) {
-    console.error('Token verification failed:', err.message);
-    return res.status(401).json({ error: 'Invalid token', details: err.message });
-  }
-});
+// Firebase verification endpoint removed.
+// The project no longer uses Firebase for client auth verification. Use
+// /api/auth/supabase-verify for Supabase-authenticated users instead.
 
 // Verify Supabase access token (recommended flow when frontend uses Supabase Auth)
 app.post('/api/auth/supabase-verify', async (req, res) => {
@@ -730,42 +675,170 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
     const { createClient } = require('@supabase/supabase-js');
     const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-    // Verify token and get user
+    // Verify token and get user (from token) then fetch full user via admin API for richer metadata
     const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
     if (error || !data || !data.user) {
       console.warn('supabase verify: token invalid or no user', error && error.message ? error.message : error);
       return res.status(401).json({ error: 'invalid token', details: error ? error.message : 'no user' });
     }
 
-    const sbUser = data.user;
-    const uid = sbUser.id;
-    const email = sbUser.email || null;
-    // prefer user_metadata.name or common fields
-    const meta = sbUser.user_metadata || {};
-    const nome = (meta.name || meta.nome || meta.full_name || sbUser.email || '').trim();
+    const sbUserFromToken = data.user;
+    const uid = sbUserFromToken.id;
+    const email = sbUserFromToken.email || null;
+
+    // Try to get full user record using admin API (requires service role key)
+    let fullUser = null;
+    try {
+      const adminRes = await supabaseAdmin.auth.admin.getUserById(uid);
+      if (adminRes && adminRes.data && adminRes.data.user) fullUser = adminRes.data.user;
+    } catch (e) {
+      // If admin API fails, fall back to token user (still valid for basic info)
+      console.warn('supabase verify: admin.getUserById failed, falling back to token user', e && e.message ? e.message : e);
+      fullUser = sbUserFromToken;
+    }
+
+    // DEBUG: safe summary of fields received from Supabase admin API
+    try {
+      const safeSummary = {
+        uid: uid,
+        email: email,
+        hasUserMetadata: !!(fullUser && fullUser.user_metadata),
+        userMetadataKeys: fullUser && fullUser.user_metadata ? Object.keys(fullUser.user_metadata) : [],
+        hasRawMeta: !!(fullUser && fullUser.raw_user_meta_data),
+        rawMetaKeys: fullUser && fullUser.raw_user_meta_data ? Object.keys(fullUser.raw_user_meta_data) : [],
+        identitiesCount: Array.isArray(fullUser && fullUser.identities) ? fullUser.identities.length : 0,
+        // For identities, list which likely picture/name keys exist in the first identity (if any)
+        identityCandidateKeys: (function(){
+          try{
+            const ids = fullUser && fullUser.identities ? fullUser.identities : (sbUserFromToken && sbUserFromToken.identities ? sbUserFromToken.identities : []);
+            if(!Array.isArray(ids) || ids.length === 0) return [];
+            const id0 = ids[0] && (ids[0].identity_data || ids[0]) || {};
+            const candidateKeys = [];
+            ['avatar_url','picture','picture_url','profile_image_url','pictureUrl','name','full_name','login','given_name','family_name'].forEach(k => { if(Object.prototype.hasOwnProperty.call(id0,k)) candidateKeys.push(k); });
+            return candidateKeys;
+          }catch(e){ return []; }
+        })()
+      };
+      console.info('supabase-verify debug summary:', JSON.stringify(safeSummary));
+    } catch (e) {
+      console.warn('supabase-verify debug failed to build summary', e && e.message ? e.message : e);
+    }
+
+    const meta = (fullUser && fullUser.user_metadata) ? fullUser.user_metadata : (sbUserFromToken.user_metadata || {});
+
+    // Try identities (OAuth providers) for display name and avatar. Providers may store
+    // fields under several possible keys (name, full_name, login, avatar_url, picture, picture_url,
+    // profile_image_url or nested under user_info). Check multiple candidates to maximize coverage
+    // for Google and other providers.
+    let providerName = null;
+    let providerAvatar = null;
+    try {
+      const ids = fullUser && fullUser.identities ? fullUser.identities : (sbUserFromToken.identities || []);
+      if (Array.isArray(ids)) {
+        for (const id of ids) {
+          const idData = (id && (id.identity_data || id)) || {};
+          // name candidates
+          providerName = providerName || idData.name || idData.full_name || idData.login || (idData.user_info && (idData.user_info.name || idData.user_info.full_name));
+          // avatar/picture candidates
+          providerAvatar = providerAvatar || idData.avatar_url || idData.picture || idData.picture_url || idData.profile_image_url || (idData.user_info && (idData.user_info.picture || idData.user_info.avatar_url));
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+
+    // Also consult user_metadata and raw_user_meta_data for possible picture/name fields
+    try {
+      if (!providerName) {
+        providerName = meta.name || meta.nome || meta.full_name || meta.given_name || meta.family_name || (fullUser && fullUser.raw_user_meta_data && (fullUser.raw_user_meta_data.name || fullUser.raw_user_meta_data.full_name));
+      }
+      if (!providerAvatar) {
+        // Prioritize raw_user_meta_data which often contains the provider's picture
+        if (fullUser && fullUser.raw_user_meta_data) {
+          providerAvatar = fullUser.raw_user_meta_data.picture || fullUser.raw_user_meta_data.avatar_url || providerAvatar;
+        }
+        providerAvatar = providerAvatar || meta.avatar_url || meta.picture || (sbUserFromToken && (sbUserFromToken.avatar_url || sbUserFromToken.picture));
+      }
+    } catch (e) {
+      // ignore
+    }
+
+  // Determine display name and avatar using metadata, provider data or email fallback
+  const nome = (providerName || meta.name || meta.nome || meta.full_name || '').trim() || (email ? email.split('@')[0].replace(/[._-]+/g,' ').split(' ').map(s=>s? (s.charAt(0).toUpperCase()+s.slice(1)):'').join(' ') : '');
+  let photoURL = (providerAvatar || meta.avatar_url || meta.picture || null);
+
+    // Log when we found a provider avatar to help debug missing photos
+    try {
+      if (photoURL) console.info('supabase-verify: resolved photoURL for user', uid, photoURL);
+      else console.info('supabase-verify: no photoURL resolved for user', uid);
+    } catch(e){ }
+
+    // If no photoURL resolved yet, attempt one extra fetch from Supabase admin user record (auth.users)
+    // This uses the service role key and is only attempted when available. It can find `raw_user_meta_data.picture` or `avatar_url`.
+    try {
+      if (!photoURL && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        try {
+          // Reuse supabaseAdmin if available (created above)
+          if (supabaseAdmin && typeof supabaseAdmin.auth !== 'undefined' && typeof supabaseAdmin.auth.admin !== 'undefined' && typeof supabaseAdmin.auth.admin.getUserById === 'function'){
+            const adminRes2 = await supabaseAdmin.auth.admin.getUserById(uid);
+            if (adminRes2 && adminRes2.data && adminRes2.data.user) {
+              const au = adminRes2.data.user;
+              if (au && au.raw_user_meta_data) {
+                photoURL = photoURL || au.raw_user_meta_data.picture || au.raw_user_meta_data.avatar_url || null;
+              }
+              // also vendor avatar at top-level fields
+              photoURL = photoURL || (au && (au.avatar_url || au.picture)) || photoURL;
+              if (photoURL) console.info('supabase-verify: resolved photoURL from admin.getUserById fallback', uid, photoURL);
+            }
+          }
+        } catch (e) {
+          console.warn('supabase-verify: admin.getUserById fallback failed', e && e.message ? e.message : e);
+        }
+      }
+    } catch(e) {
+      // ignore
+    }
 
     // Try to persist/upsert into users table if Postgres available
     if (pgClient) {
       try {
-        await pgClient.query(
-          `INSERT INTO users(id, email, nome, criado_em, atualizado_em)
-           VALUES($1, $2, $3, now(), now())
-           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, nome = EXCLUDED.nome, atualizado_em = now()`,
-          [uid, email, nome]
-        );
-        const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, criado_em FROM users WHERE id = $1", [uid]);
+        // Re-check the users table columns to avoid stale detection (race/late-connection cases)
+        let nameCol = userNameColumn || 'name';
+        try {
+          const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users'");
+          const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+          if (names.indexOf('nome') >= 0) nameCol = 'nome';
+          else if (names.indexOf('name') >= 0) nameCol = 'name';
+        } catch (e) {
+          // ignore and fall back to previously-detected column
+        }
+
+        // Build SQL specifically for the detected name column to avoid referencing a missing column
+        const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
+           VALUES($1, $2, $3, $4, now(), now())
+           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
+        try {
+          await pgClient.query(insertSql, [uid, email, nome, photoURL]);
+        } catch (e) {
+          // Log full SQL and params at debug level so we can see what failed without exposing secrets
+          console.warn('supabase-verify: Upsert query failed. nameCol=', nameCol, 'sql=', insertSql, 'params=', [uid, email, nome, photoURL]);
+          throw e;
+        }
+
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em FROM users WHERE id = $1`, [uid]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
-          const displayName = (row.name || '').trim();
-          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, is_pro: row.is_pro, created_at: row.criado_em || null } });
+          const displayName = ((row.name || '') + '').trim();
+          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro, created_at: row.criado_em || null } });
         }
       } catch (e) {
         console.warn('supabase-verify: DB upsert failed, continuing with token user:', e && e.message ? e.message : e);
       }
     }
 
-    // Fallback: return user info from Supabase token
-    return res.json({ success: true, user: { id: uid, email, name: nome, nome } });
+  // Fallback: return user info from Supabase token (include photo if available)
+  return res.json({ success: true, user: { id: uid, email, name: nome, nome, photoURL: photoURL || null } });
   } catch (err) {
     console.error('supabase-verify error:', err && err.stack ? err.stack : err);
     return res.status(500).json({ error: 'internal error' });

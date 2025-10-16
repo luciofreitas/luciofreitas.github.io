@@ -215,6 +215,7 @@ function Menu() {
           ) : (
             <MenuUsuario
               nome={usuarioLogado?.nome}
+              photoURL={usuarioLogado?.photoURL}
               isPro={proActive}
               onPerfil={handleNavigation(() => navigate('/perfil'))}
               onMeusCarros={handleNavigation(() => navigate('/meus-carros'))}

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './MenuUsuario.css';
 
-function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLogout }) {
+function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLogout, photoURL }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -52,18 +52,31 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
         aria-haspopup="true"
         aria-expanded={open}
       >
-        {/* Desktop e Mobile: ambos mostram ícone, mas com tamanhos diferentes */}
-        <span className="user-icon-desktop">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
-          </svg>
-        </span>
-        <span className="user-icon-mobile">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
-          </svg>
-        </span>
-        {/* Removed inline PRO badge; visual indication is handled by coloring the icon via .user-pro */}
+        {/* If photoURL is available, show image avatar; otherwise fallback to icon */}
+        {photoURL ? (
+          <img src={photoURL} alt={nome ? `Avatar de ${nome}` : 'Avatar do usuário'} className="user-avatar" />
+        ) : (
+          <>
+            {/* Initials fallback: show a circular badge with initials derived from nome */}
+            <span className="user-initials-desktop" aria-hidden>{(function(){
+              try{
+                if(!nome) return '';
+                const parts = String(nome).trim().split(/\s+/).filter(Boolean);
+                if(parts.length === 0) return '';
+                if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+                return (parts[0].charAt(0) + parts[parts.length-1].charAt(0)).toUpperCase();
+              }catch(e){ return '' }
+            })()}</span>
+            <span className="user-initials-mobile" aria-hidden>{(function(){
+              try{
+                if(!nome) return '';
+                const parts = String(nome).trim().split(/\s+/).filter(Boolean);
+                if(parts.length === 0) return '';
+                return parts[0].charAt(0).toUpperCase();
+              }catch(e){ return '' }
+            })()}</span>
+          </>
+        )}
       </button>
 
       {open && (
