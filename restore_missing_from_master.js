@@ -22,7 +22,7 @@ for (const line of lines) {
   const rel = p
   let resolved
   if (rel.startsWith('/')) {
-    resolved = path.join(root, rel.replace(/^\//, ''))
+    resolved = path.join(root, rel.replace(/^\/, ''))
   } else {
     resolved = path.resolve(path.dirname(srcFile), rel)
   }

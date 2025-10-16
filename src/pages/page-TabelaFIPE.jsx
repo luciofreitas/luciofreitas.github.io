@@ -165,7 +165,7 @@ export default function TabelaFIPE() {
                           <span className={isPro ? '' : 'fipe-preco-blur'}>{item.preco}</span>
                           {!isPro && (
                             <div className="fipe-preco-lock">
-                              <img src="./padlock.png" alt="Cadeado" className="fipe-padlock-icon" />
+                              <img src="/imagens/padlock.png" alt="Cadeado" className="fipe-padlock-icon" />
                               <div className="fipe-preco-tooltip">
                                 Seja Pro para visualizar os preços da Tabela FIPE
                               </div>

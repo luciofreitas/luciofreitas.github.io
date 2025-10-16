@@ -48,7 +48,7 @@ function checkPath(file, lineNo, p) {
   if (!(p.startsWith('.') || p.startsWith('/'))) return
   let resolved = null
   if (p.startsWith('/')) {
-    resolved = path.join(root, p.replace(/^\//,'').split('?')[0].split('#')[0])
+    resolved = path.join(root, p.replace(/^\/,'').split('?')[0].split('#')[0])
   } else {
     resolved = path.resolve(path.dirname(file), p.split('?')[0].split('#')[0])
   }

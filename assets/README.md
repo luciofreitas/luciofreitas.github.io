@@ -3,7 +3,7 @@
 Este diretório contém imagens placeholder para as peças automotivas.
 
 ## Estrutura:
-- `placeholder-part.jpg` - Imagem genérica para peças sem foto
+- `/imagens/placeholder-part.jpg` - Imagem genérica para peças sem foto
 - `filtro-ar-mann-c25024-1.jpg` - Filtro de ar (vista frontal)
 - `filtro-ar-mann-c25024-2.jpg` - Filtro de ar (vista lateral)
 - `filtro-ar-mann-c25024-instalacao.jpg` - Filtro de ar (instalação)

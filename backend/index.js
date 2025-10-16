@@ -493,7 +493,7 @@ app.get('/api/pecas/:id', (req, res) => {
         motor: "N/A",
         observacoes: app
       })),
-      imagens: ["/assets/placeholder-part.jpg"],
+  imagens: ["/imagens/placeholder-part.jpg"],
       instalacao: {
         dificuldade: "Médio",
         tempo_estimado_min: 30,

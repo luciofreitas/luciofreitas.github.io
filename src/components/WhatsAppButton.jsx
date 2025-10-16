@@ -36,7 +36,7 @@ function WhatsAppButton({ vehicle, isPro }) {
           onMouseLeave={hideTooltip}
         >
           <div className="whatsapp-tooltip-icon" ref={padlockRef} onFocus={showTooltip} onBlur={hideTooltip} tabIndex={0}>
-            <img src="./padlock.png" alt="Cadeado" className="whatsapp-padlock" />
+            <img src="/imagens/padlock.png" alt="Cadeado" className="whatsapp-padlock" />
           </div>
 
           {/* Render tooltip into document.body via portal to escape stacking contexts */}

@@ -4,47 +4,47 @@
     "status": "not-found"
   },
   {
-    "repoRel": "assets/placeholderPart.jpg",
+    "repoRel": "assets/imagens/placeholderPart.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "assets/placeholderPart.jpg",
+    "repoRel": "assets/imagens/placeholderPart.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "padlock.png",
+    "repoRel": "/imagens/padlock.png",
     "status": "not-found"
   },
   {
-    "repoRel": "../../imagens-inicial/guias-2.jpg",
+    "repoRel": "../../imagens-inicial/imagens/guias-2.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "../../imagens-inicial/catalogo-1.jpg",
+    "repoRel": "../../imagens-inicial/imagens/catalogo-1.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "../../imagens-inicial/catalogo-2.jpg",
+    "repoRel": "../../imagens-inicial/imagens/catalogo-2.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "../../imagens-inicial/recall-1.jpg",
+    "repoRel": "../../imagens-inicial/imagens/recall-1.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "../../imagens-inicial/recall-2.jpg",
+    "repoRel": "../../imagens-inicial/imagens/recall-2.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "../../imagens-inicial/guias-1.jpg",
+    "repoRel": "../../imagens-inicial/imagens/guias-1.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "path/to/rafael.jpg",
+    "repoRel": "path/to/imagens/rafael.jpg",
     "status": "not-found"
   },
   {
-    "repoRel": "padlock.png",
+    "repoRel": "/imagens/padlock.png",
     "status": "not-found"
   }
 ]
