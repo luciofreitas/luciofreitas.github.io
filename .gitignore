@@ -24,3 +24,8 @@ db/
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files (do not commit secrets)
+.env
+.env.local
+backend/.env
