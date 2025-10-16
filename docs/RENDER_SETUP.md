@@ -55,6 +55,23 @@ Invoke-RestMethod -Uri 'https://luciofreitas-github-io.onrender.com' -UseBasicPa
 - Confirme que `process.env.PORT` é usado (o `backend/server.js` já usa isso por padrão).
 - Se o erro for falta de credenciais, defina as variáveis no painel do Render.
 
+9) Supabase: chaves e práticas seguras
+-------------------------------------
+- Nunca exponha a `SUPABASE_SERVICE_ROLE_KEY` ao frontend — ela tem privilégios administrativos.
+- Para uso servidor (backend): defina `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_URL` apenas no painel do Render como variáveis de ambiente (Server-only).
+- Para uso cliente (frontend): defina `VITE_SUPABASE_ANON_KEY` e `VITE_SUPABASE_URL` nas configurações de build do frontend. Keys com prefixo `VITE_` serão embutidas no build e expostas ao navegador.
+- Se você acidentalmente cometeu chaves no git, rotacione-as imediatamente no painel do Supabase e remova/limpe o histórico do Git (use BFG o git filter-repo). Se quiser, eu posso preparar os comandos para isso.
+
+10) Onde colocar as chaves no Render
+------------------------------------
+- Na página do serviço (ou na seção Environment) clique em "Environment" → "Add Environment Variable".
+- Adicione:
+   - `DATABASE_URL` (URL do Postgres/Supabase pooler)
+   - `SUPABASE_URL` (ex: https://<projeto>.supabase.co)
+   - `SUPABASE_SERVICE_ROLE_KEY` (service role key — server only)
+   - `VITE_SUPABASE_ANON_KEY` (se o backend também precisar realizar builds ou se você hospedar frontend no Render; caso contrário, no CI do frontend)
+
+
 7) Alternativas ao Render
 -------------------------
 - Se preferir não usar Render, use outro provedor com suporte a Node (Railway, Heroku, Fly.io, Vercel Serverless Functions, etc.).

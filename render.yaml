@@ -27,3 +27,5 @@ services:
         value: "__SET_IN_RENDER_DASHBOARD__"
       - key: VITE_SUPABASE_ANON_KEY
         value: "__SET_IN_RENDER_DASHBOARD__"
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        value: "__SET_IN_RENDER_DASHBOARD__"
