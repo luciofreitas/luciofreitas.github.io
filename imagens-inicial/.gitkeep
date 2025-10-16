@@ -1,4 +1,0 @@
-This folder is used for page images (move files from the old folder named 'imagens pagina Inicial' into here).
-
-Rename/move command suggestion (PowerShell):
-# Rename-Item -LiteralPath "..\"imagens pagina Inicial\"" -NewName "imagens-inicial"

@@ -8,5 +8,5 @@ C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\src\pages\page-Inic
 C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\src\pages\page-Inicio.jsx:7 -> ../../imagens-inicial/imagens/recall-1.jpg
 C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\src\pages\page-Inicio.jsx:8 -> ../../imagens-inicial/imagens/recall-2.jpg
 C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\src\pages\page-Inicio.jsx:9 -> ../../imagens-inicial/imagens/guias-1.jpg
-C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\src\pages\page-QuemSomos.jsx:37 -> /path/to/imagens/rafael.jpg
+C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\src\pages\page-QuemSomos.jsx:37 -> /imagens/rafael-1.jpg
 C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\src\pages\page-TabelaFIPE.jsx:168 -> ./imagens/padlock.png
