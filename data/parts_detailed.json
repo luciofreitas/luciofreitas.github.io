@@ -40,9 +40,9 @@
       "vida_util_km": 15000
     },
     "imagens": [
-      "/assets/pecas/filtro-ar-mann-c25024-1.jpg",
-      "/assets/pecas/filtro-ar-mann-c25024-2.jpg", 
-      "/assets/pecas/filtro-ar-mann-c25024-instalacao.jpg"
+      "./assets/pecas/filtro-ar-mann-c25024-1.jpg",
+      "./assets/pecas/filtro-ar-mann-c25024-2.jpg", 
+      "./assets/pecas/filtro-ar-mann-c25024-instalacao.jpg"
     ],
     "instalacao": {
       "dificuldade": "Fácil",
@@ -54,11 +54,11 @@
     "documentos": [
       {
         "tipo": "Manual de instalação",
-        "url": "/docs/mann-c25024-manual.pdf"
+        "url": "./docs/mann-c25024-manual.pdf"
       },
       {
         "tipo": "Certificado de qualidade", 
-        "url": "/docs/mann-c25024-cert.pdf"
+        "url": "./docs/mann-c25024-cert.pdf"
       }
     ],
     "pecas_relacionadas": [
