@@ -100,12 +100,44 @@ export default function App() {
         const { default: supabase } = await import('./supabase');
         // Supabase v2 provides getSessionFromUrl to read the session after redirect
         if (supabase && typeof supabase.auth.getSessionFromUrl === 'function') {
+          // First try the standard helper which reads the session from the URL
           const { data, error } = await supabase.auth.getSessionFromUrl();
           if (error) {
             console.warn('supabase getSessionFromUrl error:', error);
-            return;
           }
-          const session = data && data.session ? data.session : null;
+          let session = data && data.session ? data.session : null;
+
+          // Fallback: sometimes GitHub Pages or the provider place tokens in the pathname
+          // (e.g. https://.../access_token=...) which getSessionFromUrl may not detect.
+          // Try to parse access_token and refresh_token anywhere in the URL as a fallback
+          // and set the session programmatically.
+          if (!session) {
+            try {
+              const href = window.location.href || '';
+              const find = (name) => {
+                const re = new RegExp(name + "=([^&#\\/]+)", 'i');
+                const m = href.match(re);
+                return m ? decodeURIComponent(m[1]) : null;
+              };
+              const at = find('access_token');
+              const rt = find('refresh_token');
+              if (at) {
+                try {
+                  // Try to set the session so supabase client behaves as if it handled the redirect
+                  if (supabase && supabase.auth && typeof supabase.auth.setSession === 'function') {
+                    await supabase.auth.setSession({ access_token: at, refresh_token: rt || undefined });
+                    // build a lightweight session-like object
+                    session = { access_token: at, refresh_token: rt };
+                    // Clean URL to remove tokens
+                    try { window.history.replaceState({}, document.title, window.location.origin + '/#/'); } catch (e) {}
+                  }
+                } catch (e) {
+                  console.warn('Failed to set supabase session from URL fallback', e && e.message ? e.message : e);
+                }
+              }
+            } catch (e) { /* ignore parsing errors */ }
+          }
+
           if (session && session.access_token) {
             const accessToken = session.access_token;
             // Call backend verify endpoint to upsert user and get canonical profile
@@ -139,6 +171,38 @@ export default function App() {
                 }
               } else {
                 console.warn('Backend supabase-verify returned', resp.status);
+                // Fallback: if backend verify failed, try to read user directly from supabase client
+                try {
+                  if (supabase && supabase.auth) {
+                    // Try getUser (requires a valid session to be set)
+                    try {
+                      const userRes = await supabase.auth.getUser();
+                      const sbUser = userRes && userRes.data && userRes.data.user ? userRes.data.user : null;
+                      if (sbUser) {
+                        const inferredName = (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : (sbUser.email || '').split('@')[0]) || '';
+                        const normalizedUsuario = { ...sbUser, nome: inferredName, name: inferredName, access_token: accessToken };
+                        setUsuarioLogado(normalizedUsuario);
+                        try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+                      }
+                    } catch (e) {
+                      // getUser might not be available or fail; try getSession as last resort
+                      try {
+                        const sess = await supabase.auth.getSession();
+                        const sessUser = sess && sess.data && sess.data.session && sess.data.session.user ? sess.data.session.user : null;
+                        if (sessUser) {
+                          const inferredName = (sessUser.user_metadata && (sessUser.user_metadata.nome || sessUser.user_metadata.name) ? (sessUser.user_metadata.nome || sessUser.user_metadata.name) : (sessUser.email || '').split('@')[0]) || '';
+                          const normalizedUsuario = { ...sessUser, nome: inferredName, name: inferredName, access_token: accessToken };
+                          setUsuarioLogado(normalizedUsuario);
+                          try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+                        }
+                      } catch (e2) {
+                        // give up silently
+                      }
+                    }
+                  }
+                } catch (e) {
+                  console.warn('Fallback supabase user fetch failed', e && e.message ? e.message : e);
+                }
               }
             } catch (e) {
               console.warn('Failed to call backend supabase-verify', e);
