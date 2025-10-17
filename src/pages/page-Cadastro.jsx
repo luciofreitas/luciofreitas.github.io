@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToggleCar, MenuLogin } from '../components';
 import '../styles/pages/page-Cadastro.css';
+import supabase from '../supabase';
 
 export default function PageCadastro() {
   const [nome, setNome] = useState('');
@@ -58,11 +59,47 @@ export default function PageCadastro() {
           return;
         }
 
-        // Other non-OK: fall back to localStorage
-        console.warn('API /api/users returned non-201 status, falling back to localStorage', resp.status);
+        // Other non-OK: fall back to attempt creating the user directly in Supabase
+        console.warn('API /api/users returned non-201 status, attempting Supabase signup fallback', resp.status);
+        try {
+          const emailAddr = email.trim();
+          const pw = senha;
+          // supabase client may be a not-configured stub; guard it
+          if (supabase && supabase.auth && typeof supabase.auth.signUp === 'function') {
+            const { data, error } = await supabase.auth.signUp({ email: emailAddr, password: pw });
+            if (error) {
+              console.warn('Supabase signup fallback failed:', error);
+            } else if (data && (data.user || data)) {
+              setSuccess('Cadastro realizado (Supabase). Redirecionando para o login...');
+              if (window.showToast) window.showToast('Cadastro realizado (Supabase).', 'success', 2000);
+              setTimeout(() => { try { navigate('/login', { state: { email: email.trim() } }); } catch (e) {} }, 1500);
+              setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+              return;
+            }
+          }
+        } catch (err2) {
+          console.warn('Supabase signup fallback threw:', err2 && err2.message ? err2.message : err2);
+        }
+        
+        console.warn('Falling back to localStorage after API + Supabase attempts failed');
       } catch (err) {
-        // Network or other error -> fallback
-        console.warn('Failed to call /api/users, falling back to localStorage', err && err.message);
+        // Network or other error -> try supabase signup fallback
+        console.warn('Failed to call /api/users, attempting Supabase signup fallback', err && err.message);
+        try {
+          if (supabase && supabase.auth && typeof supabase.auth.signUp === 'function') {
+            const { data, error } = await supabase.auth.signUp({ email: email.trim(), password: senha });
+            if (!error && (data && (data.user || data))) {
+              setSuccess('Cadastro realizado (Supabase). Redirecionando para o login...');
+              if (window.showToast) window.showToast('Cadastro realizado (Supabase).', 'success', 2000);
+              setTimeout(() => { try { navigate('/login', { state: { email: email.trim() } }); } catch (e) {} }, 1500);
+              setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+              return;
+            }
+            console.warn('Supabase signup fallback returned error', error);
+          }
+        } catch (err2) {
+          console.warn('Supabase signup fallback threw:', err2 && err2.message ? err2.message : err2);
+        }
       }
 
       // Fallback persistence in localStorage
