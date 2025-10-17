@@ -50,7 +50,18 @@ export default function App() {
   const [initDone, setInitDone] = useState(false);
   const [redirectDone, setRedirectDone] = useState(false);
   // authLoaded is true only when both init and redirect handling finished
-  const authLoaded = initDone && redirectDone;
+  // Provide a setter for authLoaded for compatibility with components that
+  // previously expected `setAuthLoaded` from the context. Internally we derive
+  // the value from initDone && redirectDone but keep a local state so callers
+  // can also set it (no-op in practice since derived value wins).
+  const [authLoadedState, setAuthLoadedState] = useState(false);
+  const authLoaded = authLoadedState || (initDone && redirectDone);
+
+  // Mirror derived value into the setter-state so consumers reading the
+  // boolean from context see a stable true once both phases complete.
+  useEffect(() => {
+    if (authLoaded) setAuthLoadedState(true);
+  }, [authLoaded]);
 
   React.useEffect(() => {
     async function initFromStorage(){
