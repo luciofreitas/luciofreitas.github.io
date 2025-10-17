@@ -57,6 +57,10 @@ export default function App() {
   const [authLoadedState, setAuthLoadedState] = useState(false);
   const authLoaded = authLoadedState || (initDone && redirectDone);
 
+  // Provide a stable setter name `setAuthLoaded` for backward compatibility
+  // with any consumers expecting it from the context.
+  const setAuthLoaded = setAuthLoadedState;
+
   // Mirror derived value into the setter-state so consumers reading the
   // boolean from context see a stable true once both phases complete.
   useEffect(() => {
