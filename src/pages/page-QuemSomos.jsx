@@ -34,7 +34,7 @@ export default function QuemSomos() {
               {/* Card Membro 1 */}
               <div className="equipe-card">
                 <div className="equipe-card-photo">
-                  <img src="/imagens/rafael-1.jpg" alt="Rafael" className="equipe-photo" />
+                  <img src="/imagens/rafael.jpg" alt="Rafael" className="equipe-photo" />
                 </div>
                 <div className="equipe-card-content">
                   <h4 className="equipe-nome">Rafael de Almeida</h4>
@@ -49,7 +49,7 @@ export default function QuemSomos() {
               {/* Card Membro 2 */}
               <div className="equipe-card">
                 <div className="equipe-card-photo">
-                  <img src="/imagens/guilherme-1.jpg" alt="Guilherme" className="equipe-photo" />
+                  <img src="/imagens/guilherme.jpg" alt="Guilherme" className="equipe-photo" />
                 </div>
                 <div className="equipe-card-content">
                   <h4 className="equipe-nome">Guilherme Melo Fleury</h4>
@@ -65,11 +65,11 @@ export default function QuemSomos() {
               {/* Card Membro 3 */}
               <div className="equipe-card">
                 <div className="equipe-card-photo">
-                  <img src="/imagens/lucio-1.jpg" alt="Nome do Membro 3" className="equipe-photo" />
+                  <img src="/imagens/lucio.jpg" alt="Nome do Membro 3" className="equipe-photo" />
                 </div>
                 <div className="equipe-card-content">
                   <h4 className="equipe-nome">Lúcio de Freitas Pereira</h4>
-                  <p className="equipe-cargo">Co-Fundador & Product Designer/Desenvolvedor</p>
+                  <p className="equipe-cargo">Co-Fundador & Head de Design/Desenvolvimento</p>
                   <p className="equipe-bio">
                  Apaixonado por tecnologia e design, é responsável pelo desenvolvimento e pela experiência digital do Peça Fácil. 
                  Com formação em TI e experiência em análise de dados, encontrou no design UX/UI uma forma de unir criatividade 
