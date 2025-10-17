@@ -118,12 +118,14 @@ export default function App() {
       try {
         // Lazy import supabase client to avoid circular deps in modules
         const { default: supabase } = await import('./supabase');
+        console.log('[auth-debug] starting redirect processing. href=', window && window.location && window.location.href);
         // Supabase v2 provides getSessionFromUrl to read the session after redirect
   if (supabase && typeof supabase.auth.getSessionFromUrl === 'function') {
           // First try the standard helper which reads the session from the URL
+          console.log('[auth-debug] calling supabase.auth.getSessionFromUrl()');
           const { data, error } = await supabase.auth.getSessionFromUrl();
           if (error) {
-            console.warn('supabase getSessionFromUrl error:', error);
+            console.warn('[auth-debug] supabase getSessionFromUrl error:', error);
           }
           let session = data && data.session ? data.session : null;
 
@@ -134,6 +136,7 @@ export default function App() {
           if (!session) {
             try {
               const href = window.location.href || '';
+              console.log('[auth-debug] getSessionFromUrl returned no session, attempting token parse from href', href);
               const find = (name) => {
                 const re = new RegExp(name + "=([^&#\\/]+)", 'i');
                 const m = href.match(re);
@@ -142,6 +145,7 @@ export default function App() {
               const at = find('access_token');
               const rt = find('refresh_token');
               if (at) {
+                console.log('[auth-debug] found tokens in URL fallback, access_token length=', at ? at.length : 0, ' refresh_token=', rt ? rt.length : 0);
                 try {
                   // Try to set the session so supabase client behaves as if it handled the redirect
                   if (supabase && supabase.auth && typeof supabase.auth.setSession === 'function') {
@@ -152,7 +156,7 @@ export default function App() {
                     try { window.history.replaceState({}, document.title, window.location.origin + '/#/'); } catch (e) {}
                   }
                 } catch (e) {
-                  console.warn('Failed to set supabase session from URL fallback', e && e.message ? e.message : e);
+                  console.warn('[auth-debug] Failed to set supabase session from URL fallback', e && e.message ? e.message : e);
                 }
               }
             } catch (e) { /* ignore parsing errors */ }
@@ -163,19 +167,22 @@ export default function App() {
             // Call backend verify endpoint to upsert user and get canonical profile
             const apiBase = window.__API_BASE || '';
             try {
+              console.log('[auth-debug] calling backend supabase-verify', `${apiBase}/api/auth/supabase-verify`);
               const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
                 body: JSON.stringify({ access_token: accessToken })
               });
+              console.log('[auth-debug] supabase-verify response status=', resp.status);
+              let body = null;
+              try { body = await resp.json().catch(() => ({})); } catch(e){ body = null; }
+              console.log('[auth-debug] supabase-verify response body=', body);
               if (resp.ok) {
-                const body = await resp.json().catch(() => ({}));
                 const usuario = (body && body.user) ? body.user : null;
                 if (usuario) {
                   function displayNameFromEmail(email){
                     if(!email || typeof email !== 'string') return '';
                     const local = email.split('@')[0] || '';
-                    // replace dots/underscores/dashes with spaces and capitalize words
                     return local.replace(/[._-]+/g,' ').split(' ').map(s => s ? (s.charAt(0).toUpperCase() + s.slice(1)) : '').join(' ').trim();
                   }
 
@@ -186,53 +193,85 @@ export default function App() {
                       name: inferredName,
                       access_token: accessToken
                     };
+                  console.log('[auth-debug] backend returned user, setting usuarioLogado', normalizedUsuario.email);
                   setUsuarioLogado(normalizedUsuario);
                   try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
                 }
               } else {
-                console.warn('Backend supabase-verify returned', resp.status);
-                // Fallback: if backend verify failed, try to read user directly from supabase client
+                console.warn('[auth-debug] backend supabase-verify returned non-ok', resp.status, body);
+                // Aggressive fallback: try to get user from supabase client or from session
                 try {
                   if (supabase && supabase.auth) {
-                    // Try getUser (requires a valid session to be set)
                     try {
+                      console.log('[auth-debug] attempting supabase.auth.getUser() fallback');
                       const userRes = await supabase.auth.getUser();
                       const sbUser = userRes && userRes.data && userRes.data.user ? userRes.data.user : null;
                       if (sbUser) {
                         const inferredName = (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : (sbUser.email || '').split('@')[0]) || '';
                         const normalizedUsuario = { ...sbUser, nome: inferredName, name: inferredName, access_token: accessToken };
+                        console.log('[auth-debug] got user from supabase.getUser(), setting usuarioLogado', normalizedUsuario.email);
                         setUsuarioLogado(normalizedUsuario);
                         try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
-                      }
-                    } catch (e) {
-                      // getUser might not be available or fail; try getSession as last resort
-                      try {
+                      } else {
+                        console.log('[auth-debug] supabase.auth.getUser() returned no user, trying getSession()');
                         const sess = await supabase.auth.getSession();
                         const sessUser = sess && sess.data && sess.data.session && sess.data.session.user ? sess.data.session.user : null;
                         if (sessUser) {
                           const inferredName = (sessUser.user_metadata && (sessUser.user_metadata.nome || sessUser.user_metadata.name) ? (sessUser.user_metadata.nome || sessUser.user_metadata.name) : (sessUser.email || '').split('@')[0]) || '';
                           const normalizedUsuario = { ...sessUser, nome: inferredName, name: inferredName, access_token: accessToken };
+                          console.log('[auth-debug] got user from supabase.getSession(), setting usuarioLogado', normalizedUsuario.email);
                           setUsuarioLogado(normalizedUsuario);
                           try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+                        } else {
+                          console.warn('[auth-debug] supabase client did not return user/session on fallback');
                         }
-                      } catch (e2) {
-                        // give up silently
                       }
+                    } catch (e) {
+                      console.warn('[auth-debug] supabase.getUser/getSession fallback failed', e && e.message ? e.message : e);
                     }
                   }
                 } catch (e) {
-                  console.warn('Fallback supabase user fetch failed', e && e.message ? e.message : e);
+                  console.warn('[auth-debug] Fallback supabase user fetch failed', e && e.message ? e.message : e);
                 }
               }
             } catch (e) {
-              console.warn('Failed to call backend supabase-verify', e);
+              console.warn('[auth-debug] Failed to call backend supabase-verify', e && e.message ? e.message : e);
+              // If backend call throws, attempt same aggressive supabase fallback
+              try {
+                if (supabase && supabase.auth) {
+                  console.log('[auth-debug] backend verify threw; attempting supabase.getUser/getSession fallback');
+                  const userRes = await supabase.auth.getUser();
+                  const sbUser = userRes && userRes.data && userRes.data.user ? userRes.data.user : null;
+                  if (sbUser) {
+                    const inferredName = (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : (sbUser.email || '').split('@')[0]) || '';
+                    const normalizedUsuario = { ...sbUser, nome: inferredName, name: inferredName, access_token: accessToken };
+                    console.log('[auth-debug] got user from supabase.getUser() after exception, setting usuarioLogado', normalizedUsuario.email);
+                    setUsuarioLogado(normalizedUsuario);
+                    try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+                  } else {
+                    const sess = await supabase.auth.getSession();
+                    const sessUser = sess && sess.data && sess.data.session && sess.data.session.user ? sess.data.session.user : null;
+                    if (sessUser) {
+                      const inferredName = (sessUser.user_metadata && (sessUser.user_metadata.nome || sessUser.user_metadata.name) ? (sessUser.user_metadata.nome || sessUser.user_metadata.name) : (sessUser.email || '').split('@')[0]) || '';
+                      const normalizedUsuario = { ...sessUser, nome: inferredName, name: inferredName, access_token: accessToken };
+                      console.log('[auth-debug] got user from supabase.getSession() after exception, setting usuarioLogado', normalizedUsuario.email);
+                      setUsuarioLogado(normalizedUsuario);
+                      try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+                    }
+                  }
+                }
+              } catch (e2) {
+                console.warn('[auth-debug] aggressive fallback after backend error also failed', e2 && e2.message ? e2.message : e2);
+              }
             }
           }
         }
         // mark redirect processing done regardless of outcome so app can continue
+        console.log('[auth-debug] redirect processing finished, setting redirectDone');
         setRedirectDone(true);
       } catch (e) {
         // ignore - allows app to work even if supabase client unavailable
+        console.warn('[auth-debug] redirect processing outer catch', e && e.message ? e.message : e);
         setRedirectDone(true);
       }
     })();
