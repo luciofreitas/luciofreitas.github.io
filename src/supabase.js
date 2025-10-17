@@ -17,21 +17,32 @@ const anonKey = (viteEnv && (viteEnv.VITE_SUPABASE_ANON_KEY))
   || (typeof window !== 'undefined' && window.__SUPABASE_ANON_KEY)
   || '';
 
-const supabase = (function createSupabaseClient() {
+let supabase = null;
+let isConfigured = false;
+
+function makeNotConfiguredStub() {
+  const err = new Error('Supabase client not configured (missing URL or anon key)');
+  const rejecter = () => Promise.reject(err);
+  return {
+    auth: { signIn: rejecter, signInWithOAuth: rejecter, getSessionFromUrl: rejecter },
+    from: () => ({ select: rejecter, insert: rejecter, update: rejecter, delete: rejecter }),
+    rpc: rejecter,
+    storage: () => ({ from: () => ({ upload: rejecter, download: rejecter }) }),
+    _notConfigured: true,
+  };
+}
+
+(function createSupabaseClient() {
   if (!url || !anonKey) {
-    console.error('Supabase client not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or REACT_APP_SUPABASE_* / window.__SUPABASE_*).');
-    const thrower = () => { throw new Error('Supabase client not configured (missing URL or anon key)'); };
-    // Minimal stub that throws on use to prevent downstream cryptic errors
-    return {
-      auth: { signIn: thrower, signInWithOAuth: thrower, getSessionFromUrl: thrower },
-      from: thrower,
-      rpc: thrower,
-      storage: thrower,
-    };
+    console.warn('Supabase client not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or REACT_APP_SUPABASE_* / window.__SUPABASE_*).');
+    supabase = makeNotConfiguredStub();
+    isConfigured = false;
+    return;
   }
 
-  return createClient(String(url).replace(/\/$/, ''), String(anonKey), { auth: { persistSession: false } });
+  supabase = createClient(String(url).replace(/\/$/, ''), String(anonKey), { auth: { persistSession: false } });
+  isConfigured = true;
 })();
 
-export { supabase };
+export { supabase, isConfigured };
 export default supabase;
