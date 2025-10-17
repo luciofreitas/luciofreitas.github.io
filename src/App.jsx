@@ -111,26 +111,7 @@ export default function App() {
     initFromStorage();
   }, []);
 
-  // Listen for other tabs/windows writing usuario-logado to localStorage so we can sync auth state
-  React.useEffect(() => {
-    function onStorage(e) {
-      try {
-        if (e.key === 'usuario-logado') {
-          const val = e.newValue || localStorage.getItem('usuario-logado');
-          if (!val) {
-            setUsuarioLogado(null);
-            return;
-          }
-          const parsed = JSON.parse(val || 'null');
-          if (parsed) setUsuarioLogado(parsed);
-        }
-      } catch (err) {
-        console.warn('storage event handler error', err && err.message ? err.message : err);
-      }
-    }
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, [setUsuarioLogado]);
+  
 
   // Handle Supabase OAuth redirect flow: when Supabase redirects back with
   // session info in the URL, capture the session and verify/upsert on backend.
