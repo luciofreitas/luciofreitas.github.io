@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
-import Menu from '../components/Menu';
-import PerfilForm from '../components/PerfilForm';
+import { Menu, PerfilForm } from '../components';
 import { AuthContext } from '../App';
 import '../styles/pages/page-Perfil.css';
 

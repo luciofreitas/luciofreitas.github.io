@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import Menu from '../components/Menu';
+import { Menu } from '../components';
 import '../styles/pages/page-Recalls.css';
 import recallsData from '../data/recalls.json';
 import { AuthContext } from '../App';

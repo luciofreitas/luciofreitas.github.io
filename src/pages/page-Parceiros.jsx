@@ -1,5 +1,5 @@
 import React from 'react';
-import Menu from '../components/Menu';
+import { Menu } from '../components';
 import '../styles/pages/page-Parceiros.css';
 
 export default function Parceiros() {

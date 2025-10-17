@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Menu from '../components/Menu';
+import { Menu } from '../components';
 import { AuthContext } from '../App';
 import { guiasService } from '../services/guiasService';
 import '../styles/pages/page-CriarGuia.css';

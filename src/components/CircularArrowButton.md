@@ -3,35 +3,26 @@
 ## Descrição
 Componente de botão circular com seta, criado como alternativa ao GetStartedButton. Mantém o mesmo degradê dourado e estilo visual, mas em formato circular compacto.
 
+# CircularArrowButton Component
+
+## Descrição
+Componente de botão circular com seta, criado como alternativa ao `GetStartedButton`. Mantém o mesmo degradê dourado e estilo visual, mas em formato circular compacto.
+
 ## Uso
 
 ```jsx
-import CircularArrowButton from './components/CircularArrowButton';
+import { CircularArrowButton } from '.'; // importa do barrel em src/components
 
 // Uso básico
 <CircularArrowButton onClick={() => navigate('/login')} />
 
 // Com tamanhos diferentes
-<CircularArrowButton 
-  size="small" 
-  onClick={() => navigate('/login')} 
-/>
-
-<CircularArrowButton 
-  size="large" 
-  onClick={() => navigate('/login')} 
-/>
-
-<CircularArrowButton 
-  size="extra-large" 
-  onClick={() => navigate('/login')} 
-/>
+<CircularArrowButton size="small" onClick={() => navigate('/login')} />
+<CircularArrowButton size="large" onClick={() => navigate('/login')} />
+<CircularArrowButton size="extra-large" onClick={() => navigate('/login')} />
 
 // Com classes CSS customizadas
-<CircularArrowButton 
-  className="minha-classe-custom" 
-  onClick={() => navigate('/login')} 
-/>
+<CircularArrowButton className="minha-classe-custom" onClick={() => navigate('/login')} />
 ```
 
 ## Props
@@ -62,14 +53,12 @@ import CircularArrowButton from './components/CircularArrowButton';
 
 ## Exemplo de Integração
 
-Para usar no lugar do GetStartedButton em versões mobile:
+Para usar no lugar do `GetStartedButton` em versões mobile:
 
 ```jsx
 // No MenuLogin.jsx
-import CircularArrowButton from './CircularArrowButton';
+import { GetStartedButton, CircularArrowButton } from '.';
 
-// Desktop: GetStartedButton
-// Mobile: CircularArrowButton
 {isDesktop ? (
   <GetStartedButton onClick={handleNavigation(() => navigate('/login'))} />
 ) : (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import Menu from '../components/Menu';
-import RatingStars from '../components/RatingStars';
+import { Menu } from '../components';
+import { RatingStars } from '../components';
 import { guiasService } from '../services/guiasService';
 import { AuthContext } from '../App';
 import '../styles/pages/page-VisualizarGuia.css';

@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import MenuLogin from '../components/MenuLogin';
+import { MenuLogin } from '../components';
 import '../styles/pages/page-Login.css';
 import '../styles/pages/page-Cadastro.css';
 import usuariosData from '../data/usuarios.json';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../App';
-import ToggleCar from '../components/ToggleCar';
+import { ToggleCar } from '../components';
 // Using Supabase OAuth for Google login instead of Firebase
 import supabase from '../supabase';
 import { FaGoogle } from 'react-icons/fa';

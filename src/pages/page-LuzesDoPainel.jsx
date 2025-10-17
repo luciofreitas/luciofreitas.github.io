@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Menu from '../components/Menu';
-import MenuLogin from '../components/MenuLogin';
+import { Menu, MenuLogin } from '../components';
 import { AuthContext } from '../App';
-import ComponenteEstrelas from '../components/ComponenteEstrelas';
+import { ComponenteEstrelas } from '../components';
 import { useAvaliacoes } from '../hooks/useAvaliacoes';
 import { apiService } from '../utils/apiService';
 import { glossarioMockData } from '../data/glossarioData';

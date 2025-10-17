@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Menu from '../components/Menu';
+import { Menu } from '../components';
 import { apiService } from '../utils/apiService';
 import '../styles/pages/page-GlossarioAutomotivo.css';
 

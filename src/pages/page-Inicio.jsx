@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MenuLogin from '../components/MenuLogin';
+import { MenuLogin } from '../components';
 import '../styles/pages/page-Inicio.css';
 import catalogo1 from '/imagens/catalogo-1.jpg';
 import catalogo2 from '/imagens/catalogo-2.jpg';

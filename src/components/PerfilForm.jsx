@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
+import { apiService } from '../utils/apiService';
 import ToggleCar from './ToggleCar';
 import './ContatoForm.css';
 import '../styles/pages/page-Login.css';
@@ -123,7 +124,9 @@ export default function PerfilForm({
     // If the user provided senhaAtual, verify it server-side before proceeding
     if (local.senhaAtual) {
       try {
-        const resp = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/auth/verify-password`, {
+        // Resolve API base at runtime to avoid embedding development defaults into the bundle
+        const base = (apiService && typeof apiService.getBaseUrl === 'function') ? apiService.getBaseUrl() : (typeof window !== 'undefined' && window.__API_BASE) ? window.__API_BASE : '';
+        const resp = await fetch(`${base}/api/auth/verify-password`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: usuarioLogado.email, senha: local.senhaAtual })

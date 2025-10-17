@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Menu from '../components/Menu';
+import { Menu } from '../components';
 import { AuthContext } from '../App';
 import '../styles/pages/page-VersaoPro_Assinado.css';
 

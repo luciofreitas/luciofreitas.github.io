@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
-import Menu from '../components/Menu';
-import ContatoForm from '../components/ContatoForm';
+import { Menu, ContatoForm } from '../components';
 import { AuthContext } from '../App';
 import '../styles/pages/page-ContatoLogado.css';
 

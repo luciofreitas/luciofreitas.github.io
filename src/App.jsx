@@ -25,7 +25,7 @@ import TabelaFIPE from './pages/page-TabelaFIPE';
 import ManutencaoPreventiva from './pages/page-ManutencaoPreventiva';
 import PecasOriginaisVsCompativeis from './pages/page-PecasOriginaisVsCompativeis';
 import LuzesDoPainel from './pages/page-LuzesDoPainel';
-import ThemeToggle from './components/ThemeToggle';
+import { ThemeToggle } from './components';
 import './styles/App.css';
 import './styles/CustomDropdown.css';
 

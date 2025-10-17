@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import MenuLogin from '../components/MenuLogin';
+import { MenuLogin } from '../components';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/pages/page-Configuracoes.css';
 

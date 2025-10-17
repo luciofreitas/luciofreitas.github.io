@@ -1,14 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
-import Menu from '../components/Menu';
-import MenuLogin from '../components/MenuLogin';
 import { AuthContext } from '../App';
 import { apiService } from '../utils/apiService';
-import CompatibilityModal from '../components/CompatibilityModal';
-import ProductDetailModal from '../components/ProductDetailModal';
-import SearchForm from '../components/SearchForm';
-import PecasGrid from '../components/PecasGrid';
-import CompatibilityGrid from '../components/CompatibilityGrid';
+import { SearchForm, PecasGrid, CompatibilityGrid } from '../components';
 import '../styles/pages/page-BuscarPeca.css';
+import { Menu, MenuLogin, CompatibilityModal, ProductDetailModal } from '../components';
 
 export default function BuscarPeca() {
   const { usuarioLogado } = useContext(AuthContext) || {};

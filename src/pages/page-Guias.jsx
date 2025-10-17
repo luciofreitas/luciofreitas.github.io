@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Menu from '../components/Menu';
-import ComponenteEstrelas from '../components/ComponenteEstrelas';
-import RatingStars from '../components/RatingStars';
+import { Menu, ComponenteEstrelas, RatingStars } from '../components';
 import { useAvaliacoes } from '../hooks/useAvaliacoes';
 import { outrosGuias } from '../data/glossarioData';
 import { guiasService } from '../services/guiasService';
