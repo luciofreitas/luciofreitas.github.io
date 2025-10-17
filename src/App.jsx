@@ -46,7 +46,11 @@ function HomeRedirect() {
 
 export default function App() {
   const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [authLoaded, setAuthLoaded] = useState(false);
+  // Track auth initialization phases: storage init and redirect processing.
+  const [initDone, setInitDone] = useState(false);
+  const [redirectDone, setRedirectDone] = useState(false);
+  // authLoaded is true only when both init and redirect handling finished
+  const authLoaded = initDone && redirectDone;
 
   React.useEffect(() => {
     async function initFromStorage(){
@@ -86,7 +90,8 @@ export default function App() {
       } catch (e) {
         console.warn('Failed to parse usuario-logado from localStorage', e);
       }
-      setAuthLoaded(true);
+      // mark storage init done; the redirect effect will set redirectDone
+      setInitDone(true);
     }
     initFromStorage();
   }, []);
@@ -99,7 +104,7 @@ export default function App() {
         // Lazy import supabase client to avoid circular deps in modules
         const { default: supabase } = await import('./supabase');
         // Supabase v2 provides getSessionFromUrl to read the session after redirect
-        if (supabase && typeof supabase.auth.getSessionFromUrl === 'function') {
+  if (supabase && typeof supabase.auth.getSessionFromUrl === 'function') {
           // First try the standard helper which reads the session from the URL
           const { data, error } = await supabase.auth.getSessionFromUrl();
           if (error) {
@@ -209,8 +214,11 @@ export default function App() {
             }
           }
         }
+        // mark redirect processing done regardless of outcome so app can continue
+        setRedirectDone(true);
       } catch (e) {
         // ignore - allows app to work even if supabase client unavailable
+        setRedirectDone(true);
       }
     })();
   }, [setUsuarioLogado]);
