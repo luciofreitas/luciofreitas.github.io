@@ -16,10 +16,15 @@ createRoot(document.getElementById('root')).render(
 // Forçar a base da API em runtime quando estiver em produção (GitHub Pages)
 try {
   const runtimeBase = import.meta.env.VITE_API_BASE;
-  if (runtimeBase && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    // Expor para o código usar: window.__API_BASE
-    window.__API_BASE = runtimeBase;
-    console.log('[runtime] API base set to', runtimeBase);
+  // Only set window.__API_BASE from build-time env if it's NOT already set by index.html
+  if (typeof window !== 'undefined') {
+    if (!window.__API_BASE && runtimeBase && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      // Expor para o código usar: window.__API_BASE
+      window.__API_BASE = runtimeBase;
+      console.log('[runtime] API base set to', runtimeBase);
+    } else if (window.__API_BASE) {
+      console.log('[runtime] API base already set to', window.__API_BASE);
+    }
   }
 } catch (e) {
   // import.meta may not be available in some test environments
