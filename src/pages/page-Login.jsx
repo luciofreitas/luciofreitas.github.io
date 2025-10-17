@@ -185,9 +185,15 @@ export default function Login() {
                             return;
                           }
                           if (data && data.url) {
-                            if (window.showToast) window.showToast('Redirecionando para o provedor de login...', 'info', 2000);
-                            // Redirect to Supabase-hosted OAuth URL
-                            window.location.href = data.url;
+                            if (window.showToast) window.showToast('Abrindo provedor de login em nova aba...', 'info', 2000);
+                            // Open the Supabase-hosted OAuth URL in a new tab so the main app window
+                            // remains open and can detect authentication via localStorage changes.
+                            try {
+                              window.open(data.url, '_blank', 'noopener');
+                            } catch (e) {
+                              // Fallback to navigation if popup blocked
+                              window.location.href = data.url;
+                            }
                             return;
                           }
                           setError('Não foi possível iniciar o login com Google. Tente novamente.');
