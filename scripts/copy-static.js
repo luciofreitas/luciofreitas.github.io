@@ -14,18 +14,25 @@ function copyFile(src, dest) {
   }
 }
 
-// Copy images folder
-const imagensSrc = path.join(root, 'imagens');
-const imagensDest = path.join(dist, 'imagens');
-if (fs.existsSync(imagensSrc)) {
-  const items = fs.readdirSync(imagensSrc);
-  items.forEach(item => {
-    const s = path.join(imagensSrc, item);
-    const d = path.join(imagensDest, item);
-    copyFile(s, d);
-  });
-} else {
-  console.warn('No imagens/ folder found at', imagensSrc);
+// Copy images folder(s)
+// Prefer `images/` (new name). If it doesn't exist but `imagens/` does, copy that.
+const imagesCandidates = ['images', 'imagens'];
+const imagesDest = path.join(dist, 'images');
+let copiedAny = false;
+imagesCandidates.forEach(dirName => {
+  const srcDir = path.join(root, dirName);
+  if (fs.existsSync(srcDir)) {
+    const items = fs.readdirSync(srcDir);
+    items.forEach(item => {
+      const s = path.join(srcDir, item);
+      const d = path.join(imagesDest, item);
+      copyFile(s, d);
+      copiedAny = true;
+    });
+  }
+});
+if (!copiedAny) {
+  console.warn('No images/ or imagens/ folder found at', path.join(root));
 }
 
 // Copy data parts_db.json from src/data
