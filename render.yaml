@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: pecas-automotivas-compativeis
+    env: node
+    plan: free
+    # Use a temporary npm cache dir in the build so the runner doesn't reuse a possibly-corrupted cache
+    buildCommand: "npm_config_cache=/tmp/npm-cache npm cache clean --force && npm_config_cache=/tmp/npm-cache npm ci --prefer-online --no-audit"
+    startCommand: "npm run preview"
+    envVars:
+      - key: NODE_VERSION
+        value: "22.16.0"
+    # Optional: disable build cache (Render will respect where supported)
+    build:
+      cache: false
