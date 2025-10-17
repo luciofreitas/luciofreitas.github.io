@@ -173,7 +173,10 @@ export default function Login() {
                           // which for SPAs we can follow to complete the OAuth flow.
                           // Use redirect flow explicitly to avoid popup/opener cross-origin issues
                           // Provide a redirectTo that matches the app origin (HashRouter will handle routing)
-                          const redirectTo = window.location.origin + '/';
+                          // Use HashRouter-aware redirect so Supabase returns token in a URL
+                          // that the SPA can parse (place redirect after the hash). This helps
+                          // when the app uses HashRouter instead of BrowserRouter.
+                          const redirectTo = window.location.origin + '/#/';
                           const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
                           if (error) {
                             console.error('Supabase Google sign-in error:', error);
