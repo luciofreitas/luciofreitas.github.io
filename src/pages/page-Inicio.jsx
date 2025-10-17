@@ -8,13 +8,15 @@ import recall1 from '/imagens/recall-1.jpg';
 import recall2 from '/imagens/recall-2.jpg';
 import guias1 from '/imagens/guias-1.jpg';
 import guias2 from '/imagens/guias-2.jpg';
+import tabelaFIPE1 from '/imagens/tabelaFIPE-1.jpg';
+import tabelaFIPE2 from '/imagens/tabelaFIPE-2.jpg';
 
 export default function PageInicio() {
   const navigate = useNavigate();
   const [zoomImage, setZoomImage] = useState(null);
 
   // --- Carousel using local imported images
-  const images = [catalogo1, catalogo2, recall1, recall2, guias1, guias2];
+  const images = [catalogo1, catalogo2, recall1, recall2, guias1, guias2, tabelaFIPE1, tabelaFIPE2];
   const [carouselIndex, setCarouselIndex] = useState(0);
   const trackRef = useRef(null);
 
