@@ -15,9 +15,10 @@ export async function getCars(userId) {
   if (!userId) return [];
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
-  try {
-  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`);
+    try {
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`);
     if (response.ok) {
       const cars = await response.json();
       return cars;
@@ -46,9 +47,10 @@ export async function saveCars(userId, cars) {
   if (!userId) return false;
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
-  try {
-  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`, {
+    try {
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cars })
@@ -106,9 +108,10 @@ export async function removeCar(userId, carId) {
   if (!userId || !carId) return false;
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
-  try {
-  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars/${encodeURIComponent(carId)}`, {
+    try {
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars/${encodeURIComponent(carId)}`, {
       method: 'DELETE'
     });
     if (response.ok) {

@@ -13,21 +13,23 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Forçar a base da API em runtime quando estiver em produção (GitHub Pages)
+// Set a runtime-only API base if index.html didn't already inject one.
+// IMPORTANT: avoid reading import.meta.env.VITE_API_BASE here so the build
+// doesn't embed a compile-time fallback like "http://localhost:3001" into
+// the production bundle. Production should rely on the index.html injector
+// (window.__API_BASE) and local dev should construct localhost at runtime.
 try {
-  const runtimeBase = import.meta.env.VITE_API_BASE;
-  // Only set window.__API_BASE from build-time env if it's NOT already set by index.html
   if (typeof window !== 'undefined') {
-    if (!window.__API_BASE && runtimeBase && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      // Expor para o código usar: window.__API_BASE
-      window.__API_BASE = runtimeBase;
-      console.log('[runtime] API base set to', runtimeBase);
-    } else if (window.__API_BASE) {
+    if (window.__API_BASE) {
       console.log('[runtime] API base already set to', window.__API_BASE);
+    } else {
+      // If the page is running on GH Pages or another static host, index.html
+      // should inject window.__API_BASE. Do not set a build-time value here.
+      console.log('[runtime] API base not injected by index.html; leaving unset');
     }
   }
 } catch (e) {
-  // import.meta may not be available in some test environments
+  // ignore
 }
 
 // NOTE: runtime CSS overrides were intentionally removed so that the project's

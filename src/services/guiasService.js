@@ -26,7 +26,10 @@ class GuiasService {
   async loadGuias() {
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      // Resolve base URL at runtime only. Prefer index.html injector (window.__API_BASE).
+      // Construct localhost URL only when running on a developer machine.
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
       const url = `${baseUrl}/api/guias`;
       console.debug('[guiasService] loadGuias: baseUrl=', baseUrl);
       console.debug('[guiasService] loadGuias: attempting fetch', url);
@@ -84,7 +87,8 @@ class GuiasService {
 
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
       const url = `${baseUrl}/api/guias`;
       console.debug('[guiasService] createGuia: POST', url, newGuia);
       const response = await fetch(url, {
@@ -140,7 +144,8 @@ class GuiasService {
 
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
       const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -174,7 +179,8 @@ class GuiasService {
 
     // Tentar API primeiro (tanto localhost quanto produção)
     try {
-  const baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
       const response = await fetch(`${baseUrl}/api/guias/${guiaId}`, {
         method: 'DELETE'
       });

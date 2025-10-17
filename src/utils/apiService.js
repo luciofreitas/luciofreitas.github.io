@@ -3,13 +3,25 @@ import { glossarioMockData } from '../data/glossarioData.js';
 class ApiService {
   constructor() {
     this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    // Preferir base injetada em runtime (window.__API_BASE) — útil para GitHub Pages
-    this.baseUrl = (typeof window !== 'undefined' && window.__API_BASE) || (import.meta.env && import.meta.env.VITE_API_BASE) || (this.isLocal ? 'http://localhost:3001' : '');
+    // Prefer runtime-injected base (window.__API_BASE). Build-time env or localhost fallback
+    // should only be used at runtime to avoid embedding dev-only URLs into the production bundle.
+    this.getBaseUrl = () => {
+      if (typeof window === 'undefined') return '';
+      if (window.__API_BASE) return window.__API_BASE;
+      // If we're running on a developer machine, construct the localhost URL at runtime
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return `${window.location.protocol}//${window.location.hostname}:3001`;
+      }
+    // Avoid using import.meta.env here to prevent Vite from inlining a build-time
+    // value (like a localhost fallback) into the production bundle. If no
+    // runtime injector is present, return empty and let callers handle fallbacks.
+    return '';
+    };
   }
 
   async fetchWithFallback(apiPath, fallbackData = null) {
-    // Try API first (backend quando disponível)
-    const fullUrl = this.baseUrl + apiPath;
+  // Try API first (backend quando disponível)
+  const fullUrl = this.getBaseUrl() + apiPath;
     try {
       const response = await fetch(fullUrl);
       if (response.ok) {
