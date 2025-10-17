@@ -21,7 +21,7 @@ const Logo = ({ className = '', onClick, ...props }) => {
         {...props}
       >
           <img 
-            src="/imagens/logo.png" 
+            src="/images/logo.png" 
             alt="Logo Peça Fácil" 
             className="logo-image"
           />

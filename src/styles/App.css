@@ -380,7 +380,7 @@ html, body {
   gap: 0.75rem;
 }
 
-/* Global logo styling - ensures /imagens/logo.png is always circular */
+/* Global logo styling - ensures /images/logo.png is always circular */
 .menu-login-logo img, .menu-logo-image {
   border-radius: 50% !important;
   object-fit: cover !important;
@@ -876,7 +876,7 @@ select { -webkit-appearance: none; appearance: none; }
 /* Background para o elemento body quando page-inicio está ativa */
 body .page-wrapper.page-inicio,
 /* Removed page-inicio background image to match other pages (use white background)
-  The original rules used /imagens/fundo.png which created a blue background on the home page.
+  The original rules used /images/fundo.png which created a blue background on the home page.
    We'll keep the selectors but force a white background so it matches the rest of the site. */
 html body div.page-wrapper.page-inicio,
 html body .page-wrapper.page-inicio.page-inicio,
@@ -1049,7 +1049,7 @@ body:not(:has(.page-inicio)) {
 /* Esta regra deve vir por último para garantir máxima prioridade */
 /* Especificidade máxima para garantir que a imagem apareça */
 
-/* Final override for page-inicio: ensure white background (removed /imagens/fundo.png) */
+/* Final override for page-inicio: ensure white background (removed /images/fundo.png) */
 html body div.page-wrapper.page-inicio,
 html body .page-wrapper.page-inicio.page-inicio,
 body div.page-wrapper.page-inicio,

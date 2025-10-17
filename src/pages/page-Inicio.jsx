@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MenuLogin } from '../components';
 import '../styles/pages/page-Inicio.css';
-import catalogo1 from '/imagens/catalogo-1.jpg';
-import catalogo2 from '/imagens/catalogo-2.jpg';
-import recall1 from '/imagens/recall-1.jpg';
-import recall2 from '/imagens/recall-2.jpg';
-import guias1 from '/imagens/guias-1.jpg';
-import guias2 from '/imagens/guias-2.jpg';
-import tabelaFIPE1 from '/imagens/tabelaFIPE-1.jpg';
-import tabelaFIPE2 from '/imagens/tabelaFIPE-2.jpg';
+import catalogo1 from '/images/catalogo-1.jpg';
+import catalogo2 from '/images/catalogo-2.jpg';
+import recall1 from '/images/recall-1.jpg';
+import recall2 from '/images/recall-2.jpg';
+import guias1 from '/images/guias-1.jpg';
+import guias2 from '/images/guias-2.jpg';
+import tabelaFIPE1 from '/images/tabelaFIPE-1.jpg';
+import tabelaFIPE2 from '/images/tabelaFIPE-2.jpg';
 
 export default function PageInicio() {
   const navigate = useNavigate();
