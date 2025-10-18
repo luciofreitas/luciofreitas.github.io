@@ -27,6 +27,34 @@
       try {
         localStorage.setItem('supabase_oauth_tokens', JSON.stringify({ access_token: access_token, refresh_token: refresh_token || null }));
       } catch (e) {}
+      // Also POST tokens to backend verify endpoint so the server can upsert the user
+      try {
+        (async function(){
+          const apiBase = (typeof window !== 'undefined' && window.__API_BASE) ? window.__API_BASE : 'https://luciofreitas-github-io.onrender.com';
+          const url = apiBase.replace(/\/$/, '') + '/api/auth/supabase-verify';
+          try {
+            const resp = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ access_token: access_token, refresh_token: refresh_token || null })
+            });
+            if (resp && resp.ok) {
+              try {
+                const j = await resp.json();
+                // Backend responds with { success: true, user: { ... } } on success
+                if (j && j.success && j.user) {
+                  try { localStorage.setItem('usuario-logado', JSON.stringify(j.user)); } catch(e) {}
+                }
+              } catch(e) { /* ignore JSON parse errors */ }
+            } else {
+              // Try to read error body for debugging (non-blocking)
+              try { const txt = await resp.text(); try { localStorage.setItem('oauth_verify_error', txt); } catch(e){} } catch(e){}
+            }
+          } catch(e) {
+            try { localStorage.setItem('oauth_verify_exception', String(e)); } catch(_){}
+          }
+        })();
+      } catch(e) { /* ignore async post errors */ }
     }
   } catch (e) {
     // ignore
