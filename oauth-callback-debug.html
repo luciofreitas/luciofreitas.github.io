@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OAuth Callback Debug</title>
+  <style>body{font-family:sans-serif;margin:16px}pre{background:#f5f5f5;padding:12px;border-radius:6px;overflow:auto}button{padding:8px 12px;margin-top:12px}</style>
+</head>
+<body>
+  <h2>OAuth Callback Debug</h2>
+  <p>This page shows the parsed tokens and the result of POST to <code>/api/auth/supabase-verify</code>. It will not redirect automatically so you can inspect results.</p>
+  <div id="out">
+    <h3>Parsed values</h3>
+    <pre id="parsed">(parsing...)</pre>
+    <h3>POST result</h3>
+    <pre id="post">(not posted yet)</pre>
+  </div>
+  <button id="continue">Continuar para a aplicação</button>
+
+<script>
+(function(){
+  function setText(id, v){ try{ document.getElementById(id).textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2);}catch(e){} }
+  const href = window.location.href || '';
+  const find = (name) => {
+    const re = new RegExp(name + "=([^&#\\/]+)", 'i');
+    const m = href.match(re);
+    return m ? decodeURIComponent(m[1]) : null;
+  };
+  const access_token = find('access_token');
+  const refresh_token = find('refresh_token');
+  const error = find('error');
+  setText('parsed', { href, access_token, refresh_token, error });
+
+  if (access_token) {
+    try { localStorage.setItem('supabase_oauth_tokens', JSON.stringify({ access_token, refresh_token: refresh_token || null })); } catch(e){}
+    // POST to backend
+    (async function(){
+      const apiBase = (typeof window !== 'undefined' && window.__API_BASE) ? window.__API_BASE : 'https://luciofreitas-github-io.onrender.com';
+      const url = apiBase.replace(/\/$/, '') + '/api/auth/supabase-verify';
+      setText('post', `POSTing to ${url} ...`);
+      try {
+        const resp = await fetch(url, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token, refresh_token: refresh_token || null })
+        });
+        const txt = await resp.text().catch(()=>'(no body)');
+        let parsed = txt;
+        try { parsed = JSON.parse(txt); } catch(e) {}
+        setText('post', { status: resp.status, ok: resp.ok, body: parsed });
+        // Save usuario-logado if present
+        try { if (parsed && parsed.success && parsed.user) localStorage.setItem('usuario-logado', JSON.stringify(parsed.user)); } catch(e){}
+      } catch (e) {
+        setText('post', { error: String(e) });
+      }
+    })();
+  }
+
+  document.getElementById('continue').addEventListener('click', function(){ try{ window.location.replace(window.location.origin + '/#/'); } catch(e){ window.location.href = '/#/'; } });
+})();
+</script>
+</body>
+</html>
