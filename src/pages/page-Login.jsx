@@ -176,7 +176,9 @@ export default function Login() {
                           // Use HashRouter-aware redirect so Supabase returns token in a URL
                           // that the SPA can parse (place redirect after the hash). This helps
                           // when the app uses HashRouter instead of BrowserRouter.
-                          const redirectTo = window.location.origin + '/#/';
+                          // Use the static oauth callback so the provider returns tokens to a
+                          // minimal page that can capture them reliably before the SPA runs.
+                          const redirectTo = window.location.origin + '/oauth-callback.html';
                           const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
                           if (error) {
                             console.error('Supabase Google sign-in error:', error);
