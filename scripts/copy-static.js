@@ -44,4 +44,14 @@ if (fs.existsSync(partsSrc)) {
   console.warn('No src/data/parts_db.json found at', partsSrc);
 }
 
+// Copy oauth-callback.html from public if present
+const callbackSrc = path.join(root, 'public', 'oauth-callback.html');
+const callbackDest = path.join(dist, 'oauth-callback.html');
+if (fs.existsSync(callbackSrc)) {
+  copyFile(callbackSrc, callbackDest);
+} else {
+  // it's optional; warn to help debugging
+  console.warn('No public/oauth-callback.html found at', callbackSrc);
+}
+
 console.log('static copy complete');
