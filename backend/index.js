@@ -660,6 +660,119 @@ app.get('/api/compatibility/sku/:sku', async (req, res) => {
 // The project no longer uses Firebase for client auth verification. Use
 // /api/auth/supabase-verify for Supabase-authenticated users instead.
 
+// Optional Firebase ID token verification endpoint.
+// If you want to accept Firebase ID tokens from the frontend (e.g. when using
+// Firebase client SDK for Google popup sign-in), set FIREBASE_SERVICE_ACCOUNT_JSON
+// (the JSON content of a service account) or the path in FIREBASE_SERVICE_ACCOUNT_PATH
+// in the backend environment. When configured, this endpoint will verify the
+// Firebase ID token and upsert the user similar to supabase-verify.
+let firebaseAdmin = null;
+let firebaseAdminInitialized = false;
+function tryInitFirebaseAdmin() {
+  if (firebaseAdminInitialized) return;
+  firebaseAdminInitialized = true;
+  try {
+    const admin = require('firebase-admin');
+    let serviceAccount = null;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+      } catch (e) {
+        console.warn('FIREBASE_SERVICE_ACCOUNT_JSON invalid JSON');
+      }
+    }
+    if (!serviceAccount && process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+      try {
+        serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
+      } catch (e) {
+        console.warn('Could not load FIREBASE_SERVICE_ACCOUNT_PATH', process.env.FIREBASE_SERVICE_ACCOUNT_PATH, e && e.message ? e.message : e);
+      }
+    }
+    if (!serviceAccount) {
+      // Do not throw here - we'll just mark admin as unavailable
+      console.info('Firebase Admin not configured (no service account provided)');
+      firebaseAdmin = null;
+      return;
+    }
+    try {
+      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      firebaseAdmin = admin;
+      console.log('Firebase Admin initialized for token verification');
+    } catch (e) {
+      console.warn('Failed to initialize Firebase Admin:', e && e.message ? e.message : e);
+      firebaseAdmin = null;
+    }
+  } catch (e) {
+    console.info('firebase-admin package not installed or failed to load');
+    firebaseAdmin = null;
+  }
+}
+
+app.post('/api/auth/firebase-verify', async (req, res) => {
+  // Initialize firebase-admin lazily if possible
+  tryInitFirebaseAdmin();
+  if (!firebaseAdmin) return res.status(503).json({ error: 'Firebase Admin not configured on server' });
+
+  const authHeader = req.headers.authorization || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : (req.body && (req.body.idToken || req.body.access_token));
+  if (!idToken) return res.status(400).json({ error: 'idToken required (use Authorization: Bearer <idToken> or body.idToken)' });
+
+  try {
+    const decoded = await firebaseAdmin.auth().verifyIdToken(idToken);
+    if (!decoded || !decoded.uid) return res.status(401).json({ error: 'invalid token' });
+    const uid = decoded.uid;
+    const email = decoded.email || null;
+    let photoURL = decoded.picture || null;
+    let name = decoded.name || decoded.displayName || null;
+
+    // Try fetching user record from Firebase Admin for richer profile
+    try {
+      const userRecord = await firebaseAdmin.auth().getUser(uid);
+      if (!name) name = userRecord.displayName || null;
+      photoURL = photoURL || userRecord.photoURL || null;
+    } catch (e) {
+      // ignore failures to fetch user record
+      console.warn('firebase-verify: getUser failed', e && e.message ? e.message : e);
+    }
+
+    // Upsert into Postgres if available (reuse logic from supabase-verify)
+    if (pgClient) {
+      try {
+        let nameCol = userNameColumn || 'name';
+        try {
+          const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users'");
+          const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+          if (names.indexOf('nome') >= 0) nameCol = 'nome';
+          else if (names.indexOf('name') >= 0) nameCol = 'name';
+        } catch (e) {}
+
+        const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
+          VALUES($1, $2, $3, $4, now(), now())
+          ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
+        try {
+          await pgClient.query(insertSql, [uid, email, name, photoURL]);
+        } catch (e) {
+          console.warn('firebase-verify: Upsert query failed', e && e.message ? e.message : e);
+        }
+
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em FROM users WHERE id = $1`, [uid]);
+        if (r.rowCount > 0) {
+          const row = r.rows[0];
+          const displayName = ((row.name || '') + '').trim();
+          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro, created_at: row.criado_em || null } });
+        }
+      } catch (e) {
+        console.warn('firebase-verify: DB upsert failed, continuing with token user:', e && e.message ? e.message : e);
+      }
+    }
+
+    return res.json({ success: true, user: { id: uid, email, name: name || (email ? email.split('@')[0] : ''), nome: name || (email ? email.split('@')[0] : ''), photoURL: photoURL || null } });
+  } catch (err) {
+    console.error('firebase-verify error:', err && err.stack ? err.stack : err);
+    return res.status(401).json({ error: 'invalid token' });
+  }
+});
+
 // Verify Supabase access token (recommended flow when frontend uses Supabase Auth)
 app.post('/api/auth/supabase-verify', async (req, res) => {
   // Accept token via Authorization header (Bearer) or body.access_token
