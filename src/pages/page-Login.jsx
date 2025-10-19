@@ -7,8 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { ToggleCar } from '../components';
 // Using Supabase OAuth for Google login instead of Firebase
-import supabase from '../supabase';
-import { FaGoogle } from 'react-icons/fa';
+import { signInWithGooglePopup } from '../firebaseAuth';
 
 const usuariosDemoGlobais = [
   { id: 'demo1', nome: 'Usuário Demo', email: 'demo@pecafacil.com', senha: '123456', celular: '11999999999', isDemo: true },
@@ -163,39 +162,66 @@ export default function Login() {
                       title="Entrar com Google"
                       disabled={googleLoading}
                       onClick={async () => {
-                        if (googleLoading) return; // Prevenir múltiplos cliques
-                        
+                        if (googleLoading) return; // prevent multiple clicks
                         setGoogleLoading(true);
                         setError('');
-                        
                         try {
-                          // Start Supabase OAuth flow for Google. This will return a redirect URL
-                          // which for SPAs we can follow to complete the OAuth flow.
-                          // Use redirect flow explicitly to avoid popup/opener cross-origin issues
-                          // Provide a redirectTo that matches the app origin (HashRouter will handle routing)
-                          // Use HashRouter-aware redirect so Supabase returns token in a URL
-                          // that the SPA can parse (place redirect after the hash). This helps
-                          // when the app uses HashRouter instead of BrowserRouter.
-                          // Use the debug oauth callback during troubleshooting so the callback
-                          // shows tokens and backend response without auto-redirecting.
-                          const redirectTo = window.location.origin + '/oauth-callback-debug.html';
-                          const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
-                          if (error) {
-                            console.error('Supabase Google sign-in error:', error);
+                          const res = await signInWithGooglePopup();
+                          if (res.error) {
+                            console.error('Firebase popup error', res.error);
                             setError('Erro no login com Google. Tente novamente.');
                             setGoogleLoading(false);
                             return;
                           }
-                          if (data && data.url) {
-                            if (window.showToast) window.showToast('Redirecionando para o provedor de login...', 'info', 2000);
-                            // Redirect to Supabase-hosted OAuth URL
-                            window.location.href = data.url;
+                          const user = res.user;
+                          if (!user) {
+                            setError('Falha ao obter usuário do provedor.');
+                            setGoogleLoading(false);
                             return;
                           }
-                          setError('Não foi possível iniciar o login com Google. Tente novamente.');
+
+                          // Get ID token and send to backend for verification/upsert
+                          const idToken = await user.getIdToken();
+                          const apiBase = window.__API_BASE || '';
+                          const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                            body: JSON.stringify({})
+                          });
+
+                          if (!resp.ok) {
+                            console.warn('Backend firebase-verify failed', resp.status);
+                            setError('Erro ao verificar conta. Tente novamente.');
+                            setGoogleLoading(false);
+                            return;
+                          }
+
+                          const body = await resp.json().catch(() => ({}));
+                          const usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
+                          // Fallback to using Firebase user fields if backend didn't return user
+                          const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
+                          const normalizedUsuario = usuario ? {
+                            ...usuario,
+                            nome: usuario.nome || usuario.name || nomeFromToken,
+                            name: usuario.name || usuario.nome || nomeFromToken,
+                            access_token: idToken,
+                            photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
+                          } : {
+                            id: user.uid,
+                            email: user.email,
+                            nome: nomeFromToken,
+                            name: nomeFromToken,
+                            access_token: idToken,
+                            photoURL: user.photoURL || null
+                          };
+
+                          if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+                          try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+                          if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+                          navigate('/buscar-pecas');
                         } catch (err) {
-                          console.error('Unexpected error:', err);
-                          setError('Erro inesperado. Tente novamente.');
+                          console.error('Google popup flow failed', err && err.message ? err.message : err);
+                          setError('Erro inesperado durante login. Tente novamente.');
                         } finally {
                           setGoogleLoading(false);
                         }
