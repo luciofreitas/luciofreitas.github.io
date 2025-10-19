@@ -23,9 +23,19 @@ try {
     if (window.__API_BASE) {
       console.log('[runtime] API base already set to', window.__API_BASE);
     } else {
-      // If the page is running on GH Pages or another static host, index.html
-      // should inject window.__API_BASE. Do not set a build-time value here.
-      console.log('[runtime] API base not injected by index.html; leaving unset');
+      // If we're running locally, set the API base to the backend dev server (3001).
+      // This avoids accidentally sending API requests to the Vite dev server (5174).
+      try {
+        if (window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          window.__API_BASE = `${window.location.protocol}//${window.location.hostname}:3001`;
+          console.log('[runtime] API base set to local backend', window.__API_BASE);
+        } else {
+          // For non-local hosts, rely on index.html runtime injector (production)
+          console.log('[runtime] API base not injected by index.html; leaving unset');
+        }
+      } catch (e) {
+        console.warn('[runtime] failed to set local API base', e && e.message ? e.message : e);
+      }
     }
   }
 } catch (e) {
