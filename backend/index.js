@@ -37,6 +37,16 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Simple request logger to help debug missing routes / 404s in dev
+app.use((req, res, next) => {
+  try {
+    const now = new Date().toISOString();
+    const origin = req.headers.origin || req.headers.referer || '-';
+    console.log(`[req] ${now} ${req.method} ${req.path} origin=${origin}`);
+  } catch (e) { /* ignore logging errors */ }
+  next();
+});
+
 // Helper: verify Supabase access token using service role key (server-side)
 async function verifySupabaseAccessToken(accessToken){
   if(!accessToken) return null;
