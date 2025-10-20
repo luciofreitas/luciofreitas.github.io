@@ -183,21 +183,29 @@ export default function Login() {
                           // Get ID token and send to backend for verification/upsert
                           const idToken = await user.getIdToken();
                           const apiBase = window.__API_BASE || '';
-                          const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-                            body: JSON.stringify({})
-                          });
+                          let usuario = null;
+                          try {
+                            const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                              body: JSON.stringify({})
+                            });
 
-                          if (!resp.ok) {
-                            console.warn('Backend firebase-verify failed', resp.status);
-                            setError('Erro ao verificar conta. Tente novamente.');
-                            setGoogleLoading(false);
-                            return;
+                            if (resp.ok) {
+                              const body = await resp.json().catch(() => ({}));
+                              usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
+                            } else {
+                              // Backend returned non-ok (could be down/unreachable). We'll fallback to using
+                              // the Firebase client user so the login still proceeds on GitHub Pages.
+                              console.warn('Backend firebase-verify returned non-ok', resp.status);
+                              usuario = null;
+                            }
+                          } catch (fetchErr) {
+                            // Network error (CORS, DNS, offline...). Fallback to client-side user.
+                            console.warn('Failed to call backend firebase-verify:', fetchErr && fetchErr.message ? fetchErr.message : fetchErr);
+                            usuario = null;
                           }
 
-                          const body = await resp.json().catch(() => ({}));
-                          const usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
                           // Fallback to using Firebase user fields if backend didn't return user
                           const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
                           const normalizedUsuario = usuario ? {
