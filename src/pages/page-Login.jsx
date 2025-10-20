@@ -7,7 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { ToggleCar } from '../components';
 // Using Supabase OAuth for Google login instead of Firebase
-import { signInWithGooglePopup } from '../firebaseAuth';
+import { signInWithGooglePopup, startGoogleRedirect, handleRedirectResult } from '../firebaseAuth';
 
 const usuariosDemoGlobais = [
   { id: 'demo1', nome: 'Usuário Demo', email: 'demo@pecafacil.com', senha: '123456', celular: '11999999999', isDemo: true },
@@ -23,6 +23,8 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
+  // Detect mobile: prefer user agent check for mobile devices or small viewport
+  const isMobile = (typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent)) || (typeof window !== 'undefined' && window.innerWidth <= 768);
   // prefill email when redirected from cadastro
   useEffect(() => {
     try {
@@ -36,6 +38,54 @@ export default function Login() {
   const { setUsuarioLogado } = useContext(AuthContext || {});
 
   useEffect(() => { try { localStorage.setItem('__test_localStorage__', 'test'); localStorage.removeItem('__test_localStorage__'); } catch (e) {} }, []);
+
+  // Handle Firebase redirect result (for mobile flows using signInWithRedirect)
+  useEffect(() => {
+    (async () => {
+      try {
+        const result = await handleRedirectResult();
+        if (result && result.user) {
+          // We have a Firebase user from redirect; proceed with same logic as popup success
+          const user = result.user;
+          const idToken = await user.getIdToken();
+          const apiBase = window.__API_BASE || '';
+          let usuario = null;
+          try {
+            const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+              body: JSON.stringify({})
+            });
+            if (resp.ok) {
+              const body = await resp.json().catch(() => ({}));
+              usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
+            }
+          } catch (e) { /* ignore and fallback to client user */ }
+
+          const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
+          const normalizedUsuario = usuario ? {
+            ...usuario,
+            nome: usuario.nome || usuario.name || nomeFromToken,
+            name: usuario.name || usuario.nome || nomeFromToken,
+            access_token: idToken,
+            photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
+          } : {
+            id: user.uid,
+            email: user.email,
+            nome: nomeFromToken,
+            name: nomeFromToken,
+            access_token: idToken,
+            photoURL: user.photoURL || null
+          };
+
+          if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+          try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+          if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+          navigate('/buscar-pecas');
+        }
+      } catch (e) { /* ignore redirect errors */ }
+    })();
+  }, [setUsuarioLogado, navigate]);
 
   function getUsuarios() {
     let usuarios = [...usuariosDemoGlobais];
@@ -162,78 +212,90 @@ export default function Login() {
                       title="Entrar com Google"
                       disabled={googleLoading}
                       onClick={async () => {
-                        if (googleLoading) return; // prevent multiple clicks
-                        setGoogleLoading(true);
-                        setError('');
-                        try {
-                          const res = await signInWithGooglePopup();
-                          if (res.error) {
-                            console.error('Firebase popup error', res.error);
-                            setError('Erro no login com Google. Tente novamente.');
-                            setGoogleLoading(false);
-                            return;
-                          }
-                          const user = res.user;
-                          if (!user) {
-                            setError('Falha ao obter usuário do provedor.');
-                            setGoogleLoading(false);
-                            return;
-                          }
-
-                          // Get ID token and send to backend for verification/upsert
-                          const idToken = await user.getIdToken();
-                          const apiBase = window.__API_BASE || '';
-                          let usuario = null;
+                          if (googleLoading) return; // prevent multiple clicks
+                          setGoogleLoading(true);
+                          setError('');
                           try {
-                            const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-                              body: JSON.stringify({})
-                            });
+                            if (isMobile) {
+                              // On mobile, use redirect flow which is more reliable in mobile browsers
+                              const started = await startGoogleRedirect();
+                              if (started && started.error) {
+                                console.error('Failed to start redirect', started.error);
+                                setError('Erro no login com Google. Tente novamente.');
+                              }
+                              // Redirect has been initiated; the browser will navigate away. Do not proceed further here.
+                              return;
+                            }
 
-                            if (resp.ok) {
-                              const body = await resp.json().catch(() => ({}));
-                              usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
-                            } else {
-                              // Backend returned non-ok (could be down/unreachable). We'll fallback to using
-                              // the Firebase client user so the login still proceeds on GitHub Pages.
-                              console.warn('Backend firebase-verify returned non-ok', resp.status);
+                            // Desktop: use popup flow
+                            const res = await signInWithGooglePopup();
+                            if (res.error) {
+                              console.error('Firebase popup error', res.error);
+                              setError('Erro no login com Google. Tente novamente.');
+                              setGoogleLoading(false);
+                              return;
+                            }
+                            const user = res.user;
+                            if (!user) {
+                              setError('Falha ao obter usuário do provedor.');
+                              setGoogleLoading(false);
+                              return;
+                            }
+
+                            // Get ID token and send to backend for verification/upsert
+                            const idToken = await user.getIdToken();
+                            const apiBase = window.__API_BASE || '';
+                            let usuario = null;
+                            try {
+                              const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                                body: JSON.stringify({})
+                              });
+
+                              if (resp.ok) {
+                                const body = await resp.json().catch(() => ({}));
+                                usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
+                              } else {
+                                // Backend returned non-ok (could be down/unreachable). We'll fallback to using
+                                // the Firebase client user so the login still proceeds on GitHub Pages.
+                                console.warn('Backend firebase-verify returned non-ok', resp.status);
+                                usuario = null;
+                              }
+                            } catch (fetchErr) {
+                              // Network error (CORS, DNS, offline...). Fallback to client-side user.
+                              console.warn('Failed to call backend firebase-verify:', fetchErr && fetchErr.message ? fetchErr.message : fetchErr);
                               usuario = null;
                             }
-                          } catch (fetchErr) {
-                            // Network error (CORS, DNS, offline...). Fallback to client-side user.
-                            console.warn('Failed to call backend firebase-verify:', fetchErr && fetchErr.message ? fetchErr.message : fetchErr);
-                            usuario = null;
+
+                            // Fallback to using Firebase user fields if backend didn't return user
+                            const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
+                            const normalizedUsuario = usuario ? {
+                              ...usuario,
+                              nome: usuario.nome || usuario.name || nomeFromToken,
+                              name: usuario.name || usuario.nome || nomeFromToken,
+                              access_token: idToken,
+                              photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
+                            } : {
+                              id: user.uid,
+                              email: user.email,
+                              nome: nomeFromToken,
+                              name: nomeFromToken,
+                              access_token: idToken,
+                              photoURL: user.photoURL || null
+                            };
+
+                            if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+                            try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+                            if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+                            navigate('/buscar-pecas');
+                          } catch (err) {
+                            console.error('Google popup flow failed', err && err.message ? err.message : err);
+                            setError('Erro inesperado durante login. Tente novamente.');
+                          } finally {
+                            setGoogleLoading(false);
                           }
-
-                          // Fallback to using Firebase user fields if backend didn't return user
-                          const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
-                          const normalizedUsuario = usuario ? {
-                            ...usuario,
-                            nome: usuario.nome || usuario.name || nomeFromToken,
-                            name: usuario.name || usuario.nome || nomeFromToken,
-                            access_token: idToken,
-                            photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
-                          } : {
-                            id: user.uid,
-                            email: user.email,
-                            nome: nomeFromToken,
-                            name: nomeFromToken,
-                            access_token: idToken,
-                            photoURL: user.photoURL || null
-                          };
-
-                          if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
-                          try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
-                          if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
-                          navigate('/buscar-pecas');
-                        } catch (err) {
-                          console.error('Google popup flow failed', err && err.message ? err.message : err);
-                          setError('Erro inesperado durante login. Tente novamente.');
-                        } finally {
-                          setGoogleLoading(false);
-                        }
-                      }}>
+                        }}>
                       {/* Colored Google G SVG */}
                       <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
                         <path fill="#EA4335" d="M24 9.5c3.9 0 7.1 1.4 9.2 3.2l6.8-6.6C35.6 3 30.1 1 24 1 14.7 1 6.9 6.6 3.1 14.7l7.9 6.1C12.4 15.1 17.7 9.5 24 9.5z"/>
