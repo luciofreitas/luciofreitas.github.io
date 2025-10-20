@@ -75,8 +75,22 @@
   font-size: 0.95rem !important;
 }
 
+/* Avatar image styling - match initials badge size and make circular */
+.user-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 999px !important;
+  object-fit: cover !important;
+  display: inline-block !important;
+}
+
 /* Mobile adjustments for smaller initials badge */
 .user-initials-mobile { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }
+
+/* Mobile avatar size override to match mobile initials */
+@media (max-width: 48rem) {
+  .user-avatar { width: 32px !important; height: 32px !important; }
+}
 
 /* Mobile: esconder ícone grande, mostrar ícone pequeno */
 @media (max-width: 48rem) {
