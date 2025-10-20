@@ -136,6 +136,34 @@
   display: block !important;
 }
 
+/* Final safeguard: if any rule still forces a larger natural size, explicitly cap and round the image
+   using the most specific selector and ensure it cannot overflow. This also covers inline styles. */
+.site-header button.user-button.icon-only > img.user-avatar,
+.menu-login-root button.user-button.icon-only > img.user-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 999px !important; /* make the image itself circular as a fallback */
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+}
+
+@media (max-width: 48rem) {
+  .site-header button.user-button.icon-only > img.user-avatar,
+  .menu-login-root button.user-button.icon-only > img.user-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+}
+
 /* Mobile: esconder ícone grande, mostrar ícone pequeno */
 @media (max-width: 48rem) {
   .user-icon-desktop {
