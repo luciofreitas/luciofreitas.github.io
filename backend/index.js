@@ -719,6 +719,20 @@ function tryInitFirebaseAdmin() {
 }
 
 app.post('/api/auth/firebase-verify', async (req, res) => {
+  // DEV bypass: when developing locally you can set DEV_FIREBASE_BYPASS=true
+  // and the server will accept the request and return a lightweight fake user
+  // (DO NOT enable in production). This makes it faster to iterate the
+  // frontend login flow without wiring a Firebase service account.
+  try {
+    if (String(process.env.DEV_FIREBASE_BYPASS || '').toLowerCase() === 'true') {
+      const authHeader = req.headers.authorization || '';
+      const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : (req.body && (req.body.idToken || req.body.access_token));
+      const uid = (req.body && req.body.uid) || (idToken ? `dev_${String(idToken).slice(0,8)}` : `dev_${Date.now()}`);
+      const email = (req.body && req.body.email) || `devuser+${Date.now()}@localhost`;
+      return res.json({ success: true, user: { id: uid, email, name: email.split('@')[0], nome: email.split('@')[0], photoURL: null } });
+    }
+  } catch (e) { /* ignore dev bypass errors */ }
+
   // Initialize firebase-admin lazily if possible
   tryInitFirebaseAdmin();
   if (!firebaseAdmin) return res.status(503).json({ error: 'Firebase Admin not configured on server' });
