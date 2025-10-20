@@ -92,6 +92,31 @@
   .user-avatar { width: 32px !important; height: 32px !important; }
 }
 
+/* Stronger clipping: make the icon-only user button a circular container that clips the image
+   and ensure the image fills the container. This avoids square images when other rules interfere. */
+.user-menu-root .user-button.icon-only {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  overflow: hidden !important; /* clip the image to the circle */
+}
+
+.user-menu-root .user-button.icon-only .user-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important; /* parent already rounds and clips */
+  object-fit: cover !important;
+  display: block !important;
+}
+
+@media (max-width: 48rem) {
+  .user-menu-root .user-button.icon-only { width: 32px !important; height: 32px !important; }
+}
+
 /* Mobile: esconder ícone grande, mostrar ícone pequeno */
 @media (max-width: 48rem) {
   .user-icon-desktop {
