@@ -58,7 +58,6 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
             src={photoURL}
             alt={nome ? `Avatar de ${nome}` : 'Avatar do usuário'}
             className="user-avatar"
-            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
           <>
