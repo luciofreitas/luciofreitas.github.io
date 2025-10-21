@@ -43,16 +43,20 @@ async function run(){
     await client.connect();
     console.log('Connected to Postgres');
     
-    // Executar init.sql primeiro
-    const initSqlPath = path.join(__dirname, 'migrations', 'init.sql');
-    if(fs.existsSync(initSqlPath)){
-      const initSql = fs.readFileSync(initSqlPath, 'utf8');
-      console.log('Applying init schema from', initSqlPath);
-      try{
-        await client.query(initSql);
-        console.log('Init migration applied successfully');
-      }catch(e){
-        console.warn('Init migration error:', e.message);
+    // Apply all .sql files in migrations/ in sorted order
+    const migrationsDir = path.join(__dirname, 'migrations');
+    if(fs.existsSync(migrationsDir)){
+      const files = fs.readdirSync(migrationsDir).filter(f=>f.toLowerCase().endsWith('.sql')).sort();
+      for(const f of files){
+        const p = path.join(migrationsDir, f);
+        try{
+          const sql = fs.readFileSync(p, 'utf8');
+          console.log('Applying migration', p);
+          await client.query(sql);
+          console.log('Applied', f);
+        }catch(e){
+          console.warn('Migration', f, 'failed:', e && e.message ? e.message : e);
+        }
       }
     }
     

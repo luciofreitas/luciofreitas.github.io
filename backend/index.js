@@ -1290,17 +1290,20 @@ app.post('/api/guias/:id/ratings', async (req, res) => {
 
   if (pgClient) {
     try {
-      // Buscar avaliações existentes
-      const result = await pgClient.query('SELECT ratings FROM guias WHERE id = $1', [id]);
-      const existing = result && result.rows && result.rows[0] ? result.rows[0].ratings || [] : [];
-      // Remover avaliação anterior do mesmo usuário, se houver
-      const filtered = (existing || []).filter(r => String(r.userEmail || '').toLowerCase() !== String(userEmail).toLowerCase());
-      const novo = { userEmail, rating, timestamp: new Date().toISOString() };
-      filtered.push(novo);
-      // Atualizar a coluna ratings (JSONB)
-      const upd = await pgClient.query('UPDATE guias SET ratings = $1 WHERE id = $2 RETURNING *', [JSON.stringify(filtered), id]);
-      const updated = upd && upd.rows && upd.rows[0] ? snakeToCamelKeys(upd.rows[0]) : null;
-      return res.json({ success: true, guia: updated });
+      // Prefer normalized storage: insert/update into guia_ratings table
+      const upsertSql = `
+        INSERT INTO guia_ratings (guia_id, user_email, rating, comment, created_at)
+        VALUES ($1, $2, $3, $4, now())
+        ON CONFLICT (guia_id, user_email) DO UPDATE SET rating = EXCLUDED.rating, comment = EXCLUDED.comment, created_at = now()
+        RETURNING *
+      `;
+      await pgClient.query(upsertSql, [id, userEmail, rating, null]);
+
+      // Return aggregate info (total count and average) and optionally guia info
+      const agg = await pgClient.query('SELECT COUNT(*)::int AS total, COALESCE(AVG(rating)::numeric, 0) AS average FROM guia_ratings WHERE guia_id = $1', [id]);
+      const total = agg.rows[0] ? agg.rows[0].total : 0;
+      const average = agg.rows[0] ? Number(agg.rows[0].average) : 0;
+      return res.json({ success: true, guiaId: id, ratings: { total, average } });
     } catch (err) {
       console.error('Error adding rating to guia:', err && err.message ? err.message : err);
       return res.status(500).json({ error: err && err.message ? err.message : String(err) });
