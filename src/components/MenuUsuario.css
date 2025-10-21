@@ -52,16 +52,7 @@
   display: inline-block !important;
 }
 
-/* Use background-based avatar to avoid natural-image-size issues in headers */
-.user-avatar-bg {
-  background-size: cover !important;
-  background-position: center center !important;
-  background-repeat: no-repeat !important;
-  width: 100% !important;
-  height: 100% !important;
-  display: block !important;
-  border-radius: 999px !important;
-}
+
 
 /* Styling for initials fallback to ensure centered, visible badge */
 .user-initials-desktop,
