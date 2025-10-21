@@ -36,8 +36,16 @@ class GuiasService {
       const response = await fetch(url);
       console.debug('[guiasService] loadGuias: response status', response.status);
       if (response.ok) {
-        this.guias = await response.json();
+        const remoteGuias = await response.json();
+        // Merge remote guias with any optimistic local guias we created but which
+        // are not yet present in the remote response. This avoids briefly hiding
+        // newly-created guides when the client navigates immediately after create.
+        const remoteIds = new Set(remoteGuias.map(g => g.id));
+        const localOnly = (this.guias || []).filter(g => !remoteIds.has(g.id));
+        this.guias = [...localOnly, ...remoteGuias];
         console.debug('[guiasService] loadGuias: received', this.guias && this.guias.length, 'items', this.guias.map(g=>g.id).slice(0,10));
+        // persist fallback copy
+        this.saveGuias();
         return this.guias;
       } else {
         let text = '';
@@ -48,15 +56,38 @@ class GuiasService {
       console.warn('API loadGuias failed, falling back to localStorage:', error);
     }
 
-    // Fallback localStorage
+    // Fallback localStorage and static JSON
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      this.guias = stored ? JSON.parse(stored) : [];
-      return this.guias;
+      if (stored) {
+        this.guias = JSON.parse(stored);
+        return this.guias;
+      }
     } catch (error) {
-      console.error('Erro ao carregar guias:', error);
-      return [];
+      console.error('Erro ao ler localStorage de guias:', error);
+      // continue to next fallback
     }
+
+    // If we have in-memory guias already, keep them (avoids accidental clearing)
+    if (this.guias && this.guias.length) {
+      return this.guias;
+    }
+
+    // Try static JSON fallback (useful when site is deployed static to GitHub Pages)
+    try {
+      const jsonPath = '/data/guias.json';
+      const resp = await fetch(jsonPath);
+      if (resp.ok) {
+        this.guias = await resp.json();
+        return this.guias;
+      }
+    } catch (error) {
+      console.warn('JSON fallback for guias not available:', error);
+    }
+
+    // Nothing available: return empty array (but do not overwrite existing in-memory if present)
+    this.guias = this.guias || [];
+    return this.guias;
   }
 
   // Salvar guias no localStorage (fallback apenas)
@@ -85,7 +116,14 @@ class GuiasService {
       views: 0
     };
 
-    // Tentar API primeiro (tanto localhost quanto produção)
+    // Optimistic local update: add to in-memory list and persist immediately so
+    // the UI shows the newly-created guia without waiting for the network.
+    this.guias = this.guias || [];
+    this.guias.unshift(newGuia); // put newest first
+    this.saveGuias();
+
+    // Tentar API (só para persistência). On success we'll reload and merge
+    // remote guias to reconcile IDs and server-side fields.
     try {
       const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
         || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
@@ -99,19 +137,18 @@ class GuiasService {
       console.debug('[guiasService] createGuia: response status', response.status);
       if (response.ok) {
         const result = await response.json();
-        console.debug('[guiasService] createGuia: created', result);
-        await this.loadGuias(); // Recarregar lista
-        return newGuia;
+        console.debug('[guiasService] createGuia: created remote', result);
+        // Reload and merge remote list to pick up authoritative server IDs/fields
+        await this.loadGuias();
+        return result.guia || newGuia;
       } else {
         console.warn('[guiasService] createGuia: non-ok response', response.status, response.statusText);
       }
     } catch (error) {
-      console.warn('API createGuia failed, falling back to localStorage:', error);
+      console.warn('API createGuia failed (optimistic local saved):', error);
     }
 
-    // Fallback localStorage
-    this.guias.push(newGuia);
-    this.saveGuias();
+    // Return optimistic guia (already saved to localStorage)
     return newGuia;
   }
 

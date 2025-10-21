@@ -5,8 +5,14 @@ const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAv
   const jaVotou = votosUsuario[guiaId] !== undefined;
 
   const handleClick = (estrela) => {
-    if (!somenteLeitura && !jaVotou) {
-      onAvaliar(guiaId, estrela);
+    console.debug('[ComponenteEstrelas] click', { guiaId, estrela, somenteLeitura, jaVotou });
+    // Delegate final authorization/duplicate-vote checks to the parent handler.
+    if (!somenteLeitura) {
+      try {
+        onAvaliar(guiaId, estrela);
+      } catch (e) {
+        console.warn('[ComponenteEstrelas] onAvaliar threw', e);
+      }
     }
   };
 
@@ -17,20 +23,21 @@ const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAv
       : (estrelaBrilhante ? '#FFAB00' : '#d1d5db');
 
     return (
-      <span
+      <button
         key={indice}
+        type="button"
+        aria-label={`${indice} ${indice === 1 ? 'estrela' : 'estrelas'}`}
         className={`estrela ${!somenteLeitura && !jaVotou ? 'estrela-interativa' : ''}`}
-        style={{ 
+        style={{
           color: corEstrela,
-          fontSize: '1.2rem',
-          cursor: !somenteLeitura && !jaVotou ? 'pointer' : 'default'
+          fontSize: '1.2rem'
         }}
         onClick={() => handleClick(indice)}
         onMouseEnter={() => !somenteLeitura && !jaVotou && setHoverEstrela(indice)}
         onMouseLeave={() => !somenteLeitura && !jaVotou && setHoverEstrela(0)}
       >
         ★
-      </span>
+      </button>
     );
   };
 

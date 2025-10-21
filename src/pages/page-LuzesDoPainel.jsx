@@ -24,8 +24,8 @@ function LuzesDoPainel() {
     cor: ''
   });
 
-  // Hook customizado para avaliações
-  const { avaliacoes, votosUsuario, avaliarGuia } = useAvaliacoes();
+  // Hook customizado para avaliações (namespace por email do usuário)
+  const { avaliacoes, votosUsuario, avaliarGuia } = useAvaliacoes(usuarioLogado?.email);
 
   // Carregar dados do glossário
   useEffect(() => {

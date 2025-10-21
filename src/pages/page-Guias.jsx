@@ -12,7 +12,7 @@ function PageGuias() {
   const { usuarioLogado } = useContext(AuthContext) || {};
 
   // Hook customizado para avaliações dos guias fixos
-  const { avaliacoes, votosUsuario, avaliarGuia } = useAvaliacoes();
+  const { avaliacoes, votosUsuario, avaliarGuia } = useAvaliacoes(usuarioLogado?.email);
 
   // Estado para guias customizados
   const [guiasCustomizados, setGuiasCustomizados] = useState([]);
@@ -55,8 +55,18 @@ function PageGuias() {
       alert('Faça login para avaliar guias');
       return;
     }
+    // Update the shared "avaliacoes" state so votosUsuario (from the hook)
+    // is updated and the UI shows the user's vote immediately.
+    try {
+      avaliarGuia(guiaId, rating);
+    } catch (err) {
+      console.warn('avaliarGuia hook failed:', err);
+    }
+
+    // Also persist rating to the guiasService (local/DB) for community guides
     guiasService.addRating(guiaId, usuarioLogado.email, rating);
-    // Recarregar guias para atualizar rating
+
+    // Recarregar guias para atualizar rating and any status changes
     (async () => {
       try {
         const guiasAtualizados = await guiasService.getVisibleGuias(usuarioLogado?.email);
@@ -65,6 +75,19 @@ function PageGuias() {
         console.error('Erro ao recarregar guias após avaliação:', err);
       }
     })();
+
+    // Optimistic UI update: increment the ratings count locally so the total
+    // avaliações appears immediately (before the background reload completes).
+    setGuiasCustomizados(prev => prev.map(g => {
+      if (g.id !== guiaId) return g;
+      const alreadyVoted = (g.ratings || []).some(r => r.userEmail === usuarioLogado.email);
+      if (alreadyVoted) return g; // avoid dup
+      const novoRating = { userEmail: usuarioLogado.email, rating, timestamp: new Date().toISOString() };
+      return {
+        ...g,
+        ratings: [...(g.ratings || []), novoRating]
+      };
+    }));
   };
 
   // Handler para incrementar visualizações
@@ -132,7 +155,6 @@ function PageGuias() {
                 <div className="guia-content">
                   <h3 className="guia-titulo">{guia.titulo}</h3>
                   <p className="guia-subtitulo">{guia.subtitulo}</p>
-                  <p className="guia-descricao">{guia.descricao}</p>
                   
                   {/* Sistema de Avaliação */}
                   <div className="guia-avaliacao">
@@ -184,7 +206,6 @@ function PageGuias() {
                     
                     <div className="guia-content">
                       <h3 className="guia-titulo">{guia.titulo}</h3>
-                      <p className="guia-descricao">{guia.descricao}</p>
                       
                       {isOculto && isAutor && (
                         <div className="guia-status-warning">
@@ -193,12 +214,13 @@ function PageGuias() {
                       )}
 
                       <div className="guia-avaliacao">
-                        <RatingStars
-                          rating={averageRating}
-                          totalRatings={(guia.ratings || []).length}
-                          onRate={(rating) => handleAvaliarGuiaCustomizado(guia.id, rating)}
-                          readOnly={isAutor || !usuarioLogado}
-                          size="medium"
+                        <ComponenteEstrelas
+                          guiaId={guia.id}
+                          mediaAtual={averageRating}
+                          totalVotos={(guia.ratings || []).length}
+                          votosUsuario={votosUsuario}
+                          onAvaliar={(id, rating) => handleAvaliarGuiaCustomizado(id, rating)}
+                          somenteLeitura={isAutor || !usuarioLogado}
                         />
                         {guia.views > 0 && (
                           <span className="guia-views">👁️ {guia.views} visualizações</span>

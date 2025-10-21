@@ -12,11 +12,14 @@ function RatingStars({
 }) {
   const [hoverRating, setHoverRating] = useState(0);
   const [isRating, setIsRating] = useState(false);
+  const [confirmedVote, setConfirmedVote] = useState(null);
 
   const handleStarClick = (starValue) => {
     if (!readOnly && onRate) {
       setIsRating(true);
       onRate(starValue);
+      // Persist the user's selection immediately so the UI doesn't revert
+      setConfirmedVote(starValue);
       // Reset após um curto delay para feedback visual
       setTimeout(() => setIsRating(false), 300);
     }
@@ -34,7 +37,16 @@ function RatingStars({
     }
   };
 
-  const displayRating = hoverRating || rating;
+  const displayRating = hoverRating || confirmedVote || rating;
+
+  // If the parent prop `rating` updates (e.g. after server/local persistence),
+  // clear the temporary confirmedVote so the component reflects canonical value.
+  React.useEffect(() => {
+    if (confirmedVote !== null && rating && Number(rating) > 0) {
+      // clear temporary vote once the official rating updates
+      setConfirmedVote(null);
+    }
+  }, [rating, confirmedVote]);
 
   return (
     <div className={`rating-stars-container ${size} ${readOnly ? 'read-only' : 'interactive'}`}>

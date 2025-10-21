@@ -1280,6 +1280,36 @@ app.delete('/api/guias/:id', async (req, res) => {
   return res.status(500).json({ error: 'Database not available' });
 });
 
+// Adicionar avaliação a um guia: aceita { userEmail, rating }
+app.post('/api/guias/:id/ratings', async (req, res) => {
+  const { id } = req.params;
+  const { userEmail, rating } = req.body || {};
+  if (!userEmail || typeof rating !== 'number') {
+    return res.status(400).json({ error: 'userEmail and numeric rating are required' });
+  }
+
+  if (pgClient) {
+    try {
+      // Buscar avaliações existentes
+      const result = await pgClient.query('SELECT ratings FROM guias WHERE id = $1', [id]);
+      const existing = result && result.rows && result.rows[0] ? result.rows[0].ratings || [] : [];
+      // Remover avaliação anterior do mesmo usuário, se houver
+      const filtered = (existing || []).filter(r => String(r.userEmail || '').toLowerCase() !== String(userEmail).toLowerCase());
+      const novo = { userEmail, rating, timestamp: new Date().toISOString() };
+      filtered.push(novo);
+      // Atualizar a coluna ratings (JSONB)
+      const upd = await pgClient.query('UPDATE guias SET ratings = $1 WHERE id = $2 RETURNING *', [JSON.stringify(filtered), id]);
+      const updated = upd && upd.rows && upd.rows[0] ? snakeToCamelKeys(upd.rows[0]) : null;
+      return res.json({ success: true, guia: updated });
+    } catch (err) {
+      console.error('Error adding rating to guia:', err && err.message ? err.message : err);
+      return res.status(500).json({ error: err && err.message ? err.message : String(err) });
+    }
+  }
+
+  return res.status(500).json({ error: 'Database not available' });
+});
+
 // TEMP DEBUG: check DB connection and quick guias sampling
 app.get('/api/debug/check-guia-db', async (req, res) => {
   try {

@@ -33,6 +33,26 @@
   justify-content: center;
 }
 
+/* Force pointer when the container is interactive (higher specificity) */
+.rating-stars-container.interactive .star-button {
+  cursor: pointer !important;
+}
+
+/* Extra specificity to ensure hand cursor on inner SVG elements across browsers */
+.rating-stars-container.interactive .star-button svg,
+.rating-stars-container .star-button svg,
+.stars-wrapper svg {
+  cursor: pointer;
+}
+
+/* Strong override for pointer cursor on interactive star elements */
+.rating-stars-container.interactive .star-button,
+.rating-stars-container.interactive .star-button svg,
+.rating-stars-container .star-button *,
+.stars-wrapper svg {
+  cursor: pointer !important;
+}
+
 /* Remove default focus outline for pointer interactions; keep a subtle ring for keyboard users */
 .star-button:focus {
   outline: none;

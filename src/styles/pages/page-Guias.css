@@ -199,10 +199,47 @@
   transition: color 0.2s, transform 0.1s;
   user-select: none;
   font-size: clamp(1rem, 2.5vw, 1.25rem);
+  pointer-events: auto; /* ensure clickable */
+  outline: none;
 }
 
 .estrela-interativa:hover {
   transform: scale(1.15);
+}
+
+.estrela[tabindex] { cursor: pointer; }
+
+/* Force pointer cursor on star elements and inner SVGs to ensure hand cursor on hover */
+.estrela,
+.estrela-interativa,
+.estrelas-container .estrela {
+  cursor: pointer;
+}
+.estrela svg {
+  cursor: pointer;
+}
+
+/* Ensure pointer cursor takes precedence over any other global/parent rules */
+.estrelas-container .estrela-interativa,
+.estrelas-container .estrela-interativa svg,
+.estrelas-container .estrela-interativa * {
+  cursor: pointer !important;
+}
+
+/* Reset default button styles for estrela buttons to keep visual parity with spans */
+.estrela {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+.estrela:focus {
+  outline: none;
+}
+.estrela:focus-visible {
+  box-shadow: 0 0 0 4px rgba(26,102,255,0.08);
+  border-radius: 0.25rem;
 }
 
 .avaliacao-info {

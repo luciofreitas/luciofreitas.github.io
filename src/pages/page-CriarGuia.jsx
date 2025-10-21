@@ -116,18 +116,19 @@ export default function CriarGuia() {
     try {
       if (isEditing) {
         // Atualizar guia existente
-        guiasService.updateGuia(guiaId, formData, usuarioLogado.email);
+        await guiasService.updateGuia(guiaId, formData, usuarioLogado.email);
         setSuccessMessage('Guia atualizado com sucesso!');
       } else {
-        // Criar novo guia
-        guiasService.createGuia(formData, usuarioLogado.email);
+        // Criar novo guia (await to ensure optimistic state saved and remote POST fired)
+        const created = await guiasService.createGuia(formData, usuarioLogado.email);
         setSuccessMessage('Guia criado com sucesso!');
+        console.debug('createGuia returned', created && created.id ? created.id : '(no-id)');
       }
 
-      // Redirecionar após 2 segundos
+      // Short delay to let the UI settle and ensure the /guias page reads the updated list
       setTimeout(() => {
         navigate('/guias');
-      }, 2000);
+      }, 1000);
 
     } catch (error) {
       alert('Erro ao salvar guia: ' + error.message);
