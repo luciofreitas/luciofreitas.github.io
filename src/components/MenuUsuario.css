@@ -538,3 +538,35 @@
     padding: 0.25em 0.5em;
   }
 }
+
+/* Fix: ensure the avatar image is always visible and fills the circular button.
+   This highly-specific override counters any conflicting rules that may hide
+   or shrink the image (padding, opacity, transforms, filters, etc.).
+   Keep this block at the end of the file so it takes precedence. */
+html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only,
+html body .menu-login-root .user-menu-root button.user-button.icon-only {
+  padding: 0 !important; /* ensure no inner gap that can reveal background */
+  box-sizing: border-box !important; /* make width/height include border */
+}
+
+html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+html body .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+.site-header button.user-button.icon-only > img.user-avatar,
+.menu-login-root button.user-button.icon-only > img.user-avatar {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  border-radius: 999px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
