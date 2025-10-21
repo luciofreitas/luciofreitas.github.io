@@ -18,6 +18,7 @@ function copyFile(src, dest) {
 // Prefer `images/` (new name). If it doesn't exist but `imagens/` does, copy that.
 const imagesCandidates = ['images', 'imagens'];
 const imagesDest = path.join(dist, 'images');
+const imagensDest = path.join(dist, 'imagens');
 let copiedAny = false;
 imagesCandidates.forEach(dirName => {
   const srcDir = path.join(root, dirName);
@@ -25,8 +26,10 @@ imagesCandidates.forEach(dirName => {
     const items = fs.readdirSync(srcDir);
     items.forEach(item => {
       const s = path.join(srcDir, item);
-      const d = path.join(imagesDest, item);
-      copyFile(s, d);
+      const dImages = path.join(imagesDest, item);
+      const dImagens = path.join(imagensDest, item);
+      copyFile(s, dImages);
+      copyFile(s, dImagens);
       copiedAny = true;
     });
   }
