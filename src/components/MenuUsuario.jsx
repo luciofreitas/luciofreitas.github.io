@@ -54,7 +54,12 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
       >
         {/* If photoURL is available, show image avatar; otherwise fallback to icon */}
         {photoURL ? (
-          <img src={photoURL} alt={nome ? `Avatar de ${nome}` : 'Avatar do usuário'} className="user-avatar" />
+          <img
+            src={photoURL}
+            alt={nome ? `Avatar de ${nome}` : 'Avatar do usuário'}
+            className="user-avatar"
+            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', display: 'block' }}
+          />
         ) : (
           <>
             {/* Initials fallback: show a circular badge with initials derived from nome */}
