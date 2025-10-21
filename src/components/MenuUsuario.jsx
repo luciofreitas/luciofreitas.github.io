@@ -8,15 +8,6 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const avatarRef = useRef(null);
-
-  useEffect(() => {
-    // Debug: help identify why avatar may not show
-    try {
-      // eslint-disable-next-line no-console
-      console.debug('MenuUsuario mounted/updated - photoURL:', photoURL, 'imgError:', imgError);
-    } catch (e) {}
-  }, [photoURL, imgError]);
 
   // Preload image to detect load errors and avoid <img> sizing quirks
   useEffect(() => {
@@ -34,61 +25,7 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
   }, [photoURL]);
 
   // Runtime diagnostics: log computed styles and ancestor transforms to help debug clipping
-  useEffect(() => {
-    try {
-      const el = avatarRef.current;
-      if (!el) return;
-      const cs = window.getComputedStyle(el);
-      // eslint-disable-next-line no-console
-      console.debug('MenuUsuario debug: avatar computedStyle', {
-        backgroundImage: cs.backgroundImage,
-        backgroundSize: cs.backgroundSize,
-        backgroundPosition: cs.backgroundPosition,
-        width: cs.width,
-        height: cs.height,
-        objectFit: cs.objectFit,
-        transform: cs.transform,
-        overflow: cs.overflow,
-        clipPath: cs.clipPath
-      });
-
-      // Walk ancestors and log any transform/overflow/clip-path that might affect rendering
-      let node = el.parentElement;
-      const ancestors = [];
-      while (node && node.tagName && node.tagName.toLowerCase() !== 'body') {
-        const s = window.getComputedStyle(node);
-        const info = {
-          tag: node.tagName.toLowerCase(),
-          id: node.id || null,
-          class: node.className || null,
-          transform: s.transform || null,
-          overflow: s.overflow || null,
-          clipPath: s.clipPath || null
-        };
-        if (info.transform !== 'none' || info.overflow !== 'visible' || (info.clipPath && info.clipPath !== 'none')) {
-          ancestors.push(info);
-        }
-        node = node.parentElement;
-      }
-      if (ancestors.length) {
-        // eslint-disable-next-line no-console
-        console.warn('MenuUsuario debug: ancestor styles that may affect avatar', ancestors);
-      } else {
-        // eslint-disable-next-line no-console
-        console.debug('MenuUsuario debug: no problematic ancestor transforms/overflow/clip-path detected');
-      }
-
-      // Add a temporary visible outline for debugging so user sees element box
-      el.style.outline = '2px solid rgba(255,0,0,0.65)';
-      el.style.outlineOffset = '2px';
-      // remove outline after 6 seconds to avoid permanent UI change
-      setTimeout(() => {
-        try { el.style.outline = ''; el.style.outlineOffset = ''; } catch (e) {}
-      }, 6000);
-    } catch (e) {
-      // ignore diagnostics errors
-    }
-  }, [imgLoaded, imgError, photoURL]);
+  
 
   // Função para calcular a posição do dropdown
   const calculatePosition = () => {
