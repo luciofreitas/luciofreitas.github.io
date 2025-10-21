@@ -1310,6 +1310,34 @@ app.post('/api/guias/:id/ratings', async (req, res) => {
   return res.status(500).json({ error: 'Database not available' });
 });
 
+// Alternative ratings endpoint that accepts guiaId in the request body.
+// Some clients (or older frontends) may POST to /api/guias/ratings with { guiaId, userEmail, rating }.
+app.post('/api/guias/ratings', async (req, res) => {
+  const { guiaId, userEmail, rating } = req.body || {};
+  if (!guiaId || !userEmail || typeof rating !== 'number') {
+    return res.status(400).json({ error: 'guiaId, userEmail and numeric rating are required' });
+  }
+
+  // Reuse same logic as the path-based handler
+  if (pgClient) {
+    try {
+      const result = await pgClient.query('SELECT ratings FROM guias WHERE id = $1', [guiaId]);
+      const existing = result && result.rows && result.rows[0] ? result.rows[0].ratings || [] : [];
+      const filtered = (existing || []).filter(r => String(r.userEmail || '').toLowerCase() !== String(userEmail).toLowerCase());
+      const novo = { userEmail, rating, timestamp: new Date().toISOString() };
+      filtered.push(novo);
+      const upd = await pgClient.query('UPDATE guias SET ratings = $1 WHERE id = $2 RETURNING *', [JSON.stringify(filtered), guiaId]);
+      const updated = upd && upd.rows && upd.rows[0] ? snakeToCamelKeys(upd.rows[0]) : null;
+      return res.json({ success: true, guia: updated });
+    } catch (err) {
+      console.error('Error adding rating to guia (body-based):', err && err.message ? err.message : err);
+      return res.status(500).json({ error: err && err.message ? err.message : String(err) });
+    }
+  }
+
+  return res.status(500).json({ error: 'Database not available' });
+});
+
 // TEMP DEBUG: check DB connection and quick guias sampling
 app.get('/api/debug/check-guia-db', async (req, res) => {
   try {
