@@ -63,9 +63,21 @@
   justify-content: center !important;
   width: 44px !important;
   height: 44px !important;
-  padding: 0 !important;
+  padding: 2px !important; /* space for white border ring */
   border-radius: 999px !important;
   overflow: hidden !important; /* clip the image to the circle */
+}
+
+/* White ring around avatar; when Pro, the ring becomes orange */
+.user-menu-root .user-button.icon-only {
+  background-color: transparent !important;
+  box-sizing: content-box !important;
+  border: 2px solid rgba(255,255,255,0.95) !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease !important;
+}
+.user-menu-root .user-button.user-pro.icon-only {
+  border-color: #f59e0b !important; /* orange for Pro */
+  box-shadow: 0 0 0 2px rgba(245,158,11,0.06) !important;
 }
 
 .user-menu-root .user-button.icon-only .user-avatar {
@@ -78,6 +90,7 @@
 
 @media (max-width: 48rem) {
   .user-menu-root .user-button.icon-only { width: 36px !important; height: 36px !important; }
+  .user-menu-root .user-button.icon-only { padding: 1px !important; border-width: 2px !important; }
 }
 
 /* Highest-specificity override for header context to counteract global header rules */
