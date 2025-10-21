@@ -56,10 +56,13 @@ Default port: **3001**
 
 ### Novos Endpoints (PostgreSQL)
 - **Guias**
-  - `GET /api/guias` - Listar guias ativos
-  - `POST /api/guias` - Criar guia
-  - `PUT /api/guias/:id` - Atualizar guia
-  - `DELETE /api/guias/:id` - Deletar guia
+   - `GET /api/guias` - Listar guias ativos
+   - `POST /api/guias` - Criar guia
+   - `PUT /api/guias/:id` - Atualizar guia
+   - `DELETE /api/guias/:id` - Deletar guia
+
+Note: the implementation for the `guias` endpoints was moved to `backend/routes/guias.js` as part of a refactor.
+The inline handlers that used to live in `backend/index.js` were removed and the router is now mounted from that file.
 
 - **Carros do Usuário**
   - `GET /api/users/:userId/cars` - Carros do usuário
