@@ -87,12 +87,25 @@ export const useAvaliacoes = (userEmail) => {
       try {
         console.debug('[useAvaliacoes] POST vote', { guiaId, estrelas, previous: votoAnterior });
         const base = (typeof window !== 'undefined' && window.__API_BASE) ? window.__API_BASE : '';
-        const url = `${base}/api/guias/${encodeURIComponent(guiaId)}/ratings`;
-        const resp = await fetch(url, {
+        const pathUrl = `${base}/api/guias/${encodeURIComponent(guiaId)}/ratings`;
+        let resp = await fetch(pathUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userEmail: userEmail || null, rating: estrelas })
         });
+
+        // If the server returned 404 or an HTML page (static server), attempt body-based fallback
+        const contentType = resp.headers.get('content-type') || '';
+        if (resp.status === 404 || /text\/.+html/i.test(contentType)) {
+          console.debug('[useAvaliacoes] path-based POST failed or returned HTML, trying body-based fallback');
+          const fallbackUrl = `${base}/api/guias/ratings`;
+          resp = await fetch(fallbackUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ guiaId, userEmail: userEmail || null, rating: estrelas })
+          });
+        }
+
         if (!resp.ok) {
           const text = await resp.text().catch(() => '<no body>');
           console.warn('[useAvaliacoes] backend rating failed', resp.status, text);

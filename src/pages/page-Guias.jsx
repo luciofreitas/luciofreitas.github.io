@@ -214,14 +214,19 @@ function PageGuias() {
                       )}
 
                       <div className="guia-avaliacao">
-                        <ComponenteEstrelas
-                          guiaId={guia.id}
-                          mediaAtual={averageRating}
-                          totalVotos={(guia.ratings || []).length}
-                          votosUsuario={votosUsuario}
-                          onAvaliar={(id, rating) => handleAvaliarGuiaCustomizado(id, rating)}
-                          somenteLeitura={isAutor || !usuarioLogado}
-                        />
+                        {(() => {
+                          const stats = guiasService.getGuiaStats(guia);
+                          return (
+                            <ComponenteEstrelas
+                              guiaId={guia.id}
+                              mediaAtual={Number((stats.averageRating || 0).toFixed(1))}
+                              totalVotos={stats.totalRatings}
+                              votosUsuario={votosUsuario}
+                              onAvaliar={(id, rating) => handleAvaliarGuiaCustomizado(id, rating)}
+                              somenteLeitura={isAutor || !usuarioLogado}
+                            />
+                          );
+                        })()}
                         {guia.views > 0 && (
                           <span className="guia-views">👁️ {guia.views} visualizações</span>
                         )}

@@ -133,7 +133,7 @@ export const glossarioMockData = [
 
 // Dados iniciais das avaliações
 export const avaliacoesIniciais = {
-  'glossarioAutomotivo': { total: 847, soma: 3892, media: 4.6 },
+  'glossario-automotivo': { total: 847, soma: 3892, media: 4.6 },
   'manutencaoPreventiva': { total: 234, soma: 1053, media: 4.5 },
   'pecasOriginais': { total: 156, soma: 702, media: 4.5 }
 };
