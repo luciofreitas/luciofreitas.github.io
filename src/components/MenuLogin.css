@@ -114,6 +114,39 @@
   }
 }
 
+/* FINAL ENFORCED AVATAR RULE
+   This extremely specific selector is placed at the end of the file to ensure it
+   is applied last and overrides remaining conflicts. It intentionally mirrors
+   the DOM path to increase specificity without inline styles. */
+html body .site-header.menu-login-root .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+html body .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
+  border-radius: 999px !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+  overflow: hidden !important;
+  background-color: transparent !important;
+}
+
+@media (max-width: 48rem) {
+  html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+  html body .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+  }
+}
+
 .menu-login-logo img:hover {
   transform: scale(1.05);
 }
