@@ -7,22 +7,8 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
   const dropdownRef = useRef(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [imgError, setImgError] = useState(false);
-  const [imgLoaded, setImgLoaded] = useState(false);
 
-  // Preload image to detect load errors and avoid <img> sizing quirks
-  useEffect(() => {
-    if (!photoURL) {
-      setImgLoaded(false);
-      setImgError(false);
-      return;
-    }
-    let mounted = true;
-    const pre = new Image();
-    pre.onload = () => { if (mounted) { setImgLoaded(true); setImgError(false); } };
-    pre.onerror = () => { if (mounted) { setImgLoaded(false); setImgError(true); } };
-    pre.src = photoURL;
-    return () => { mounted = false; };
-  }, [photoURL]);
+  // Keep a simple onError fallback (handled on the <img>) — no preload logic
 
   // Runtime diagnostics: log computed styles and ancestor transforms to help debug clipping
   
@@ -73,13 +59,12 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
         aria-expanded={open}
       >
         {/* If photoURL is available, show image avatar; otherwise fallback to icon */}
-        {photoURL && !imgError && imgLoaded ? (
-          // Render as a background-filled span to avoid <img> layout clipping in header
-          <span
-            className="user-avatar user-avatar-bg"
-            role="img"
-            aria-label={nome ? `Avatar de ${nome}` : 'Avatar do usuário'}
-            style={{ backgroundImage: `url(${photoURL})` }}
+        {photoURL && !imgError ? (
+          <img
+            src={photoURL}
+            alt={nome ? `Avatar de ${nome}` : 'Avatar do usuário'}
+            className="user-avatar"
+            onError={() => setImgError(true)}
           />
         ) : (
           <>
