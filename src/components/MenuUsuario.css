@@ -52,6 +52,33 @@
   display: inline-block !important;
 }
 
+/* Use background-based avatar to avoid natural-image-size issues in headers */
+.user-avatar-bg {
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  border-radius: 999px !important;
+}
+
+/* Styling for initials fallback to ensure centered, visible badge */
+.user-initials-desktop,
+.user-initials-mobile {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0,0,0,0.06) !important;
+  color: #0f172a !important; /* dark text */
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  text-transform: uppercase !important;
+}
+
+.user-initials-desktop { font-size: 0.95rem !important; }
+.user-initials-mobile { font-size: 0.92rem !important; }
+
 @media (max-width: 48rem) {
   .user-avatar { width: 36px !important; height: 36px !important; }
 }
@@ -315,6 +342,29 @@
   height: 0 !important;
   background: transparent !important;
   content: none !important;
+}
+
+/* High-specificity safeguard: ensure avatar image is visible, not transformed, and fills the circular button. */
+html body .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+.menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+.user-menu-root button.user-button.icon-only > img.user-avatar {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  transform: none !important;
+  filter: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
 }
 
 /* Accessibility: keep a visible focus ring for keyboard users when the underline is removed */
