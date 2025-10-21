@@ -36,6 +36,31 @@
   margin: 0 !important;
 }
 
+/* OVERRIDE: remove any extra bottom padding used for underlines that can visually
+   shift header contents up; ensure user-button is vertically centered within header */
+.menu-login-root {
+  padding-bottom: 0 !important; /* neutralize underline spacing which shifts icons */
+}
+
+.site-header .user-button, .menu-login-root .user-button {
+  /* ensure the button contents are centered vertically despite earlier padding */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1 !important;
+}
+
+/* If any pseudo-element underline pushes layout, hide it for icon-only buttons */
+.site-header .user-button.icon-only::after,
+.menu-login-root .user-button.icon-only::after {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  content: none !important;
+}
+
 /* Use Montserrat for the MenuLogin component items */
 .menu-login-root,
 .menu-login-root *,
@@ -90,12 +115,12 @@
 /* Header-level avatar enforcement (high specificity) so we avoid inline styles */
 .site-header button.user-button.icon-only img.user-avatar,
 .menu-login-root button.user-button.icon-only img.user-avatar {
-  width: 40px !important;
-  height: 40px !important;
-  max-width: 40px !important;
-  max-height: 40px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
+  width: 44px !important;
+  height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
   border-radius: 999px !important;
   object-fit: cover !important;
   object-position: center center !important;
@@ -105,12 +130,12 @@
 @media (max-width: 48rem) {
   .site-header button.user-button.icon-only img.user-avatar,
   .menu-login-root button.user-button.icon-only img.user-avatar {
-    width: 32px !important;
-    height: 32px !important;
-    max-width: 32px !important;
-    max-height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
   }
 }
 
@@ -121,12 +146,12 @@
 html body .site-header.menu-login-root .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
 html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
 html body .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar {
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
-  max-width: 40px !important;
-  max-height: 40px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
   border-radius: 999px !important;
   object-fit: cover !important;
   object-position: center center !important;
@@ -138,12 +163,12 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
 @media (max-width: 48rem) {
   html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
   html body .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-    max-width: 32px !important;
-    max-height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
   }
 }
 
@@ -226,6 +251,42 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
     padding: 0.4em 1em;
   }
   /* Centralização mantida via position absolute - removido margin-left */
+}
+
+/* EXTRA OVERRIDE: ensure the right-side menu (where the avatar lives) centers
+   its contents vertically and that the user button fills the header height so
+   the avatar aligns perfectly in the middle. This counters any ancestor size
+   or baseline alignment issues. */
+.menu-login-right {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important; /* match header height */
+}
+
+.menu-login-right .user-menu-root,
+.menu-login-right .user-menu-root .user-button {
+  height: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Ensure the avatar image itself centers inside the button */
+.menu-login-right .user-menu-root .user-button .user-avatar,
+.menu-login-right .user-menu-root .user-button > img.user-avatar {
+  align-self: center !important;
+  margin: 0 !important;
+  display: block !important;
+}
+
+/* Small screen fallback: keep behavior consistent on mobile */
+@media (max-width: 48rem) {
+  .menu-login-right { align-items: center !important; }
+  .menu-login-right .user-menu-root .user-button { height: 100% !important; }
 }
 
 @media (min-width: 96rem) {

@@ -17,13 +17,13 @@
   font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
 }
 
-/* Botão principal com o nome do usuário - stronger specificity */
+/* Botão principal com o nome do usuário */
 .user-menu-root .user-button {
-  display: flex;
-  align-items: center;
+  display: inline-flex !important;
+  align-items: center !important;
   background-color: transparent !important;
   border: none;
-  color: #172B4D !important; /* Force correct color */
+  color: #172B4D !important;
   font-weight: 600 !important;
   font-size: 1rem;
   padding: 0.35em 0.9em;
@@ -36,70 +36,33 @@
   position: relative;
 }
 
-/* Desktop: mostrar ícone grande, esconder ícone pequeno */
-.user-icon-desktop {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
+/* Desktop initials/avatar size */
+.user-initials-desktop, .user-avatar {
+  width: 44px !important;
+  height: 44px !important;
 }
 
-/* When the user is Pro, color the avatar icon orange to indicate status */
-.user-menu-root .user-button.user-pro .user-icon-desktop svg,
-.user-menu-root .user-button.user-pro .user-icon-mobile svg {
-  color: #f59e0b; /* uses currentColor inside SVG when fill='currentColor' */
-  fill: #f59e0b !important;
-}
-
-/* Slight orange circular background on desktop icon for emphasis */
-.user-menu-root .user-button.user-pro .user-icon-desktop {
-  background-color: rgba(245,158,11,0.12) !important;
-  border-radius: 999px !important;
-  padding: 0.25rem !important;
-}
-
-.user-icon-mobile {
-  display: none !important;
-}
-
-/* Initials avatar fallback styles */
-.user-initials-desktop, .user-initials-mobile {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 999px !important;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important; /* light blue gradient */
-  color: #0f172a !important;
-  font-weight: 700 !important;
-  font-size: 0.95rem !important;
-}
+/* Mobile initials/avatar size */
+.user-initials-mobile { width: 36px !important; height: 36px !important; font-size: 0.85rem !important; }
 
 /* Avatar image styling - match initials badge size and make circular */
 .user-avatar {
-  width: 40px !important;
-  height: 40px !important;
   border-radius: 999px !important;
   object-fit: cover !important;
   display: inline-block !important;
 }
 
-/* Mobile adjustments for smaller initials badge */
-.user-initials-mobile { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }
-
-/* Mobile avatar size override to match mobile initials */
 @media (max-width: 48rem) {
-  .user-avatar { width: 32px !important; height: 32px !important; }
+  .user-avatar { width: 36px !important; height: 36px !important; }
 }
 
-/* Stronger clipping: make the icon-only user button a circular container that clips the image
-   and ensure the image fills the container. This avoids square images when other rules interfere. */
+/* Make the icon-only user button a circular container that clips the image */
 .user-menu-root .user-button.icon-only {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 44px !important;
+  height: 44px !important;
   padding: 0 !important;
   border-radius: 999px !important;
   overflow: hidden !important; /* clip the image to the circle */
@@ -114,7 +77,7 @@
 }
 
 @media (max-width: 48rem) {
-  .user-menu-root .user-button.icon-only { width: 32px !important; height: 32px !important; }
+  .user-menu-root .user-button.icon-only { width: 36px !important; height: 36px !important; }
 }
 
 /* Highest-specificity override for header context to counteract global header rules */
@@ -122,8 +85,8 @@
 .menu-login-root .user-menu-root .user-button.icon-only {
   border-radius: 999px !important;
   overflow: hidden !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 44px !important;
+  height: 44px !important;
   padding: 0 !important;
 }
 
@@ -140,12 +103,12 @@
    using the most specific selector and ensure it cannot overflow. This also covers inline styles. */
 .site-header button.user-button.icon-only > img.user-avatar,
 .menu-login-root button.user-button.icon-only > img.user-avatar {
-  width: 40px !important;
-  height: 40px !important;
-  max-width: 40px !important;
-  max-height: 40px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
+  width: 44px !important;
+  height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
   border-radius: 999px !important; /* make the image itself circular as a fallback */
   object-fit: cover !important;
   object-position: center center !important;
@@ -155,12 +118,49 @@
 @media (max-width: 48rem) {
   .site-header button.user-button.icon-only > img.user-avatar,
   .menu-login-root button.user-button.icon-only > img.user-avatar {
-    width: 32px !important;
-    height: 32px !important;
-    max-width: 32px !important;
-    max-height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+
+  /* NEW: Vertical centering tweaks to ensure avatar is visually centered in the header */
+  /* Use header container and button centering with flex and align-items and adjust line-height fallback */
+  .site-header, .menu-login-root {
+    display: flex !important; /* ensure we can center children reliably */
+    align-items: center !important; /* center children vertically */
+  }
+
+  .site-header .menu-login-root, .menu-login-root .user-menu-root {
+    display: flex !important;
+    align-items: center !important; /* center the user button inside its container */
+  }
+
+  /* Make the user-button a flex container and center its content vertically */
+  .site-header button.user-button, .menu-login-root button.user-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important; /* avoid text baseline shifting the icon */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* For the icon-only button, ensure vertical centering within header height */
+  .site-header button.user-button.icon-only, .menu-login-root button.user-button.icon-only {
+    align-items: center !important;
+    justify-content: center !important;
+    display: inline-flex !important;
+  }
+
+  /* Fallback: if an ancestor sets strange line-height/vertical-align, force the image to be vertically centered */
+  .site-header button.user-button.icon-only > img.user-avatar,
+  .menu-login-root button.user-button.icon-only > img.user-avatar {
+    vertical-align: middle !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 }
 
