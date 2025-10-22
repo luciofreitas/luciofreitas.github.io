@@ -73,6 +73,31 @@ export default function App() {
         const storedRaw = localStorage.getItem('usuario-logado') || 'null';
         const stored = JSON.parse(storedRaw);
         if (stored) {
+          // Helper: clean dev-style names (devuser+, dev_, etc) and format display names
+          function formatDisplayName(raw) {
+            if (!raw || typeof raw !== 'string') return '';
+            let s = raw.trim();
+            s = s.replace(/^(devuser\+|dev_|dev-|testuser\+|teste_)/i, '');
+            s = s.replace(/[._+\-]+/g, ' ');
+            s = s.replace(/\s+/g, ' ').trim();
+            s = s.split(' ').map(part => part ? (part.charAt(0).toUpperCase() + part.slice(1)) : '').join(' ').trim();
+            return s || raw;
+          }
+
+          // If stored nome looks like a dev/mock name, try to replace it with a cleaned
+          // displayName or email-derived name so the UI shows a human name.
+          try {
+            const rawNome = String(stored.nome || stored.name || '');
+            const looksDev = /^(dev_|devuser\+|dev-)/i.test(rawNome) || /devuser\+/i.test(rawNome);
+            if (looksDev) {
+              const candidate = (stored.displayName || stored.name || stored.nome || stored.email || '').toString();
+              const cleaned = formatDisplayName(candidate) || formatDisplayName(stored.email ? stored.email.split('@')[0] : '');
+              if (cleaned) {
+                stored.nome = cleaned;
+                stored.name = cleaned;
+              }
+            }
+          } catch (e) { /* ignore */ }
           // Normalize old key photo_url to photoURL
           if (!stored.photoURL && stored.photo_url) stored.photoURL = stored.photo_url;
           setUsuarioLogado(stored);
