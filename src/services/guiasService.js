@@ -236,34 +236,68 @@ class GuiasService {
   }
 
   // Adicionar avaliação a um guia
-  addRating(guiaId, userEmail, rating) {
+  async addRating(guiaId, userEmail, rating) {
+    // New async version: try API first, fallback to local behavior when API/db not available
+    const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+      || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+
+    // Attempt API upsert
+    try {
+      if (baseUrl) {
+        const resp = await fetch(`${baseUrl}/api/guias/${encodeURIComponent(guiaId)}/ratings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userEmail, rating })
+        });
+
+        if (resp.ok) {
+          const j = await resp.json();
+          // Update local cache if present
+          const index = this.guias.findIndex(g => g.id === guiaId);
+          if (index !== -1) {
+            // If server returned aggregate info, attach it to the guia for UI consumption
+            if (j && j.ratings) {
+              this.guias[index]._ratingAggregate = { total: Number(j.ratings.total || 0), average: Number(j.ratings.average || 0) };
+            }
+            // Persist cache
+            this.saveGuias();
+            return this.guias[index];
+          }
+
+          // If guia not present locally, try reloading list from server and return the updated guia
+          await this.loadGuias();
+          const refreshed = this.guias.find(g => g.id === guiaId);
+          if (refreshed) return refreshed;
+
+          // Otherwise return a minimal shape indicating success
+          return { id: guiaId, _ratingAggregate: j && j.ratings ? { total: Number(j.ratings.total||0), average: Number(j.ratings.average||0) } : null };
+        }
+      }
+    } catch (err) {
+      console.warn('API addRating failed, falling back to local:', err);
+    }
+
+    // Fallback local behavior (existing synchronous logic)
     const index = this.guias.findIndex(g => g.id === guiaId);
-    
     if (index === -1) {
       throw new Error('Guia não encontrado');
     }
 
     const guia = this.guias[index];
-    
-    // Remover avaliação anterior do mesmo usuário
-    guia.ratings = guia.ratings.filter(r => r.userEmail !== userEmail);
-    
-    // Adicionar nova avaliação
-    guia.ratings.push({
-      userEmail,
-      rating,
-      timestamp: new Date().toISOString()
-    });
-
-    // Verificar se precisa ocultar o guia
+    guia.ratings = (guia.ratings || []).filter(r => r.userEmail !== userEmail);
+    guia.ratings.push({ userEmail, rating, timestamp: new Date().toISOString() });
     this.checkAndUpdateStatus(index);
-    
     this.saveGuias();
     return this.guias[index];
   }
 
   // Calcular média de avaliações
   calculateAverageRating(guia) {
+    // Prefer server-provided aggregate when available
+    if (guia && guia._ratingAggregate && typeof guia._ratingAggregate.average === 'number') {
+      return guia._ratingAggregate.average;
+    }
+
     if (!guia.ratings || guia.ratings.length === 0) {
       return 0;
     }
@@ -339,9 +373,13 @@ class GuiasService {
       ? Math.ceil(EVALUATION_PERIOD_DAYS - (new Date() - new Date(guia.criadoEm)) / (1000 * 60 * 60 * 24))
       : 0;
 
+    const totalRatings = (guia && guia._ratingAggregate && typeof guia._ratingAggregate.total === 'number')
+      ? guia._ratingAggregate.total
+      : (guia.ratings ? guia.ratings.length : 0);
+
     return {
       averageRating: avgRating,
-      totalRatings: guia.ratings ? guia.ratings.length : 0,
+      totalRatings,
       views: guia.views || 0,
       isInEvaluationPeriod: isInEvaluation,
       evaluationDaysRemaining: daysRemaining,

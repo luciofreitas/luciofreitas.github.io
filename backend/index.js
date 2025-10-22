@@ -1540,7 +1540,8 @@ const PORT = process.env.PORT || 3001;
     console.warn('ENV CHECK failed:', e && e.message ? e.message : e);
   }
 
-  app.listen(PORT, '0.0.0.0', () => console.log(`Parts API listening on http://0.0.0.0:${PORT} (pg=${pgClient?true:false})`));
+  const HOST = process.env.HOST || '127.0.0.1';
+  app.listen(PORT, HOST, () => console.log(`Parts API listening on http://${HOST}:${PORT} (pg=${pgClient?true:false})`));
 
   // Optional: initialize Supabase Realtime subscription if env vars present
   try{

@@ -60,12 +60,55 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: rgba(0,0,0,0.06) !important;
-  color: #0f172a !important; /* dark text */
+  /* Background color is applied inline for deterministic per-user color */
+  color: #ffffff !important; /* white text like Gmail */
   font-weight: 700 !important;
   border-radius: 999px !important;
   text-transform: uppercase !important;
 }
+
+/* Apply CSS variable as background with highest specificity; this prevents other
+   broad rules from overriding the per-user color even if they use !important. */
+.user-menu-root .user-button.icon-only .user-initials-desktop,
+.user-menu-root .user-button.icon-only .user-initials-mobile,
+.menu-login-root .user-menu-root .user-button.icon-only .user-initials-desktop,
+.menu-login-root .user-menu-root .user-button.icon-only .user-initials-mobile {
+  background-color: var(--avatar-bg) !important;
+}
+
+/* Palette classes (high specificity) */
+.user-menu-root .user-button.icon-only.avatar-color-0 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-0 .user-initials-mobile { background-color: #F44336 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-1 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-1 .user-initials-mobile { background-color: #E91E63 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-2 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-2 .user-initials-mobile { background-color: #9C27B0 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-3 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-3 .user-initials-mobile { background-color: #673AB7 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-4 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-4 .user-initials-mobile { background-color: #3F51B5 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-5 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-5 .user-initials-mobile { background-color: #2196F3 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-6 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-6 .user-initials-mobile { background-color: #03A9F4 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-7 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-7 .user-initials-mobile { background-color: #00BCD4 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-8 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-8 .user-initials-mobile { background-color: #009688 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-9 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-9 .user-initials-mobile { background-color: #4CAF50 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-10 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-10 .user-initials-mobile { background-color: #8BC34A !important; }
+.user-menu-root .user-button.icon-only.avatar-color-11 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-11 .user-initials-mobile { background-color: #CDDC39 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-12 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-12 .user-initials-mobile { background-color: #FFEB3B !important; }
+.user-menu-root .user-button.icon-only.avatar-color-13 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-13 .user-initials-mobile { background-color: #FFC107 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-14 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-14 .user-initials-mobile { background-color: #FF9800 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-15 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-15 .user-initials-mobile { background-color: #FF5722 !important; }
 
 .user-initials-desktop { font-size: 0.95rem !important; }
 .user-initials-mobile { font-size: 0.92rem !important; }
@@ -104,6 +147,18 @@
   border-radius: 0 !important; /* parent already rounds and clips */
   object-fit: cover !important;
   display: block !important;
+}
+
+/* When using initials inside an icon-only button, make the initials fill the inner area
+   so the outer button border becomes a visible ring (Gmail-like) */
+.user-menu-root .user-button.icon-only .user-initials-desktop,
+.user-menu-root .user-button.icon-only .user-initials-mobile {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important; /* parent handles final rounding */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 @media (max-width: 48rem) {
@@ -333,6 +388,18 @@
   height: 0 !important;
   background: transparent !important;
   content: none !important;
+}
+
+/* When the button is explicitly marked as no-overlay, ensure no pseudo elements
+   or background overlays are applied so the avatar SVG/fill is the only visible color. */
+.user-menu-root .user-button.no-overlay::before,
+.user-menu-root .user-button.no-overlay::after,
+.menu-login-root .user-menu-root .user-button.no-overlay::before,
+.menu-login-root .user-menu-root .user-button.no-overlay::after {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 /* High-specificity safeguard: ensure avatar image is visible, not transformed, and fills the circular button. */

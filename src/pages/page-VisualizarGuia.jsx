@@ -99,12 +99,15 @@ function PageVisualizarGuia() {
 
     // addRating é síncrono no fallback localStorage e já retorna o guia atualizado
     // usar o retorno imediato evita chamar a versão async getGuiaById sem await
-    try {
-      const guiaAtualizado = guiasService.addRating(guiaId, usuarioLogado.email, rating);
-      setGuia(guiaAtualizado);
-    } catch (err) {
-      console.error('Erro ao avaliar guia:', err);
-    }
+    (async () => {
+      try {
+        const guiaAtualizado = await guiasService.addRating(guiaId, usuarioLogado.email, rating);
+        // If API returned aggregate info, merge it into guia
+        setGuia(prev => ({ ...(prev || {}), ...(guiaAtualizado || {}) }));
+      } catch (err) {
+        console.error('Erro ao avaliar guia:', err);
+      }
+    })();
   };
 
   if (loading) {

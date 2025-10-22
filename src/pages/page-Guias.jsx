@@ -64,7 +64,15 @@ function PageGuias() {
     }
 
     // Also persist rating to the guiasService (local/DB) for community guides
-    guiasService.addRating(guiaId, usuarioLogado.email, rating);
+    (async () => {
+      try {
+        const guiaAtualizado = await guiasService.addRating(guiaId, usuarioLogado.email, rating);
+        // If server returned aggregate info, merge it into local list
+        setGuiasCustomizados(prev => prev.map(g => g.id === guiaId ? { ...g, ...(guiaAtualizado || {}) } : g));
+      } catch (err) {
+        console.warn('guiaService.addRating failed:', err);
+      }
+    })();
 
     // Recarregar guias para atualizar rating and any status changes
     (async () => {
