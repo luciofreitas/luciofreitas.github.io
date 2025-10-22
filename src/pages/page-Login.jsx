@@ -8,6 +8,8 @@ import { AuthContext } from '../App';
 import { ToggleCar } from '../components';
 // Using Supabase OAuth for Google login instead of Firebase
 import { signInWithGooglePopup, startGoogleRedirect, handleRedirectResult } from '../firebaseAuth';
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const usuariosDemoGlobais = [
   { id: 'demo1', nome: 'Usuário Demo', email: 'demo@pecafacil.com', senha: '123456', celular: '11999999999', isDemo: true },
@@ -41,50 +43,75 @@ export default function Login() {
 
   // Handle Firebase redirect result (for mobile flows using signInWithRedirect)
   useEffect(() => {
+    let processed = false;
+
+    // Helper to normalize and set the logged user (shared between redirect result and auth state)
+    async function finalizeSignin(user) {
+      if (!user || processed) return; // only once
+      processed = true;
+      try {
+        const idToken = await user.getIdToken();
+        const apiBase = window.__API_BASE || '';
+        let usuario = null;
+        try {
+          const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+            body: JSON.stringify({})
+          });
+          if (resp.ok) {
+            const body = await resp.json().catch(() => ({}));
+            usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
+          }
+        } catch (e) { /* ignore and fallback to client user */ }
+
+        const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
+        const normalizedUsuario = usuario ? {
+          ...usuario,
+          nome: usuario.nome || usuario.name || nomeFromToken,
+          name: usuario.name || usuario.nome || nomeFromToken,
+          access_token: idToken,
+          photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
+        } : {
+          id: user.uid,
+          email: user.email,
+          nome: nomeFromToken,
+          name: nomeFromToken,
+          access_token: idToken,
+          photoURL: user.photoURL || null
+        };
+
+        if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+        try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+        if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+        navigate('/buscar-pecas');
+      } catch (e) {
+        // swallow errors but keep processed flag
+        console.warn('finalizeSignin failed', e && e.message ? e.message : e);
+      }
+    }
+
     (async () => {
       try {
         const result = await handleRedirectResult();
         if (result && result.user) {
-          // We have a Firebase user from redirect; proceed with same logic as popup success
-          const user = result.user;
-          const idToken = await user.getIdToken();
-          const apiBase = window.__API_BASE || '';
-          let usuario = null;
-          try {
-            const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-              body: JSON.stringify({})
-            });
-            if (resp.ok) {
-              const body = await resp.json().catch(() => ({}));
-              usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
-            }
-          } catch (e) { /* ignore and fallback to client user */ }
-
-          const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
-          const normalizedUsuario = usuario ? {
-            ...usuario,
-            nome: usuario.nome || usuario.name || nomeFromToken,
-            name: usuario.name || usuario.nome || nomeFromToken,
-            access_token: idToken,
-            photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
-          } : {
-            id: user.uid,
-            email: user.email,
-            nome: nomeFromToken,
-            name: nomeFromToken,
-            access_token: idToken,
-            photoURL: user.photoURL || null
-          };
-
-          if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
-          try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
-          if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
-          navigate('/buscar-pecas');
+          await finalizeSignin(result.user);
+        } else if (result && result.error) {
+          console.warn('handleRedirectResult returned error', result.error);
         }
-      } catch (e) { /* ignore redirect errors */ }
+      } catch (e) {
+        console.warn('handleRedirectResult threw', e && e.message ? e.message : e);
+      }
     })();
+
+    // Fallback: listen for auth state changes (some environments signal sign-in via onAuthStateChanged instead)
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user && !processed) {
+        await finalizeSignin(user);
+      }
+    });
+
+    return () => { try { unsubscribe && unsubscribe(); } catch (_) {} };
   }, [setUsuarioLogado, navigate]);
 
   function getUsuarios() {
