@@ -41,16 +41,52 @@ export default function Login() {
 
   useEffect(() => { try { localStorage.setItem('__test_localStorage__', 'test'); localStorage.removeItem('__test_localStorage__'); } catch (e) {} }, []);
 
+  // Helper to clean/format a display name (capitalize words, remove dev markers)
+  function formatDisplayName(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    // remove common dev prefixes/markers
+    let s = raw.trim();
+    s = s.replace(/^(devuser\+|dev_|dev-|testuser\+|teste_)/i, '');
+    // replace punctuation often used in emails/usernames with spaces
+    s = s.replace(/[._+\-]+/g, ' ');
+    // collapse multiple spaces
+    s = s.replace(/\s+/g, ' ').trim();
+    // capitalize words
+    s = s.split(' ').map(part => part ? (part.charAt(0).toUpperCase() + part.slice(1)) : '').join(' ').trim();
+    return s || raw;
+  }
+
   // Handle Firebase redirect result (for mobile flows using signInWithRedirect)
   useEffect(() => {
     let processed = false;
 
     // Helper to normalize and set the logged user (shared between redirect result and auth state)
-    async function finalizeSignin(user) {
+  async function finalizeSignin(user) {
       if (!user || processed) return; // only once
       processed = true;
       try {
-        const idToken = await user.getIdToken();
+        // Some mobile/redirect flows trigger onAuthStateChanged before the
+        // ID token is immediately available. Retry getIdToken a few times
+        // (short backoff) to increase chance of success in flaky environments.
+        let idToken = null;
+        const maxRetries = 6; // ~3s total backoff
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+          try {
+            idToken = await user.getIdToken();
+            if (idToken) break;
+          } catch (e) {
+            // ignore and retry
+          }
+          // small delay before retrying
+          await new Promise(r => setTimeout(r, 500));
+        }
+        if (!idToken) {
+          // final attempt forcing refresh (if available)
+          try { idToken = await user.getIdToken(true); } catch (e) { /* ignore */ }
+        }
+        if (!idToken) {
+          console.warn('finalizeSignin: could not obtain idToken after retries');
+        }
         const apiBase = window.__API_BASE || '';
         let usuario = null;
         try {
@@ -65,11 +101,15 @@ export default function Login() {
           }
         } catch (e) { /* ignore and fallback to client user */ }
 
-        const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
+        const rawNomeFromToken = (user && user.displayName) || (user && user.email ? user.email.split('@')[0] : '');
+        const nomeFromToken = formatDisplayName(rawNomeFromToken) || '';
+        // Prefer the Firebase client displayName when available (shows the real Google name
+        // even if backend returns a dev/test user). Fall back to backend fields otherwise.
         const normalizedUsuario = usuario ? {
           ...usuario,
-          nome: usuario.nome || usuario.name || nomeFromToken,
-          name: usuario.name || usuario.nome || nomeFromToken,
+          // prefer client displayName (nomeFromToken) when available
+          nome: nomeFromToken || usuario.nome || usuario.name,
+          name: nomeFromToken || usuario.name || usuario.nome,
           access_token: idToken,
           photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
         } : {
@@ -80,6 +120,18 @@ export default function Login() {
           access_token: idToken,
           photoURL: user.photoURL || null
         };
+
+        // If the backend returned a development/mock user (id like 'dev_...') or a
+        // dev-style generated username (e.g. 'devuser+'), prefer the Firebase
+        // client's displayName when available to avoid showing mock names in the UI.
+        try {
+          const isDevBackendUser = (normalizedUsuario && String(normalizedUsuario.id || '').startsWith('dev_'))
+            || (normalizedUsuario && /devuser\+|dev_/.test(String(normalizedUsuario.nome || '').toLowerCase()));
+          if (isDevBackendUser && nomeFromToken) {
+            normalizedUsuario.nome = nomeFromToken;
+            normalizedUsuario.name = nomeFromToken;
+          }
+        } catch (e) { /* ignore */ }
 
         if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
         try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
@@ -306,21 +358,32 @@ export default function Login() {
                             }
 
                             // Fallback to using Firebase user fields if backend didn't return user
-                            const nomeFromToken = (user.displayName) || (user.email ? user.email.split('@')[0] : '');
+                            const rawNomeFromTokenPopup = (user && user.displayName) || (user && user.email ? user.email.split('@')[0] : '');
+                            const nomeFromTokenPopup = formatDisplayName(rawNomeFromTokenPopup) || '';
                             const normalizedUsuario = usuario ? {
                               ...usuario,
-                              nome: usuario.nome || usuario.name || nomeFromToken,
-                              name: usuario.name || usuario.nome || nomeFromToken,
+                              nome: nomeFromTokenPopup || usuario.nome || usuario.name,
+                              name: nomeFromTokenPopup || usuario.name || usuario.nome,
                               access_token: idToken,
                               photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
                             } : {
                               id: user.uid,
                               email: user.email,
-                              nome: nomeFromToken,
-                              name: nomeFromToken,
+                              nome: nomeFromTokenPopup,
+                              name: nomeFromTokenPopup,
                               access_token: idToken,
                               photoURL: user.photoURL || null
                             };
+
+                            // If backend returned a dev/mock user name, prefer the cleaned Google displayName
+                            try {
+                              const isDevBackendUserPopup = (normalizedUsuario && String(normalizedUsuario.id || '').startsWith('dev_'))
+                                || (normalizedUsuario && /devuser\+|dev_/.test(String(normalizedUsuario.nome || '').toLowerCase()));
+                              if (isDevBackendUserPopup && nomeFromTokenPopup) {
+                                normalizedUsuario.nome = nomeFromTokenPopup;
+                                normalizedUsuario.name = nomeFromTokenPopup;
+                              }
+                            } catch (e) { /* ignore */ }
 
                             if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
                             try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}

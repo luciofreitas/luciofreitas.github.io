@@ -5,7 +5,7 @@
   "homepage": "https://luciofreitas.github.io",
   "description": "Web UI (React + Vite) para catálogo de peças automotivas; use `npm run dev:chrome` para abrir o site automaticamente no Google Chrome sem alterar o navegador padrão do sistema.",
   "scripts": {
-    "dev": "vite",
+  "dev": "vite --host --port 5174",
     "dev:chrome": "concurrently \"npm run dev\" \"wait-on http://localhost:5174 && .\\open-chrome.bat\"",
     "build": "vite build",
     "prebuild": "node scripts/generate-components-index.js",

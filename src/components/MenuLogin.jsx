@@ -51,11 +51,29 @@ const MenuLogin = () => {
   };
 
   const handleLogout = () => {
-    setUsuarioLogado(null);
-    localStorage.removeItem('usuario-logado');
-    showToast('success', 'Logout realizado', 'Você foi desconectado com sucesso');
-    setAriaAlert('Logout realizado com sucesso');
-    navigate('/inicio');
+    (async () => {
+      try {
+        const { default: supabase } = await import('../supabase');
+        if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
+          try { await supabase.auth.signOut(); } catch(e) { /* ignore */ }
+        }
+      } catch (e) { /* ignore missing supabase */ }
+
+      try {
+        const firebase = await import('firebase/auth');
+        const { signOut } = firebase;
+        const { auth } = await import('../firebase');
+        if (typeof signOut === 'function' && auth) {
+          try { await signOut(auth); } catch(e) { /* ignore */ }
+        }
+      } catch (e) { /* ignore missing firebase */ }
+
+      setUsuarioLogado(null);
+      try { localStorage.removeItem('usuario-logado'); } catch (err) {}
+      showToast('success', 'Logout realizado', 'Você foi desconectado com sucesso');
+      setAriaAlert('Logout realizado com sucesso');
+      navigate('/inicio');
+    })();
   };
 
   const handleProfileClick = () => {

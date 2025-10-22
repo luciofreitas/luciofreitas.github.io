@@ -220,8 +220,27 @@ function Menu() {
               onPerfil={handleNavigation(() => navigate('/perfil'))}
               onMeusCarros={handleNavigation(() => navigate('/meus-carros'))}
               onPro={handleNavigation(() => navigate(proActive ? '/versao-pro-assinado' : '/versao-pro'))}
-              onLogout={handleNavigation(() => {
-                // limpa estado/localStorage e redireciona para a tela de login
+              onLogout={handleNavigation(async () => {
+                // Sign out from third-party auth providers first so the auth listener
+                // doesn't immediately re-populate the user session.
+                try {
+                  // Supabase client (frontend) may or may not be configured
+                  const { default: supabase } = await import('../supabase');
+                  if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
+                    try { await supabase.auth.signOut(); } catch(e) { /* ignore */ }
+                  }
+                } catch(e) { /* ignore missing supabase module */ }
+
+                try {
+                  const firebase = await import('firebase/auth');
+                  const { signOut } = firebase;
+                  const { auth } = await import('../firebase');
+                  if (typeof signOut === 'function' && auth) {
+                    try { await signOut(auth); } catch(e) { /* ignore */ }
+                  }
+                } catch(e) { /* ignore if firebase not configured */ }
+
+                // Clear local app state/storage and navigate to login
                 setUsuarioLogado(null);
                 try { localStorage.removeItem('usuario-logado'); } catch (err) {}
                 navigate('/login');
