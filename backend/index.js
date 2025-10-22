@@ -1524,10 +1524,9 @@ process.on('unhandledRejection', (reason) => {
   try { pgClient = null; } catch(e){}
 });
 
-// Start server after attempting PG connect
+// Start server immediately (do not wait for Postgres) so Render can detect the open port.
 const PORT = process.env.PORT || 3001;
 (async () => {
-  pgClient = await connectWithRetry(5);
   // Safe environment checks (do not print secrets). These help confirm which env vars
   // are available at runtime without exposing full keys in logs.
   try {
@@ -1554,6 +1553,7 @@ const PORT = process.env.PORT || 3001;
   console.log('DEBUG: process.env.HOST =', process.env.HOST);
   console.log('DEBUG: resolved HOST =', HOST);
 
+  // Start listening immediately so PaaS port scanners can detect the open port.
   const server = app.listen(NUM_PORT, HOST, () => {
     console.log(`Parts API listening on http://${HOST}:${NUM_PORT} (pg=${pgClient?true:false})`);
     try {
@@ -1563,6 +1563,17 @@ const PORT = process.env.PORT || 3001;
       console.log('DEBUG: server.address() unavailable', e && e.message ? e.message : e);
     }
   });
+
+  // Connect to Postgres without blocking server startup. If Postgres is unreachable
+  // we'll log and leave pgClient null; routes already check pgClient before queries.
+  (async () => {
+    try {
+      pgClient = await connectWithRetry(5);
+      console.log('Postgres connected.');
+    } catch (e) {
+      console.error('Postgres: failed to connect after multiple attempts. Continuing without postgres (CSV fallback active).', e && e.message ? e.message : e);
+    }
+  })();
 
   // Optional: initialize Supabase Realtime subscription if env vars present
   try{
