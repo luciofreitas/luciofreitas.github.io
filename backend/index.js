@@ -1540,8 +1540,29 @@ const PORT = process.env.PORT || 3001;
     console.warn('ENV CHECK failed:', e && e.message ? e.message : e);
   }
 
-  const HOST = process.env.HOST || '127.0.0.1';
-  app.listen(PORT, HOST, () => console.log(`Parts API listening on http://${HOST}:${PORT} (pg=${pgClient?true:false})`));
+  // Bind to 0.0.0.0 by default so platforms like Render can detect the open port.
+  // Allow overriding by setting the HOST environment variable if needed.
+  const HOST = process.env.HOST || '0.0.0.0';
+
+  // Ensure PORT is a number when possible (some platforms provide it as string)
+  const NUM_PORT = Number(process.env.PORT) || PORT;
+
+  // Diagnostic logging: print env vars that affect binding so we can see
+  // what Render supplied at runtime (these go to stdout/stderr and appear in service logs).
+  console.log('DEBUG: process.env.PORT =', process.env.PORT);
+  console.log('DEBUG: resolved PORT =', NUM_PORT);
+  console.log('DEBUG: process.env.HOST =', process.env.HOST);
+  console.log('DEBUG: resolved HOST =', HOST);
+
+  const server = app.listen(NUM_PORT, HOST, () => {
+    console.log(`Parts API listening on http://${HOST}:${NUM_PORT} (pg=${pgClient?true:false})`);
+    try {
+      const addr = server.address && server.address();
+      console.log('DEBUG: server.address() =', addr);
+    } catch (e) {
+      console.log('DEBUG: server.address() unavailable', e && e.message ? e.message : e);
+    }
+  });
 
   // Optional: initialize Supabase Realtime subscription if env vars present
   try{
