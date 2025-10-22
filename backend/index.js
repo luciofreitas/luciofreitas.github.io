@@ -137,6 +137,20 @@ function buildPgConfig(){
   return config;
 }
 
+// Debug endpoint to test Postgres connectivity from the running backend
+app.get('/api/debug/pg', async (req, res) => {
+  if(!pgClient) return res.json({ ok: false, message: 'pgClient not initialized (using CSV fallback)' });
+  try{
+    const r = await pgClient.query('SELECT 1 as ok');
+    if(r && r.rows && r.rows.length) return res.json({ ok: true, rows: r.rows });
+    return res.status(500).json({ ok: false, message: 'unexpected result from SELECT 1', result: r });
+  }catch(e){
+    console.error('debug pg check failed:', e && e.message ? e.message : e);
+    return res.status(500).json({ ok: false, message: e && e.message ? e.message : String(e) });
+  }
+});
+
+
 // Helper: convert snake_case keys from Postgres to camelCase expected by the frontend
 function snakeToCamelKeys(obj){
   if(!obj || typeof obj !== 'object') return obj;
