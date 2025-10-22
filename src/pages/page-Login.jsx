@@ -216,26 +216,36 @@ export default function Login() {
                           setGoogleLoading(true);
                           setError('');
                           try {
-                            if (isMobile) {
-                              // On mobile, use redirect flow which is more reliable in mobile browsers
+                            // Try popup first (better UX on desktop). If popup fails (blocked/error), fall back to redirect.
+                            let user = null;
+                            try {
+                              const res = await signInWithGooglePopup();
+                              if (res && res.user) {
+                                user = res.user;
+                              } else if (res && res.error) {
+                                // Popup returned an error (could be blocked). We'll fallback to redirect below.
+                                console.warn('signInWithGooglePopup returned error, falling back to redirect', res.error);
+                              }
+                            } catch (popupErr) {
+                              // signInWithPopup threw (popup blocked or other). Fallback to redirect.
+                              console.warn('signInWithGooglePopup threw, falling back to redirect', popupErr && popupErr.message ? popupErr.message : popupErr);
+                            }
+
+                            if (!user) {
                               const started = await startGoogleRedirect();
                               if (started && started.error) {
                                 console.error('Failed to start redirect', started.error);
                                 setError('Erro no login com Google. Tente novamente.');
+                                setGoogleLoading(false);
                               }
-                              // Redirect has been initiated; the browser will navigate away. Do not proceed further here.
+                              // Redirect initiated (or error handled) — browser will navigate away on success.
                               return;
                             }
 
-                            // Desktop: use popup flow
-                            const res = await signInWithGooglePopup();
-                            if (res.error) {
-                              console.error('Firebase popup error', res.error);
-                              setError('Erro no login com Google. Tente novamente.');
-                              setGoogleLoading(false);
-                              return;
-                            }
-                            const user = res.user;
+                            // At this point we have a Firebase user from popup flow
+                            // (rest of existing success handling continues)
+                            
+                            
                             if (!user) {
                               setError('Falha ao obter usuário do provedor.');
                               setGoogleLoading(false);
