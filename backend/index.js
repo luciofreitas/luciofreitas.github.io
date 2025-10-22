@@ -1560,22 +1560,13 @@ const PORT = process.env.PORT || 3001;
   // Ensure PORT is a number when possible (some platforms provide it as string)
   const NUM_PORT = Number(process.env.PORT) || PORT;
 
-  // Diagnostic logging: print env vars that affect binding so we can see
-  // what Render supplied at runtime (these go to stdout/stderr and appear in service logs).
-  console.log('DEBUG: process.env.PORT =', process.env.PORT);
-  console.log('DEBUG: resolved PORT =', NUM_PORT);
-  console.log('DEBUG: process.env.HOST =', process.env.HOST);
-  console.log('DEBUG: resolved HOST =', HOST);
+  // Diagnostic logging was used during troubleshooting; keep env-checks above
+  // and the normal startup log below.
 
   // Start listening immediately so PaaS port scanners can detect the open port.
   const server = app.listen(NUM_PORT, HOST, () => {
     console.log(`Parts API listening on http://${HOST}:${NUM_PORT} (pg=${pgClient?true:false})`);
-    try {
-      const addr = server.address && server.address();
-      console.log('DEBUG: server.address() =', addr);
-    } catch (e) {
-      console.log('DEBUG: server.address() unavailable', e && e.message ? e.message : e);
-    }
+    // server.address() logging removed (cleanup): server is listening
   });
 
   // Connect to Postgres without blocking server startup. If Postgres is unreachable
