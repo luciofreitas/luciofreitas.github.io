@@ -691,23 +691,46 @@ export default function Login() {
                               if (normalizedEmailPopup) {
                                 const existingPopup = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmailPopup);
                                 if (existingPopup && !existingPopup.isDemo) {
-                                  // Found an existing manual account. Ask the user if they want to link accounts.
-                                  // Save the google credential and email for later linking.
+                                  // Found an existing manual account. Attempt automatic server-side merge first.
                                   const googleCred = res && res.credential ? res.credential : null;
-                                    console.debug('Setting linkingCredential (popup flow):', googleCred);
-                                    setLinkingCredential(googleCred);
-                                    setLinkEmail(normalizedEmailPopup);
-                                    // try to cache idToken so merge can run even if auth.currentUser is cleared
-                                    try {
-                                      if (user && typeof user.getIdToken === 'function') {
-                                        const idt = await user.getIdToken();
-                                        if (idt) setPendingMergeIdToken(idt);
+                                  console.debug('Popup flow: found existing manual account, attempting automatic merge', googleCred);
+                                  // try to cache idToken so merge can run even if auth.currentUser is cleared
+                                  let cachedIdToken = null;
+                                  try {
+                                    if (user && typeof user.getIdToken === 'function') {
+                                      const idt = await user.getIdToken();
+                                      if (idt) cachedIdToken = idt;
+                                      else {
+                                        try { cachedIdToken = await user.getIdToken(true); } catch (e) { /* ignore */ }
                                       }
-                                    } catch (e) { /* ignore */ }
-                                    // clear global error and modal-specific error before showing modal
-                                    setError('');
-                                    setLinkError('');
-                                    setShowLinkPrompt(true);
+                                    }
+                                  } catch (e) { /* ignore */ }
+
+                                  if (cachedIdToken) {
+                                    // try automatic merge and return on success
+                                    try {
+                                      setPendingMergeIdToken(cachedIdToken);
+                                      setPendingMergeEmail(normalizedEmailPopup);
+                                      setMergeError('');
+                                      await confirmMerge(cachedIdToken);
+                                      setGoogleLoading(false);
+                                      return;
+                                    } catch (e) {
+                                      console.warn('Automatic merge failed in popup flow, falling back to modal', e && e.message ? e.message : e);
+                                    }
+                                  }
+
+                                  // fallback: show modal to let user confirm and enter password if automatic merge didn't work
+                                  console.debug('Setting linkingCredential (popup flow) fallback to modal:', googleCred);
+                                  setLinkingCredential(googleCred);
+                                  setLinkEmail(normalizedEmailPopup);
+                                  try {
+                                    if (cachedIdToken) setPendingMergeIdToken(cachedIdToken);
+                                  } catch (e) { /* ignore */ }
+                                  // clear global error and modal-specific error before showing modal
+                                  setError('');
+                                  setLinkError('');
+                                  setShowLinkPrompt(true);
                                   // Do not finalize login yet. Keep the firebase user signed in until linking completes or user cancels.
                                   setGoogleLoading(false);
                                   return;
