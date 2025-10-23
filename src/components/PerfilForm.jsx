@@ -156,10 +156,41 @@ export default function PerfilForm({
     }
 
     try {
-      const updatedUser = { ...usuarioLogado, ...local };
-      if (local.novaSenha) {
-        updatedUser.senha = local.novaSenha;
+      // Prepare payload for server update
+      const payload = {
+        nome: local.nome,
+        email: local.email,
+        celular: local.celular,
+      };
+      if (local.novaSenha) payload.novaSenha = local.novaSenha;
+      // include existing photoURL if present so backend can sync avatar
+      if (usuarioLogado && usuarioLogado.photoURL) payload.photoURL = usuarioLogado.photoURL;
+
+      const base = (apiService && typeof apiService.getBaseUrl === 'function') ? apiService.getBaseUrl() : (typeof window !== 'undefined' && window.__API_BASE) ? window.__API_BASE : '';
+      let savedUser = null;
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        // If we have an access token (from Firebase/Supabase verify), include it
+        if (usuarioLogado && usuarioLogado.access_token) headers['Authorization'] = `Bearer ${usuarioLogado.access_token}`;
+        const resp = await fetch(`${base}/api/users/${encodeURIComponent(usuarioLogado.id)}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(payload)
+        });
+        if (resp.ok) {
+          const j = await resp.json().catch(() => null);
+          if (j && j.success && j.user) savedUser = j.user;
+        } else {
+          // ignore and fallback to local persistence
+          console.warn('Profile save to server failed', resp.status);
+        }
+      } catch (err) {
+        console.warn('Profile save to server threw', err && err.message ? err.message : err);
       }
+
+      // If server returned updated user, prefer it. Otherwise construct from local + existing usuarioLogado
+      const updatedUser = savedUser ? { ...usuarioLogado, ...savedUser } : { ...usuarioLogado, ...local };
+      if (local.novaSenha) updatedUser.senha = local.novaSenha;
 
       // Atualizar contexto
       setUsuarioLogado(updatedUser);
@@ -181,7 +212,6 @@ export default function PerfilForm({
       }));
 
       alert('Dados salvos com sucesso!');
-      
       onSave(updatedUser);
     } catch (err) {
       alert('Erro ao salvar dados: ' + err.message);

@@ -48,6 +48,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Helper to determine whether a request should receive debug-level responses.
+// Only allow debug responses when not in production to avoid leaking internals.
+function isDebugRequest(req){
+  if (process.env.NODE_ENV === 'production') return false;
+  try {
+    const x = String(req.headers['x-debug'] || '').toLowerCase() === 'true';
+    const k = String(req.headers['x-debug-key'] || '') === 'let-me-debug';
+    return x || k;
+  } catch (e) { return false; }
+}
+
 // Simple in-memory cache for proxied avatars: Map<url, { buffer, contentType, expiresAt }>
 const avatarCache = new Map();
 const AVATAR_CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
@@ -221,17 +232,19 @@ function buildPgConfig(){
 }
 
 // Debug endpoint to test Postgres connectivity from the running backend
-app.get('/api/debug/pg', async (req, res) => {
-  if(!pgClient) return res.json({ ok: false, message: 'pgClient not initialized (using CSV fallback)' });
-  try{
-    const r = await pgClient.query('SELECT 1 as ok');
-    if(r && r.rows && r.rows.length) return res.json({ ok: true, rows: r.rows });
-    return res.status(500).json({ ok: false, message: 'unexpected result from SELECT 1', result: r });
-  }catch(e){
-    console.error('debug pg check failed:', e && e.message ? e.message : e);
-    return res.status(500).json({ ok: false, message: e && e.message ? e.message : String(e) });
-  }
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/debug/pg', async (req, res) => {
+    if(!pgClient) return res.json({ ok: false, message: 'pgClient not initialized (using CSV fallback)' });
+    try{
+      const r = await pgClient.query('SELECT 1 as ok');
+      if(r && r.rows && r.rows.length) return res.json({ ok: true, rows: r.rows });
+      return res.status(500).json({ ok: false, message: 'unexpected result from SELECT 1', result: r });
+    }catch(e){
+      console.error('debug pg check failed:', e && e.message ? e.message : e);
+      return res.status(500).json({ ok: false, message: e && e.message ? e.message : String(e) });
+    }
+  });
+}
 
 
 // Helper: convert snake_case keys from Postgres to camelCase expected by the frontend
@@ -262,7 +275,7 @@ async function tryConnectPg(){
     console.log('Connected to Postgres for backend API');
     // detect users.name vs users.nome column to avoid schema mismatch
     try {
-      const cols = await client.query("SELECT column_name FROM information_schema.columns WHERE table_name='users'");
+  const cols = await client.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
       const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
       if (names.indexOf('name') >= 0) userNameColumn = 'name';
       else if (names.indexOf('nome') >= 0) userNameColumn = 'nome';
@@ -706,17 +719,19 @@ app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = 
 app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs that use 'nome' or 'name' for the user's display name */ const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, pro_since, created_at FROM users"); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
 
 // Temporary debug endpoint: report users table columns and runtime detection
-app.get('/api/debug/users-columns', async (req, res) => {
-  try {
-    if (!pgClient) return res.json({ ok: false, reason: 'no pgClient' });
-    const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' ORDER BY ordinal_position");
-    const names = (cols.rows || []).map(r => String(r.column_name));
-    return res.json({ ok: true, detectedUserNameColumn: userNameColumn, runtimePid: process.pid, time: new Date().toISOString(), columns: names });
-  } catch (e) {
-    console.error('debug/users-columns failed:', e && e.message ? e.message : e);
-    return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
-  }
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/debug/users-columns', async (req, res) => {
+    try {
+      if (!pgClient) return res.json({ ok: false, reason: 'no pgClient' });
+      const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public' ORDER BY ordinal_position");
+      const names = (cols.rows || []).map(r => String(r.column_name));
+      return res.json({ ok: true, detectedUserNameColumn: userNameColumn, runtimePid: process.pid, time: new Date().toISOString(), columns: names });
+    } catch (e) {
+      console.error('debug/users-columns failed:', e && e.message ? e.message : e);
+      return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
+    }
+  });
+}
 
 app.get('/api/product/:id', async (req, res) => {
   if(pgClient){
@@ -863,7 +878,7 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
       try {
         let nameCol = userNameColumn || 'name';
         try {
-          const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users'");
+          const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
           const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
           if (names.indexOf('nome') >= 0) nameCol = 'nome';
           else if (names.indexOf('name') >= 0) nameCol = 'name';
@@ -1014,17 +1029,41 @@ app.post('/api/auth/merge-google', async (req, res) => {
           // Prefer matching by auth_id when available
           if (userHasAuthId) {
             try {
-              const rAuth = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url, is_pro FROM users WHERE auth_id = $1 LIMIT 1`, [sbUser.id]);
+              // detect optional phone column
+              let phoneCol = null;
+              try {
+                const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+                const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+                const phoneCandidates = ['celular','telefone','phone'];
+                phoneCol = phoneCandidates.find(c => names.indexOf(c) >= 0) || null;
+              } catch (e) { phoneCol = null; }
+
+              const selectCols = [`id`, `email`, `${userNameColumn} as name`, `photo_url`, `is_pro`];
+              if (phoneCol) selectCols.push(phoneCol);
+              const rAuth = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE auth_id = $1 LIMIT 1`, [sbUser.id]);
               if (rAuth && rAuth.rowCount > 0) {
                 const row = rAuth.rows[0];
                 const displayName = ((row.name || '') + '').trim();
                 // Prefer Google-provided photoURL (decoded.picture) when present
-                return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: photoURL || row.photo_url || null, is_pro: row.is_pro } });
+                const userOut = { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: photoURL || row.photo_url || null, is_pro: row.is_pro };
+                if (phoneCol && row[phoneCol]) userOut.celular = row[phoneCol];
+                return res.json({ success: true, user: userOut });
               }
             } catch (e) { /* ignore */ }
           }
           // Fallback: try to find by email and then update auth_id if present
-          const r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url, is_pro FROM users WHERE lower(email) = lower($1) LIMIT 1`, [email]);
+          // include optional phone column in fallback select
+          try {
+            const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+            const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+            const phoneCandidates = ['celular','telefone','phone'];
+            const phoneCol = phoneCandidates.find(c => names.indexOf(c) >= 0) || null;
+            const selectCols = [`id`, `email`, `${userNameColumn} as name`, `photo_url`, `is_pro`];
+            if (phoneCol) selectCols.push(phoneCol);
+            var r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = lower($1) LIMIT 1`, [email]);
+          } catch (e) {
+            var r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url, is_pro FROM users WHERE lower(email) = lower($1) LIMIT 1`, [email]);
+          }
           if (r && r.rowCount > 0) {
             const row = r.rows[0];
             const displayName = ((row.name || '') + '').trim();
@@ -1036,7 +1075,10 @@ app.post('/api/auth/merge-google', async (req, res) => {
               } catch (e) { console.warn('merge-google: failed to backfill auth_id', e && e.message ? e.message : e); }
             }
             // Prefer Google avatar when available
-            return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: photoURL || row.photo_url || null, is_pro: row.is_pro } });
+            const userOut = { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: photoURL || row.photo_url || null, is_pro: row.is_pro };
+            // copy phone into standardized field name if present in row
+            try { if (row.celular) userOut.celular = row.celular; else { const keys = Object.keys(row); const phoneKey = keys.find(k => /celular|telefone|phone/i.test(k)); if (phoneKey && row[phoneKey]) userOut.celular = row[phoneKey]; } } catch(e){}
+            return res.json({ success: true, user: userOut });
           }
         } catch (e) {
           console.warn('merge-google: Postgres lookup failed', e && e.message ? e.message : e);
@@ -1220,7 +1262,7 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
         // Re-check the users table columns to avoid stale detection (race/late-connection cases)
         let nameCol = userNameColumn || 'name';
         try {
-          const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users'");
+          const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
           const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
           if (names.indexOf('nome') >= 0) nameCol = 'nome';
           else if (names.indexOf('name') >= 0) nameCol = 'name';
@@ -1368,7 +1410,7 @@ app.post('/api/users', async (req, res) => {
   const { nome, email, senha } = req.body || {};
   if (!email || !senha) return res.status(400).json({ error: 'email and senha are required' });
   const normalizedEmail = String(email).trim().toLowerCase();
-  const debugMode = String(req.headers['x-debug'] || '').toLowerCase() === 'true';
+  const debugMode = isDebugRequest(req);
   try {
     if (pgClient) {
       // HOTFIX: minimal INSERT to maximize compatibility across schemas.
@@ -1411,6 +1453,182 @@ app.post('/api/users', async (req, res) => {
     if (debugMode) {
       // Return less-detailed error even when debugging to avoid leaking stack traces
       return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err) });
+    }
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Update user profile (sync to Postgres and to Supabase Auth when linked)
+app.put('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const body = req.body || {};
+  const { nome, email, celular, novaSenha, photoURL } = body;
+  if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+  try {
+    // Re-detect users table columns to avoid writing/returning non-existent columns
+    let nameCol = userNameColumn || 'name';
+    let names = [];
+    try {
+  const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+      names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+      if (names.indexOf('nome') >= 0) nameCol = 'nome';
+      else if (names.indexOf('name') >= 0) nameCol = 'name';
+    } catch (e) {
+      // if detection fails, fall back to previously-detected columns
+      names = [];
+    }
+
+    const updates = [];
+    const params = [];
+    let idx = 1;
+    // Only include columns that actually exist in the users table
+    if (email && (names.length === 0 || names.indexOf('email') >= 0)) { updates.push(`email = $${idx++}`); params.push(String(email).trim().toLowerCase()); }
+    if (nome && (names.length === 0 || names.indexOf(nameCol) >= 0)) { updates.push(`${nameCol} = $${idx++}`); params.push(nome); }
+    // phone column can be named celular, telefone, phone
+  const phoneCols = ['celular', 'telefone', 'phone'];
+  // Only pick a phone column if we successfully detected table columns; otherwise be conservative
+  const phoneColPresent = (names.length === 0) ? null : phoneCols.find(c => names.indexOf(c) >= 0);
+  if (typeof celular !== 'undefined' && phoneColPresent && names.indexOf(phoneColPresent) >= 0) { updates.push(`${phoneColPresent} = $${idx++}`); params.push(celular); }
+    if (typeof photoURL !== 'undefined' && (names.length === 0 || names.indexOf('photo_url') >= 0)) { updates.push(`photo_url = $${idx++}`); params.push(photoURL); }
+    if (novaSenha && (names.length === 0 || names.indexOf(userPasswordColumn) >= 0)) {
+      const hashed = hashPassword(novaSenha);
+      updates.push(`${userPasswordColumn} = $${idx++}`); params.push(hashed);
+    }
+    if (updates.length === 0) return res.status(400).json({ error: 'no writable fields found on users table for provided payload' });
+
+    // Build RETURNING columns dynamically based on detected columns
+    const returning = ['id'];
+    if (names.length === 0 || names.indexOf('email') >= 0) returning.push('email');
+    if (names.length === 0 || names.indexOf(nameCol) >= 0) returning.push(`${nameCol} as name`);
+    if (names.length === 0 || names.indexOf('photo_url') >= 0) returning.push('photo_url');
+    if (names.length === 0 || names.indexOf('auth_id') >= 0) returning.push('auth_id');
+  if (phoneColPresent && names.indexOf(phoneColPresent) >= 0) returning.push(`${phoneColPresent}`);
+    if (names.length === 0 || names.indexOf(userPasswordColumn) >= 0) returning.push(`${userPasswordColumn} as password_hash`);
+
+  // Execute update without RETURNING to avoid referencing optional columns that may not exist
+  const updateQ = `UPDATE users SET ${updates.join(', ')}, atualizado_em = now() WHERE id = $${idx}`;
+  params.push(id);
+  const updRes = await pgClient.query(updateQ, params);
+  if (updRes.rowCount === 0) return res.status(404).json({ error: 'not found' });
+
+  // Now fetch the canonical row using a safe SELECT that only includes columns that actually exist
+  // Re-read users table columns to avoid stale/misdetected schema info
+  try {
+  const cols2 = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+    names = (cols2.rows || []).map(r => String(r.column_name).toLowerCase());
+    if (names.indexOf('nome') >= 0) nameCol = 'nome';
+    else if (names.indexOf('name') >= 0) nameCol = 'name';
+  } catch (e) {
+    // ignore and fall back to previously-detected names
+  }
+
+  const selectCols = ['id'];
+  if (names.length === 0 || names.indexOf('email') >= 0) selectCols.push('email');
+  if (names.length === 0 || names.indexOf(nameCol) >= 0) selectCols.push(`${nameCol} as name`);
+  if (names.length === 0 || names.indexOf('photo_url') >= 0) selectCols.push('photo_url');
+  if (names.length === 0 || names.indexOf('auth_id') >= 0) selectCols.push('auth_id');
+  if (names.length === 0 || names.indexOf(userPasswordColumn) >= 0) selectCols.push(`${userPasswordColumn} as password_hash`);
+  // include phone if present in schema
+  const phoneCandidates = ['celular','telefone','phone'];
+  const phoneCol = (names.length === 0) ? null : phoneCandidates.find(c => names.indexOf(c) >= 0) || null;
+  if (phoneCol) selectCols.push(phoneCol);
+
+  const selQ = `SELECT ${selectCols.join(', ')} FROM users WHERE id = $1 LIMIT 1`;
+    // If caller requested debug, emit the exact SELECT so we can see which column name caused a failure
+    try {
+  const dbg = isDebugRequest(req);
+      if (dbg) console.warn('DEBUG /api/users/:id select:', selQ, 'params:', [id]);
+    } catch (e) { /* ignore logging errors */ }
+    let r;
+    try {
+      r = await pgClient.query(selQ, [id]);
+    } catch (e) {
+      // If a column referenced in selQ does not exist (race or mis-detected schema),
+      // retry with a minimal, safe select that only includes known core columns.
+      console.warn('Safe-select retry due to SELECT failure:', e && e.message ? e.message : e);
+      try {
+        const safeCols = [`id`, `email`, `${nameCol} as name`, `photo_url`];
+        if (userHasAuthId) safeCols.push('auth_id');
+        const safeQ = `SELECT ${safeCols.join(', ')} FROM users WHERE id = $1 LIMIT 1`;
+        r = await pgClient.query(safeQ, [id]);
+      } catch (e2) {
+        // rethrow original error for outer handler
+        throw e;
+      }
+    }
+    if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+    const row = r.rows[0];
+
+    // If the row has auth_id and we have Supabase admin credentials, propagate changes to Supabase
+    if (userHasAuthId && row.auth_id && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const { createClient } = require('@supabase/supabase-js');
+        const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+        const updateData = {};
+        if (email) updateData.email = String(email).trim().toLowerCase();
+        if (novaSenha) updateData.password = novaSenha;
+        // user_metadata: preserve existing metadata keys and merge name/celular/avatar
+        const metadata = {};
+        if (nome) metadata.name = nome;
+        if (celular) metadata.celular = celular;
+        if (Object.keys(metadata).length) updateData.user_metadata = metadata;
+        // If we have a photoURL, try to set avatar fields too
+        if (photoURL) {
+          updateData.user_metadata = updateData.user_metadata || {};
+          updateData.user_metadata.avatar_url = photoURL;
+        }
+        if (Object.keys(updateData).length) {
+          try {
+            await supabaseAdmin.auth.admin.updateUserById(row.auth_id, updateData);
+            console.log('Synced updated profile to Supabase for auth_id', row.auth_id);
+          } catch (e) {
+            console.warn('Failed to update Supabase user during profile sync', e && e.message ? e.message : e);
+          }
+        }
+      } catch (e) {
+        console.warn('Profile sync to Supabase failed', e && e.message ? e.message : e);
+      }
+    }
+
+    // Normalize response for frontend
+    const displayName = ((row.name || '') + '').trim();
+    const safe = { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null };
+    if (row.auth_id) { safe.auth_id = row.auth_id; safe.providers = ['google']; }
+    // If Postgres does not have a phone/celular column but the user is linked to Supabase,
+    // try to fetch phone from Supabase admin user metadata so the frontend can display it.
+    try {
+      if (userHasAuthId && row.auth_id && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const { createClient } = require('@supabase/supabase-js');
+        const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+        try {
+          if (supabaseAdmin && supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.getUserById === 'function') {
+            const adminRes = await supabaseAdmin.auth.admin.getUserById(row.auth_id);
+            if (adminRes && adminRes.data && adminRes.data.user) {
+              const au = adminRes.data.user;
+              try {
+                const phoneCandidates = [];
+                if (au.phone) phoneCandidates.push(au.phone);
+                if (au.phone_number) phoneCandidates.push(au.phone_number);
+                if (au.user_metadata && au.user_metadata.phone) phoneCandidates.push(au.user_metadata.phone);
+                if (au.user_metadata && au.user_metadata.celular) phoneCandidates.push(au.user_metadata.celular);
+                if (au.raw_user_meta_data && au.raw_user_meta_data.phone) phoneCandidates.push(au.raw_user_meta_data.phone);
+                if (au.raw_user_meta_data && au.raw_user_meta_data.phone_number) phoneCandidates.push(au.raw_user_meta_data.phone_number);
+                if (au.raw_user_meta_data && au.raw_user_meta_data.celular) phoneCandidates.push(au.raw_user_meta_data.celular);
+                const foundPhone = phoneCandidates.find(p => p && String(p).trim());
+                if (foundPhone) safe.celular = String(foundPhone).trim();
+              } catch (e) { /* ignore phone extraction errors */ }
+            }
+          }
+        } catch (e) { /* ignore supabase admin read errors */ }
+      }
+    } catch (e) { /* ignore */ }
+    return res.json({ success: true, user: safe });
+  } catch (err) {
+    console.error('Profile update failed:', err && err.stack ? err.stack : err);
+    // If caller included X-Debug: true or X-Debug-Key: let-me-debug, return error details for local debugging
+  const debugMode = isDebugRequest(req);
+    if (debugMode) {
+      return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null });
     }
     return res.status(500).json({ error: 'internal error' });
   }
@@ -1461,7 +1679,7 @@ app.post('/api/auth/login', async (req, res) => {
         // try to fetch provider avatar from Supabase admin and backfill the users.photo_url
         // so future password logins display the same avatar as provider logins.
         try {
-          if (userHasAuthId && u.auth_id && !safe.photoURL && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+          if (userHasAuthId && u.auth_id && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
             try {
               const { createClient } = require('@supabase/supabase-js');
               const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -1470,6 +1688,19 @@ app.post('/api/auth/login', async (req, res) => {
                 if (adminRes && adminRes.data && adminRes.data.user) {
                   const au = adminRes.data.user;
                   const candidate = (au.raw_user_meta_data && (au.raw_user_meta_data.picture || au.raw_user_meta_data.avatar_url)) || au.avatar_url || au.picture || null;
+                  // Try to extract a phone/celular from admin user metadata or raw_user_meta_data
+                  try {
+                    const phoneCandidates = [];
+                    if (au.phone) phoneCandidates.push(au.phone);
+                    if (au.phone_number) phoneCandidates.push(au.phone_number);
+                    if (au.user_metadata && au.user_metadata.phone) phoneCandidates.push(au.user_metadata.phone);
+                    if (au.user_metadata && au.user_metadata.celular) phoneCandidates.push(au.user_metadata.celular);
+                    if (au.raw_user_meta_data && au.raw_user_meta_data.phone) phoneCandidates.push(au.raw_user_meta_data.phone);
+                    if (au.raw_user_meta_data && au.raw_user_meta_data.phone_number) phoneCandidates.push(au.raw_user_meta_data.phone_number);
+                    if (au.raw_user_meta_data && au.raw_user_meta_data.celular) phoneCandidates.push(au.raw_user_meta_data.celular);
+                    const foundPhone = phoneCandidates.find(p => p && String(p).trim());
+                    if (foundPhone) safe.celular = String(foundPhone).trim();
+                  } catch (e) { /* ignore phone extraction errors */ }
                   if (candidate) {
                     safe.photoURL = candidate;
                     try {
@@ -1687,54 +1918,60 @@ app.post('/api/guias/ratings', async (req, res) => {
 });
 
 // TEMP DEBUG: check DB connection and quick guias sampling
-app.get('/api/debug/check-guia-db', async (req, res) => {
-  try {
-    const status = { pgClient: !!pgClient };
-    if (!pgClient) return res.json({ ...status, msg: 'pgClient not available' });
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/debug/check-guia-db', async (req, res) => {
+    try {
+      const status = { pgClient: !!pgClient };
+      if (!pgClient) return res.json({ ...status, msg: 'pgClient not available' });
 
-    const countRes = await pgClient.query('SELECT count(*) as cnt FROM guias');
-    const cnt = countRes && countRes.rows && countRes.rows[0] ? Number(countRes.rows[0].cnt) : null;
-    const sample = await pgClient.query('SELECT id, autor_email, titulo, status, criado_em FROM guias ORDER BY criado_em DESC LIMIT 10');
-    return res.json({ ...status, count: cnt, sample: sample.rows });
-  } catch (err) {
-    console.error('debug check-guia-db failed:', err && err.message ? err.message : err);
-    return res.status(500).json({ error: err && err.message ? err.message : String(err) });
-  }
-});
+      const countRes = await pgClient.query('SELECT count(*) as cnt FROM guias');
+      const cnt = countRes && countRes.rows && countRes.rows[0] ? Number(countRes.rows[0].cnt) : null;
+      const sample = await pgClient.query('SELECT id, autor_email, titulo, status, criado_em FROM guias ORDER BY criado_em DESC LIMIT 10');
+      return res.json({ ...status, count: cnt, sample: sample.rows });
+    } catch (err) {
+      console.error('debug check-guia-db failed:', err && err.message ? err.message : err);
+      return res.status(500).json({ error: err && err.message ? err.message : String(err) });
+    }
+  });
+}
 
 // Temporary debug: return user row for given email (safe only for local/dev).
 // Use: GET /api/debug/user-by-email?email=seu@exemplo.com
-app.get('/api/debug/user-by-email', async (req, res) => {
-  try {
-    const email = req.query.email && String(req.query.email).trim();
-    if (!email) return res.status(400).json({ error: 'email query required' });
-    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
-    const cols = ['id', 'email', 'photo_url'];
-    if (userHasAuthId) cols.push('auth_id');
-    cols.push(userPasswordColumn + ' as password_hash');
-    const q = `SELECT ${cols.join(', ')} FROM users WHERE lower(email) = lower($1) LIMIT 1`;
-    const r = await pgClient.query(q, [email]);
-    if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
-    const row = r.rows[0];
-    return res.json({ ok: true, row });
-  } catch (e) {
-    console.error('/api/debug/user-by-email failed', e && e.message ? e.message : e);
-    return res.status(500).json({ error: 'internal' });
-  }
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/debug/user-by-email', async (req, res) => {
+    try {
+      const email = req.query.email && String(req.query.email).trim();
+      if (!email) return res.status(400).json({ error: 'email query required' });
+      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+      const cols = ['id', 'email', 'photo_url'];
+      if (userHasAuthId) cols.push('auth_id');
+      cols.push(userPasswordColumn + ' as password_hash');
+      const q = `SELECT ${cols.join(', ')} FROM users WHERE lower(email) = lower($1) LIMIT 1`;
+      const r = await pgClient.query(q, [email]);
+      if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+      const row = r.rows[0];
+      return res.json({ ok: true, row });
+    } catch (e) {
+      console.error('/api/debug/user-by-email failed', e && e.message ? e.message : e);
+      return res.status(500).json({ error: 'internal' });
+    }
+  });
+}
 
 // Temporary debug helper: echo headers and body when X-Debug-Key is provided.
 // This endpoint is intentionally minimal and should be removed after diagnosis.
-app.post('/api/debug/echo-headers', (req, res) => {
-  try {
-    const key = String(req.headers['x-debug-key'] || '');
-    if (key !== 'let-me-debug') return res.status(403).json({ error: 'forbidden' });
-    // Return headers and parsed JSON body for debugging
-    return res.json({ headers: req.headers, body: req.body });
-  } catch (e) {
-    return res.status(500).json({ error: 'internal' });
-  }
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/api/debug/echo-headers', (req, res) => {
+    try {
+      const key = String(req.headers['x-debug-key'] || '');
+      if (key !== 'let-me-debug') return res.status(403).json({ error: 'forbidden' });
+      // Return headers and parsed JSON body for debugging
+      return res.json({ headers: req.headers, body: req.body });
+    } catch (e) {
+      return res.status(500).json({ error: 'internal' });
+    }
+  });
+}
 
 // Endpoints de Carros do Usuário
 app.get('/api/users/:userId/cars', async (req, res) => {
