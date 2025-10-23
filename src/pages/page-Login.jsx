@@ -81,21 +81,43 @@ export default function Login() {
         // 1) Check local/manual users (localStorage/seed/demo)
         const existing = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmail);
           if (existing && !existing.isDemo) {
-          // If we have a google credential (redirect/popup provided), prompt to link
+            // If we have a google credential (redirect/popup provided), attempt automatic server-side merge.
             if (googleCredential) {
-                console.debug('Setting linkingCredential (processFirebaseUser):', googleCredential);
-                setLinkingCredential(googleCredential);
-                setLinkEmail(normalizedEmail);
-                // clear global error and modal-specific error before showing modal
-                setError('');
-                setLinkError('');
-                setShowLinkPrompt(true);
-                return;
+              console.debug('Attempting automatic merge for existing local user with googleCredential', googleCredential);
+              // try to obtain idToken and call confirmMerge; if that fails, fall back to the password modal
+              try {
+                let idToken = null;
+                try { idToken = await user.getIdToken(); } catch (e) { /* ignore */ }
+                if (!idToken) {
+                  try { idToken = await user.getIdToken(true); } catch (e) { /* ignore */ }
+                }
+                if (idToken) {
+                  setPendingMergeIdToken(idToken);
+                  setPendingMergeEmail(normalizedEmail);
+                  setMergeError('');
+                  try {
+                    await confirmMerge(idToken);
+                    return;
+                  } catch (e) {
+                    console.warn('Automatic merge attempt failed, falling back to password prompt', e && e.message ? e.message : e);
+                  }
+                }
+              } catch (e) {
+                console.warn('Automatic merge attempt threw', e && e.message ? e.message : e);
               }
-          setError('Já existe uma conta criada com este e-mail. Faça login com e-mail/senha ou entre em contato para unificar as contas.');
-          try { await signOut(auth); } catch (e) { /* ignore */ }
-          return;
-        }
+              // fallback: show the existing modal if automatic merge didn't complete
+              console.debug('Setting linkingCredential (processFirebaseUser) fallback to modal:', googleCredential);
+              setLinkingCredential(googleCredential);
+              setLinkEmail(normalizedEmail);
+              setError('');
+              setLinkError('');
+              setShowLinkPrompt(true);
+              return;
+            }
+            setError('Já existe uma conta criada com este e-mail. Faça login com e-mail/senha ou entre em contato para unificar as contas.');
+            try { await signOut(auth); } catch (e) { /* ignore */ }
+            return;
+          }
 
         // 2) Also check Firebase sign-in methods: if a password-based provider exists,
         // prompt to link if google credential exists, otherwise block.
