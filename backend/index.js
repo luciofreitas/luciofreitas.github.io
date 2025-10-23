@@ -100,6 +100,8 @@ let pgClient = null;
 let userNameColumn = 'name';
 // Which column stores the user's password hash. Common names: password_hash, senha, senha_hash, password
 let userPasswordColumn = 'password_hash';
+// Whether the users table has an auth_id column to link to external auth providers
+let userHasAuthId = false;
 // Optional user metadata columns (may not exist in every schema)
 let userCreatedAtColumn = null;
 let userHasIsPro = false;
@@ -196,6 +198,8 @@ async function tryConnectPg(){
   // detect pro flags
   userHasIsPro = names.indexOf('is_pro') >= 0 || names.indexOf('ispro') >= 0;
   userHasProSince = names.indexOf('pro_since') >= 0 || names.indexOf('pro_since') >= 0 || names.indexOf('pro_since') >= 0;
+  // detect optional auth_id column used to link to Supabase/Firebase auth ids
+  userHasAuthId = names.indexOf('auth_id') >= 0;
   console.log('Detected users name column:', userNameColumn, 'password column:', userPasswordColumn, 'createdAt:', userCreatedAtColumn, 'hasIsPro:', userHasIsPro, 'hasProSince:', userHasProSince);
     } catch (e) {
       console.warn('Could not detect users table columns:', e && e.message ? e.message : e);
@@ -886,7 +890,7 @@ app.post('/api/auth/merge-google', async (req, res) => {
       console.warn('Supabase admin lookup failed', e && e.message ? e.message : e);
     }
 
-    if (sbUser) {
+  if (sbUser) {
       // Attach firebase uid into user_metadata for traceability
       try {
         const meta = sbUser.user_metadata || {};
@@ -927,10 +931,29 @@ app.post('/api/auth/merge-google', async (req, res) => {
       // If Postgres is available, try to return the canonical user row from users table
       if (pgClient) {
         try {
-          const r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url, is_pro, criado_em FROM users WHERE lower(email) = lower($1) LIMIT 1`, [email]);
+          // Prefer matching by auth_id when available
+          if (userHasAuthId) {
+            try {
+              const rAuth = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url, is_pro FROM users WHERE auth_id = $1 LIMIT 1`, [sbUser.id]);
+              if (rAuth && rAuth.rowCount > 0) {
+                const row = rAuth.rows[0];
+                const displayName = ((row.name || '') + '').trim();
+                return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro } });
+              }
+            } catch (e) { /* ignore */ }
+          }
+          // Fallback: try to find by email and then update auth_id if present
+          const r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url, is_pro FROM users WHERE lower(email) = lower($1) LIMIT 1`, [email]);
           if (r && r.rowCount > 0) {
             const row = r.rows[0];
             const displayName = ((row.name || '') + '').trim();
+            // try to persist auth_id for future convenience
+            if (userHasAuthId) {
+              try {
+                await pgClient.query('UPDATE users SET auth_id = $1, atualizado_em = now() WHERE id = $2', [sbUser.id, row.id]);
+                console.log(`merge-google: backfilled auth_id for user row ${row.id} -> ${sbUser.id}`);
+              } catch (e) { console.warn('merge-google: failed to backfill auth_id', e && e.message ? e.message : e); }
+            }
             return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro } });
           }
         } catch (e) {
