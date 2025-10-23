@@ -177,11 +177,20 @@ export default function Login() {
       } catch (e) { /* ignore */ }
 
       if (shouldPromptMerge) {
-        // show confirmation modal before performing server-side merge
-        setPendingMergeIdToken(idToken);
-        setPendingMergeEmail(user && user.email ? String(user.email).trim().toLowerCase() : null);
-        setMergeError('');
-        setShowMergeConfirm(true);
+        // perform automatic server-side merge (one-click / automatic flow)
+        // store pending token/email for debugging/rollback and then invoke merge immediately
+        const mergeEmail = user && user.email ? String(user.email).trim().toLowerCase() : null;
+        try {
+          setPendingMergeIdToken(idToken);
+          setPendingMergeEmail(mergeEmail);
+          setMergeError('');
+          // call confirmMerge with explicit idToken to avoid relying on state sync
+          await confirmMerge(idToken);
+        } catch (e) {
+          // If automatic merge failed, fall back to showing confirmation modal so user can retry
+          console.warn('automatic merge failed, falling back to manual confirm', e && e.message ? e.message : e);
+          setShowMergeConfirm(true);
+        }
         return;
       }
       try {
@@ -279,16 +288,17 @@ export default function Login() {
   }, [setUsuarioLogado, navigate]);
 
   // Handler to confirm server-side merge (called from confirmation modal)
-  async function confirmMerge() {
-    console.debug('confirmMerge invoked', { pendingMergeIdToken, pendingMergeEmail });
-    if (!pendingMergeIdToken) { setMergeError('Token indisponível para fusão.'); return; }
+  async function confirmMerge(overrideIdToken = null) {
+    const tokenToUse = overrideIdToken || pendingMergeIdToken;
+    console.debug('confirmMerge invoked', { tokenProvided: !!overrideIdToken, pendingMergeEmail, tokenToUse: !!tokenToUse });
+    if (!tokenToUse) { setMergeError('Token indisponível para fusão.'); return; }
     setMergeLoading(true);
     setMergeError('');
     try {
       const apiBase = window.__API_BASE || '';
       const resp = await fetch(`${apiBase}/api/auth/merge-google`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${pendingMergeIdToken}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenToUse}` },
         body: JSON.stringify({})
       });
       if (!resp.ok) {
