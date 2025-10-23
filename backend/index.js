@@ -48,6 +48,86 @@ app.use((req, res, next) => {
   next();
 });
 
+// Simple in-memory cache for proxied avatars: Map<url, { buffer, contentType, expiresAt }>
+const avatarCache = new Map();
+const AVATAR_CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
+
+// Helper to fetch remote URL bytes. Try to use node-fetch if installed, otherwise fallback to https.
+async function fetchUrlBytes(url) {
+  // Try node-fetch dynamically
+  try {
+    const nf = require('node-fetch');
+    const r = await nf(url, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': 'PecaFacil-AvatarProxy/1.0' }, timeout: 15000 });
+    if (!r.ok) throw new Error(`status ${r.status}`);
+    const contentType = r.headers.get('content-type') || 'application/octet-stream';
+    const buf = await r.buffer();
+    return { buffer: buf, contentType };
+  } catch (e) {
+    // fallback to https
+  }
+  return new Promise((resolve, reject) => {
+    try {
+      const https = require('https');
+      const parsed = new URL(url);
+      const opts = { headers: { 'User-Agent': 'PecaFacil-AvatarProxy/1.0' } };
+      https.get(parsed, opts, (resp) => {
+        const statusCode = resp.statusCode || 0;
+        if (statusCode >= 400) return reject(new Error('status ' + statusCode));
+        const chunks = [];
+        resp.on('data', (c) => chunks.push(c));
+        resp.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          const contentType = resp.headers['content-type'] || 'application/octet-stream';
+          resolve({ buffer, contentType });
+        });
+      }).on('error', (err) => reject(err)).setTimeout(15000, function() { this.destroy(new Error('timeout')); });
+    } catch (err) { reject(err); }
+  });
+}
+
+// Avatar proxy: /api/avatar/proxy?url=<encoded_url>
+app.get('/api/avatar/proxy', async (req, res) => {
+  try {
+    const url = req.query && req.query.url ? String(req.query.url) : null;
+    if (!url) return res.status(400).send('url required');
+    // Only allow http(s) and block local file access
+    if (!/^https?:\/\//i.test(url)) return res.status(400).send('invalid url');
+    // Simple whitelist check: allow googleusercontent & gstatic & avatars.googleusercontent
+    if (!/googleusercontent\.com|gstatic\.com|lh3\.googleusercontent\.com/i.test(url)) {
+      // allow other hosts but rate-limit caution
+    }
+
+    const now = Date.now();
+    const cached = avatarCache.get(url);
+    if (cached && cached.expiresAt > now) {
+      res.setHeader('Content-Type', cached.contentType || 'application/octet-stream');
+      res.setHeader('Cache-Control', `public, max-age=${Math.floor(AVATAR_CACHE_TTL_MS/1000)}`);
+      return res.status(200).send(cached.buffer);
+    }
+
+    // fetch remote
+    let fetched;
+    try {
+      fetched = await fetchUrlBytes(url);
+    } catch (e) {
+      console.warn('avatar proxy fetch failed', e && e.message ? e.message : e);
+      return res.status(502).send('bad gateway');
+    }
+
+    // store in cache
+    try {
+      avatarCache.set(url, { buffer: fetched.buffer, contentType: fetched.contentType, expiresAt: Date.now() + AVATAR_CACHE_TTL_MS });
+    } catch (e) { /* ignore cache set failures */ }
+
+    res.setHeader('Content-Type', fetched.contentType || 'application/octet-stream');
+    res.setHeader('Cache-Control', `public, max-age=${Math.floor(AVATAR_CACHE_TTL_MS/1000)}`);
+    return res.status(200).send(fetched.buffer);
+  } catch (err) {
+    console.error('avatar proxy error', err && err.stack ? err.stack : err);
+    return res.status(500).send('internal');
+  }
+});
+
 // Helper: verify Supabase access token using service role key (server-side)
 async function verifySupabaseAccessToken(accessToken){
   if(!accessToken) return null;
@@ -938,7 +1018,8 @@ app.post('/api/auth/merge-google', async (req, res) => {
               if (rAuth && rAuth.rowCount > 0) {
                 const row = rAuth.rows[0];
                 const displayName = ((row.name || '') + '').trim();
-                return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro } });
+                // Prefer Google-provided photoURL (decoded.picture) when present
+                return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: photoURL || row.photo_url || null, is_pro: row.is_pro } });
               }
             } catch (e) { /* ignore */ }
           }
@@ -954,16 +1035,17 @@ app.post('/api/auth/merge-google', async (req, res) => {
                 console.log(`merge-google: backfilled auth_id for user row ${row.id} -> ${sbUser.id}`);
               } catch (e) { console.warn('merge-google: failed to backfill auth_id', e && e.message ? e.message : e); }
             }
-            return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro } });
+            // Prefer Google avatar when available
+            return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: photoURL || row.photo_url || null, is_pro: row.is_pro } });
           }
         } catch (e) {
           console.warn('merge-google: Postgres lookup failed', e && e.message ? e.message : e);
         }
       }
 
-      // Fallback: return Supabase auth user shape
-      const displayName = (sbUser.user_metadata && sbUser.user_metadata.name) ? sbUser.user_metadata.name : (sbUser.email ? sbUser.email.split('@')[0] : '');
-      return res.json({ success: true, user: { id: sbUser.id, email: sbUser.email, name: displayName, nome: displayName, photoURL: (sbUser.user_metadata && sbUser.user_metadata.avatar_url) || sbUser.raw_user_meta_data && sbUser.raw_user_meta_data.avatar_url || null } });
+  // Fallback: return Supabase auth user shape — prefer Google photo when available
+  const displayName = (sbUser.user_metadata && sbUser.user_metadata.name) ? sbUser.user_metadata.name : (sbUser.email ? sbUser.email.split('@')[0] : '');
+  return res.json({ success: true, user: { id: sbUser.id, email: sbUser.email, name: displayName, nome: displayName, photoURL: photoURL || (sbUser.user_metadata && sbUser.user_metadata.avatar_url) || (sbUser.raw_user_meta_data && sbUser.raw_user_meta_data.avatar_url) || null } });
     }
 
     // No Supabase user found - fallback to upsert Firebase user into Postgres (similar to firebase-verify)
@@ -1250,6 +1332,34 @@ async function loginUserRest(email, senha){
     pro_since: u.pro_since || null,
     created_at: u.created_at || u.criado_em || null
   };
+  // include photo if present in the row or in raw_user_meta_data
+  try {
+    if (u.photo_url) safe.photoURL = u.photo_url;
+    else if (u.avatar_url) safe.photoURL = u.avatar_url;
+    else if (u.raw_user_meta_data) {
+      try {
+        const raw = typeof u.raw_user_meta_data === 'string' ? JSON.parse(u.raw_user_meta_data) : u.raw_user_meta_data;
+        safe.photoURL = safe.photoURL || raw && (raw.picture || raw.avatar_url || raw.profile_image_url) || null;
+      } catch (e) { /* ignore parse errors */ }
+    }
+  } catch (e) { /* ignore */ }
+  // expose auth_id if present in the row (some schemas store it)
+  try {
+    if (u.auth_id) {
+      safe.auth_id = u.auth_id;
+      safe.providers = ['google'];
+    }
+    // If Supabase REST returned raw_user_meta_data with identities, detect google identity
+    if (!safe.providers && u.raw_user_meta_data) {
+      try {
+        const raw = typeof u.raw_user_meta_data === 'string' ? JSON.parse(u.raw_user_meta_data) : u.raw_user_meta_data;
+        if (raw && raw.identities && Array.isArray(raw.identities)) {
+          const hasGoogle = raw.identities.some(id => (id && (id.provider || id.provider_id || id.providerId) && String(id.provider || id.provider_id || id.providerId).toLowerCase().includes('google')));
+          if (hasGoogle) { safe.providers = ['google']; }
+        }
+      } catch (e) { /* ignore parse errors */ }
+    }
+  } catch (e) { /* ignore */ }
   return safe;
 }
 
@@ -1321,19 +1431,59 @@ app.post('/api/auth/login', async (req, res) => {
   const normalizedEmail = String(email).trim().toLowerCase();
   try {
     if (pgClient) {
-      const selectCols = ['id', 'email', `${userNameColumn} as name`, `${userPasswordColumn} as password_hash`];
+      const selectCols = ['id', 'email', `${userNameColumn} as name`, `${userPasswordColumn} as password_hash`, 'photo_url'];
       if (userHasIsPro) selectCols.push('is_pro');
       if (userHasProSince) selectCols.push('pro_since');
       if (userCreatedAtColumn) selectCols.push(userCreatedAtColumn + ' as created_at');
+        // If the users table includes an auth_id column, include it so the frontend
+        // can detect linked provider accounts (e.g. Google) after password login.
+        if (userHasAuthId) selectCols.push('auth_id');
       const r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
       if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
   const u = r.rows[0];
   if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
   const displayName = ((u.name || u.nome) || '').trim();
-  const safe = { id: u.id, email: u.email, name: displayName, nome: displayName };
+    const safe = { id: u.id, email: u.email, name: displayName, nome: displayName };
       if (userHasIsPro) safe.is_pro = u.is_pro;
       if (userHasProSince) safe.pro_since = u.pro_since;
       if (userCreatedAtColumn) safe.created_at = u.created_at;
+        // Expose photo_url and auth_id so frontend can correlate this user with an
+        // external auth provider (e.g. Google) and display a consistent avatar.
+        if (u.photo_url) safe.photoURL = u.photo_url;
+        // Expose auth_id so frontend can correlate this user with an external auth provider
+        // and show connection settings (e.g. Google linked). Also provide a lightweight
+        // providers hint if auth_id is present.
+        if (userHasAuthId && u.auth_id) {
+          safe.auth_id = u.auth_id;
+          safe.providers = ['google'];
+        }
+        // If the row lacks a persisted photo_url but we have an auth_id (provider id),
+        // try to fetch provider avatar from Supabase admin and backfill the users.photo_url
+        // so future password logins display the same avatar as provider logins.
+        try {
+          if (userHasAuthId && u.auth_id && !safe.photoURL && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            try {
+              const { createClient } = require('@supabase/supabase-js');
+              const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+              if (supabaseAdmin && supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.getUserById === 'function') {
+                const adminRes = await supabaseAdmin.auth.admin.getUserById(u.auth_id);
+                if (adminRes && adminRes.data && adminRes.data.user) {
+                  const au = adminRes.data.user;
+                  const candidate = (au.raw_user_meta_data && (au.raw_user_meta_data.picture || au.raw_user_meta_data.avatar_url)) || au.avatar_url || au.picture || null;
+                  if (candidate) {
+                    safe.photoURL = candidate;
+                    try {
+                      await pgClient.query('UPDATE users SET photo_url = $1, atualizado_em = now() WHERE id = $2', [candidate, u.id]);
+                      console.log('Backfilled users.photo_url from Supabase admin for user', u.id);
+                    } catch (e) { /* ignore update failure */ }
+                  }
+                }
+              }
+            } catch (e) {
+              console.warn('login: supabase admin lookup for avatar failed', e && e.message ? e.message : e);
+            }
+          }
+        } catch (e) { /* ignore */ }
       return res.json({ success: true, user: safe });
     }
     // Try Supabase REST fallback if configured
@@ -1549,6 +1699,27 @@ app.get('/api/debug/check-guia-db', async (req, res) => {
   } catch (err) {
     console.error('debug check-guia-db failed:', err && err.message ? err.message : err);
     return res.status(500).json({ error: err && err.message ? err.message : String(err) });
+  }
+});
+
+// Temporary debug: return user row for given email (safe only for local/dev).
+// Use: GET /api/debug/user-by-email?email=seu@exemplo.com
+app.get('/api/debug/user-by-email', async (req, res) => {
+  try {
+    const email = req.query.email && String(req.query.email).trim();
+    if (!email) return res.status(400).json({ error: 'email query required' });
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const cols = ['id', 'email', 'photo_url'];
+    if (userHasAuthId) cols.push('auth_id');
+    cols.push(userPasswordColumn + ' as password_hash');
+    const q = `SELECT ${cols.join(', ')} FROM users WHERE lower(email) = lower($1) LIMIT 1`;
+    const r = await pgClient.query(q, [email]);
+    if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+    const row = r.rows[0];
+    return res.json({ ok: true, row });
+  } catch (e) {
+    console.error('/api/debug/user-by-email failed', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
   }
 });
 

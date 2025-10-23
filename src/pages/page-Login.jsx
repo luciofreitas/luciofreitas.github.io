@@ -6,6 +6,7 @@ import usuariosData from '../data/usuarios.json';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { ToggleCar } from '../components';
+import supabase, { isConfigured as isSupabaseConfigured } from '../supabase';
 // Using Supabase OAuth for Google login instead of Firebase
 import { signInWithGooglePopup, startGoogleRedirect, handleRedirectResult } from '../firebaseAuth';
 import { auth } from '../firebase';
@@ -365,10 +366,41 @@ export default function Login() {
 
     (async () => {
       try {
+        const apiBase = window.__API_BASE || '';
+        // Try server-side login first (checks Postgres password hash)
+        try {
+          const respServer = await fetch(`${apiBase}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: normalizedEmail, senha: normalizedSenha })
+          });
+          if (respServer.ok) {
+            const body = await respServer.json().catch(() => ({}));
+            const usuario = (body && body.user) ? body.user : null;
+            if (usuario) {
+              // preserve any provider hints/auth_id from server
+              const uWithProviders = { ...usuario };
+              if (usuario.auth_id && !uWithProviders.providers) uWithProviders.providers = ['google'];
+              if (setUsuarioLogado) setUsuarioLogado(uWithProviders);
+              try { localStorage.setItem('usuario-logado', JSON.stringify(uWithProviders)); } catch (e) {}
+              if (window.showToast) window.showToast(`Bem-vindo(a), ${usuario.nome || usuario.name || 'Usuário'}!`, 'success', 3000);
+              navigate('/buscar-pecas');
+              return;
+            }
+          }
+        } catch (e) {
+          // server login failed/unreachable — fallthrough to Supabase attempt
+          console.debug('Server-side /api/auth/login failed (will try Supabase):', e && e.message ? e.message : e);
+        }
+
         // Try Supabase Auth sign-in (frontend) and then verify token with backend
+        if (!supabase || !isSupabaseConfigured) {
+          // supabase not configured — skip client attempt
+          throw new Error('Supabase client not configured');
+        }
         const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password: normalizedSenha });
         if (error) {
-          console.warn('Supabase auth signIn error:', error);
+          console.debug('Supabase auth signIn error (expected for non-Supabase users):', error);
           setError('E-mail ou senha incorretos.');
           return;
         }
@@ -382,7 +414,6 @@ export default function Login() {
         }
 
         // Send token to backend for verification/upsert
-        const apiBase = window.__API_BASE || '';
         const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
@@ -415,6 +446,9 @@ export default function Login() {
           name: inferredName,
           access_token: accessToken
         };
+
+        // Preserve auth_id/providers hints returned by the server
+        if (usuario.auth_id && !normalizedUsuario.providers) normalizedUsuario.providers = ['google'];
 
         setError('');
         if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
@@ -520,6 +554,9 @@ export default function Login() {
     }
   }
 
+  // Suppress the global error banner while auth/merge/link flows are in progress
+  const suppressGlobalError = !!(showLinkPrompt || showMergeConfirm || mergeLoading || googleLoading || pendingMergeIdToken);
+
   return (
     <>
       <MenuLogin />
@@ -532,8 +569,8 @@ export default function Login() {
                 <p className="cadastro-sub">Acesse sua conta para gerenciar pedidos e recursos</p>
 
                 <form className="cadastro-form" onSubmit={handleLogin} noValidate>
-                  {/* show global errors only when not showing the link modal */}
-                  {!showLinkPrompt && error && <div className="form-error">{error}</div>}
+                  {/* show global errors only when not showing the link modal or when not suppressing during pending flows */}
+                  {!suppressGlobalError && !showLinkPrompt && error && <div className="form-error">{error}</div>}
 
                   {/* Link accounts modal (shown when showLinkPrompt is true) */}
                   {showLinkPrompt && (

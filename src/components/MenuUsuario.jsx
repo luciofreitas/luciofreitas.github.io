@@ -7,6 +7,8 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
   const dropdownRef = useRef(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [imgError, setImgError] = useState(false);
+  const [triedProxy, setTriedProxy] = useState(false);
+  const apiBase = (typeof window !== 'undefined') ? (window.__API_BASE || '') : '';
 
   // Precompute initials and deterministic background color so we can apply
   // the color to the button element itself (ensures visible background ring).
@@ -155,7 +157,22 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
             src={photoURL}
             alt={nome ? `Avatar de ${nome}` : 'Avatar do usuário'}
             className="user-avatar"
-            onError={() => setImgError(true)}
+            crossOrigin="anonymous"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              try {
+                // If the image fails and it looks like a googleusercontent URL,
+                // try once via our server proxy to avoid client-side rate limits.
+                const src = e && e.currentTarget && e.currentTarget.src ? String(e.currentTarget.src) : photoURL || '';
+                if (!triedProxy && src && /googleusercontent\.com/i.test(src)) {
+                  setTriedProxy(true);
+                  const prox = `${apiBase}/api/avatar/proxy?url=${encodeURIComponent(src)}`;
+                  e.currentTarget.src = prox;
+                  return;
+                }
+              } catch (err) { /* ignore */ }
+              setImgError(true);
+            }}
           />
         ) : (
           <>
