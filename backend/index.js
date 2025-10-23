@@ -1,7 +1,8 @@
-require('dotenv').config();
+const path = require('path');
+// Ensure backend loads its own .env file even if started from the repository root
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
 const { parse } = require('csv-parse/sync');
 const cors = require('cors');
 const { Client } = require('pg');
@@ -784,16 +785,42 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           else if (names.indexOf('name') >= 0) nameCol = 'name';
         } catch (e) {}
 
+        // If Supabase admin credentials are available, try to find a Supabase user by email
+        // and prefer that user's id for the Postgres upsert so future Firebase logins map to the same user.
+        let dbIdToUse = uid;
+        try {
+          if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            const { createClient } = require('@supabase/supabase-js');
+            const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+            try {
+              if (supabaseAdmin && supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.getUserByEmail === 'function') {
+                const sbRes = await supabaseAdmin.auth.admin.getUserByEmail(email);
+                if (sbRes && sbRes.data && sbRes.data.user) {
+                  // Found Supabase user: prefer its id
+                  dbIdToUse = sbRes.data.user.id;
+                }
+              } else if (supabaseAdmin && supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.listUsers === 'function') {
+                const listRes = await supabaseAdmin.auth.admin.listUsers();
+                const users = (listRes && listRes.data && listRes.data.users) ? listRes.data.users : (listRes && listRes.data) ? listRes.data : [];
+                const found = users.find(u => u.email && String(u.email).toLowerCase() === String(email).toLowerCase());
+                if (found) dbIdToUse = found.id;
+              }
+            } catch (e) {
+              console.warn('firebase-verify: supabase admin lookup failed', e && e.message ? e.message : e);
+            }
+          }
+        } catch (e) { /* ignore supabase client errors */ }
+
         const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
           VALUES($1, $2, $3, $4, now(), now())
           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
         try {
-          await pgClient.query(insertSql, [uid, email, name, photoURL]);
+          await pgClient.query(insertSql, [dbIdToUse, email, name, photoURL]);
         } catch (e) {
           console.warn('firebase-verify: Upsert query failed', e && e.message ? e.message : e);
         }
 
-        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em FROM users WHERE id = $1`, [uid]);
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em FROM users WHERE id = $1`, [dbIdToUse]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
           const displayName = ((row.name || '') + '').trim();
@@ -808,6 +835,137 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
   } catch (err) {
     console.error('firebase-verify error:', err && err.stack ? err.stack : err);
     return res.status(401).json({ error: 'invalid token' });
+  }
+});
+
+// Merge Google (Firebase) sign-in with existing Supabase user by email.
+// Accepts idToken via Authorization: Bearer <idToken> or { idToken } in body.
+app.post('/api/auth/merge-google', async (req, res) => {
+  tryInitFirebaseAdmin();
+  if (!firebaseAdmin) return res.status(503).json({ error: 'Firebase Admin not configured on server' });
+
+  const authHeader = req.headers.authorization || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : (req.body && req.body.idToken);
+  if (!idToken) return res.status(400).json({ error: 'idToken required (use Authorization: Bearer <idToken> or body.idToken)' });
+
+  try {
+    const decoded = await firebaseAdmin.auth().verifyIdToken(idToken);
+    if (!decoded || !decoded.uid) return res.status(401).json({ error: 'invalid token' });
+    const uid = decoded.uid;
+    const email = decoded.email || null;
+    const name = decoded.name || decoded.displayName || (email ? email.split('@')[0] : null);
+    const photoURL = decoded.picture || null;
+
+    // Create Supabase admin client to lookup and update users
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      // No Supabase admin credentials: return the firebase user info
+      return res.json({ success: true, user: { id: uid, email, name, nome: name, photoURL } });
+    }
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+    // Try to find a Supabase auth user by email. Use admin.getUserByEmail if available, otherwise list users and filter.
+    let sbUser = null;
+    try {
+      if (supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.getUserByEmail === 'function') {
+        try {
+          const r = await supabaseAdmin.auth.admin.getUserByEmail(email);
+          if (r && r.data && r.data.user) sbUser = r.data.user;
+        } catch (e) {
+          // continue to listUsers fallback
+          console.warn('getUserByEmail failed, falling back to listUsers', e && e.message ? e.message : e);
+        }
+      }
+      if (!sbUser && supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.listUsers === 'function') {
+        // listUsers may be paginated; request a reasonable page and then filter client-side
+        const listRes = await supabaseAdmin.auth.admin.listUsers();
+        const users = (listRes && listRes.data && listRes.data.users) ? listRes.data.users : (listRes && listRes.data) ? listRes.data : [];
+        sbUser = users.find(u => u.email && String(u.email).toLowerCase() === String(email).toLowerCase());
+      }
+    } catch (e) {
+      console.warn('Supabase admin lookup failed', e && e.message ? e.message : e);
+    }
+
+    if (sbUser) {
+      // Attach firebase uid into user_metadata for traceability
+      try {
+        const meta = sbUser.user_metadata || {};
+        if (meta.firebase_uid !== uid) {
+          try {
+            await supabaseAdmin.auth.admin.updateUserById(sbUser.id, { user_metadata: { ...meta, firebase_uid: uid } });
+          } catch (e) {
+            console.warn('Failed to update Supabase user metadata', e && e.message ? e.message : e);
+          }
+        }
+      } catch (e) { /* ignore metadata write failures */ }
+
+      // If the Google profile has a photo, prefer it: update Postgres users.photo_url for the canonical user
+      try {
+        if (photoURL && pgClient) {
+          // Try updating by Supabase user id first (common case), then fallback to email match
+          let updRes = null;
+          try {
+            updRes = await pgClient.query('UPDATE users SET photo_url = $1, atualizado_em = now() WHERE id = $2 RETURNING id', [photoURL, sbUser.id]);
+          } catch (e) {
+            console.warn('merge-google: failed to update users.photo_url by id, will try by email', e && e.message ? e.message : e);
+          }
+          if ((!updRes || updRes.rowCount === 0) && email) {
+            try {
+              updRes = await pgClient.query('UPDATE users SET photo_url = $1, atualizado_em = now() WHERE lower(email) = lower($2) RETURNING id', [photoURL, email]);
+            } catch (e) {
+              console.warn('merge-google: failed to update users.photo_url by email', e && e.message ? e.message : e);
+            }
+          }
+          if (updRes && updRes.rowCount > 0) {
+            console.log(`merge-google: updated photo_url for user (${updRes.rows[0].id || sbUser.id}) to ${photoURL}`);
+          }
+        }
+      } catch (e) {
+        console.warn('merge-google: unexpected error while forcing photo_url update', e && e.message ? e.message : e);
+      }
+
+      // If Postgres is available, try to return the canonical user row from users table
+      if (pgClient) {
+        try {
+          const r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url, is_pro, criado_em FROM users WHERE lower(email) = lower($1) LIMIT 1`, [email]);
+          if (r && r.rowCount > 0) {
+            const row = r.rows[0];
+            const displayName = ((row.name || '') + '').trim();
+            return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro } });
+          }
+        } catch (e) {
+          console.warn('merge-google: Postgres lookup failed', e && e.message ? e.message : e);
+        }
+      }
+
+      // Fallback: return Supabase auth user shape
+      const displayName = (sbUser.user_metadata && sbUser.user_metadata.name) ? sbUser.user_metadata.name : (sbUser.email ? sbUser.email.split('@')[0] : '');
+      return res.json({ success: true, user: { id: sbUser.id, email: sbUser.email, name: displayName, nome: displayName, photoURL: (sbUser.user_metadata && sbUser.user_metadata.avatar_url) || sbUser.raw_user_meta_data && sbUser.raw_user_meta_data.avatar_url || null } });
+    }
+
+    // No Supabase user found - fallback to upsert Firebase user into Postgres (similar to firebase-verify)
+    if (pgClient) {
+      try {
+        const insertSql = `INSERT INTO users(id, email, ${userNameColumn}, photo_url, criado_em, atualizado_em)
+          VALUES($1, $2, $3, $4, now(), now())
+          ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${userNameColumn} = EXCLUDED.${userNameColumn}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
+        await pgClient.query(insertSql, [uid, email, name, photoURL]);
+        const r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url FROM users WHERE id = $1`, [uid]);
+        if (r && r.rowCount > 0) {
+          const row = r.rows[0];
+          const displayName = ((row.name || '') + '').trim();
+          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null } });
+        }
+      } catch (e) {
+        console.warn('merge-google: Postgres upsert failed', e && e.message ? e.message : e);
+      }
+    }
+
+    // Final fallback: return firebase info
+    return res.json({ success: true, user: { id: uid, email, name, nome: name, photoURL } });
+  } catch (err) {
+    console.error('merge-google error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ error: 'merge failed' });
   }
 });
 
