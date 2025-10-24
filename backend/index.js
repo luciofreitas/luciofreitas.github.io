@@ -1359,7 +1359,42 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
       }
 
       if (!targetRow) {
-        // No existing row to sync to; nothing to do (we don't auto-create Postgres rows here)
+        // No existing row to sync to. Optionally auto-create a users row when the
+        // environment enables it (opt-in): SUPABASE_WEBHOOK_AUTO_CREATE=true
+        const autoCreate = String(process.env.SUPABASE_WEBHOOK_AUTO_CREATE || '').toLowerCase();
+        if (autoCreate === 'true' || autoCreate === '1') {
+          try {
+            const insertCols = [];
+            const insertVals = [];
+            const insertParams = [];
+            let pidx = 1;
+
+            if (names.length === 0 || names.indexOf('auth_id') >= 0) { insertCols.push('auth_id'); insertVals.push(`$${pidx++}`); insertParams.push(uid); }
+            if (email && (names.length === 0 || names.indexOf('email') >= 0)) { insertCols.push('email'); insertVals.push(`$${pidx++}`); insertParams.push(String(email).trim().toLowerCase()); }
+            if (candidateName && (names.length === 0 || names.indexOf(nameCol) >= 0)) { insertCols.push(nameCol); insertVals.push(`$${pidx++}`); insertParams.push(candidateName); }
+            if (candidatePhoto && (names.length === 0 || names.indexOf('photo_url') >= 0)) { insertCols.push('photo_url'); insertVals.push(`$${pidx++}`); insertParams.push(candidatePhoto); }
+            if (foundPhone && (names.length === 0 || names.indexOf('celular') >= 0 || names.indexOf('telefone') >= 0 || names.indexOf('phone') >= 0)) {
+              const phoneCol = (names.length === 0) ? 'celular' : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || 'celular');
+              insertCols.push(phoneCol); insertVals.push(`$${pidx++}`); insertParams.push(String(foundPhone).trim());
+            }
+
+            if (insertCols.length === 0) {
+              return res.json({ ok: true, message: 'no writable columns present to create' });
+            }
+
+            const insertSql = `INSERT INTO users (${insertCols.join(',')}) VALUES (${insertVals.join(',')}) RETURNING id`;
+            const created = await pgClient.query(insertSql, insertParams);
+            if (created && created.rowCount > 0) {
+              console.log('supabase-webhook: created users row', created.rows[0].id, 'for uid', uid);
+              return res.json({ ok: true, id: created.rows[0].id, created: true });
+            }
+          } catch (e) {
+            console.error('supabase-webhook: create failed', e && e.message ? e.message : e);
+            return res.status(500).json({ error: 'create failed' });
+          }
+        }
+
+        // No create requested or create not possible/failed — no-op
         return res.json({ ok: true, message: 'no matching users row found to sync (no-op)' });
       }
 
