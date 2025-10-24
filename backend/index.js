@@ -1301,6 +1301,101 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
   }
 });
 
+  // Webhook: receive Supabase Auth user update events and sync into Postgres users row
+  // Protect with SUPABASE_WEBHOOK_KEY (set in env) — header: X-SUPABASE-WEBHOOK-KEY
+  app.post('/api/auth/supabase-webhook', async (req, res) => {
+    try {
+      const providedKey = String(req.headers['x-supabase-webhook-key'] || req.headers['x-webhook-key'] || '');
+      if (!process.env.SUPABASE_WEBHOOK_KEY || providedKey !== String(process.env.SUPABASE_WEBHOOK_KEY)) {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+
+      const payload = req.body || {};
+      // Supabase webhook payloads may wrap user under `user` or send the user object directly
+      const u = payload.user || payload;
+      const uid = u && (u.id || u.user_id || u.uid) ? (u.id || u.user_id || u.uid) : null;
+      if (!uid) return res.status(400).json({ error: 'user id required in payload' });
+
+      const email = u.email || (u.user_metadata && u.user_metadata.email) || null;
+      const meta = u.user_metadata || u.raw_user_meta_data || {};
+      const candidateName = (meta && (meta.name || meta.nome || meta.full_name)) || u.name || null;
+      const candidatePhoto = u.avatar_url || u.picture || meta.avatar_url || meta.picture || (u.raw_user_meta_data && (u.raw_user_meta_data.picture || u.raw_user_meta_data.avatar_url)) || null;
+      // phone candidates
+      const phoneCandidates = [];
+      if (u.phone) phoneCandidates.push(u.phone);
+      if (u.phone_number) phoneCandidates.push(u.phone_number);
+      if (meta && meta.phone) phoneCandidates.push(meta.phone);
+      if (meta && meta.celular) phoneCandidates.push(meta.celular);
+      if (u.raw_user_meta_data && u.raw_user_meta_data.phone) phoneCandidates.push(u.raw_user_meta_data.phone);
+      const foundPhone = phoneCandidates.find(p => p && String(p).trim());
+
+      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+
+      // Re-detect columns in public.users
+      let nameCol = userNameColumn || 'name';
+      let names = [];
+      try {
+        const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+        names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+        if (names.indexOf('nome') >= 0) nameCol = 'nome';
+        else if (names.indexOf('name') >= 0) nameCol = 'name';
+      } catch (e) {
+        names = [];
+      }
+
+      // Try to find a matching users row by auth_id (or id) first, then by email
+      let targetRow = null;
+      try {
+        const q = `SELECT id FROM users WHERE (auth_id = $1 OR id = $1) LIMIT 1`;
+        const r = await pgClient.query(q, [uid]);
+        if (r && r.rowCount > 0) targetRow = r.rows[0];
+      } catch (e) { /* ignore */ }
+
+      if (!targetRow && email) {
+        try {
+          const r2 = await pgClient.query('SELECT id FROM users WHERE lower(email) = lower($1) LIMIT 1', [String(email).trim().toLowerCase()]);
+          if (r2 && r2.rowCount > 0) targetRow = r2.rows[0];
+        } catch (e) { /* ignore */ }
+      }
+
+      if (!targetRow) {
+        // No existing row to sync to; nothing to do (we don't auto-create Postgres rows here)
+        return res.json({ ok: true, message: 'no matching users row found to sync (no-op)' });
+      }
+
+      // Build update set for detected columns
+      const updates = [];
+      const params = [];
+      let idx = 1;
+      // Ensure auth_id exists/updated
+      if (names.length === 0 || names.indexOf('auth_id') >= 0) { updates.push(`auth_id = $${idx++}`); params.push(uid); }
+      if (candidateName && (names.length === 0 || names.indexOf(nameCol) >= 0)) { updates.push(`${nameCol} = $${idx++}`); params.push(candidateName); }
+      if (candidatePhoto && (names.length === 0 || names.indexOf('photo_url') >= 0)) { updates.push(`photo_url = $${idx++}`); params.push(candidatePhoto); }
+      if (foundPhone && (names.length === 0 || names.indexOf('celular') >= 0 || names.indexOf('telefone') >= 0 || names.indexOf('phone') >= 0)) {
+        const phoneCol = (names.length === 0) ? 'celular' : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || 'celular');
+        updates.push(`${phoneCol} = $${idx++}`); params.push(String(foundPhone).trim());
+      }
+      if (email && (names.length === 0 || names.indexOf('email') >= 0)) { updates.push(`email = $${idx++}`); params.push(String(email).trim().toLowerCase()); }
+
+      if (updates.length === 0) return res.json({ ok: true, message: 'no writable columns present to update' });
+
+      // Finalize update SQL
+      const updateSql = `UPDATE users SET ${updates.join(', ')}, atualizado_em = now() WHERE id = $${idx}`;
+      params.push(targetRow.id);
+      try {
+        await pgClient.query(updateSql, params);
+      } catch (e) {
+        console.error('supabase-webhook: update failed', e && e.message ? e.message : e);
+        return res.status(500).json({ error: 'update failed' });
+      }
+
+      return res.json({ ok: true, id: targetRow.id });
+    } catch (err) {
+      console.error('supabase-webhook error:', err && err.stack ? err.stack : err);
+      return res.status(500).json({ error: 'internal' });
+    }
+  });
+
 // Simple password hashing helpers (PBKDF2) - stores as salt$hash
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
