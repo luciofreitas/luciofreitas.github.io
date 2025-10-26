@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Peças Automotivas Compatíveis</title>
-  <!-- deploy-timestamp: 2025-09-24T00:12:00Z -->
-  <meta name="deploy-timestamp" content="2025-09-24T00:12:00Z">
+  <!-- deploy-timestamp: 2025-10-26T00:00:00Z -->
+  <meta name="deploy-timestamp" content="2025-10-26T00:00:00Z">
   <link rel="icon" type="image/x-icon" href="/imagens/favicon--Lp98Ei8.ico" />
   <link rel="icon" type="image/svg+xml" href="/imagens/favicon.svg" />
   <link rel="apple-touch-icon" href="/imagens/logo.png" />
@@ -32,6 +32,22 @@
   <!-- Vite dev server uses /src/main.jsx; include the standard Vite entry so builds emit bundles correctly -->
 
   <!-- Use Vite source entry so the dev server and build resolve modules correctly -->
+  <!-- Legacy global shim: create a non-module global `supabase` binding so older bundles
+       that reference the bare identifier `supabase` do not throw ReferenceError. This
+       sets `supabase` to any runtime-injected client (window.__SUPABASE_CLIENT) or null. -->
+  <script>
+    try {
+      if (typeof window !== 'undefined') {
+        window.__SUPABASE_CLIENT = (typeof window.__SUPABASE_CLIENT !== 'undefined') ? window.__SUPABASE_CLIENT : null;
+        /* create a true global binding (not just a window property) so eval('supabase')
+           and bare references succeed in non-module contexts */
+        // eslint-disable-next-line no-var
+        var supabase = window.__SUPABASE_CLIENT;
+        console.log('[runtime] legacy global supabase exposed:', typeof supabase);
+      }
+    } catch (e) { /* swallow non-critical errors */ }
+  </script>
+
   <script type="module" src="/src/main.jsx"></script>
   </head>
   <body>
