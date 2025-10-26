@@ -14,6 +14,15 @@ const crypto = require('crypto');
 // usage and add the dependency back to backend/package.json.
 
 const app = express();
+// Lightweight health check used by PaaS (Render) to detect readiness quickly.
+// Keep this as the very first route so the platform can probe the process
+// even if other initialization (DB connect) is still in progress.
+app.get('/_health', (req, res) => {
+  try {
+    // Return basic process info without revealing secrets.
+    return res.json({ ok: true, pid: process.pid, uptime: process.uptime() });
+  } catch (e) { return res.status(500).json({ ok: false }); }
+});
 // CORS: permitir solicitações do frontend hospedado no GitHub Pages e do próprio Render
 const allowedOrigins = [
   'http://localhost:5173',
