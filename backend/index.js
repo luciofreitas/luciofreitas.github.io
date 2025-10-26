@@ -36,7 +36,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+// Capture raw body for debugging parse errors (verify option stores raw body as string)
+app.use(express.json({ verify: function (req, res, buf, encoding) {
+  try { req.rawBody = buf && buf.toString(encoding || 'utf8'); } catch (e) { req.rawBody = null; }
+}}));
 
 // Simple request logger to help debug missing routes / 404s in dev
 app.use((req, res, next) => {
@@ -46,6 +49,20 @@ app.use((req, res, next) => {
     console.log(`[req] ${now} ${req.method} ${req.path} origin=${origin}`);
   } catch (e) { /* ignore logging errors */ }
   next();
+});
+
+// Error handler specifically to surface JSON parse issues and raw body for debugging.
+// This will run when express.json fails to parse the incoming body.
+app.use((err, req, res, next) => {
+  try {
+    if (err && (err.type === 'entity.parse.failed' || /JSON/.test(String(err.message || '')))) {
+      // Log a truncated version of the raw body to help debugging without flooding logs.
+      const raw = (req && req.rawBody) ? String(req.rawBody) : '<no raw body available>';
+      console.error('Unhandled express error: JSON parse failed. Raw body (first 2000 chars):', raw && raw.length ? raw.slice(0, 2000) : raw);
+      return res.status(400).json({ error: 'invalid JSON' });
+    }
+  } catch (e) { /* fall through to default handler */ }
+  return next(err);
 });
 
 // Helper to determine whether a request should receive debug-level responses.
@@ -1339,6 +1356,11 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
         names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
         if (names.indexOf('nome') >= 0) nameCol = 'nome';
         else if (names.indexOf('name') >= 0) nameCol = 'name';
+        // detect updated timestamp column if present
+        var updatedCol = null;
+        const updatedCandidates = ['atualizado_em','updated_at','updatedat','updated','criado_em'];
+        const foundUpdated = names.find(n => updatedCandidates.indexOf(n) >= 0);
+        if (foundUpdated) updatedCol = foundUpdated;
       } catch (e) {
         names = [];
       }
@@ -1398,21 +1420,96 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
         return res.json({ ok: true, message: 'no matching users row found to sync (no-op)' });
       }
 
-      // Build update set for detected columns
+      // Read current values to avoid overwriting existing user data
+      let current = null;
+      try {
+        const selCols = [];
+        selCols.push('id');
+        if (names.length === 0 || names.indexOf('auth_id') >= 0) selCols.push('auth_id');
+        if (names.length === 0 || names.indexOf(nameCol) >= 0) selCols.push(nameCol);
+        if (names.length === 0 || names.indexOf('photo_url') >= 0) selCols.push('photo_url');
+        // phone/email if present
+        if (names.length === 0 || names.indexOf('email') >= 0) selCols.push('email');
+        const phoneCol = (names.length === 0) ? null : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || null);
+        if (phoneCol) selCols.push(phoneCol);
+        if (updatedCol) selCols.push(updatedCol);
+        const curQ = `SELECT ${selCols.join(', ')} FROM users WHERE id = $1 LIMIT 1`;
+        const curR = await pgClient.query(curQ, [targetRow.id]);
+        if (curR && curR.rowCount > 0) current = curR.rows[0];
+      } catch (e) {
+        console.warn('supabase-webhook: could not read current user row, proceeding with cautious updates', e && e.message ? e.message : e);
+      }
+
+      // Honor optional force-sync env var to overwrite existing values when true
+      const forceSync = String(process.env.SUPABASE_WEBHOOK_FORCE_SYNC || '').toLowerCase() === 'true';
+
+      // Determine timestamps: Supabase update time vs current DB updated time (if available)
+      let supaUpdated = null;
+      try {
+        const cand = [u.updated_at, (u.user_metadata && u.user_metadata.updated_at), u.confirmed_at, u.last_sign_in_at, u.created_at, payload.event_at, payload.time];
+        for (const s of cand) {
+          if (!s) continue;
+          const d = new Date(s);
+          if (!isNaN(d)) { supaUpdated = d; break; }
+        }
+      } catch (e) { supaUpdated = null; }
+
+      let curUpdated = null;
+      try {
+        if (updatedCol && current && current[updatedCol]){
+          const d = new Date(current[updatedCol]); if (!isNaN(d)) curUpdated = d;
+        }
+      } catch (e) { curUpdated = null; }
+
+      // Build update set for detected columns but only when missing or empty to avoid overwriting
       const updates = [];
       const params = [];
       let idx = 1;
-      // Ensure auth_id exists/updated
-      if (names.length === 0 || names.indexOf('auth_id') >= 0) { updates.push(`auth_id = $${idx++}`); params.push(uid); }
-      if (candidateName && (names.length === 0 || names.indexOf(nameCol) >= 0)) { updates.push(`${nameCol} = $${idx++}`); params.push(candidateName); }
-      if (candidatePhoto && (names.length === 0 || names.indexOf('photo_url') >= 0)) { updates.push(`photo_url = $${idx++}`); params.push(candidatePhoto); }
-      if (foundPhone && (names.length === 0 || names.indexOf('celular') >= 0 || names.indexOf('telefone') >= 0 || names.indexOf('phone') >= 0)) {
-        const phoneCol = (names.length === 0) ? 'celular' : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || 'celular');
-        updates.push(`${phoneCol} = $${idx++}`); params.push(String(foundPhone).trim());
-      }
-      if (email && (names.length === 0 || names.indexOf('email') >= 0)) { updates.push(`email = $${idx++}`); params.push(String(email).trim().toLowerCase()); }
 
-      if (updates.length === 0) return res.json({ ok: true, message: 'no writable columns present to update' });
+      // Ensure auth_id exists/updated if missing or forceSync
+      if ((names.length === 0 || names.indexOf('auth_id') >= 0) && (forceSync || !current || !current.auth_id || (supaUpdated && curUpdated && supaUpdated > curUpdated))) {
+        updates.push(`auth_id = $${idx++}`);
+        params.push(uid);
+      }
+
+      // Only set name if candidate present AND current name is missing/empty, or if forceSync
+      if (candidateName && (names.length === 0 || names.indexOf(nameCol) >= 0)) {
+        const curName = current && (current[nameCol] || current.name) ? String(current[nameCol] || current.name).trim() : '';
+        if (forceSync || !curName || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
+          updates.push(`${nameCol} = $${idx++}`);
+          params.push(candidateName);
+        }
+      }
+
+      // Only set photo if candidate present AND current photo is missing/empty, or if forceSync
+      if (candidatePhoto && (names.length === 0 || names.indexOf('photo_url') >= 0)) {
+        const curPhoto = current && current.photo_url ? String(current.photo_url).trim() : '';
+        if (forceSync || !curPhoto || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
+          updates.push(`photo_url = $${idx++}`);
+          params.push(candidatePhoto);
+        }
+      }
+
+      // Phone
+      if (foundPhone && (names.length === 0 || names.indexOf('celular') >= 0 || names.indexOf('telefone') >= 0 || names.indexOf('phone') >= 0)) {
+        const phoneColName = (names.length === 0) ? 'celular' : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || 'celular');
+        const curPhone = current && current[phoneColName] ? String(current[phoneColName]).trim() : '';
+        if (forceSync || !curPhone || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
+          updates.push(`${phoneColName} = $${idx++}`);
+          params.push(String(foundPhone).trim());
+        }
+      }
+
+      // Email: if forceSync or target row has no email, set it
+      if (email && (names.length === 0 || names.indexOf('email') >= 0)) {
+        const curEmail = current && current.email ? String(current.email).trim() : '';
+        if (forceSync || !curEmail || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
+          updates.push(`email = $${idx++}`);
+          params.push(String(email).trim().toLowerCase());
+        }
+      }
+
+      if (updates.length === 0) return res.json({ ok: true, message: 'no writable columns present to update (nothing to change)' });
 
       // Finalize update SQL
       const updateSql = `UPDATE users SET ${updates.join(', ')}, atualizado_em = now() WHERE id = $${idx}`;
