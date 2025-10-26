@@ -413,8 +413,8 @@ export default function Login() {
         }
 
         // Try Supabase Auth sign-in (frontend) and then verify token with backend
-        if (!supabase || !isSupabaseConfigured) {
-          // supabase not configured — skip client attempt
+        if (typeof supabase === 'undefined' || !supabase || !isSupabaseConfigured) {
+          // supabase not configured or missing — skip client attempt
           throw new Error('Supabase client not configured');
         }
         const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password: normalizedSenha });
