@@ -392,6 +392,25 @@ export default function Login() {
           // server login failed/unreachable — fallthrough to Supabase attempt
           console.debug('Server-side /api/auth/login failed (will try Supabase):', e && e.message ? e.message : e);
         }
+        // If server-side login failed, try Firebase email/password first (if available)
+        try {
+          if (auth && typeof signInWithEmailAndPassword === 'function') {
+            try {
+              const fbRes = await signInWithEmailAndPassword(auth, normalizedEmail, normalizedSenha);
+              const fbUser = fbRes && fbRes.user ? fbRes.user : null;
+              if (fbUser) {
+                // Complete the same flow as other Firebase signins
+                await processFirebaseUser(fbUser);
+                return;
+              }
+            } catch (fbErr) {
+              // expected for non-Firebase users; fall through to Supabase attempt
+              console.debug('Firebase email/password signIn failed (falling back):', fbErr && fbErr.code ? fbErr.code : fbErr && fbErr.message ? fbErr.message : fbErr);
+            }
+          }
+        } catch (inner) {
+          console.debug('Firebase fallback check threw', inner && inner.message ? inner.message : inner);
+        }
 
         // Try Supabase Auth sign-in (frontend) and then verify token with backend
         if (!supabase || !isSupabaseConfigured) {
