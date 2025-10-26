@@ -42,5 +42,20 @@ try {
   // ignore
 }
 
+// Runtime shim: ensure a global `supabase` property exists to avoid ReferenceError
+// in environments where an older bundle or third-party script references the
+// bare identifier `supabase` without declaring it. We prefer `window.__SUPABASE_CLIENT`
+// if present, otherwise expose null so checks like `typeof supabase` succeed.
+try {
+  if (typeof window !== 'undefined') {
+    if (typeof window.supabase === 'undefined') {
+      // prefer any runtime-injected client
+      // eslint-disable-next-line no-undef
+      window.supabase = (window.__SUPABASE_CLIENT !== undefined) ? window.__SUPABASE_CLIENT : null;
+    }
+  }
+} catch (e) {
+  // swallow shim errors, this is non-critical
+}
 // NOTE: runtime CSS overrides were intentionally removed so that the project's
 // global stylesheet contains fixed spacing values rather than runtime variables.
