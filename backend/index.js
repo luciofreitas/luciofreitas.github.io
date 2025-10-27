@@ -23,6 +23,23 @@ app.get('/_health', (req, res) => {
     return res.json({ ok: true, pid: process.pid, uptime: process.uptime() });
   } catch (e) { return res.status(500).json({ ok: false }); }
 });
+// Ensure basic CORS headers are always present (echo origin) so that
+// preflight and redirected responses don't accidentally miss the header.
+// This middleware runs early to guarantee headers for all routes.
+app.use((req, res, next) => {
+  try {
+    const origin = req.headers.origin || req.headers.referer || '';
+    // Echo the origin if present (more secure than wildcard for credentials)
+    if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
+    else res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Debug, X-Debug-Key');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    // Short-circuit OPTIONS preflight
+    if (req.method === 'OPTIONS') return res.status(204).end();
+  } catch (e) { /* ignore header set errors */ }
+  return next();
+});
 // CORS: permitir solicitações do frontend hospedado no GitHub Pages e do próprio Render
 const allowedOrigins = [
   'http://localhost:5173',
