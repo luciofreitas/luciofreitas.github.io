@@ -332,7 +332,7 @@ async function tryConnectPg(){
     console.log('Connected to Postgres for backend API (pool)');
     // detect users.name vs users.nome column to avoid schema mismatch
     try {
-  const cols = await client.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+  const cols = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
       const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
       if (names.indexOf('name') >= 0) userNameColumn = 'name';
       else if (names.indexOf('nome') >= 0) userNameColumn = 'nome';
