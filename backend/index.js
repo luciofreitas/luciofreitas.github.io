@@ -375,7 +375,7 @@ async function connectWithRetry(retries = 5) {
     } catch (err) {
       console.error(`Postgres connection attempt ${i} errored:`, err && err.message ? err.message : err);
     }
-    if (i < retries) {
+    if (i < maxRetries) {
       const delay = baseBackoff * i; // configurable backoff
       console.log(`Retrying Postgres connection in ${Math.round(delay/1000)}s... (attempt ${i + 1}/${maxRetries})`);
       await new Promise(res => setTimeout(res, delay));
