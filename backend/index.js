@@ -362,7 +362,12 @@ async function tryConnectPg(){
 }
 // Retry wrapper around tryConnectPg with progressive backoff
 async function connectWithRetry(retries = 5) {
-  for (let i = 1; i <= retries; i++) {
+  // Allow configuring retries/backoff via env to avoid long deploy hangs.
+  const envRetries = parseInt(process.env.PG_CONNECT_RETRIES || '', 10);
+  const envBackoff = parseInt(process.env.PG_CONNECT_BACKOFF_MS || '', 10);
+  const maxRetries = Number.isInteger(envRetries) && envRetries >= 0 ? envRetries : retries;
+  const baseBackoff = Number.isInteger(envBackoff) && envBackoff > 0 ? envBackoff : 3000;
+  for (let i = 1; i <= maxRetries; i++) {
     try {
       const client = await tryConnectPg();
       if (client) return client;
@@ -371,8 +376,8 @@ async function connectWithRetry(retries = 5) {
       console.error(`Postgres connection attempt ${i} errored:`, err && err.message ? err.message : err);
     }
     if (i < retries) {
-      const delay = 3000 * i; // backoff: 3s, 6s, 9s...
-      console.log(`Retrying Postgres connection in ${delay / 1000}s...`);
+      const delay = baseBackoff * i; // configurable backoff
+      console.log(`Retrying Postgres connection in ${Math.round(delay/1000)}s... (attempt ${i + 1}/${maxRetries})`);
       await new Promise(res => setTimeout(res, delay));
     }
   }
@@ -1705,6 +1710,9 @@ async function updateUserRest({ id, nome, email, celular, novaSenha, passwordCol
   try{ const j = JSON.parse(text); return j[0]; }catch(e){ return null; }
 }
 
+// Simple in-memory counter to track how often we fall back to Supabase REST
+let supabaseRestFallbackCount = 0;
+
 // Create user (try DB, fallback to csvData.users)
 app.post('/api/users', async (req, res) => {
   const { nome, email, senha } = req.body || {};
@@ -1767,14 +1775,18 @@ app.put('/api/users/:id', async (req, res) => {
   if (!pgClient) {
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       try {
+        supabaseRestFallbackCount++;
+        console.warn('pgClient not available: attempting Supabase REST fallback (count=' + supabaseRestFallbackCount + ')');
         const updated = await updateUserRest({ id, nome, email, celular, novaSenha, passwordColumn: userPasswordColumn });
         if (updated) {
           const displayName = ((updated.nome || updated.name) || '').trim();
           const safe = { id: updated.id, email: updated.email, name: displayName, nome: displayName, photoURL: updated.photo_url || updated.avatar_url || null };
           if (updated.auth_id) { safe.auth_id = updated.auth_id; safe.providers = ['google']; }
           if (updated.celular) safe.celular = updated.celular;
+          console.log('Supabase REST fallback succeeded for user', id);
           return res.json({ success: true, user: safe });
         }
+        console.warn('Supabase REST update returned no row for id', id);
         return res.status(500).json({ error: 'supabase-rest update failed' });
       } catch (e) {
         console.error('Supabase REST update failed:', e && e.message ? e.message : e);
