@@ -2306,6 +2306,64 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Debug: check DB connectivity from the running backend.
+// This endpoint is disabled in production unless ALLOW_DEBUG=true is set in env.
+app.get('/api/debug/check-db-conn', async (req, res) => {
+  try {
+    if (process.env.NODE_ENV === 'production' && String(process.env.ALLOW_DEBUG || '').toLowerCase() !== 'true') {
+      return res.status(403).json({ error: 'debug disabled in production' });
+    }
+    const dns = require('dns');
+    const net = require('net');
+    const url = process.env.DATABASE_URL || '';
+    let host = req.query.host || null;
+    let port = req.query.port || 5432;
+    if (!host) {
+      // parse from DATABASE_URL: postgres://user:pass@host:port/db
+      try {
+        const m = String(url).match(/@([^:\/]+)(?::(\d+))?/);
+        if (m) { host = m[1]; if (m[2]) port = parseInt(m[2], 10); }
+      } catch (e) { /* ignore */ }
+    }
+    if (!host) return res.status(400).json({ error: 'no host available to test' });
+
+    // Resolve DNS
+    const resolve = await new Promise((resolveP) => {
+      dns.lookup(host, { all: true }, (err, addresses) => {
+        if (err) return resolveP({ ok: false, error: String(err) });
+        return resolveP({ ok: true, addresses });
+      });
+    });
+
+    // Attempt TCP connect with timeout
+    const connectResult = await new Promise((resolveP) => {
+      const socket = new net.Socket();
+      let done = false;
+      const tid = setTimeout(() => {
+        if (done) return;
+        done = true;
+        try { socket.destroy(); } catch (e) {}
+        resolveP({ ok: false, error: 'timeout' });
+      }, 4000);
+      socket.once('error', (err) => {
+        if (done) return;
+        done = true; clearTimeout(tid);
+        resolveP({ ok: false, error: String(err && err.code ? err.code : err) });
+      });
+      socket.connect({ host, port: Number(port) }, () => {
+        if (done) return;
+        done = true; clearTimeout(tid);
+        try { socket.end(); } catch (e) {}
+        resolveP({ ok: true });
+      });
+    });
+
+    return res.json({ host, port: Number(port), resolve, connect: connectResult, pgClientAlive: !!pgClient });
+  } catch (e) {
+    return res.status(500).json({ error: String(e) });
+  }
+});
+
 // Endpoints de Carros do Usuário
 app.get('/api/users/:userId/cars', async (req, res) => {
   const { userId } = req.params;
