@@ -62,6 +62,18 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+// Explicitly respond to preflight on all routes to ensure CORS headers are present
+app.options('*', (req, res) => {
+  try {
+    const origin = req.headers.origin || req.headers.referer || '';
+    if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
+    else res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Debug, X-Debug-Key');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  } catch (e) { /* ignore */ }
+  return res.status(204).end();
+});
 // Capture raw body for debugging parse errors (verify option stores raw body as string)
 app.use(express.json({ verify: function (req, res, buf, encoding) {
   try { req.rawBody = buf && buf.toString(encoding || 'utf8'); } catch (e) { req.rawBody = null; }
@@ -1209,6 +1221,8 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
         // For identities, list which likely picture/name keys exist in the first identity (if any)
         identityCandidateKeys: (function(){
           try{
+            const origin = req.headers.origin || req.headers.referer || '-';
+            console.log(`[merge-google] request origin=${origin} authHeaderPresent=${!!req.headers.authorization} bodyKeys=${Object.keys(req.body||{}).join(',')}`);
             const ids = fullUser && fullUser.identities ? fullUser.identities : (sbUserFromToken && sbUserFromToken.identities ? sbUserFromToken.identities : []);
             if(!Array.isArray(ids) || ids.length === 0) return [];
             const id0 = ids[0] && (ids[0].identity_data || ids[0]) || {};
@@ -1973,6 +1987,8 @@ app.post('/api/auth/login', async (req, res) => {
     // Try Supabase REST fallback if configured
     if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
       try{
+        const origin = req.headers.origin || req.headers.referer || '-';
+        console.log(`[login] request origin=${origin} bodyKeys=${Object.keys(req.body||{}).join(',')}`);
         const user = await loginUserRest(normalizedEmail, senha);
         if(user) return res.json({ success: true, user });
       }catch(e){
