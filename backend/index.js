@@ -5,7 +5,7 @@ const express = require('express');
 const fs = require('fs');
 const { parse } = require('csv-parse/sync');
 const cors = require('cors');
-const { Client } = require('pg');
+const { Pool } = require('pg');
 const crypto = require('crypto');
 
 // Firebase Admin SDK removed: this project now uses Supabase for auth verification.
@@ -318,16 +318,18 @@ async function tryConnectPg(){
   const cfg = buildPgConfig();
   if(!cfg) return null;
   try{
-    const client = new Client(cfg);
-    await client.connect();
-    // handle async errors from the postgres client so they don't crash the Node process
-    client.on('error', err => {
-      console.error('Postgres client emitted error, falling back to CSV and clearing client:', err && err.message ? err.message : err);
+    // Use a connection pool for better resilience under load and to avoid
+    // frequent connect/disconnect behavior. Return the pool as pgClient so
+    // existing code that calls pgClient.query(...) continues to work.
+    const pool = new Pool(cfg);
+    // handle async errors from the pool so they don't crash the Node process
+    pool.on('error', err => {
+      console.error('Postgres pool emitted error, falling back to CSV and clearing client:', err && err.message ? err.message : err);
       try { pgClient = null; } catch(e){}
-      try { client.end().catch(() => {}); } catch(e){}
+      try { pool.end().catch(() => {}); } catch(e){}
     });
-    await client.query('SELECT 1');
-    console.log('Connected to Postgres for backend API');
+    await pool.query('SELECT 1');
+    console.log('Connected to Postgres for backend API (pool)');
     // detect users.name vs users.nome column to avoid schema mismatch
     try {
   const cols = await client.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
@@ -352,7 +354,7 @@ async function tryConnectPg(){
     } catch (e) {
       console.warn('Could not detect users table columns:', e && e.message ? e.message : e);
     }
-    return client;
+  return pool;
   }catch(err){
     console.warn('Postgres connection failed, falling back to CSV:', err && err.message ? err.message : err);
     return null;
@@ -1672,6 +1674,37 @@ async function loginUserRest(email, senha){
   return safe;
 }
 
+// Update user via Supabase REST fallback (use when Postgres is not reachable)
+async function updateUserRest({ id, nome, email, celular, novaSenha, passwordColumn = null }){
+  if(!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase REST not configured');
+  const base = process.env.SUPABASE_URL.replace(/\/$/, '');
+  const url = `${base}/rest/v1/users?id=eq.${encodeURIComponent(String(id))}`;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const body = {};
+  if (typeof email !== 'undefined') body.email = String(email).trim().toLowerCase();
+  if (typeof nome !== 'undefined') body.nome = nome;
+  if (typeof celular !== 'undefined') body.celular = celular;
+  if (novaSenha) {
+    const col = passwordColumn || userPasswordColumn || 'password_hash';
+    body[col] = hashPassword(novaSenha);
+  }
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'apikey': key,
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+  const text = await res.text();
+  if(!res.ok){
+    try{ const j = JSON.parse(text); throw new Error(JSON.stringify(j)); }catch(e){ throw new Error(`${res.status} ${text}`); }
+  }
+  try{ const j = JSON.parse(text); return j[0]; }catch(e){ return null; }
+}
+
 // Create user (try DB, fallback to csvData.users)
 app.post('/api/users', async (req, res) => {
   const { nome, email, senha } = req.body || {};
@@ -1730,7 +1763,26 @@ app.put('/api/users/:id', async (req, res) => {
   const { id } = req.params;
   const body = req.body || {};
   const { nome, email, celular, novaSenha, photoURL } = body;
-  if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+  // If Postgres client is not available, attempt Supabase REST fallback before returning 503
+  if (!pgClient) {
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const updated = await updateUserRest({ id, nome, email, celular, novaSenha, passwordColumn: userPasswordColumn });
+        if (updated) {
+          const displayName = ((updated.nome || updated.name) || '').trim();
+          const safe = { id: updated.id, email: updated.email, name: displayName, nome: displayName, photoURL: updated.photo_url || updated.avatar_url || null };
+          if (updated.auth_id) { safe.auth_id = updated.auth_id; safe.providers = ['google']; }
+          if (updated.celular) safe.celular = updated.celular;
+          return res.json({ success: true, user: safe });
+        }
+        return res.status(500).json({ error: 'supabase-rest update failed' });
+      } catch (e) {
+        console.error('Supabase REST update failed:', e && e.message ? e.message : e);
+        return res.status(503).json({ error: 'pgClient not available' });
+      }
+    }
+    return res.status(503).json({ error: 'pgClient not available' });
+  }
   try {
     // Re-detect users table columns to avoid writing/returning non-existent columns
     let nameCol = userNameColumn || 'name';

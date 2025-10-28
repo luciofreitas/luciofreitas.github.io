@@ -168,6 +168,7 @@ export default function PerfilForm({
 
       const base = (apiService && typeof apiService.getBaseUrl === 'function') ? apiService.getBaseUrl() : (typeof window !== 'undefined' && window.__API_BASE) ? window.__API_BASE : '';
       let savedUser = null;
+      let serverOk = false;
       try {
         const headers = { 'Content-Type': 'application/json' };
         // If we have an access token (from Firebase/Supabase verify), include it
@@ -178,6 +179,7 @@ export default function PerfilForm({
           body: JSON.stringify(payload)
         });
         if (resp.ok) {
+          serverOk = true;
           const j = await resp.json().catch(() => null);
           if (j && j.success && j.user) savedUser = j.user;
         } else {
@@ -188,20 +190,22 @@ export default function PerfilForm({
         console.warn('Profile save to server threw', err && err.message ? err.message : err);
       }
 
-      // If server returned updated user, prefer it. Otherwise construct from local + existing usuarioLogado
-      const updatedUser = savedUser ? { ...usuarioLogado, ...savedUser } : { ...usuarioLogado, ...local };
-      if (local.novaSenha) updatedUser.senha = local.novaSenha;
+  // If server returned updated user, prefer it. Otherwise construct from local + existing usuarioLogado
+  const updatedUser = savedUser ? { ...usuarioLogado, ...savedUser } : { ...usuarioLogado, ...local };
+  // Do NOT persist plaintext senha in localStorage. Keep password changes only on the server side.
 
       // Atualizar contexto
       setUsuarioLogado(updatedUser);
       
-      // Persistir no localStorage
-      localStorage.setItem('usuario-logado', JSON.stringify(updatedUser));
+  // Persistir no localStorage but never include the password field
+  const safeToPersist = { ...updatedUser };
+  if (safeToPersist.senha) delete safeToPersist.senha;
+  localStorage.setItem('usuario-logado', JSON.stringify(safeToPersist));
       
-      // Atualizar lista de usuários
-      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-      const updatedUsuarios = usuarios.map(u => u.id === usuarioLogado.id ? updatedUser : u);
-      localStorage.setItem('usuarios', JSON.stringify(updatedUsuarios));
+  // Atualizar lista de usuários (store without senha)
+  const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+  const updatedUsuarios = usuarios.map(u => u.id === usuarioLogado.id ? safeToPersist : u);
+  localStorage.setItem('usuarios', JSON.stringify(updatedUsuarios));
 
       // Limpar campos de senha
       setLocal(prev => ({
@@ -211,8 +215,15 @@ export default function PerfilForm({
         confirmNovaSenha: ''
       }));
 
-      alert('Dados salvos com sucesso!');
-      onSave(updatedUser);
+      if (serverOk) {
+        alert('Dados salvos com sucesso!');
+      } else {
+        alert('Alterações salvas apenas localmente (servidor indisponível). A senha não foi atualizada no servidor.');
+      }
+      // Provide the caller with the updated user object but never include senha
+      const outUser = { ...updatedUser };
+      if (outUser.senha) delete outUser.senha;
+      onSave(outUser);
     } catch (err) {
       alert('Erro ao salvar dados: ' + err.message);
     }
