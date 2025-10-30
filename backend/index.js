@@ -2821,8 +2821,9 @@ app.get('/api/users/:userId/cars', async (req, res) => {
       const result = await pgClient.query('SELECT * FROM cars WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
       return res.json(result.rows);
     }catch(err){ 
-      console.error('PG query failed /api/users/:userId/cars:', err.message);
-      return res.status(500).json({ error: err.message });
+      // Log full error (stack when available) to aid debugging in production
+      try { console.error('PG query failed /api/users/:userId/cars:', err && (err.stack || err.message || JSON.stringify(err))); } catch(e) { console.error('PG query failed and error logging also failed'); }
+      return res.status(500).json({ error: err && (err.message || String(err)) });
     }
   }
   res.json([]);
