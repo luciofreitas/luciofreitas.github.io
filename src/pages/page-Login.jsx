@@ -337,9 +337,13 @@ export default function Login() {
 
   // Handler to confirm server-side merge (called from confirmation modal)
   async function confirmMerge(overrideIdToken = null) {
-    const tokenToUse = overrideIdToken || pendingMergeIdToken;
-    console.debug('confirmMerge invoked', { tokenProvided: !!overrideIdToken, pendingMergeEmail, tokenToUse: !!tokenToUse });
-    if (!tokenToUse) { setMergeError('Token indisponível para fusão.'); return; }
+    // Normalize and validate the token before sending to server. Avoid sending
+    // literal 'undefined' or empty values which cause server-side decode errors.
+    let tokenToUse = overrideIdToken || pendingMergeIdToken;
+    if (typeof tokenToUse !== 'string') tokenToUse = tokenToUse ? String(tokenToUse) : '';
+    tokenToUse = tokenToUse.trim();
+    console.debug('confirmMerge invoked', { tokenProvided: !!overrideIdToken, pendingMergeEmail, tokenPresent: !!tokenToUse });
+    if (!tokenToUse || tokenToUse === 'undefined') { setMergeError('Token indisponível para fusão.'); return; }
     setMergeLoading(true);
     setMergeError('');
     try {

@@ -1325,6 +1325,15 @@ app.post('/api/auth/merge-google', async (req, res) => {
     return res.json({ success: true, user: { id: uid, email, name, nome: name, photoURL } });
   } catch (err) {
     console.error('merge-google error:', err && err.stack ? err.stack : err);
+    // If the failure was caused by an invalid/decoding Firebase ID token,
+    // return 401 so the client can detect an authentication/token issue
+    // (this avoids surfacing a generic 500 which was confusing in the UI).
+    try {
+      const msg = err && err.message ? String(err.message) : '';
+      if (/decoding firebase id token failed/i.test(msg) || /invalid id token/i.test(msg)) {
+        return res.status(401).json({ error: 'invalid idToken' });
+      }
+    } catch (e) { /* ignore and return generic error below */ }
     return res.status(500).json({ error: 'merge failed' });
   }
 });
