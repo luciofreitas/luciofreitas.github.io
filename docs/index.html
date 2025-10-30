@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Peças Automotivas Compatíveis</title>
+  <!-- deploy-timestamp: 2025-10-26T00:00:00Z -->
+  <meta name="deploy-timestamp" content="2025-10-26T00:00:00Z">
+  <link rel="icon" type="image/x-icon" href="/imagens/favicon--Lp98Ei8.ico" />
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon-CQKy2vg8.svg" />
+  <link rel="apple-touch-icon" href="./assets/logo--vDu1vj9.png" />
+    
+  <!-- Google Fonts: Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Montserrat for MenuLogin -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Runtime API base injection: sets window.__API_BASE when hosted on GitHub Pages or production domain -->
+  <script>
+    try {
+      (function(){
+        var prod = 'https://luciofreitas-github-io.onrender.com';
+        if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+          if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            window.__API_BASE = prod;
+            console.log('[runtime] API base set to', prod);
+          }
+        }
+      })();
+    } catch(e) { console.warn('Runtime API base injection failed', e); }
+  </script>
+  <!-- debug script removed -->
+  <!-- Vite dev server uses /src/main.jsx; include the standard Vite entry so builds emit bundles correctly -->
+
+  <!-- Use Vite source entry so the dev server and build resolve modules correctly -->
+  <!-- Legacy global shim: create a non-module global `supabase` binding so older bundles
+       that reference the bare identifier `supabase` do not throw ReferenceError. This
+       sets `supabase` to any runtime-injected client (window.__SUPABASE_CLIENT) or null. -->
+  <script>
+    try {
+      if (typeof window !== 'undefined') {
+        window.__SUPABASE_CLIENT = (typeof window.__SUPABASE_CLIENT !== 'undefined') ? window.__SUPABASE_CLIENT : null;
+        /* create a true global binding (not just a window property) so eval('supabase')
+           and bare references succeed in non-module contexts */
+        // eslint-disable-next-line no-var
+        var supabase = window.__SUPABASE_CLIENT;
+        console.log('[runtime] legacy global supabase exposed:', typeof supabase);
+      }
+    } catch (e) { /* swallow non-critical errors */ }
+  </script>
+
+
+  <!-- Vite dev: load source entry. Vite will replace this with built assets during production build. -->
+    <script type="module" crossorigin src="./assets/index-Cfo1Q3su.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BcROyJ1v.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
