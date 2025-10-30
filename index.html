@@ -50,16 +50,7 @@
 
 
   <!-- Vite dev: load source entry. Vite will replace this with built assets during production build. -->
-  <!-- If GitHub Pages is serving the repository root instead of /docs/, visitors
-       will get the unbuilt source (refs to /src/*.jsx). To avoid that while the
-       Pages source is switched to "master / docs", perform a safe client-side
-       redirect to /docs/ which contains the built site. This is temporary and
-       can be removed after Pages is configured to use the /docs folder. -->
-  <meta http-equiv="refresh" content="0;url=/docs/">
-  <script>
-    // Fallback redirect for browsers with JS enabled (immediate)
-    try { if (typeof window !== 'undefined') { window.location.replace('/docs/'); } } catch(e){}
-  </script>
+  <script type="module" src="/src/main.jsx"></script>
   </head>
   <body>
     <div id="root"></div>
