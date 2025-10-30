@@ -457,6 +457,10 @@ html body .site-header .menu-login-root .user-menu-root button.user-button.icon-
   position: fixed; /* Alterado de absolute para fixed para escapar de qualquer container limitante */
   top: auto; /* Removido o cálculo para usar posição fixa */
   right: auto; /* Será posicionado com JS */
+  /* Ensure any left values set by other styles do not interfere with the
+     inline `right` value set by the component. This prevents the dropdown
+     from snapping to the left of the viewport when other CSS sets `left`. */
+  left: auto !important;
   margin-top: 0.25rem; /* Espaçamento do botão */
   background-color: #ffffff !important;
   border-radius: 0.5rem;

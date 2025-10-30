@@ -212,8 +212,8 @@ function PageRecalls() {
             </div>
 
             <div className="recalls-list">
-              {filteredRecalls.map((recall) => (
-                <div key={recall.recallId} className="recall-card">
+              {filteredRecalls.map((recall, i) => (
+                <div key={recall.recallId || `${recall.marca}-${recall.modelo}-${recall.anoInicial}-${recall.anoFinal}-${i}` } className="recall-card">
                   <div className="recall-header">
                     <div className="recall-title">
                       <h4>{recall.marca} {recall.modelo}</h4>

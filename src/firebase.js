@@ -48,3 +48,20 @@ try {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export default app;
+
+// DEV-ONLY: attach auth to window for interactive debugging in the browser console
+// This helps quickly inspect `auth.currentUser` and call `getIdToken()` when
+// running the Vite dev server. This must NOT run in production builds.
+try {
+  const isDev = !!(viteEnv && (viteEnv.DEV || viteEnv.VITE_DEBUG_FIREBASE === 'true')) || (nodeEnv && nodeEnv.NODE_ENV !== 'production' && nodeEnv.DEBUG_FIREBASE === 'true');
+  if (typeof window !== 'undefined' && isDev) {
+    // attach under a clearly-named property so it's easy to remove later
+    // eslint-disable-next-line no-console
+    console.info('[firebase] dev: exposing auth on window.__debugFirebaseAuth');
+    // keep a non-enumerable property to avoid accidental serialization
+    Object.defineProperty(window, '__debugFirebaseAuth', { value: auth, writable: false, configurable: true });
+  }
+} catch (e) {
+  // eslint-disable-next-line no-console
+  console.debug('[firebase] failed to attach debug auth', e && e.message);
+}

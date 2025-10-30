@@ -122,9 +122,49 @@ const MenuLogin = () => {
       const top = Math.round(rect.bottom + 4);
       const left = Math.round(rect.left);
 
+      // Only set inline CSS variables when NOT in mobile layout.
+      // For mobile we use CSS (absolute positioning) to avoid inline styles.
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        if (!isMobile) {
+          mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
+          mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        } else {
+          // For mobile we set an explicit pixel top/right to ensure alignment
+          // with the avatar dropdown (pixel-perfect). Remove any CSS vars.
+          try {
+            mobileMenuRef.current.style.removeProperty('--dropdown-top');
+            mobileMenuRef.current.style.removeProperty('--dropdown-left');
+          } catch (e) { /* ignore */ }
+
+          // Align vertically using the button rect (same approach used by the avatar menu)
+          // so both dropdowns sit at the same vertical position directly below their buttons.
+          try {
+            const btnRect = mobileMenuButtonRef.current.getBoundingClientRect();
+            // Small upward adjustment so the hamburger dropdown overlaps the header
+            // similarly to the avatar menu for a more aesthetic look.
+            const HAMBURGER_VERTICAL_ADJUST = 6; // pixels
+            const topPx = Math.round(btnRect.bottom - HAMBURGER_VERTICAL_ADJUST);
+            const leftPx = Math.round(btnRect.left);
+
+            try {
+              mobileMenuRef.current.style.setProperty('top', `${topPx}px`, 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.top = `${topPx}px`;
+            }
+            try {
+              mobileMenuRef.current.style.setProperty('left', `${leftPx}px`, 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.left = `${leftPx}px`;
+            }
+            try {
+              mobileMenuRef.current.style.setProperty('right', 'auto', 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.right = 'auto';
+            }
+          } catch (err) {
+            /* ignore positioning errors */
+          }
+        }
       }
 
       setMobileMenuPosition({ top, left });
@@ -178,8 +218,40 @@ const MenuLogin = () => {
       const left = Math.round(rect.left);
 
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        if (!isMobile) {
+          mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
+          mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        } else {
+          try {
+            mobileMenuRef.current.style.removeProperty('--dropdown-top');
+            mobileMenuRef.current.style.removeProperty('--dropdown-left');
+          } catch (e) { /* ignore */ }
+
+          // Mobile: align under hamburger button using its rect (same as avatar menu)
+          try {
+            const btnRect = mobileMenuButtonRef.current.getBoundingClientRect();
+            // Small upward adjustment so the hamburger dropdown overlaps the header
+            // similarly to the avatar menu for a more aesthetic look.
+            const HAMBURGER_VERTICAL_ADJUST = 6; // pixels
+            const topPx = Math.round(btnRect.bottom - HAMBURGER_VERTICAL_ADJUST);
+            const leftPx = Math.round(btnRect.left);
+            try {
+              mobileMenuRef.current.style.setProperty('top', `${topPx}px`, 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.top = `${topPx}px`;
+            }
+            try {
+              mobileMenuRef.current.style.setProperty('left', `${leftPx}px`, 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.left = `${leftPx}px`;
+            }
+            try {
+              mobileMenuRef.current.style.setProperty('right', 'auto', 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.right = 'auto';
+            }
+          } catch (err) { /* ignore */ }
+        }
       }
 
       setMobileMenuPosition({ top, left });
@@ -210,7 +282,7 @@ const MenuLogin = () => {
             {/* Dropdown mobile menu */}
             <div
               ref={mobileMenuRef}
-              className={`user-dropdown ${mobileMenuOpen ? 'open' : 'closed'}`}
+              className={`user-dropdown mobile-nav-dropdown ${mobileMenuOpen ? 'open' : 'closed'}`}
               role="menu"
               aria-hidden={!mobileMenuOpen}
             >

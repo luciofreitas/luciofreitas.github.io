@@ -72,8 +72,38 @@ function Menu() {
 
       // Set CSS custom properties for positioning
       if (mobileMenuRef.current) {
-        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        if (!isMobile) {
+          mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
+          mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        } else {
+          try {
+            mobileMenuRef.current.style.removeProperty('--dropdown-top');
+            mobileMenuRef.current.style.removeProperty('--dropdown-left');
+          } catch (e) { /* ignore */ }
+
+          // Mobile: align under hamburger button using its rect (same as avatar menu)
+          try {
+            const btnRect = mobileMenuButtonRef.current.getBoundingClientRect();
+            const HAMBURGER_VERTICAL_ADJUST = 6; // pixels
+            const topPx = Math.round(btnRect.bottom - HAMBURGER_VERTICAL_ADJUST);
+            const leftPx = Math.round(btnRect.left);
+            try {
+              mobileMenuRef.current.style.setProperty('top', `${topPx}px`, 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.top = `${topPx}px`;
+            }
+            try {
+              mobileMenuRef.current.style.setProperty('left', `${leftPx}px`, 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.left = `${leftPx}px`;
+            }
+            try {
+              mobileMenuRef.current.style.setProperty('right', 'auto', 'important');
+            } catch (e) {
+              mobileMenuRef.current.style.right = 'auto';
+            }
+          } catch (err) { /* ignore */ }
+        }
       }
 
       setMobileMenuPosition({ top, left });
@@ -137,8 +167,24 @@ function Menu() {
 
       // Set CSS custom properties for positioning
       try {
-        mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
-        mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        if (!isMobile) {
+          mobileMenuRef.current.style.setProperty('--dropdown-top', `${top}px`);
+          mobileMenuRef.current.style.setProperty('--dropdown-left', `${left}px`);
+        } else {
+          try {
+            mobileMenuRef.current.style.removeProperty('--dropdown-top');
+            mobileMenuRef.current.style.removeProperty('--dropdown-left');
+          } catch (e) { /* ignore */ }
+          // Mobile explicit positioning: align under the button (same as avatar menu)
+          try {
+            const btnRect = mobileMenuButtonRef.current.getBoundingClientRect();
+            const topPx = Math.round(btnRect.bottom);
+            const leftPx = Math.round(btnRect.left);
+            mobileMenuRef.current.style.top = `${topPx}px`;
+            mobileMenuRef.current.style.left = `${leftPx}px`;
+            mobileMenuRef.current.style.right = 'auto';
+          } catch (err) { /* ignore */ }
+        }
       } catch (err) {
         // ignore if style manipulation fails in some environments
       }
@@ -171,7 +217,7 @@ function Menu() {
           {/* Dropdown balloon replicated from MenuUsuario */}
           <div
             ref={mobileMenuRef}
-            className={`user-dropdown ${mobileMenuOpen ? 'open' : 'closed'}`}
+            className={`user-dropdown mobile-nav-dropdown ${mobileMenuOpen ? 'open' : 'closed'}`}
             role="menu"
             aria-hidden={!mobileMenuOpen}
             // ensure element is truly non-interactive when closed

@@ -1114,14 +1114,57 @@ button.menu-login-item {
     color: rgba(255, 255, 255, 0.9) !important;
   }
 
-  /* Hamburger menu dropdown positioning */
-  .hamburger-menu-root .user-dropdown {
-    position: fixed !important;
-    /* top and left will be set via CSS custom properties from JS */
-    top: var(--dropdown-top, 0);
-    left: var(--dropdown-left, 0);
-    /* Remove any right positioning that might conflict */
-    right: auto !important;
+  /* Hamburger menu dropdown positioning
+    NOTE: this block now targets the hamburger dropdown only (it has the
+    `.mobile-nav-dropdown` class added in JSX). We keep these rules here
+    as a fallback for non-mobile layouts where JS sets CSS vars. */
+  .user-menu-root .mobile-nav-dropdown {
+    /* visual styling like the user dropdown on the avatar */
+    min-width: 11.25rem !important;
+    background: var(--bg-white) !important;
+    border-radius: 0.5rem !important;
+    border: 0.062rem solid var(--border-gray) !important;
+    box-shadow: var(--shadow-lg) !important;
+    padding: 0.5rem !important;
+    z-index: 99999 !important; /* above header but below modals if needed */
+    overflow-y: auto !important;
+
+   /* Default positioning: fixed with JS-set CSS vars (used as a fallback
+     for contexts where absolute positioning isn't appropriate). The JS in
+     `MenuLogin.jsx` sets these vars only for the hamburger dropdown. */
+   position: fixed !important;
+   top: var(--dropdown-top, 0);
+   left: var(--dropdown-left, 0);
+   right: auto !important;
+   /* Prevent being cut off: limit height based on viewport and allow scroll */
+   max-height: calc(100vh - var(--dropdown-top, 0) - 16px) !important;
+  }
+
+  /* MOBILE OVERRIDE: in the mobile layout we prefer to position the
+     dropdown absolutely relative to the button container so we don't
+     need to inject inline CSS vars for top/left. This keeps the DOM
+     cleaner and avoids clipping inside header containers. */
+  .user-menu-root {
+    position: relative !important; /* container for absolute dropdown */
+  }
+
+  /* Only position the hamburger dropdown absolutely on mobile. The user
+     avatar dropdown should keep using fixed positioning (defined in
+     MenuUsuario.css) so it can escape header clipping. We target the
+     `.mobile-nav-dropdown` class added to the hamburger dropdown in JSX. */
+  .user-menu-root .mobile-nav-dropdown {
+   /* Use fixed positioning on mobile and anchor to the right edge of the
+     viewport so the hamburger dropdown lines up horizontally with the
+     avatar dropdown (which is right-aligned). This avoids DOM moves. */
+  position: fixed !important;
+  /* Allow JS inline top/left to control final placement. Use CSS vars as a safe fallback. */
+  top: var(--dropdown-top, auto);
+  /* horizontal position is set inline from JS (left) to align under the hamburger */
+  /* do not force right/left here so inline styles can take precedence */
+   z-index: 100000 !important; /* ensure it stays above page content */
+   max-height: calc(100vh - 16px) !important;
+   overflow-y: auto !important;
+   min-width: 11.25rem !important;
   }
 
   /* User menu à direita - posição fixa */

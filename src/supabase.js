@@ -40,9 +40,25 @@ function makeNotConfiguredStub() {
     return;
   }
 
-  supabase = createClient(String(url).replace(/\/$/, ''), String(anonKey), { auth: { persistSession: false } });
+  // In dev we may want session persistence so tokens survive a reload while
+  // debugging the link flow. Change to true only for dev if needed.
+  supabase = createClient(String(url).replace(/\/$/, ''), String(anonKey), { auth: { persistSession: true } });
   isConfigured = true;
 })();
 
 export { supabase, isConfigured };
 export default supabase;
+
+// DEV-ONLY: expose supabase client on window for interactive debugging
+// Only enabled in Vite dev or when explicit debug env var is set.
+try {
+  const isDev = !!(viteEnv && (viteEnv.DEV || viteEnv.VITE_DEBUG_SUPABASE === 'true')) || (typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production' && process.env.DEBUG_SUPABASE === 'true');
+  if (typeof window !== 'undefined' && isDev && supabase && !window.__debugSupabase) {
+    // eslint-disable-next-line no-console
+    console.info('[supabase] dev: exposing supabase on window.__debugSupabase');
+    Object.defineProperty(window, '__debugSupabase', { value: supabase, writable: false, configurable: true });
+  }
+} catch (e) {
+  // eslint-disable-next-line no-console
+  console.debug('[supabase] failed to attach debug client', e && e.message);
+}

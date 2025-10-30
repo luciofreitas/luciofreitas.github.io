@@ -22,6 +22,8 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
+  const [devResetInfo, setDevResetInfo] = useState(null);
+  const [showDevResetModal, setShowDevResetModal] = useState(false);
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [linkingCredential, setLinkingCredential] = useState(null);
@@ -268,6 +270,29 @@ export default function Login() {
       // swallow errors but keep processed flag
       console.warn('processFirebaseUser failed', e && e.message ? e.message : e);
     }
+  }
+
+  // Ensure we can obtain a fresh ID token from a Firebase user with retries
+  async function ensureIdToken(userObj, maxRetries = 6, delayMs = 500) {
+    if (!userObj || typeof userObj.getIdToken !== 'function') return null;
+    try {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const t = await userObj.getIdToken();
+          if (t) return t;
+        } catch (e) {
+          // ignore and retry
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(r => setTimeout(r, delayMs));
+      }
+      // final attempt forcing refresh
+      try {
+        const t = await userObj.getIdToken(true);
+        if (t) return t;
+      } catch (e) { /* ignore */ }
+    } catch (e) { /* ignore */ }
+    return null;
   }
 
   // Expose a helper to simulate a Google/Firebase signin for local testing
@@ -563,7 +588,46 @@ export default function Login() {
       }
 
       // If linking succeeded, finalize sign-in using the existingUser (which now has google linked)
-      await processFirebaseUser(existingUser);
+      try {
+        // After successful link in the Firebase client, also inform the backend so it can set users.auth_id
+        // Obtain a fresh ID token for the now-linked Firebase user
+        let idTokenForBackend = null;
+        try {
+          if (auth && auth.currentUser && typeof auth.currentUser.getIdToken === 'function') {
+            idTokenForBackend = await auth.currentUser.getIdToken();
+          }
+        } catch (e) {
+          console.warn('Could not obtain idToken to call backend link-account', e);
+        }
+        if (idTokenForBackend) {
+          try {
+            // DEBUG: small, safe log to verify this code path runs and whether an idToken is present.
+            // We intentionally don't log the full token; just a short preview.
+            try { console.info('DEBUG: calling backend /api/auth/link-account', { email: currentEmail, haveIdToken: !!idTokenForBackend, idTokenPreview: (typeof idTokenForBackend === 'string' ? idTokenForBackend.slice(0,8) + '...' : null), apiBase: (window.__API_BASE || '') }); } catch(e) {}
+            const apiBase = window.__API_BASE || '';
+            const resp = await fetch(`${apiBase}/api/auth/link-account`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idTokenForBackend}` },
+              body: JSON.stringify({ email: currentEmail, senha: linkPassword })
+            });
+            if (resp.ok) {
+              try { const j = await resp.json().catch(() => ({})); if (j && j.success) console.debug('Backend link-account succeeded', j); }
+              catch(e){}
+            } else {
+              // show a user-facing error if linking on server failed (but continue with client flow)
+              try { const body = await resp.json().catch(() => ({})); setLinkError(body && body.error ? String(body.error) : `Falha ao ligar contas: ${resp.status}`); } catch(e){}
+            }
+          } catch (e) {
+            console.warn('Calling backend /api/auth/link-account failed', e);
+          }
+        }
+
+        // finalize client sign-in flow
+        await processFirebaseUser(existingUser);
+      } catch (e) {
+        console.warn('Finalizing link flow failed', e);
+        await processFirebaseUser(existingUser);
+      }
       setShowLinkPrompt(false);
       setLinkPassword('');
       setLinkingCredential(null);
@@ -692,7 +756,53 @@ export default function Login() {
                     </div>
                   </label>
 
-                  <div className="cadastro-forgot-row"><a href="#" className="login-forgot-link" onClick={e => { e.preventDefault(); }}>Esqueci minha senha</a></div>
+                  <div className="cadastro-forgot-row"><a href="#" className="login-forgot-link" onClick={async (e) => {
+                    e.preventDefault();
+                    // In development (localhost) provide a dev-friendly password reset simulation
+                    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                    if (!isLocal) {
+                      // In production just navigate to recover page (existing behavior placeholder)
+                      try { window.location.href = '/recuperar-senha'; } catch (err) {}
+                      return;
+                    }
+                    setError('');
+                    const targetEmail = String(email || '').trim();
+                    if (!targetEmail) { setError('Digite o e-mail antes de recuperar a senha (dev).'); return; }
+                    try {
+                      const apiBase = window.__API_BASE || '';
+                      const resp = await fetch(`${apiBase}/api/debug/dev-generate-reset`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Debug-Key': 'let-me-debug' },
+                        body: JSON.stringify({ email: targetEmail })
+                      });
+                      if (!resp.ok) {
+                        const b = await resp.json().catch(() => ({}));
+                        setError(b && b.error ? String(b.error) : 'Falha ao gerar token de recuperação.');
+                        return;
+                      }
+                      const body = await resp.json().catch(() => ({}));
+                      setDevResetInfo(body);
+                      setShowDevResetModal(true);
+                    } catch (err) {
+                      console.error('dev generate reset failed', err);
+                      setError('Erro ao gerar token de recuperação. Veja o console.');
+                    }
+                  }}>Esqueci minha senha</a></div>
+
+                  {showDevResetModal && devResetInfo && (
+                    <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:9999}}>
+                      <div className="modal" role="dialog" aria-modal="true" style={{background:'#fff',padding:'20px',maxWidth:'520px',width:'100%',borderRadius:8}}>
+                        <h3>Recuperação (modo dev)</h3>
+                        <p>Token temporal e senha gerados para <strong>{devResetInfo && devResetInfo.email}</strong>. Estes dados existem apenas no ambiente de desenvolvimento.</p>
+                        <pre style={{background:'#f6f6f6',padding:12,borderRadius:6,overflowX:'auto'}}>
+{`token: ${devResetInfo && devResetInfo.token}\ntempPassword: ${devResetInfo && devResetInfo.tempPassword}\nexpiresAt: ${devResetInfo && devResetInfo.expiresAt}`}
+                        </pre>
+                        <div style={{display:'flex',gap:8,marginTop:12}}>
+                          <button className="submit" onClick={() => { setShowDevResetModal(false); setDevResetInfo(null); }}>Fechar</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <button className="submit" type="submit">Entrar</button>
 
@@ -763,20 +873,59 @@ export default function Login() {
                                   } catch (e) { /* ignore */ }
 
                                   if (cachedIdToken) {
-                                    // try automatic merge and return on success
+                                    // If the user had already filled the local password field (senha),
+                                    // prefer attempting an automatic server-side link using that password.
                                     try {
-                                      setPendingMergeIdToken(cachedIdToken);
-                                      setPendingMergeEmail(normalizedEmailPopup);
-                                      setMergeError('');
-                                      await confirmMerge(cachedIdToken);
-                                      setGoogleLoading(false);
-                                      return;
+                                      if (senha) {
+                                        try {
+                                          const apiBase = window.__API_BASE || '';
+                                          // Attempt /api/auth/link-account with idToken + local password
+                                          const linkResp = await fetch(`${apiBase}/api/auth/link-account`, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cachedIdToken}` },
+                                            body: JSON.stringify({ email: normalizedEmailPopup, senha: senha })
+                                          });
+                                          if (linkResp && linkResp.ok) {
+                                            const linkBody = await linkResp.json().catch(() => ({}));
+                                            // If server confirms link (success or returns user), finalize login
+                                            if (linkBody && (linkBody.success || linkBody.user)) {
+                                              console.debug('Automatic link-account succeeded', linkBody);
+                                              if (linkBody.user && setUsuarioLogado) setUsuarioLogado(linkBody.user);
+                                              try { localStorage.setItem('usuario-logado', JSON.stringify(linkBody.user || {})); } catch (e) {}
+                                              if (window.showToast) window.showToast('Contas unidas com sucesso!', 'success', 3000);
+                                              setGoogleLoading(false);
+                                              // proceed with the normal firebase finalization
+                                              await processFirebaseUser(user);
+                                              return;
+                                            }
+                                          } else {
+                                            try {
+                                              const errBody = await linkResp.json().catch(() => ({}));
+                                              console.warn('Automatic link-account returned error', linkResp.status, errBody);
+                                            } catch(e) { console.warn('Automatic link-account returned non-ok status', linkResp && linkResp.status); }
+                                          }
+                                        } catch (e) {
+                                          console.warn('Automatic link-account request failed', e);
+                                        }
+                                      }
+
+                                      // If either no senha provided or automatic link failed, try automatic merge next
+                                      try {
+                                        setPendingMergeIdToken(cachedIdToken);
+                                        setPendingMergeEmail(normalizedEmailPopup);
+                                        setMergeError('');
+                                        await confirmMerge(cachedIdToken);
+                                        setGoogleLoading(false);
+                                        return;
+                                      } catch (e) {
+                                        console.warn('Automatic merge failed in popup flow, falling back to modal', e && e.message ? e.message : e);
+                                      }
                                     } catch (e) {
-                                      console.warn('Automatic merge failed in popup flow, falling back to modal', e && e.message ? e.message : e);
+                                      console.warn('Popup flow automatic linking/merge attempt threw', e);
                                     }
                                   }
 
-                                  // fallback: show modal to let user confirm and enter password if automatic merge didn't work
+                                  // fallback: show modal to let user confirm and enter password if automatic steps didn't work
                                   console.debug('Setting linkingCredential (popup flow) fallback to modal:', googleCred);
                                   setLinkingCredential(googleCred);
                                   setLinkEmail(normalizedEmailPopup);
