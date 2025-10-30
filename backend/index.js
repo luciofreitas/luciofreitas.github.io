@@ -118,6 +118,32 @@ function isDebugRequest(req){
 const avatarCache = new Map();
 const AVATAR_CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
 
+// Temporary in-memory audit log for /api/auth/link-account calls (debug only)
+// This is intentionally ephemeral and exists to help diagnose why auth_id is not being written.
+const linkAccountAudit = [];
+const LINK_AUDIT_MAX = 200;
+function pushLinkAudit(entry) {
+  try {
+    const e = { time: new Date().toISOString(), ...entry };
+    linkAccountAudit.push(e);
+    if (linkAccountAudit.length > LINK_AUDIT_MAX) linkAccountAudit.shift();
+  } catch (err) { /* ignore audit push failures */ }
+}
+
+// Temporary in-memory password reset tokens (debug only)
+// Map token -> { email, tempPassword, expiresAt }
+const debugResetTokens = new Map();
+function pushDebugResetToken(token, info) {
+  try {
+    debugResetTokens.set(token, info);
+    // Clean expired entries (simple sweep)
+    const now = Date.now();
+    for (const [k, v] of debugResetTokens.entries()) {
+      if (v && v.expiresAt && v.expiresAt < now) debugResetTokens.delete(k);
+    }
+  } catch (e) { /* ignore */ }
+}
+
 // Helper to fetch remote URL bytes. Try to use node-fetch if installed, otherwise fallback to https.
 async function fetchUrlBytes(url) {
   // Try node-fetch dynamically
@@ -297,6 +323,131 @@ if (process.env.NODE_ENV !== 'production') {
     }catch(e){
       console.error('debug pg check failed:', e && e.message ? e.message : e);
       return res.status(500).json({ ok: false, message: e && e.message ? e.message : String(e) });
+    }
+  });
+
+  // Development-only: expose the in-memory link-account audit for debugging
+  app.get('/api/debug/link-account-audit', (req, res) => {
+    try {
+      return res.json({ ok: true, count: linkAccountAudit.length, entries: linkAccountAudit });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
+    }
+  });
+
+  app.delete('/api/debug/link-account-audit', (req, res) => {
+    try {
+      linkAccountAudit.length = 0; // clear
+      return res.json({ ok: true, cleared: true });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
+    }
+  });
+
+  // Development-only: force link an account by email -> set auth_id directly (bypasses provider token)
+  // Useful to simulate linking in local/dev when you can't reproduce provider tokens.
+  app.post('/api/debug/force-link-account', async (req, res) => {
+    try {
+      const { email, authId } = req.body || {};
+      if (!email || !authId) return res.status(400).json({ error: 'email and authId required' });
+      const normalizedEmail = String(email).trim().toLowerCase();
+      pushLinkAudit({ stage: 'force-received', email: normalizedEmail, authId });
+
+      // If PG available, update directly
+      if (pgClient) {
+        try {
+          const upd = await pgClient.query('UPDATE users SET auth_id = $1, atualizado_em = now() WHERE lower(email) = $2 RETURNING id', [String(authId), normalizedEmail]);
+          if (!upd || !upd.rowCount) {
+            pushLinkAudit({ stage: 'force-pg-no-match', email: normalizedEmail });
+            return res.status(404).json({ error: 'no local user with that email' });
+          }
+          pushLinkAudit({ stage: 'force-pg-success', email: normalizedEmail, userId: upd.rows[0].id, linkedTo: authId });
+          return res.json({ success: true, id: upd.rows[0].id, linkedTo: authId });
+        } catch (e) {
+          console.error('force-link-account pg update failed:', e && e.message ? e.message : e);
+          pushLinkAudit({ stage: 'force-pg-failed', email: normalizedEmail, error: e && e.message ? e.message : String(e) });
+          return res.status(500).json({ error: 'pg update failed' });
+        }
+      }
+
+      // Fallback to Supabase REST PATCH by email (requires SUPABASE_SERVICE_ROLE_KEY)
+      if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        try {
+          const base = process.env.SUPABASE_URL.replace(/\/$/, '');
+          // Patch by email eq (note: ensure your Supabase users table stores email in lowercase for predictable results)
+          const url = `${base}/rest/v1/users?email=eq.${encodeURIComponent(normalizedEmail)}`;
+          const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          pushLinkAudit({ stage: 'force-rest-patch', email: normalizedEmail, authId });
+          const resp = await fetch(url, {
+            method: 'PATCH',
+            headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+            body: JSON.stringify({ auth_id: authId })
+          });
+          const text = await resp.text();
+          if (!resp.ok) {
+            try { const j = JSON.parse(text); pushLinkAudit({ stage: 'force-rest-failed', email: normalizedEmail, status: resp.status, body: j }); } catch(e) { pushLinkAudit({ stage: 'force-rest-failed', email: normalizedEmail, status: resp.status, body: text }); }
+            return res.status(500).json({ error: 'rest patch failed', status: resp.status, body: text });
+          }
+          try { const j = JSON.parse(text); pushLinkAudit({ stage: 'force-rest-success', email: normalizedEmail, updatedRow: j && j[0] ? j[0] : null }); return res.json({ success: true, updatedRow: j && j[0] ? j[0] : null }); } catch(e) { pushLinkAudit({ stage: 'force-rest-success', email: normalizedEmail }); return res.json({ success: true }); }
+        } catch (e) {
+          console.error('force-link-account REST failed:', e && e.message ? e.message : e);
+          pushLinkAudit({ stage: 'force-rest-exception', email: normalizedEmail, error: e && e.message ? e.message : String(e) });
+          return res.status(500).json({ error: 'rest exception' });
+        }
+      }
+
+      return res.status(503).json({ error: 'no database available to perform force link' });
+    } catch (err) {
+      console.error('force-link-account unexpected error:', err && err.stack ? err.stack : err);
+      return res.status(500).json({ error: 'internal error' });
+    }
+  });
+
+  // Development-only: backfill auth_id for users where provider auth exists with matching email
+  // Use: POST /api/debug/backfill-auth-id { dryRun: true } (requires X-Debug-Key or non-production)
+  app.post('/api/debug/backfill-auth-id', async (req, res) => {
+    try {
+      if (!isDebugRequest(req)) return res.status(403).json({ error: 'forbidden' });
+      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+      if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return res.status(503).json({ error: 'supabase admin not configured' });
+      const dryRun = !!(req.body && req.body.dryRun);
+      const { createClient } = require('@supabase/supabase-js');
+      const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+      // listUsers may be paginated; request a reasonable page size for dev
+      const listRes = await (supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.listUsers === 'function' ? supabaseAdmin.auth.admin.listUsers({}) : Promise.resolve({ data: { users: [] } }));
+      const users = (listRes && listRes.data && listRes.data.users) ? listRes.data.users : (listRes && listRes.data) ? listRes.data : [];
+      const candidates = [];
+      for (const su of users) {
+        try {
+          if (!su || !su.email) continue;
+          const email = String(su.email).trim().toLowerCase();
+          // find local user by email where auth_id is null or empty
+          const r = await pgClient.query('SELECT id, email, auth_id FROM users WHERE lower(email) = lower($1) LIMIT 1', [email]);
+          if (r && r.rowCount > 0) {
+            const row = r.rows[0];
+            if (!row.auth_id) {
+              candidates.push({ localId: row.id, email: row.email, providerId: su.id });
+            }
+          }
+        } catch (e) { /* ignore per-user errors */ }
+      }
+      if (dryRun) return res.json({ ok: true, dryRun: true, count: candidates.length, candidates });
+      const applied = [];
+      for (const c of candidates) {
+        try {
+          const upd = await pgClient.query('UPDATE users SET auth_id = $1, atualizado_em = now() WHERE id = $2', [String(c.providerId), c.localId]);
+          if (upd && upd.rowCount > 0) {
+            applied.push(c);
+            pushLinkAudit({ stage: 'backfill-applied', email: c.email, localId: c.localId, providerId: c.providerId });
+          }
+        } catch (e) {
+          pushLinkAudit({ stage: 'backfill-failed', email: c.email, localId: c.localId, providerId: c.providerId, error: e && e.message ? e.message : String(e) });
+        }
+      }
+      return res.json({ ok: true, dryRun: false, attempted: candidates.length, applied: applied.length, applied });
+    } catch (err) {
+      console.error('/api/debug/backfill-auth-id failed', err && err.message ? err.message : err);
+      return res.status(500).json({ error: 'internal' });
     }
   });
 }
@@ -2106,6 +2257,218 @@ app.post('/api/auth/verify-password', async (req, res) => {
   }
 });
 
+// Link an existing site account (email+senha) to an OAuth/Supabase auth id.
+// Expected: frontend includes Authorization: Bearer <supabase_access_token> representing the OAuth login
+// and body { email, senha } where email is the existing account email on the site.
+// Behavior: verify the supabase token, verify the provided senha against the users row
+// and update users.auth_id = <supabaseUser.id>. Falls back to Supabase REST when Postgres is not available.
+app.post('/api/auth/link-account', async (req, res) => {
+  try {
+    const { email, senha } = req.body || {};
+    if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
+    // Try to obtain a provider identity from the Authorization header.
+    // Prefer Supabase token first, then fallback to Firebase ID token when available.
+    let supaUser = await getSupabaseUserFromReq(req);
+    // Lazy-init Firebase Admin if present in env to support Firebase ID token verification
+    tryInitFirebaseAdmin();
+    if (!supaUser && firebaseAdmin) {
+      try {
+        const authHeader = req.headers.authorization || '';
+        const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+        if (idToken) {
+          try {
+            const decoded = await firebaseAdmin.auth().verifyIdToken(idToken);
+            if (decoded && decoded.uid) {
+              supaUser = { id: decoded.uid, email: decoded.email || null, provider: 'firebase' };
+            }
+          } catch (e) {
+            // ignore Firebase verify errors here; we'll handle missing provider below
+          }
+        }
+      } catch (e) { /* ignore */ }
+    }
+    if (!supaUser || !supaUser.id) return res.status(401).json({ error: 'invalid or missing provider access token' });
+    const supaId = supaUser.id;
+    // Normalize emails
+    const providerEmail = supaUser.email ? String(supaUser.email).trim().toLowerCase() : null;
+    const requestedEmail = String(email).trim().toLowerCase();
+    // The email we will actually attempt to link (may be the requestedEmail or auto-switched to providerEmail)
+    let normalizedEmail = requestedEmail;
+
+    // If provider token contains an email that differs from the provided email, try a secure auto-match:
+    //  - If a local account exists for the provider email, verify the provided senha against that account.
+    //  - If password verifies, link that account (providerEmail) instead of the requestedEmail.
+    // This keeps the flow secure (requires knowledge of the local password) while avoiding manual copy/paste mistakes.
+    if (providerEmail && providerEmail !== requestedEmail) {
+      try { pushLinkAudit({ stage: 'provider-email-mismatch', requestedEmail, providerEmail }); } catch(e){}
+      // First: if the caller supplied the password for the requestedEmail, allow linking the provider to that requestedEmail
+      // (user proved ownership by providing the local password). If that verifies, we'll continue with normalizedEmail = requestedEmail.
+      if (pgClient) {
+        try {
+          const selReq = await pgClient.query(`SELECT id, email, ${userPasswordColumn} as password_hash, auth_id FROM users WHERE lower(email) = $1 LIMIT 1`, [requestedEmail]);
+          if (selReq.rowCount > 0) {
+            const reqRow = selReq.rows[0];
+            if (reqRow.password_hash && verifyPassword(senha, reqRow.password_hash)) {
+              // Password matches the requestedEmail account: proceed to link that account
+              normalizedEmail = requestedEmail;
+              pushLinkAudit({ stage: 'requested-email-password-match', requestedEmail, providerEmail, userId: reqRow.id });
+              // skip provider-email auto-match logic
+            }
+          }
+        } catch (e) {
+          console.error('link-account: requested-email verify pg error', e && e.message ? e.message : e);
+          pushLinkAudit({ stage: 'requested-email-pg-exception', requestedEmail, error: e && e.message ? e.message : String(e) });
+          return res.status(500).json({ error: 'internal error' });
+        }
+      } else if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        try {
+          const matchedReq = await loginUserRest(requestedEmail, senha);
+          if (matchedReq) {
+            normalizedEmail = requestedEmail;
+            pushLinkAudit({ stage: 'requested-email-password-match-rest', requestedEmail, providerEmail, userId: matchedReq.id });
+          }
+        } catch (e) {
+          console.error('link-account: requested-email auto-verify rest error', e && e.message ? e.message : e);
+          pushLinkAudit({ stage: 'requested-email-rest-exception', requestedEmail, error: e && e.message ? e.message : String(e) });
+          return res.status(500).json({ error: 'internal error' });
+        }
+      }
+
+      // If normalizedEmail is still the requestedEmail and password matched above, skip provider-email auto-match.
+      if (normalizedEmail !== requestedEmail) {
+        // If Postgres is available, check the providerEmail account and verify provided senha against it
+        if (pgClient) {
+          try {
+            const selProv = await pgClient.query(`SELECT id, email, ${userPasswordColumn} as password_hash, auth_id FROM users WHERE lower(email) = $1 LIMIT 1`, [providerEmail]);
+            if (selProv.rowCount === 0) {
+              pushLinkAudit({ stage: 'provider-email-no-local', providerEmail, requestedEmail });
+              return res.status(400).json({ error: 'provider token email does not match provided email', providerEmail });
+            }
+            const provRow = selProv.rows[0];
+            if (!provRow.password_hash || !verifyPassword(senha, provRow.password_hash)) {
+              pushLinkAudit({ stage: 'provider-email-password-mismatch', providerEmail, requestedEmail, userId: provRow.id });
+              return res.status(401).json({ error: 'invalid credentials for account matching provider email', providerEmail });
+            }
+            // Password matches the account that owns the provider email: switch to that account and continue
+            normalizedEmail = providerEmail;
+            pushLinkAudit({ stage: 'provider-email-auto-match', providerEmail, requestedEmail, userId: provRow.id });
+          } catch (e) {
+            console.error('link-account: provider-email auto-match pg error', e && e.message ? e.message : e);
+            pushLinkAudit({ stage: 'provider-email-pg-exception', providerEmail, error: e && e.message ? e.message : String(e) });
+            return res.status(500).json({ error: 'internal error' });
+          }
+        } else if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+          // Use Supabase REST fallback to validate credentials for providerEmail
+          try {
+            const matched = await loginUserRest(providerEmail, senha);
+            if (!matched) {
+              pushLinkAudit({ stage: 'provider-email-rest-no-match', providerEmail, requestedEmail });
+              return res.status(401).json({ error: 'invalid credentials for account matching provider email', providerEmail });
+            }
+            normalizedEmail = providerEmail;
+            pushLinkAudit({ stage: 'provider-email-auto-match-rest', providerEmail, requestedEmail, userId: matched.id });
+          } catch (e) {
+            console.error('link-account: provider-email auto-match rest error', e && e.message ? e.message : e);
+            pushLinkAudit({ stage: 'provider-email-rest-exception', providerEmail, error: e && e.message ? e.message : String(e) });
+            return res.status(500).json({ error: 'internal error' });
+          }
+        } else {
+          // No DB available to validate the provider email account -> cannot safely auto-match
+          pushLinkAudit({ stage: 'provider-email-mismatch-no-db', providerEmail, requestedEmail });
+          return res.status(400).json({ error: 'provider token email does not match provided email' });
+        }
+      }
+    }
+
+  console.info(`link-account: request for email=${String(email).toLowerCase()} providerId=${supaUser && supaUser.id ? supaUser.id : '<none>'} pgClient=${!!pgClient}`);
+  // record audit
+  try { pushLinkAudit({ stage: 'received', email: String(email).toLowerCase(), providerId: supaUser && supaUser.id ? supaUser.id : null, pgClient: !!pgClient }); } catch(e){}
+    // If Postgres is available, verify password and set auth_id there.
+    if (pgClient) {
+      try {
+        // select password hash and id and current auth_id
+        const sel = await pgClient.query(`SELECT id, email, ${userPasswordColumn} as password_hash, auth_id FROM users WHERE lower(email) = $1 LIMIT 1`, [normalizedEmail]);
+        if (sel.rowCount === 0) {
+          pushLinkAudit({ stage: 'pg-no-local', email: normalizedEmail });
+          return res.status(404).json({ error: 'no local account with provided email' });
+        }
+        const row = sel.rows[0];
+        if (!row.password_hash || !verifyPassword(senha, row.password_hash)) {
+          pushLinkAudit({ stage: 'pg-invalid-credentials', email: normalizedEmail, userId: row && row.id ? row.id : null });
+          return res.status(401).json({ error: 'invalid credentials' });
+        }
+        if (row.auth_id && String(row.auth_id) !== String(supaId)) {
+          console.warn(`link-account: conflict - existing auth_id=${row.auth_id} for user=${row.id}`);
+          pushLinkAudit({ stage: 'pg-conflict', email: normalizedEmail, userId: row.id, existingAuthId: row.auth_id });
+          return res.status(409).json({ error: 'account already linked to different auth id' });
+        }
+        // all good: set auth_id
+        try {
+          await pgClient.query('UPDATE users SET auth_id = $1, atualizado_em = now() WHERE id = $2', [supaId, row.id]);
+        } catch (e) {
+          console.warn('link-account: failed to update users.auth_id', e && e.message ? e.message : e);
+          pushLinkAudit({ stage: 'pg-update-failed', email: normalizedEmail, userId: row.id, error: e && e.message ? e.message : String(e) });
+          return res.status(500).json({ error: 'failed to link account' });
+        }
+        console.log(`link-account: linked local user ${row.id} to provider id ${supaId}`);
+        pushLinkAudit({ stage: 'pg-success', email: normalizedEmail, userId: row.id, linkedTo: supaId });
+        return res.json({ success: true, id: row.id, linkedTo: supaId });
+      } catch (e) {
+        console.error('link-account error (pg):', e && e.message ? e.message : e);
+        pushLinkAudit({ stage: 'pg-exception', email: normalizedEmail, error: e && e.message ? e.message : String(e) });
+        return res.status(500).json({ error: 'internal error' });
+      }
+    }
+
+    // If Postgres is not available, try Supabase REST fallback: verify password via loginUserRest and then PATCH user row to set auth_id
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        console.info('link-account: pgClient not available, attempting Supabase REST fallback');
+        const matched = await loginUserRest(normalizedEmail, senha);
+        if (!matched) {
+          console.info('link-account: REST fallback did not find matching user or password invalid');
+          pushLinkAudit({ stage: 'rest-no-match', email: normalizedEmail });
+          return res.status(401).json({ error: 'invalid credentials' });
+        }
+        // matched contains id (row id). Update via REST
+        try {
+          const updated = await updateUserRest({ id: matched.id, nome: undefined, email: undefined, celular: undefined, novaSenha: undefined, passwordColumn: userPasswordColumn });
+          // updateUserRest doesn't currently support auth_id set; perform direct REST PATCH for auth_id
+        } catch (e) {
+          // ignore: we'll attempt explicit PATCH below
+        }
+        // PATCH to set auth_id using PostgREST
+        const base = process.env.SUPABASE_URL.replace(/\/$/, '');
+        const url = `${base}/rest/v1/users?id=eq.${encodeURIComponent(String(matched.id))}`;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const patchBody = { auth_id: supaId };
+  console.info('link-account: attempting REST PATCH to set auth_id for users.id=', matched.id);
+  pushLinkAudit({ stage: 'rest-patch', email: normalizedEmail, usersId: matched.id, providerId: supaId });
+        const resp = await fetch(url, {
+          method: 'PATCH',
+          headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+          body: JSON.stringify(patchBody)
+        });
+        const text = await resp.text();
+        if (!resp.ok) {
+          try { const j = JSON.parse(text); console.warn('link-account REST patch failed:', j); pushLinkAudit({ stage: 'rest-patch-failed', email: normalizedEmail, usersId: matched.id, status: resp.status, body: j }); } catch(e) { console.warn('link-account REST patch failed, status', resp.status, 'text', text); pushLinkAudit({ stage: 'rest-patch-failed', email: normalizedEmail, usersId: matched.id, status: resp.status, body: text }); }
+          return res.status(500).json({ error: 'failed to link via REST' });
+        }
+        try { const j = JSON.parse(text); console.info('link-account REST patch succeeded', j && j[0] ? j[0].id : matched.id); pushLinkAudit({ stage: 'rest-success', email: normalizedEmail, usersId: matched.id, updatedRow: j && j[0] ? j[0] : null }); return res.json({ success: true, id: matched.id, linkedTo: supaId, updatedRow: j[0] }); } catch(e) { console.info('link-account REST patch succeeded for id', matched.id); pushLinkAudit({ stage: 'rest-success', email: normalizedEmail, usersId: matched.id }); return res.json({ success: true, id: matched.id, linkedTo: supaId }); }
+      } catch (e) {
+        console.error('link-account REST fallback failed:', e && e.message ? e.message : e);
+        pushLinkAudit({ stage: 'rest-exception', email: normalizedEmail, error: e && e.message ? e.message : String(e) });
+        return res.status(500).json({ error: 'internal error' });
+      }
+    }
+
+    return res.status(503).json({ error: 'no database available to perform link' });
+  } catch (err) {
+    console.error('link-account unexpected error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
 // ============ NOVOS ENDPOINTS PARA MIGRAÇÃO DB ============
 
 // Endpoints de Guias
@@ -2278,6 +2641,14 @@ if (process.env.NODE_ENV !== 'production') {
       if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
       const cols = ['id', 'email', 'photo_url'];
       if (userHasAuthId) cols.push('auth_id');
+      // Detect optional phone column (celular, telefone, phone) and include it if present
+      try {
+        const colsInfo = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+        const names = (colsInfo.rows || []).map(r => String(r.column_name).toLowerCase());
+        const phoneCandidates = ['celular', 'telefone', 'phone'];
+        const phoneCol = phoneCandidates.find(c => names.indexOf(c) >= 0) || null;
+        if (phoneCol) cols.push(phoneCol);
+      } catch (e) { /* ignore detection errors */ }
       cols.push(userPasswordColumn + ' as password_hash');
       const q = `SELECT ${cols.join(', ')} FROM users WHERE lower(email) = lower($1) LIMIT 1`;
       const r = await pgClient.query(q, [email]);
@@ -2286,6 +2657,75 @@ if (process.env.NODE_ENV !== 'production') {
       return res.json({ ok: true, row });
     } catch (e) {
       console.error('/api/debug/user-by-email failed', e && e.message ? e.message : e);
+      return res.status(500).json({ error: 'internal' });
+    }
+  });
+
+  // Dev-only: generate a temporary reset token and a temporary password for an email.
+  // Returns the token and tempPassword in the response (for local development only).
+  // Use: POST /api/debug/dev-generate-reset  { email: '...' }
+  app.post('/api/debug/dev-generate-reset', async (req, res) => {
+    try {
+      if (!isDebugRequest(req)) return res.status(403).json({ error: 'forbidden' });
+      const email = req.body && req.body.email ? String(req.body.email).trim().toLowerCase() : null;
+      if (!email) return res.status(400).json({ error: 'email required' });
+      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+      const cols = ['id', 'email'];
+      const q = `SELECT ${cols.join(', ')} FROM users WHERE lower(email) = lower($1) LIMIT 1`;
+      const r = await pgClient.query(q, [email]);
+      if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+      const row = r.rows[0];
+      const token = crypto.randomBytes(16).toString('hex');
+      const tempPassword = crypto.randomBytes(6).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0,10) || 'devTemp1';
+      const expiresAt = Date.now() + (1000 * 60 * 15); // 15 minutes
+      pushDebugResetToken(token, { email: row.email, tempPassword, expiresAt, id: row.id });
+      return res.json({ ok: true, token, tempPassword, expiresAt });
+    } catch (e) {
+      console.error('/api/debug/dev-generate-reset failed', e && e.message ? e.message : e);
+      return res.status(500).json({ error: 'internal' });
+    }
+  });
+
+  // Public endpoint to reset password using a token (works in dev when token was generated).
+  // Use: POST /api/auth/reset-password { token: '...', novaSenha: '...' }
+  app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+      const token = req.body && req.body.token ? String(req.body.token).trim() : null;
+      const novaSenha = req.body && req.body.novaSenha ? String(req.body.novaSenha) : null;
+      if (!token || !novaSenha) return res.status(400).json({ error: 'token and novaSenha required' });
+      const info = debugResetTokens.get(token);
+      if (!info) return res.status(400).json({ error: 'invalid token' });
+      if (info.expiresAt < Date.now()) { debugResetTokens.delete(token); return res.status(400).json({ error: 'token expired' }); }
+      // Find user by id if present
+      const userId = info.id;
+      if (!userId) return res.status(400).json({ error: 'invalid token payload' });
+      // Update password either via Postgres or Supabase REST fallback
+      try {
+        if (pgClient) {
+          const hashed = hashPassword(novaSenha);
+          const col = userPasswordColumn || 'password_hash';
+          const upd = `UPDATE users SET ${col} = $1, atualizado_em = now() WHERE id = $2 RETURNING id, email`;
+          const r = await pgClient.query(upd, [hashed, userId]);
+          if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+          debugResetTokens.delete(token);
+          return res.json({ ok: true, id: r.rows[0].id, email: r.rows[0].email });
+        } else {
+          // Supabase REST fallback
+          try {
+            const updated = await updateUserRest({ id: userId, novaSenha });
+            debugResetTokens.delete(token);
+            return res.json({ ok: true, id: updated && updated.id, email: updated && updated.email });
+          } catch (e) {
+            console.error('reset-password updateUserRest failed', e && e.message ? e.message : e);
+            return res.status(500).json({ error: 'update failed' });
+          }
+        }
+      } catch (e) {
+        console.error('/api/auth/reset-password failed', e && e.message ? e.message : e);
+        return res.status(500).json({ error: 'internal' });
+      }
+    } catch (e) {
+      console.error('/api/auth/reset-password outer failed', e && e.message ? e.message : e);
       return res.status(500).json({ error: 'internal' });
     }
   });
