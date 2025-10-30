@@ -17,7 +17,7 @@ export default function Checkin() {
   const [expiryError, setExpiryError] = useState('');
   const [cvcError, setCvcError] = useState('');
 
-  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext);
+  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext) || {};
 
   function handleSubmit(e) {
     e.preventDefault();

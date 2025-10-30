@@ -14,7 +14,7 @@ export default function PerfilForm({
   showPassword = false,
   onToggleShowPassword = () => {}
 }) {
-  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext);
+  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext) || {};
   const [local, setLocal] = useState({
     nome: '',
     celular: '',

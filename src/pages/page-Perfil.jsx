@@ -4,7 +4,7 @@ import { AuthContext } from '../App';
 import '../styles/pages/page-Perfil.css';
 
 export default function PagePerfil() {
-  const { usuarioLogado } = useContext(AuthContext);
+  const { usuarioLogado } = useContext(AuthContext) || {};
 
   if (!usuarioLogado) {
     return (

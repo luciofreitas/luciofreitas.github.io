@@ -7,7 +7,7 @@ import { brandList, getModelsByBrand } from '../data/carBrands';
 import '../styles/pages/page-MeusCarros.css';
 
 export default function MeusCarros() {
-  const { usuarioLogado } = useContext(AuthContext);
+  const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
   
   const [cars, setCars] = useState([]);

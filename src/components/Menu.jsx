@@ -21,7 +21,7 @@ function Menu() {
   const mobileMenuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
-  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext);
+  const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext) || {};
   const proActive = Boolean(usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true';
   const headerRef = useRef(null);
 

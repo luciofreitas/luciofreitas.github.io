@@ -6,7 +6,7 @@ import '../styles/pages/page-VersaoPro_Assinado.css';
 
 export default function VersaoPro_Assinado() {
   const navigate = useNavigate();
-  const { usuarioLogado } = useContext(AuthContext);
+  const { usuarioLogado } = useContext(AuthContext) || {};
   const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
 
   const btnPrimary = {
