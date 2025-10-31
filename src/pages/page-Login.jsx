@@ -80,6 +80,7 @@ export default function Login() {
     // same email, block the Google signin here and ask the user to signin
     // with their email/password (or contact support to unify accounts).
     try {
+      try { console.time('[auth-timing] processFirebaseUser total'); } catch (e) {}
       const normalizedEmail = user && user.email ? String(user.email).trim().toLowerCase() : null;
       if (normalizedEmail) {
         // 1) Check local/manual users (localStorage/seed/demo)
@@ -158,8 +159,11 @@ export default function Login() {
       // Some mobile/redirect flows trigger onAuthStateChanged before the
       // ID token is immediately available. Retry getIdToken a few times
       // (short backoff) to increase chance of success in flaky environments.
+      // Reduce retries to improve perceived latency (mobile networks).
       let idToken = null;
-      const maxRetries = 6; // ~3s total backoff
+      const maxRetries = 3; // shorter worst-case wait
+      const retryDelayMs = 300;
+      try { console.time('[auth-timing] wait-for-idToken'); } catch (e) {}
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
           idToken = await user.getIdToken();
@@ -169,15 +173,17 @@ export default function Login() {
         }
         // small delay before retrying
         // eslint-disable-next-line no-await-in-loop
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, retryDelayMs));
       }
       if (!idToken) {
         // final attempt forcing refresh (if available)
         try { idToken = await user.getIdToken(true); } catch (e) { /* ignore */ }
       }
+      try { console.timeEnd('[auth-timing] wait-for-idToken'); } catch (e) {}
       if (!idToken) {
         console.warn('processFirebaseUser: could not obtain idToken after retries');
       }
+      try { console.time('[auth-timing] backend-verify'); } catch (e) {}
       const apiBase = window.__API_BASE || '';
       let usuario = null;
       // Determine whether we should prompt the user to confirm a server-side merge
@@ -229,6 +235,7 @@ export default function Login() {
           const body = await resp.json().catch(() => ({}));
           usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
         }
+        try { console.timeEnd('[auth-timing] backend-verify'); } catch (e) {}
       } catch (e) { /* ignore and fallback to client user */ }
 
       const rawNomeFromToken = (user && user.displayName) || (user && user.email ? user.email.split('@')[0] : '');
@@ -263,8 +270,9 @@ export default function Login() {
         }
       } catch (e) { /* ignore */ }
 
-      if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+  if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
       try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+  try { console.timeEnd('[auth-timing] processFirebaseUser total'); } catch (e) {}
       if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
       navigate('/buscar-pecas');
     } catch (e) {
