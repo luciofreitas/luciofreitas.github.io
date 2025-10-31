@@ -26,6 +26,7 @@ export default function Login() {
   const [showDevResetModal, setShowDevResetModal] = useState(false);
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [redirectPending, setRedirectPending] = useState(false);
   const [linkingCredential, setLinkingCredential] = useState(null);
   const [linkPassword, setLinkPassword] = useState('');
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
@@ -311,16 +312,31 @@ export default function Login() {
   } catch (e) { /* ignore exposure errors */ }
 
   useEffect(() => {
+    // If we came back from a Google redirect, show a persistent loading indicator
+    try {
+      const flag = typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('__google_redirect_pending');
+      if (flag) {
+        setRedirectPending(true);
+        setGoogleLoading(true);
+      }
+    } catch (e) { /* ignore localStorage access errors */ }
+
     // Try to handle redirect result first
     (async () => {
       try {
         const result = await handleRedirectResult();
+        // Clear the persisted redirect flag when we get a redirect result (success or error)
+        try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+        setRedirectPending(false);
         if (result && result.user) {
           await processFirebaseUser(result.user, result.credential || null);
         } else if (result && result.error) {
           console.warn('handleRedirectResult returned error', result.error);
         }
       } catch (e) {
+        // Clear flag on unexpected error to avoid a stuck loading screen
+        try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (ee) {}
+        setRedirectPending(false);
         console.warn('handleRedirectResult threw', e && e.message ? e.message : e);
       }
     })();
@@ -328,7 +344,12 @@ export default function Login() {
     // Fallback: listen for auth state changes (some environments signal sign-in via onAuthStateChanged instead)
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        await processFirebaseUser(user);
+        try { await processFirebaseUser(user); }
+        finally {
+          // Clear the persisted redirect flag in case we logged in via redirect
+          try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+          setRedirectPending(false);
+        }
       }
     });
 
@@ -644,6 +665,9 @@ export default function Login() {
   // Suppress the global error banner while auth/merge/link flows are in progress
   const suppressGlobalError = !!(showLinkPrompt || showMergeConfirm || mergeLoading || googleLoading || pendingMergeIdToken);
 
+  // Simple overlay shown while a Google redirect login is pending or popup flow is active
+  const showLoginOverlay = !!(googleLoading || redirectPending);
+
   return (
     <>
       <MenuLogin />
@@ -810,6 +834,17 @@ export default function Login() {
 
                   <button className="submit" type="submit">Entrar</button>
 
+                  {showLoginOverlay && (
+                    <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:10000}}>
+                      <div className="modal" role="status" aria-live="polite" style={{background:'#fff',padding:'20px',maxWidth:'420px',width:'100%',borderRadius:8,display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+                        <div style={{width:44,height:44,borderRadius:22,border:'4px solid #eee',borderTopColor:'#4285F4',animation:'spin 1s linear infinite'}} aria-hidden></div>
+                        <div style={{fontSize:16,fontWeight:600}}>Entrando com Google…</div>
+                        <div style={{fontSize:12,color:'#666'}}>Aguarde enquanto finalizamos sua autenticação.</div>
+                      </div>
+                      <style>{"@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}"}</style>
+                    </div>
+                  )}
+
                   <div className="social-login-row">
                     <button 
                       type="button" 
@@ -824,20 +859,26 @@ export default function Login() {
                           // On mobile devices prefer the redirect flow directly. Popups
                           // are frequently blocked or cause a poor UX on mobile/in-app
                           // browsers — this avoids trying a popup first and being stuck.
-                          try {
-                            if (isMobile) {
-                              const started = await startGoogleRedirect();
-                              if (started && started.error) {
-                                console.error('Failed to start redirect (mobile)', started.error);
-                                setError('Erro no login com Google. Tente novamente.');
-                                setGoogleLoading(false);
+                            try {
+                              if (isMobile) {
+                                // Persist a flag so when the user returns from the Google
+                                // redirect we can show a loading indicator until the
+                                // app finishes processing the login.
+                                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
+                                const started = await startGoogleRedirect();
+                                if (started && started.error) {
+                                  console.error('Failed to start redirect (mobile)', started.error);
+                                  // clear flag if we failed to start redirect
+                                  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+                                  setError('Erro no login com Google. Tente novamente.');
+                                  setGoogleLoading(false);
+                                }
+                                // Redirect started; browser will navigate away on success.
+                                return;
                               }
-                              // Redirect started; browser will navigate away on success.
-                              return;
+                            } catch (e) {
+                              console.warn('Mobile redirect attempt threw, falling back to popup', e && e.message ? e.message : e);
                             }
-                          } catch (e) {
-                            console.warn('Mobile redirect attempt threw, falling back to popup', e && e.message ? e.message : e);
-                          }
                           try {
                             // Try popup first (better UX on desktop). If popup fails (blocked/error), fall back to redirect.
                             let user = null;
