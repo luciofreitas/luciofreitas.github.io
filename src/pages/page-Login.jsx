@@ -333,9 +333,11 @@ export default function Login() {
     (async () => {
       try {
         const result = await handleRedirectResult();
-        // Clear the persisted redirect flag when we get a redirect result (success or error)
-        try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
-        setRedirectPending(false);
+  // Clear the persisted redirect flag when we get a redirect result (success or error)
+  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+  setRedirectPending(false);
+  // Ensure the loading indicator is cleared if redirect handling didn't fully finalize login
+  try { setGoogleLoading(false); } catch (e) {}
         if (result && result.user) {
           await processFirebaseUser(result.user, result.credential || null);
         } else if (result && result.error) {
@@ -345,6 +347,7 @@ export default function Login() {
         // Clear flag on unexpected error to avoid a stuck loading screen
         try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (ee) {}
         setRedirectPending(false);
+        try { setGoogleLoading(false); } catch (ee) {}
         console.warn('handleRedirectResult threw', e && e.message ? e.message : e);
       }
     })();
@@ -357,6 +360,7 @@ export default function Login() {
           // Clear the persisted redirect flag in case we logged in via redirect
           try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
           setRedirectPending(false);
+          try { setGoogleLoading(false); } catch (e) {}
         }
       }
     });
