@@ -821,6 +821,23 @@ export default function Login() {
                           if (googleLoading) return; // prevent multiple clicks
                           setGoogleLoading(true);
                           setError('');
+                          // On mobile devices prefer the redirect flow directly. Popups
+                          // are frequently blocked or cause a poor UX on mobile/in-app
+                          // browsers — this avoids trying a popup first and being stuck.
+                          try {
+                            if (isMobile) {
+                              const started = await startGoogleRedirect();
+                              if (started && started.error) {
+                                console.error('Failed to start redirect (mobile)', started.error);
+                                setError('Erro no login com Google. Tente novamente.');
+                                setGoogleLoading(false);
+                              }
+                              // Redirect started; browser will navigate away on success.
+                              return;
+                            }
+                          } catch (e) {
+                            console.warn('Mobile redirect attempt threw, falling back to popup', e && e.message ? e.message : e);
+                          }
                           try {
                             // Try popup first (better UX on desktop). If popup fails (blocked/error), fall back to redirect.
                             let user = null;
