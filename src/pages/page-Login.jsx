@@ -75,85 +75,9 @@ export default function Login() {
 
   async function processFirebaseUser(user, googleCredential = null) {
     if (!user || processedRef.current) return;
-
-    // Prevent duplicate accounts: if a manual/local account exists with the
-    // same email, block the Google signin here and ask the user to signin
-    // with their email/password (or contact support to unify accounts).
-    try {
-      try { console.time('[auth-timing] processFirebaseUser total'); } catch (e) {}
-      const normalizedEmail = user && user.email ? String(user.email).trim().toLowerCase() : null;
-      if (normalizedEmail) {
-        // 1) Check local/manual users (localStorage/seed/demo)
-        const existing = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmail);
-          if (existing && !existing.isDemo) {
-            // If we have a google credential (redirect/popup provided), attempt automatic server-side merge.
-            if (googleCredential) {
-              console.debug('Attempting automatic merge for existing local user with googleCredential', googleCredential);
-              // try to obtain idToken and call confirmMerge; if that fails, fall back to the password modal
-              try {
-                let idToken = null;
-                try { idToken = await user.getIdToken(); } catch (e) { /* ignore */ }
-                if (!idToken) {
-                  try { idToken = await user.getIdToken(true); } catch (e) { /* ignore */ }
-                }
-                if (idToken) {
-                  setPendingMergeIdToken(idToken);
-                  setPendingMergeEmail(normalizedEmail);
-                  setMergeError('');
-                  try {
-                    await confirmMerge(idToken);
-                    return;
-                  } catch (e) {
-                    console.warn('Automatic merge attempt failed, falling back to password prompt', e && e.message ? e.message : e);
-                  }
-                }
-              } catch (e) {
-                console.warn('Automatic merge attempt threw', e && e.message ? e.message : e);
-              }
-              // fallback: show the existing modal if automatic merge didn't complete
-              console.debug('Setting linkingCredential (processFirebaseUser) fallback to modal:', googleCredential);
-              setLinkingCredential(googleCredential);
-              setLinkEmail(normalizedEmail);
-              setError('');
-              setLinkError('');
-              setShowLinkPrompt(true);
-              return;
-            }
-            setError('Já existe uma conta criada com este e-mail. Faça login com e-mail/senha ou entre em contato para unificar as contas.');
-            try { await signOut(auth); } catch (e) { /* ignore */ }
-            return;
-          }
-
-        // 2) Also check Firebase sign-in methods: if a password-based provider exists,
-        // prompt to link if google credential exists, otherwise block.
-        try {
-          const methods = await fetchSignInMethodsForEmail(auth, normalizedEmail);
-          if (Array.isArray(methods)) {
-            const hasPassword = methods.includes('password');
-            const hasGoogle = methods.includes('google.com') || methods.includes('google');
-            if (hasPassword && !hasGoogle) {
-              if (googleCredential) {
-                setLinkingCredential(googleCredential);
-                setLinkEmail(normalizedEmail);
-                // clear global error and modal-specific error before showing modal
-                setError('');
-                setLinkError('');
-                setShowLinkPrompt(true);
-                return;
-              }
-              setError('Já existe uma conta criada com este e-mail (senha). Faça login com e-mail/senha ou entre em contato para unificar as contas.');
-              try { await signOut(auth); } catch (e) { /* ignore */ }
-              return;
-            }
-          }
-        } catch (e) {
-          // ignore errors from Firebase check (network etc.) and proceed with fallback
-        }
-      }
-    } catch (e) { /* ignore any check errors and continue */ }
-
-    // mark processed only when proceeding to finalize the signin flow
-    processedRef.current = true;
+    processedRef.current = true; // Mark immediately to prevent double processing
+    
+    try { console.time('[auth-timing] processFirebaseUser total'); } catch (e) {}
 
     try {
       // Optimize idToken retrieval: get immediately without retries for faster experience
@@ -216,11 +140,19 @@ export default function Login() {
         }
       } catch (e) { /* ignore */ }
 
-  if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+      // Update context and localStorage SYNCHRONOUSLY before navigate
+      if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
       try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
-  try { console.timeEnd('[auth-timing] processFirebaseUser total'); } catch (e) {}
-      if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
-      navigate('/buscar-pecas');
+      
+      try { console.timeEnd('[auth-timing] processFirebaseUser total'); } catch (e) {}
+      
+      // Navigate immediately - toast will show after navigation
+      navigate('/buscar-pecas', { replace: true });
+      
+      // Show toast after navigation (non-blocking)
+      setTimeout(() => {
+        if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+      }, 100);
     } catch (e) {
       // swallow errors but keep processed flag
       console.warn('processFirebaseUser failed', e && e.message ? e.message : e);
@@ -848,131 +780,16 @@ export default function Login() {
                               return;
                             }
 
-                            // At this point we have a Firebase user from popup flow
-                            // Before proceeding, check for duplicate manual/local accounts
+                            // Login instantâneo - sem verificações extras
                             if (!user) {
                               setError('Falha ao obter usuário do provedor.');
                               setGoogleLoading(false);
                               return;
                             }
-                            try {
-                              const normalizedEmailPopup = user && user.email ? String(user.email).trim().toLowerCase() : null;
-                              if (normalizedEmailPopup) {
-                                const existingPopup = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmailPopup);
-                                if (existingPopup && !existingPopup.isDemo) {
-                                  // Found an existing manual account. Attempt automatic server-side merge first.
-                                  const googleCred = res && res.credential ? res.credential : null;
-                                  console.debug('Popup flow: found existing manual account, attempting automatic merge', googleCred);
-                                  // try to cache idToken so merge can run even if auth.currentUser is cleared
-                                  let cachedIdToken = null;
-                                  try {
-                                    if (user && typeof user.getIdToken === 'function') {
-                                      const idt = await user.getIdToken();
-                                      if (idt) cachedIdToken = idt;
-                                      else {
-                                        try { cachedIdToken = await user.getIdToken(true); } catch (e) { /* ignore */ }
-                                      }
-                                    }
-                                  } catch (e) { /* ignore */ }
-
-                                  if (cachedIdToken) {
-                                    // If the user had already filled the local password field (senha),
-                                    // prefer attempting an automatic server-side link using that password.
-                                    try {
-                                      if (senha) {
-                                        try {
-                                          const apiBase = window.__API_BASE || '';
-                                          // Attempt /api/auth/link-account with idToken + local password
-                                          const linkResp = await fetch(`${apiBase}/api/auth/link-account`, {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cachedIdToken}` },
-                                            body: JSON.stringify({ email: normalizedEmailPopup, senha: senha })
-                                          });
-                                          if (linkResp && linkResp.ok) {
-                                            const linkBody = await linkResp.json().catch(() => ({}));
-                                            // If server confirms link (success or returns user), finalize login
-                                            if (linkBody && (linkBody.success || linkBody.user)) {
-                                              console.debug('Automatic link-account succeeded', linkBody);
-                                              if (linkBody.user && setUsuarioLogado) setUsuarioLogado(linkBody.user);
-                                              try { localStorage.setItem('usuario-logado', JSON.stringify(linkBody.user || {})); } catch (e) {}
-                                              if (window.showToast) window.showToast('Contas unidas com sucesso!', 'success', 3000);
-                                              setGoogleLoading(false);
-                                              // proceed with the normal firebase finalization
-                                              await processFirebaseUser(user);
-                                              return;
-                                            }
-                                          } else {
-                                            try {
-                                              const errBody = await linkResp.json().catch(() => ({}));
-                                              console.warn('Automatic link-account returned error', linkResp.status, errBody);
-                                            } catch(e) { console.warn('Automatic link-account returned non-ok status', linkResp && linkResp.status); }
-                                          }
-                                        } catch (e) {
-                                          console.warn('Automatic link-account request failed', e);
-                                        }
-                                      }
-
-                                      // If either no senha provided or automatic link failed, try automatic merge next
-                                      try {
-                                        setPendingMergeIdToken(cachedIdToken);
-                                        setPendingMergeEmail(normalizedEmailPopup);
-                                        setMergeError('');
-                                        await confirmMerge(cachedIdToken);
-                                        setGoogleLoading(false);
-                                        return;
-                                      } catch (e) {
-                                        console.warn('Automatic merge failed in popup flow, falling back to modal', e && e.message ? e.message : e);
-                                      }
-                                    } catch (e) {
-                                      console.warn('Popup flow automatic linking/merge attempt threw', e);
-                                    }
-                                  }
-
-                                  // fallback: show modal to let user confirm and enter password if automatic steps didn't work
-                                  console.debug('Setting linkingCredential (popup flow) fallback to modal:', googleCred);
-                                  setLinkingCredential(googleCred);
-                                  setLinkEmail(normalizedEmailPopup);
-                                  try {
-                                    if (cachedIdToken) setPendingMergeIdToken(cachedIdToken);
-                                  } catch (e) { /* ignore */ }
-                                  // clear global error and modal-specific error before showing modal
-                                  setError('');
-                                  setLinkError('');
-                                  setShowLinkPrompt(true);
-                                  // Do not finalize login yet. Keep the firebase user signed in until linking completes or user cancels.
-                                  setGoogleLoading(false);
-                                  return;
-                                }
-
-                                // Also check Firebase for password-based sign-in methods
-                                try {
-                                  const methodsPopup = await fetchSignInMethodsForEmail(auth, normalizedEmailPopup);
-                                  if (Array.isArray(methodsPopup) && methodsPopup.includes('password')) {
-                                    // If there is a password method, prompt to link by asking for password to reauthenticate
-                                    const googleCred = res && res.credential ? res.credential : null;
-                                    setLinkingCredential(googleCred);
-                                    setLinkEmail(normalizedEmailPopup);
-                                    try {
-                                      if (user && typeof user.getIdToken === 'function') {
-                                        const idt = await user.getIdToken();
-                                        if (idt) setPendingMergeIdToken(idt);
-                                      }
-                                    } catch (e) { /* ignore */ }
-                                    // clear global error and modal-specific error before showing modal
-                                    setError('');
-                                    setLinkError('');
-                                    setShowLinkPrompt(true);
-                                    setGoogleLoading(false);
-                                    return;
-                                  }
-                                } catch (e) {
-                                  // ignore firebase check errors
-                                }
-                              }
-                            } catch (e) { /* ignore and continue */ }
-
-                            // Finalize via shared logic (this will also call backend verify and navigate)
+                            
+                            // Process user immediately without any duplicate checks
                             await processFirebaseUser(user, res && res.credential ? res.credential : null);
+                            setGoogleLoading(false);
                             return;
                           } catch (err) {
                             console.error('Google popup flow failed', err && err.message ? err.message : err);
