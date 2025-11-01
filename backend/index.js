@@ -1132,10 +1132,11 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           console.warn('firebase-verify: Upsert query failed', e && e.message ? e.message : e);
         }
 
-        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular, telefone, phone FROM users WHERE id = $1`, [dbIdToUse]);
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular FROM users WHERE id = $1`, [dbIdToUse]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
           const displayName = ((row.name || '') + '').trim();
+          const phoneValue = row.celular || null;
           return res.json({ 
             success: true, 
             user: { 
@@ -1146,9 +1147,9 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
               photoURL: row.photo_url || null, 
               is_pro: row.is_pro, 
               created_at: row.criado_em || null,
-              celular: row.celular || null,
-              telefone: row.telefone || null,
-              phone: row.phone || null
+              celular: phoneValue,
+              telefone: phoneValue,
+              phone: phoneValue
             } 
           });
         }
@@ -1520,11 +1521,12 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
           throw e;
         }
 
-        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em FROM users WHERE id = $1`, [uid]);
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular FROM users WHERE id = $1`, [uid]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
           const displayName = ((row.name || '') + '').trim();
-          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro, created_at: row.criado_em || null } });
+          const phoneValue = row.celular || null;
+          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro, created_at: row.criado_em || null, celular: phoneValue, telefone: phoneValue, phone: phoneValue } });
         }
       } catch (e) {
         console.warn('supabase-verify: DB upsert failed, continuing with token user:', e && e.message ? e.message : e);
