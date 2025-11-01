@@ -103,10 +103,21 @@ export default function Login() {
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
           body: JSON.stringify({})
         })
-        .then(resp => resp.ok ? resp.json() : null)
+        .then(resp => {
+          console.log('[DEBUG] Backend response status:', resp.status);
+          return resp.ok ? resp.json() : null;
+        })
         .then(body => {
+          console.log('[DEBUG] Backend response body:', body);
           if (body && (body.user || body.usuario)) {
             const backendUser = body.user || body.usuario;
+            console.log('[DEBUG] Backend user data:', backendUser);
+            console.log('[DEBUG] Phone fields:', {
+              phone: backendUser.phone,
+              telefone: backendUser.telefone,
+              celular: backendUser.celular
+            });
+            
             // Merge backend data (phone, etc) with existing user data
             const updatedUser = {
               ...backendUser,
@@ -121,10 +132,23 @@ export default function Login() {
               telefone: backendUser.telefone || backendUser.phone || backendUser.celular || null,
               celular: backendUser.celular || backendUser.phone || backendUser.telefone || null,
             };
+            
+            console.log('[DEBUG] Updated user with merged data:', updatedUser);
+            
             // Update context and localStorage with complete data
-            if (setUsuarioLogado) setUsuarioLogado(updatedUser);
-            try { localStorage.setItem('usuario-logado', JSON.stringify(updatedUser)); } catch (e) {}
-            console.log('[auth-timing] Backend user data merged:', updatedUser);
+            if (setUsuarioLogado) {
+              console.log('[DEBUG] Updating context with:', updatedUser);
+              setUsuarioLogado(updatedUser);
+            }
+            try { 
+              localStorage.setItem('usuario-logado', JSON.stringify(updatedUser));
+              console.log('[DEBUG] Saved to localStorage');
+            } catch (e) {
+              console.error('[DEBUG] Failed to save to localStorage:', e);
+            }
+            console.log('[auth-timing] Backend user data merged successfully');
+          } else {
+            console.warn('[DEBUG] No user data in backend response');
           }
         })
         .catch(e => console.warn('Backend verification failed (non-blocking):', e));
