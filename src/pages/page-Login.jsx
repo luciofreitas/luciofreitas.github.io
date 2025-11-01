@@ -330,23 +330,28 @@ export default function Login() {
     // Try to handle redirect result first
     (async () => {
       try {
+        console.log('[page-Login] Starting handleRedirectResult check...');
         const result = await handleRedirectResult();
+        console.log('[page-Login] handleRedirectResult result:', result);
   // Clear the persisted redirect flag when we get a redirect result (success or error)
   try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
   setRedirectPending(false);
   // Ensure the loading indicator is cleared if redirect handling didn't fully finalize login
   try { setGoogleLoading(false); } catch (e) {}
         if (result && result.user) {
+          console.log('[page-Login] Processing firebase user from redirect...');
           await processFirebaseUser(result.user, result.credential || null);
         } else if (result && result.error) {
-          console.warn('handleRedirectResult returned error', result.error);
+          console.warn('[page-Login] handleRedirectResult returned error', result.error);
+        } else {
+          console.log('[page-Login] No redirect result (expected on normal page load)');
         }
       } catch (e) {
         // Clear flag on unexpected error to avoid a stuck loading screen
         try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (ee) {}
         setRedirectPending(false);
         try { setGoogleLoading(false); } catch (ee) {}
-        console.warn('handleRedirectResult threw', e && e.message ? e.message : e);
+        console.error('[page-Login] handleRedirectResult threw error:', e && e.message ? e.message : e);
       }
     })();
 

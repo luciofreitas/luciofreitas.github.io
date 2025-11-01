@@ -45,12 +45,16 @@ export async function startGoogleRedirect() {
 export async function handleRedirectResult() {
   if (!auth) return { error: new Error('[firebaseAuth] Firebase not configured (missing env vars)') };
   try {
+    console.log('[firebaseAuth] calling getRedirectResult...');
     const result = await getRedirectResult(auth);
+    console.log('[firebaseAuth] getRedirectResult returned:', result ? 'user found' : 'no result');
     if (!result) return { none: true };
     let credential = null;
     try { credential = GoogleAuthProvider.credentialFromResult(result); } catch (e) { /* ignore */ }
+    console.log('[firebaseAuth] returning user:', result.user?.email);
     return { user: result.user, credential };
   } catch (err) {
+    console.error('[firebaseAuth] getRedirectResult error:', err);
     return { error: err };
   }
 }
