@@ -7,11 +7,26 @@ import './styles/index.css'
 import './utils/add-region-roles';
 import App from './App.jsx'
 
+// Lightweight startup instrumentation to measure dev/perceived load times.
+try { console.time('[app-timing] module-load'); } catch(e){}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
+
+try { console.timeEnd('[app-timing] module-load'); } catch(e){}
+
+// Mark when React render completed (approx). Some tooling may place work after
+// render; this gives a quick marker for perceived readiness in both dev/prod.
+try { console.time('[app-timing] react-render-start'); } catch(e){}
+
+// Schedule immediate tick to mark after-render (approx)
+setTimeout(() => {
+  try { console.timeEnd('[app-timing] react-render-start'); } catch(e){}
+  try { console.log('[app-timing] runtime marks set'); } catch(e){}
+}, 0);
 
 // Set a runtime-only API base if index.html didn't already inject one.
 // IMPORTANT: avoid reading import.meta.env.VITE_API_BASE here so the build

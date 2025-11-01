@@ -156,13 +156,10 @@ export default function Login() {
     processedRef.current = true;
 
     try {
-      // Some mobile/redirect flows trigger onAuthStateChanged before the
-      // ID token is immediately available. Retry getIdToken a few times
-      // (short backoff) to increase chance of success in flaky environments.
-      // Reduce retries to improve perceived latency (mobile networks).
+      // Optimize idToken retrieval: reduce retries for faster mobile experience
       let idToken = null;
-      const maxRetries = 3; // shorter worst-case wait
-      const retryDelayMs = 300;
+      const maxRetries = 2; // reduced from 3 - max 400ms worst case
+      const retryDelayMs = 200; // reduced from 300ms
       try { console.time('[auth-timing] wait-for-idToken'); } catch (e) {}
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
@@ -171,9 +168,10 @@ export default function Login() {
         } catch (e) {
           // ignore and retry
         }
-        // small delay before retrying
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise(r => setTimeout(r, retryDelayMs));
+        if (attempt < maxRetries - 1) {
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise(r => setTimeout(r, retryDelayMs));
+        }
       }
       if (!idToken) {
         // final attempt forcing refresh (if available)
@@ -872,21 +870,20 @@ export default function Login() {
                           // are frequently blocked or cause a poor UX on mobile/in-app
                           // browsers — this avoids trying a popup first and being stuck.
                             try {
-                              if (isMobile) {
-                                // Persist a flag so when the user returns from the Google
-                                // redirect we can show a loading indicator until the
-                                // app finishes processing the login.
+                                if (isMobile) {
+                                // Instead of initiating the Firebase redirect from the
+                                // heavy app bundle, navigate to a small standalone
+                                // `auth-callback.html` that will start the redirect.
+                                // This keeps the redirect round-trip fast on mobile.
                                 try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
-                                const started = await startGoogleRedirect();
-                                if (started && started.error) {
-                                  console.error('Failed to start redirect (mobile)', started.error);
-                                  // clear flag if we failed to start redirect
-                                  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
-                                  setError('Erro no login com Google. Tente novamente.');
-                                  setGoogleLoading(false);
+                                try {
+                                  // navigate to the lightweight callback entry which will
+                                  // call signInWithRedirect and return to the same page.
+                                  window.location.href = '/auth-callback.html?start=1';
+                                  return;
+                                } catch (e) {
+                                  console.warn('Failed to navigate to auth-callback, falling back', e && e.message ? e.message : e);
                                 }
-                                // Redirect started; browser will navigate away on success.
-                                return;
                               }
                             } catch (e) {
                               console.warn('Mobile redirect attempt threw, falling back to popup', e && e.message ? e.message : e);
@@ -909,14 +906,16 @@ export default function Login() {
                             }
 
                             if (!user) {
-                              const started = await startGoogleRedirect();
-                              if (started && started.error) {
-                                console.error('Failed to start redirect', started.error);
+                              // Use the lightweight callback flow for redirect as well
+                              try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
+                              try {
+                                window.location.href = '/auth-callback.html?start=1';
+                                return;
+                              } catch (e) {
+                                console.warn('Failed to navigate to auth-callback fallback', e && e.message ? e.message : e);
                                 setError('Erro no login com Google. Tente novamente.');
                                 setGoogleLoading(false);
                               }
-                              // Redirect initiated (or error handled) — browser will navigate away on success.
-                              return;
                             }
 
                             // At this point we have a Firebase user from popup flow

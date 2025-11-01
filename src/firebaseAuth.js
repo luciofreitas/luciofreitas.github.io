@@ -20,6 +20,7 @@ try {
 }
 
 export async function signInWithGooglePopup() {
+  if (!auth) return { error: new Error('[firebaseAuth] Firebase not configured (missing env vars)') };
   try {
     const result = await signInWithPopup(auth, googleProvider);
     // Extract credential (OAuth) so caller can link accounts when needed
@@ -32,6 +33,7 @@ export async function signInWithGooglePopup() {
 }
 
 export async function startGoogleRedirect() {
+  if (!auth) return { error: new Error('[firebaseAuth] Firebase not configured (missing env vars)') };
   try {
     await signInWithRedirect(auth, googleProvider);
     return { started: true };
@@ -41,6 +43,7 @@ export async function startGoogleRedirect() {
 }
 
 export async function handleRedirectResult() {
+  if (!auth) return { error: new Error('[firebaseAuth] Firebase not configured (missing env vars)') };
   try {
     const result = await getRedirectResult(auth);
     if (!result) return { none: true };

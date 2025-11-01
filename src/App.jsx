@@ -1,33 +1,51 @@
-import React, { useState, createContext, useContext, useEffect } from 'react';
+import React, { useState, createContext, useContext, useEffect, lazy, Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+// Critical routes: load immediately (Login, PageInicio)
 import Login from './pages/page-Login';
 import PageInicio from './pages/page-Inicio';
-import QuemSomos from './pages/page-QuemSomos';
-import NossoProjeto from './pages/page-NossoProjeto';
-import SejaPro from './pages/page-SejaPro';
-import VersaoPro from './pages/page-VersaoPro';
-import Checkin from './pages/page-Checkin';
-import VersaoPro_Assinado from './pages/page-VersaoPro_Assinado';
-import Contato from './pages/page-Contato';
-import PageCadastro from './pages/page-Cadastro';
-import Parceiros from './pages/page-Parceiros';
-import ContatoLogado from './pages/page-ContatoLogado';
-import BuscarPeca from './pages/page-BuscarPeca';
-import PagePerfil from './pages/page-Perfil';
-import PageMeusCarros from './pages/page-MeusCarros';
-import PageRecalls from './pages/page-Recalls';
-import PageGuias from './pages/page-Guias';
-import PageCriarGuia from './pages/page-CriarGuia';
-import PageVisualizarGuia from './pages/page-VisualizarGuia';
-import PageConfiguracoes from './pages/page-Configuracoes';
-import TabelaFIPE from './pages/page-TabelaFIPE';
-import ManutencaoPreventiva from './pages/page-ManutencaoPreventiva';
-import PecasOriginaisVsCompativeis from './pages/page-PecasOriginaisVsCompativeis';
-import LuzesDoPainel from './pages/page-LuzesDoPainel';
+// Non-critical routes: lazy load to reduce initial bundle size
+const QuemSomos = lazy(() => import('./pages/page-QuemSomos'));
+const NossoProjeto = lazy(() => import('./pages/page-NossoProjeto'));
+const SejaPro = lazy(() => import('./pages/page-SejaPro'));
+const VersaoPro = lazy(() => import('./pages/page-VersaoPro'));
+const Checkin = lazy(() => import('./pages/page-Checkin'));
+const VersaoPro_Assinado = lazy(() => import('./pages/page-VersaoPro_Assinado'));
+const Contato = lazy(() => import('./pages/page-Contato'));
+const PageCadastro = lazy(() => import('./pages/page-Cadastro'));
+const Parceiros = lazy(() => import('./pages/page-Parceiros'));
+const ContatoLogado = lazy(() => import('./pages/page-ContatoLogado'));
+const BuscarPeca = lazy(() => import('./pages/page-BuscarPeca'));
+const PagePerfil = lazy(() => import('./pages/page-Perfil'));
+const PageMeusCarros = lazy(() => import('./pages/page-MeusCarros'));
+const PageRecalls = lazy(() => import('./pages/page-Recalls'));
+const PageGuias = lazy(() => import('./pages/page-Guias'));
+const PageCriarGuia = lazy(() => import('./pages/page-CriarGuia'));
+const PageVisualizarGuia = lazy(() => import('./pages/page-VisualizarGuia'));
+const PageConfiguracoes = lazy(() => import('./pages/page-Configuracoes'));
+const TabelaFIPE = lazy(() => import('./pages/page-TabelaFIPE'));
+const ManutencaoPreventiva = lazy(() => import('./pages/page-ManutencaoPreventiva'));
+const PecasOriginaisVsCompativeis = lazy(() => import('./pages/page-PecasOriginaisVsCompativeis'));
+const LuzesDoPainel = lazy(() => import('./pages/page-LuzesDoPainel'));
 import { ThemeToggle } from './components';
 import './styles/App.css';
 import './styles/CustomDropdown.css';
+
+// Loading component for Suspense fallback
+function PageLoader() {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      fontSize: '1.2rem',
+      color: '#666'
+    }}>
+      Carregando...
+    </div>
+  );
+}
 
 export const AuthContext = createContext(null);
 
@@ -69,6 +87,7 @@ export default function App() {
 
   React.useEffect(() => {
     async function initFromStorage(){
+      try { console.time('[app-timing] initFromStorage start'); } catch(e){}
       try {
         const storedRaw = localStorage.getItem('usuario-logado') || 'null';
         const stored = JSON.parse(storedRaw);
@@ -131,6 +150,7 @@ export default function App() {
         console.warn('Failed to parse usuario-logado from localStorage', e);
       }
       // mark storage init done; the redirect effect will set redirectDone
+      try { console.timeEnd('[app-timing] initFromStorage start'); } catch(e){}
       setInitDone(true);
     }
     initFromStorage();
@@ -142,6 +162,7 @@ export default function App() {
   // session info in the URL, capture the session and verify/upsert on backend.
   React.useEffect(() => {
     (async () => {
+      try { console.time('[app-timing] redirect-processing start'); } catch(e){}
       try {
         // Lazy import supabase client to avoid circular deps in modules
         const { default: supabase } = await import('./supabase');
@@ -295,10 +316,12 @@ export default function App() {
         }
         // mark redirect processing done regardless of outcome so app can continue
         console.log('[auth-debug] redirect processing finished, setting redirectDone');
+        try { console.timeEnd('[app-timing] redirect-processing start'); } catch(e){}
         setRedirectDone(true);
       } catch (e) {
         // ignore - allows app to work even if supabase client unavailable
         console.warn('[auth-debug] redirect processing outer catch', e && e.message ? e.message : e);
+        try { console.timeEnd('[app-timing] redirect-processing start'); } catch(e){}
         setRedirectDone(true);
       }
     })();
@@ -310,7 +333,8 @@ export default function App() {
         <HashRouter>
           <div className="app">
             <ThemeToggle />
-            <Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
             {/* Rota raiz redireciona para catálogo se logado, ou página inicial se não logado */}
             <Route path="/" element={<HomeRedirect />} />
             
@@ -371,7 +395,8 @@ export default function App() {
             } />
             {/* Redirecionamento da rota antiga para a nova */}
             <Route path="/perfil-teste" element={<Navigate to="/perfil" replace />} />
-          </Routes>
+              </Routes>
+            </Suspense>
           </div>
         </HashRouter>
       </AuthContext.Provider>

@@ -45,8 +45,25 @@ try {
   console.debug('[firebase] env debug failed', e && e.message);
 }
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Guard: avoid calling initializeApp with empty/missing config.
+// When the project is built/deployed without VITE_FIREBASE_* (or corresponding env vars),
+// the Firebase SDK may attempt to fetch `/__/firebase/init.json` from the current origin.
+// That can create 404s and repeated requests which slow down the app (observed in Network).
+// If essential fields (apiKey + projectId + appId) are missing, skip initialization and
+// export nulls so callers can detect the absence of a configured Firebase app.
+const hasEssentialConfig = !!(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId);
+
+let app = null;
+let auth = null;
+if (!hasEssentialConfig) {
+  // eslint-disable-next-line no-console
+  console.error('[firebase] missing essential config (apiKey/projectId/appId). Skipping initializeApp to avoid /__/firebase/init.json requests.');
+} else {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+}
+
+export { auth };
 export default app;
 
 // DEV-ONLY: attach auth to window for interactive debugging in the browser console
