@@ -156,85 +156,33 @@ export default function Login() {
     processedRef.current = true;
 
     try {
-      // Optimize idToken retrieval: reduce retries for faster mobile experience
+      // Optimize idToken retrieval: get immediately without retries for faster experience
       let idToken = null;
-      const maxRetries = 2; // reduced from 3 - max 400ms worst case
-      const retryDelayMs = 200; // reduced from 300ms
       try { console.time('[auth-timing] wait-for-idToken'); } catch (e) {}
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-          idToken = await user.getIdToken();
-          if (idToken) break;
-        } catch (e) {
-          // ignore and retry
-        }
-        if (attempt < maxRetries - 1) {
-          // eslint-disable-next-line no-await-in-loop
-          await new Promise(r => setTimeout(r, retryDelayMs));
-        }
-      }
-      if (!idToken) {
-        // final attempt forcing refresh (if available)
-        try { idToken = await user.getIdToken(true); } catch (e) { /* ignore */ }
+      try {
+        idToken = await user.getIdToken();
+      } catch (e) {
+        console.warn('processFirebaseUser: could not obtain idToken', e);
       }
       try { console.timeEnd('[auth-timing] wait-for-idToken'); } catch (e) {}
       if (!idToken) {
-        console.warn('processFirebaseUser: could not obtain idToken after retries');
+        console.warn('processFirebaseUser: no idToken available');
       }
+      // Simplified: skip backend verification and merge checks for faster login
+      // Backend verification can happen asynchronously after user is logged in
       try { console.time('[auth-timing] backend-verify'); } catch (e) {}
       const apiBase = window.__API_BASE || '';
       let usuario = null;
-      // Determine whether we should prompt the user to confirm a server-side merge
-      let shouldPromptMerge = false;
-      try {
-        const normalizedEmail = user && user.email ? String(user.email).trim().toLowerCase() : null;
-        if (normalizedEmail) {
-          const existingLocal = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmail);
-          if (existingLocal && !existingLocal.isDemo) {
-            shouldPromptMerge = true;
-          } else {
-            try {
-              const methods = await fetchSignInMethodsForEmail(auth, normalizedEmail);
-              // If Firebase has no providers for this email, it's likely a Supabase-only user — prompt merge
-              if (!Array.isArray(methods) || methods.length === 0) {
-                shouldPromptMerge = true;
-              }
-            } catch (e) {
-              // ignore fetch failures
-            }
-          }
-        }
-      } catch (e) { /* ignore */ }
-
-      if (shouldPromptMerge) {
-        // perform automatic server-side merge (one-click / automatic flow)
-        // store pending token/email for debugging/rollback and then invoke merge immediately
-        const mergeEmail = user && user.email ? String(user.email).trim().toLowerCase() : null;
-        try {
-          setPendingMergeIdToken(idToken);
-          setPendingMergeEmail(mergeEmail);
-          setMergeError('');
-          // call confirmMerge with explicit idToken to avoid relying on state sync
-          await confirmMerge(idToken);
-        } catch (e) {
-          // If automatic merge failed, fall back to showing confirmation modal so user can retry
-          console.warn('automatic merge failed, falling back to manual confirm', e && e.message ? e.message : e);
-          setShowMergeConfirm(true);
-        }
-        return;
-      }
-      try {
-        const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
+      
+      // Start backend verification but don't wait for it (fire-and-forget for speed)
+      if (idToken) {
+        fetch(`${apiBase}/api/auth/firebase-verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
           body: JSON.stringify({})
-        });
-        if (resp.ok) {
-          const body = await resp.json().catch(() => ({}));
-          usuario = (body && (body.user || body.usuario)) ? (body.user || body.usuario) : null;
-        }
-        try { console.timeEnd('[auth-timing] backend-verify'); } catch (e) {}
-      } catch (e) { /* ignore and fallback to client user */ }
+        }).catch(e => console.warn('Backend verification failed (non-blocking):', e));
+      }
+      try { console.timeEnd('[auth-timing] backend-verify'); } catch (e) {}
 
       const rawNomeFromToken = (user && user.displayName) || (user && user.email ? user.email.split('@')[0] : '');
       const nomeFromToken = formatDisplayName(rawNomeFromToken) || '';
