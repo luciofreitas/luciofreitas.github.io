@@ -472,12 +472,21 @@ async function tryConnectPg(){
     // Use a connection pool for better resilience under load and to avoid
     // frequent connect/disconnect behavior. Return the pool as pgClient so
     // existing code that calls pgClient.query(...) continues to work.
-    const pool = new Pool(cfg);
+    // Add pool configuration for better stability on free tier services
+    const poolConfig = {
+      ...cfg,
+      max: 5, // reduced from default 10 for free tier limits
+      min: 0, // don't maintain idle connections
+      idleTimeoutMillis: 30000, // close idle connections after 30s
+      connectionTimeoutMillis: 10000, // 10s timeout for new connections
+      statement_timeout: 30000, // 30s statement timeout
+      query_timeout: 30000, // 30s query timeout
+    };
+    const pool = new Pool(poolConfig);
     // handle async errors from the pool so they don't crash the Node process
     pool.on('error', err => {
-      console.error('Postgres pool emitted error, falling back to CSV and clearing client:', err && err.message ? err.message : err);
-      try { pgClient = null; } catch(e){}
-      try { pool.end().catch(() => {}); } catch(e){}
+      console.error('Postgres pool emitted error, will attempt reconnect on next query:', err && err.message ? err.message : err);
+      // Don't clear pgClient immediately - let queries fail and trigger reconnect
     });
     await pool.query('SELECT 1');
     console.log('Connected to Postgres for backend API (pool)');
