@@ -872,30 +872,9 @@ export default function Login() {
                           setGoogleLoading(true);
                           setError('');
                           
-                          // Check if running on localhost - if so, always use popup
-                          const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-                          
-                          // On mobile devices prefer the redirect flow directly. Popups
-                          // are frequently blocked or cause a poor UX on mobile/in-app
-                          // browsers — this avoids trying a popup first and being stuck.
-                            try {
-                                if (isMobile && !isLocalhost) {
-                                // On mobile, prefer redirect flow immediately (popup often blocked)
-                                // But not on localhost as Firebase redirect won't work there
-                                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
-                                const redirectRes = await startGoogleRedirect();
-                                if (redirectRes && redirectRes.error) {
-                                  console.warn('startGoogleRedirect error', redirectRes.error);
-                                  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
-                                  setError('Erro ao iniciar login com Google.');
-                                  setGoogleLoading(false);
-                                }
-                                // signInWithRedirect navigates away, so we stop here
-                                return;
-                              }
-                            } catch (e) {
-                              console.warn('Mobile redirect attempt threw, falling back to popup', e && e.message ? e.message : e);
-                            }
+                          // SEMPRE tente popup primeiro (funciona em mobile moderno)
+                          // Só use redirect se popup falhar
+                          // Isso evita problemas com Firebase redirect em GitHub Pages
                           try {
                             // Try popup first (better UX on desktop). If popup fails (blocked/error), fall back to redirect.
                             let user = null;
@@ -914,24 +893,11 @@ export default function Login() {
                             }
 
                             if (!user) {
-                              // Popup failed/blocked - fallback to redirect (but not on localhost)
-                              if (!isLocalhost) {
-                                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
-                                const redirectRes = await startGoogleRedirect();
-                                if (redirectRes && redirectRes.error) {
-                                  console.warn('startGoogleRedirect fallback error', redirectRes.error);
-                                  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
-                                  setError('Erro no login com Google. Tente novamente.');
-                                  setGoogleLoading(false);
-                                }
-                                // signInWithRedirect navigates away
-                                return;
-                              } else {
-                                // On localhost, popup is the only option
-                                setError('Popup do Google foi bloqueado. Por favor, permita popups para este site.');
-                                setGoogleLoading(false);
-                                return;
-                              }
+                              // Popup failed/blocked - só mostre mensagem pedindo para permitir popup
+                              // Redirect não funciona bem em GitHub Pages com Firebase
+                              setError('Popup do Google foi bloqueado. Por favor, permita popups para este site e tente novamente.');
+                              setGoogleLoading(false);
+                              return;
                             }
 
                             // At this point we have a Firebase user from popup flow
