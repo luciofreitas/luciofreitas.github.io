@@ -162,11 +162,20 @@ export default function App() {
   // session info in the URL, capture the session and verify/upsert on backend.
   React.useEffect(() => {
     (async () => {
-      try { console.time('[app-timing] redirect-processing start'); } catch(e){}
+      // Check once for tokens in URL - reused in catch blocks
+      const href = window.location.href || '';
+      const hasTokensInUrl = href.includes('access_token') || href.includes('refresh_token');
+      
       try {
         // Lazy import supabase client to avoid circular deps in modules
         const { default: supabase } = await import('./supabase');
-        console.log('[auth-debug] starting redirect processing. href=', window && window.location && window.location.href);
+        
+        // Quick check: only start timing if there might be something to process
+        if (hasTokensInUrl) {
+          try { console.time('[app-timing] redirect-processing start'); } catch(e){}
+          console.log('[auth-debug] starting redirect processing. href=', href);
+        }
+        
         // Supabase v2 provides getSessionFromUrl to read the session after redirect
   if (supabase && typeof supabase.auth.getSessionFromUrl === 'function') {
           // First try the standard helper which reads the session from the URL
@@ -315,13 +324,17 @@ export default function App() {
           }
         }
         // mark redirect processing done regardless of outcome so app can continue
-        console.log('[auth-debug] redirect processing finished, setting redirectDone');
-        try { console.timeEnd('[app-timing] redirect-processing start'); } catch(e){}
+        if (hasTokensInUrl) {
+          console.log('[auth-debug] redirect processing finished, setting redirectDone');
+          try { console.timeEnd('[app-timing] redirect-processing start'); } catch(e){}
+        }
         setRedirectDone(true);
       } catch (e) {
         // ignore - allows app to work even if supabase client unavailable
         console.warn('[auth-debug] redirect processing outer catch', e && e.message ? e.message : e);
-        try { console.timeEnd('[app-timing] redirect-processing start'); } catch(e){}
+        if (hasTokensInUrl) {
+          try { console.timeEnd('[app-timing] redirect-processing start'); } catch(e){}
+        }
         setRedirectDone(true);
       }
     })();
