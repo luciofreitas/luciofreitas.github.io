@@ -871,12 +871,17 @@ export default function Login() {
                           if (googleLoading) return; // prevent multiple clicks
                           setGoogleLoading(true);
                           setError('');
+                          
+                          // Check if running on localhost - if so, always use popup
+                          const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                          
                           // On mobile devices prefer the redirect flow directly. Popups
                           // are frequently blocked or cause a poor UX on mobile/in-app
                           // browsers — this avoids trying a popup first and being stuck.
                             try {
-                                if (isMobile) {
+                                if (isMobile && !isLocalhost) {
                                 // On mobile, prefer redirect flow immediately (popup often blocked)
+                                // But not on localhost as Firebase redirect won't work there
                                 try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
                                 const redirectRes = await startGoogleRedirect();
                                 if (redirectRes && redirectRes.error) {
@@ -909,17 +914,24 @@ export default function Login() {
                             }
 
                             if (!user) {
-                              // Popup failed/blocked - fallback to redirect
-                              try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
-                              const redirectRes = await startGoogleRedirect();
-                              if (redirectRes && redirectRes.error) {
-                                console.warn('startGoogleRedirect fallback error', redirectRes.error);
-                                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
-                                setError('Erro no login com Google. Tente novamente.');
+                              // Popup failed/blocked - fallback to redirect (but not on localhost)
+                              if (!isLocalhost) {
+                                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
+                                const redirectRes = await startGoogleRedirect();
+                                if (redirectRes && redirectRes.error) {
+                                  console.warn('startGoogleRedirect fallback error', redirectRes.error);
+                                  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+                                  setError('Erro no login com Google. Tente novamente.');
+                                  setGoogleLoading(false);
+                                }
+                                // signInWithRedirect navigates away
+                                return;
+                              } else {
+                                // On localhost, popup is the only option
+                                setError('Popup do Google foi bloqueado. Por favor, permita popups para este site.');
                                 setGoogleLoading(false);
+                                return;
                               }
-                              // signInWithRedirect navigates away
-                              return;
                             }
 
                             // At this point we have a Firebase user from popup flow

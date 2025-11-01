@@ -10,5 +10,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5174,
+    // Remove Cross-Origin-Opener-Policy headers that block OAuth popups
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none',
+    },
   },
 })
