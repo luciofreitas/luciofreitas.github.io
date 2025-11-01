@@ -871,19 +871,17 @@ export default function Login() {
                           // browsers — this avoids trying a popup first and being stuck.
                             try {
                                 if (isMobile) {
-                                // Instead of initiating the Firebase redirect from the
-                                // heavy app bundle, navigate to a small standalone
-                                // `auth-callback.html` that will start the redirect.
-                                // This keeps the redirect round-trip fast on mobile.
+                                // On mobile, prefer redirect flow immediately (popup often blocked)
                                 try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
-                                try {
-                                  // navigate to the lightweight callback entry which will
-                                  // call signInWithRedirect and return to the same page.
-                                  window.location.href = '/auth-callback.html?start=1';
-                                  return;
-                                } catch (e) {
-                                  console.warn('Failed to navigate to auth-callback, falling back', e && e.message ? e.message : e);
+                                const redirectRes = await startGoogleRedirect();
+                                if (redirectRes && redirectRes.error) {
+                                  console.warn('startGoogleRedirect error', redirectRes.error);
+                                  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+                                  setError('Erro ao iniciar login com Google.');
+                                  setGoogleLoading(false);
                                 }
+                                // signInWithRedirect navigates away, so we stop here
+                                return;
                               }
                             } catch (e) {
                               console.warn('Mobile redirect attempt threw, falling back to popup', e && e.message ? e.message : e);
@@ -906,16 +904,17 @@ export default function Login() {
                             }
 
                             if (!user) {
-                              // Use the lightweight callback flow for redirect as well
+                              // Popup failed/blocked - fallback to redirect
                               try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('__google_redirect_pending', '1'); } catch (e) {}
-                              try {
-                                window.location.href = '/auth-callback.html?start=1';
-                                return;
-                              } catch (e) {
-                                console.warn('Failed to navigate to auth-callback fallback', e && e.message ? e.message : e);
+                              const redirectRes = await startGoogleRedirect();
+                              if (redirectRes && redirectRes.error) {
+                                console.warn('startGoogleRedirect fallback error', redirectRes.error);
+                                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
                                 setError('Erro no login com Google. Tente novamente.');
                                 setGoogleLoading(false);
                               }
+                              // signInWithRedirect navigates away
+                              return;
                             }
 
                             // At this point we have a Firebase user from popup flow
