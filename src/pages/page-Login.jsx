@@ -92,40 +92,61 @@ export default function Login() {
       if (!idToken) {
         console.warn('processFirebaseUser: no idToken available');
       }
-      // Simplified: skip backend verification and merge checks for faster login
-      // Backend verification can happen asynchronously after user is logged in
+      // Backend verification: fetch additional user data asynchronously
       try { console.time('[auth-timing] backend-verify'); } catch (e) {}
       const apiBase = window.__API_BASE || '';
-      let usuario = null;
       
-      // Start backend verification but don't wait for it (fire-and-forget for speed)
+      // Start backend verification asynchronously - will update user data when ready
       if (idToken) {
         fetch(`${apiBase}/api/auth/firebase-verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
           body: JSON.stringify({})
-        }).catch(e => console.warn('Backend verification failed (non-blocking):', e));
+        })
+        .then(resp => resp.ok ? resp.json() : null)
+        .then(body => {
+          if (body && (body.user || body.usuario)) {
+            const backendUser = body.user || body.usuario;
+            // Merge backend data (phone, etc) with existing user data
+            const updatedUser = {
+              ...backendUser,
+              id: user.uid, // Keep Firebase uid as primary id
+              email: user.email,
+              nome: nomeFromToken || backendUser.nome || backendUser.name,
+              name: nomeFromToken || backendUser.name || backendUser.nome,
+              access_token: idToken,
+              photoURL: backendUser.photoURL || backendUser.photo_url || user.photoURL || null,
+              // Keep backend-specific fields like phone
+              phone: backendUser.phone || backendUser.telefone || backendUser.celular || null,
+              telefone: backendUser.telefone || backendUser.phone || backendUser.celular || null,
+              celular: backendUser.celular || backendUser.phone || backendUser.telefone || null,
+            };
+            // Update context and localStorage with complete data
+            if (setUsuarioLogado) setUsuarioLogado(updatedUser);
+            try { localStorage.setItem('usuario-logado', JSON.stringify(updatedUser)); } catch (e) {}
+            console.log('[auth-timing] Backend user data merged:', updatedUser);
+          }
+        })
+        .catch(e => console.warn('Backend verification failed (non-blocking):', e));
       }
       try { console.timeEnd('[auth-timing] backend-verify'); } catch (e) {}
 
       const rawNomeFromToken = (user && user.displayName) || (user && user.email ? user.email.split('@')[0] : '');
       const nomeFromToken = formatDisplayName(rawNomeFromToken) || '';
-      // Prefer the Firebase client displayName when available (shows the real Google name
-      // even if backend returns a dev/test user). Fall back to backend fields otherwise.
-      const normalizedUsuario = usuario ? {
-        ...usuario,
-        // prefer client displayName (nomeFromToken) when available
-        nome: nomeFromToken || usuario.nome || usuario.name,
-        name: nomeFromToken || usuario.name || usuario.nome,
-        access_token: idToken,
-        photoURL: usuario.photoURL || usuario.photo_url || usuario.photo || user.photoURL || null
-      } : {
+      
+      // Create initial user object with Firebase data
+      // Backend will update this asynchronously with additional fields (phone, etc)
+      const normalizedUsuario = {
         id: user.uid,
         email: user.email,
         nome: nomeFromToken,
         name: nomeFromToken,
         access_token: idToken,
-        photoURL: user.photoURL || null
+        photoURL: user.photoURL || null,
+        // These will be populated by backend response
+        phone: null,
+        telefone: null,
+        celular: null
       };
 
       // If the backend returned a development/mock user (id like 'dev_...') or a
