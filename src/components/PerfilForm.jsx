@@ -30,6 +30,7 @@ export default function PerfilForm({
 
   useEffect(() => {
     if (usuarioLogado) {
+      // Primeiro define com os dados locais
       setLocal({
         nome: usuarioLogado.nome || '',
         celular: usuarioLogado.celular || '',
@@ -38,6 +39,48 @@ export default function PerfilForm({
         novaSenha: '',
         confirmNovaSenha: ''
       });
+
+      // Depois busca os dados completos do backend
+      const fetchUserData = async () => {
+        try {
+          const base = (apiService && typeof apiService.getBaseUrl === 'function') ? apiService.getBaseUrl() : (typeof window !== 'undefined' && window.__API_BASE) ? window.__API_BASE : '';
+          const userId = usuarioLogado.auth_id || usuarioLogado.id;
+          
+          console.log('🔍 Fetching user data from backend:', { base, userId });
+          
+          const response = await fetch(`${base}/api/users/${encodeURIComponent(userId)}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('🔍 Backend user data received:', data);
+            
+            if (data.success && data.user) {
+              setLocal(prev => ({
+                ...prev,
+                nome: data.user.nome || data.user.name || prev.nome,
+                celular: data.user.celular || data.user.telefone || data.user.phone || prev.celular,
+                email: data.user.email || prev.email
+              }));
+              
+              // Atualizar também o contexto se tiver dados mais completos
+              if (data.user.celular && !usuarioLogado.celular) {
+                setUsuarioLogado(prevUser => ({
+                  ...prevUser,
+                  celular: data.user.celular,
+                  telefone: data.user.celular,
+                  phone: data.user.celular
+                }));
+              }
+            }
+          } else {
+            console.warn('Failed to fetch user data from backend:', response.status);
+          }
+        } catch (error) {
+          console.warn('Error fetching user data from backend:', error);
+        }
+      };
+
+      fetchUserData();
     }
   }, [usuarioLogado]);
 
@@ -173,7 +216,9 @@ export default function PerfilForm({
         const headers = { 'Content-Type': 'application/json' };
         // If we have an access token (from Firebase/Supabase verify), include it
         if (usuarioLogado && usuarioLogado.access_token) headers['Authorization'] = `Bearer ${usuarioLogado.access_token}`;
-        const resp = await fetch(`${base}/api/users/${encodeURIComponent(usuarioLogado.id)}`, {
+        // Use auth_id if available, otherwise fall back to id
+        const userId = usuarioLogado.auth_id || usuarioLogado.id;
+        const resp = await fetch(`${base}/api/users/${encodeURIComponent(userId)}`, {
           method: 'PUT',
           headers,
           body: JSON.stringify(payload)

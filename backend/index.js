@@ -1055,6 +1055,8 @@ function tryInitFirebaseAdmin() {
 }
 
 app.post('/api/auth/firebase-verify', async (req, res) => {
+  // Continue with normal Firebase verification process
+
   // DEV bypass: when developing locally you can set DEV_FIREBASE_BYPASS=true
   // and the server will accept the request and return a lightweight fake user
   // (DO NOT enable in production). This makes it faster to iterate the
@@ -1078,12 +1080,17 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
   if (!idToken) return res.status(400).json({ error: 'idToken required (use Authorization: Bearer <idToken> or body.idToken)' });
 
   try {
+    console.log('🔍 FIREBASE-VERIFY: Starting verification process...');
     const decoded = await firebaseAdmin.auth().verifyIdToken(idToken);
+    console.log('🔍 FIREBASE-VERIFY: Token decoded:', { uid: decoded?.uid, email: decoded?.email });
+    
     if (!decoded || !decoded.uid) return res.status(401).json({ error: 'invalid token' });
     const uid = decoded.uid;
     const email = decoded.email || null;
     let photoURL = decoded.picture || null;
     let name = decoded.name || decoded.displayName || null;
+    
+    console.log('🔍 FIREBASE-VERIFY: User data extracted:', { uid, email, name });
 
     // Try fetching user record from Firebase Admin for richer profile
     try {
@@ -1132,34 +1139,49 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           }
         } catch (e) { /* ignore supabase client errors */ }
 
-        // Try to find existing user by email first to avoid duplicates
-        let existingUser = null;
+        // Check if user already exists by email
+        let existingUserId = null;
         try {
-          const emailCheck = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`, [email]);
+          const emailCheck = await pgClient.query(`SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`, [email]);
           if (emailCheck.rowCount > 0) {
-            existingUser = emailCheck.rows[0];
-            dbIdToUse = existingUser.id; // Use the existing user's ID
-            console.log('firebase-verify: Found existing user by email', email, 'with ID', dbIdToUse);
+            existingUserId = emailCheck.rows[0].id;
           }
         } catch (e) {
-          console.warn('firebase-verify: Email check failed', e && e.message ? e.message : e);
+          // ignore error
         }
+        
+        // Use existing ID if found, otherwise use Firebase UID
+        dbIdToUse = existingUserId || uid;
 
-        const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
-          VALUES($1, $2, $3, $4, now(), now())
-          ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
+        const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, auth_id, criado_em, atualizado_em)
+          VALUES($1, $2, $3, $4, $5, now(), now())
+          ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), auth_id = EXCLUDED.auth_id, atualizado_em = now()`;
         try {
-          await pgClient.query(insertSql, [dbIdToUse, email, name, photoURL]);
+          await pgClient.query(insertSql, [dbIdToUse, email, name, photoURL, uid]);
         } catch (e) {
           console.warn('firebase-verify: Upsert query failed', e && e.message ? e.message : e);
         }
 
-        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular FROM users WHERE id = $1`, [dbIdToUse]);
+        const r = await pgClient.query(`SELECT id, email, nome, photo_url, is_pro, criado_em, celular FROM users WHERE (id = $1 OR auth_id = $1)`, [dbIdToUse]);
+        console.log('🔍 FIREBASE-VERIFY: Final query result:', {
+          query: `SELECT id, email, nome, photo_url, is_pro, criado_em, celular FROM users WHERE id = $1`,
+          params: [dbIdToUse],
+          rowCount: r.rowCount,
+          rows: r.rows
+        });
+        
         if (r.rowCount > 0) {
           const row = r.rows[0];
-          const displayName = ((row.name || '') + '').trim();
+          const displayName = ((row.nome || '') + '').trim();
           const phoneValue = row.celular || null;
-          return res.json({ 
+          
+          console.log('🔍 FIREBASE-VERIFY: Processing user data:', {
+            rawRow: row,
+            phoneValue: phoneValue,
+            phoneType: typeof phoneValue
+          });
+          
+          const responseData = { 
             success: true, 
             user: { 
               id: row.id, 
@@ -1173,7 +1195,10 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
               telefone: phoneValue,
               phone: phoneValue
             } 
-          });
+          };
+          
+          console.log('🔍 FIREBASE-VERIFY: Sending response:', JSON.stringify(responseData, null, 2));
+          return res.json(responseData);
         }
       } catch (e) {
         console.warn('firebase-verify: DB upsert failed, continuing with token user:', e && e.message ? e.message : e);
@@ -1976,11 +2001,103 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
+// DEBUG: Add phone to user (temporary endpoint)
+app.post('/api/debug/add-phone/:id', async (req, res) => {
+  const { id } = req.params;
+  const { celular } = req.body;
+  
+  if (!pgClient) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+  
+  try {
+    const result = await pgClient.query(
+      `UPDATE users SET celular = $1, atualizado_em = now() WHERE (id = $2 OR auth_id = $2)`,
+      [celular, id]
+    );
+    
+    if (result.rowCount > 0) {
+      return res.json({ success: true, message: 'Phone added successfully' });
+    } else {
+      return res.status(404).json({ error: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error adding phone:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user profile data
+app.get('/api/users/:id', async (req, res) => {
+  console.log('🔍 GET /api/users/:id - ENDPOINT HIT');
+  const { id } = req.params;
+  
+  if (!pgClient) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+  
+  try {
+    // Debug: Try different queries to see what's in the database
+    console.log('🔍 DEBUG - Searching for user with ID:', id);
+    
+    // Test 1: Find by id
+    const r1 = await pgClient.query(`SELECT id, email, nome, auth_id, celular FROM users WHERE id = $1 LIMIT 1`, [id]);
+    console.log('🔍 DEBUG - Query by id:', { rowCount: r1.rowCount, rows: r1.rows });
+    
+    // Test 2: Find by auth_id
+    const r2 = await pgClient.query(`SELECT id, email, nome, auth_id, celular FROM users WHERE auth_id = $1 LIMIT 1`, [id]);
+    console.log('🔍 DEBUG - Query by auth_id:', { rowCount: r2.rowCount, rows: r2.rows });
+    
+    // Test 3: Find by email (to see if user exists at all)
+    const r3 = await pgClient.query(`SELECT id, email, nome, auth_id, celular FROM users WHERE email = 'luciodfp@gmail.com' LIMIT 1`);
+    console.log('🔍 DEBUG - Query by email:', { rowCount: r3.rowCount, rows: r3.rows });
+    
+    // Use whichever query found the user
+    const r = r1.rowCount > 0 ? r1 : (r2.rowCount > 0 ? r2 : r3);
+    
+    console.log('🔍 GET - Final query result:', {
+      rowCount: r.rowCount,
+      rows: r.rows
+    });
+    
+    if (r.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const row = r.rows[0];
+    const displayName = ((row.nome || '') + '').trim();
+    const phoneValue = row.celular || null;
+    
+    const userData = {
+      id: row.id,
+      auth_id: row.auth_id,
+      email: row.email,
+      name: displayName,
+      nome: displayName,
+      photoURL: row.photo_url || null,
+      is_pro: row.is_pro,
+      created_at: row.criado_em || null,
+      celular: phoneValue,
+      telefone: phoneValue,
+      phone: phoneValue
+    };
+    
+    console.log('🔍 GET - Sending user data:', userData);
+    return res.json({ success: true, user: userData });
+    
+  } catch (err) {
+    console.error('GET /api/users/:id error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Update user profile (sync to Postgres and to Supabase Auth when linked)
 app.put('/api/users/:id', async (req, res) => {
+  console.log('🔥 PUT /api/users/:id - ENDPOINT HIT');
   const { id } = req.params;
   const body = req.body || {};
   const { nome, email, celular, novaSenha, photoURL } = body;
+  console.log('🔥 PUT - Received data:', { id, nome, email, celular, novaSenha: novaSenha ? '[HIDDEN]' : null, photoURL });
   // If Postgres client is not available, attempt Supabase REST fallback before returning 503
   if (!pgClient) {
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -2005,6 +2122,8 @@ app.put('/api/users/:id', async (req, res) => {
     }
     return res.status(503).json({ error: 'pgClient not available' });
   }
+  
+  console.log('🔥 PUT - Using Postgres client');
   try {
     // Re-detect users table columns to avoid writing/returning non-existent columns
     let nameCol = userNameColumn || 'name';
@@ -2047,9 +2166,15 @@ app.put('/api/users/:id', async (req, res) => {
     if (names.length === 0 || names.indexOf(userPasswordColumn) >= 0) returning.push(`${userPasswordColumn} as password_hash`);
 
   // Execute update without RETURNING to avoid referencing optional columns that may not exist
-  const updateQ = `UPDATE users SET ${updates.join(', ')}, atualizado_em = now() WHERE id = $${idx}`;
+  // Accept both id and auth_id as identifier
+  const updateQ = `UPDATE users SET ${updates.join(', ')}, atualizado_em = now() WHERE (id = $${idx} OR auth_id = $${idx})`;
   params.push(id);
+  
+  console.log('🔥 PUT - Executing UPDATE query:', updateQ);
+  console.log('🔥 PUT - Query params:', params);
+  
   const updRes = await pgClient.query(updateQ, params);
+  console.log('🔥 PUT - UPDATE result:', { rowCount: updRes.rowCount });
   if (updRes.rowCount === 0) return res.status(404).json({ error: 'not found' });
 
   // Now fetch the canonical row using a safe SELECT that only includes columns that actually exist
@@ -2074,7 +2199,7 @@ app.put('/api/users/:id', async (req, res) => {
   const phoneCol = (names.length === 0) ? null : phoneCandidates.find(c => names.indexOf(c) >= 0) || null;
   if (phoneCol) selectCols.push(phoneCol);
 
-  const selQ = `SELECT ${selectCols.join(', ')} FROM users WHERE id = $1 LIMIT 1`;
+  const selQ = `SELECT ${selectCols.join(', ')} FROM users WHERE (id = $1 OR auth_id = $1) LIMIT 1`;
     // If caller requested debug, emit the exact SELECT so we can see which column name caused a failure
     try {
   const dbg = isDebugRequest(req);
@@ -2090,7 +2215,7 @@ app.put('/api/users/:id', async (req, res) => {
       try {
         const safeCols = [`id`, `email`, `${nameCol} as name`, `photo_url`];
         if (userHasAuthId) safeCols.push('auth_id');
-        const safeQ = `SELECT ${safeCols.join(', ')} FROM users WHERE id = $1 LIMIT 1`;
+        const safeQ = `SELECT ${safeCols.join(', ')} FROM users WHERE (id = $1 OR auth_id = $1) LIMIT 1`;
         r = await pgClient.query(safeQ, [id]);
       } catch (e2) {
         // rethrow original error for outer handler
