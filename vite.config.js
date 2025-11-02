@@ -10,6 +10,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5174,
+    // Proxy API calls to backend running on port 3001
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
     // Remove Cross-Origin-Opener-Policy headers that block OAuth popups
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',

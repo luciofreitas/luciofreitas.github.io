@@ -1132,6 +1132,19 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           }
         } catch (e) { /* ignore supabase client errors */ }
 
+        // Try to find existing user by email first to avoid duplicates
+        let existingUser = null;
+        try {
+          const emailCheck = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`, [email]);
+          if (emailCheck.rowCount > 0) {
+            existingUser = emailCheck.rows[0];
+            dbIdToUse = existingUser.id; // Use the existing user's ID
+            console.log('firebase-verify: Found existing user by email', email, 'with ID', dbIdToUse);
+          }
+        } catch (e) {
+          console.warn('firebase-verify: Email check failed', e && e.message ? e.message : e);
+        }
+
         const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
           VALUES($1, $2, $3, $4, now(), now())
           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
@@ -1518,19 +1531,31 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
           // ignore and fall back to previously-detected column
         }
 
+        // Try to find existing user by email first to avoid duplicates
+        let uidToUse = uid;
+        try {
+          const emailCheck = await pgClient.query(`SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`, [email]);
+          if (emailCheck.rowCount > 0) {
+            uidToUse = emailCheck.rows[0].id;
+            console.log('supabase-verify: Found existing user by email', email, 'with ID', uidToUse);
+          }
+        } catch (e) {
+          console.warn('supabase-verify: Email check failed', e && e.message ? e.message : e);
+        }
+
         // Build SQL specifically for the detected name column to avoid referencing a missing column
         const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
            VALUES($1, $2, $3, $4, now(), now())
            ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
         try {
-          await pgClient.query(insertSql, [uid, email, nome, photoURL]);
+          await pgClient.query(insertSql, [uidToUse, email, nome, photoURL]);
         } catch (e) {
           // Log full SQL and params at debug level so we can see what failed without exposing secrets
-          console.warn('supabase-verify: Upsert query failed. nameCol=', nameCol, 'sql=', insertSql, 'params=', [uid, email, nome, photoURL]);
+          console.warn('supabase-verify: Upsert query failed. nameCol=', nameCol, 'sql=', insertSql, 'params=', [uidToUse, email, nome, photoURL]);
           throw e;
         }
 
-        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular FROM users WHERE id = $1`, [uid]);
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular FROM users WHERE id = $1`, [uidToUse]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
           const displayName = ((row.name || '') + '').trim();
