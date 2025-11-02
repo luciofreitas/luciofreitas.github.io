@@ -154,15 +154,17 @@ function PageGuias() {
           <h3 className="section-title">📖 Guias Oficiais</h3>
           <div className="guias-grid">
             {guiasFixos.map(guia => (
-              <div key={guia.id} className="guia-card">
+              <div key={guia.id} className="guia-card guia-oficial">
                 <div className="guia-header">
                   <div className="guia-icone">{guia.icone}</div>
-                  <div className="guia-categoria">{guia.categoria}</div>
+                  <div className="guia-categoria oficial">{guia.categoria}</div>
                 </div>
                 
                 <div className="guia-content">
-                  <h3 className="guia-titulo">{guia.titulo}</h3>
-                  <p className="guia-subtitulo">{guia.subtitulo}</p>
+                  <div className="guia-info">
+                    <h3 className="guia-titulo">{guia.titulo}</h3>
+                    <p className="guia-descricao">{guia.subtitulo}</p>
+                  </div>
                   
                   {/* Sistema de Avaliação */}
                   <div className="guia-avaliacao">
@@ -195,10 +197,10 @@ function PageGuias() {
                 const isOculto = guia.status === 'oculto';
 
                 return (
-                  <div key={guia.id} className={`guia-card ${isOculto ? 'guia-oculto' : ''} ${(!isPro && !isAutor) ? 'locked' : ''}`}>
+                  <div key={guia.id} className={`guia-card guia-comunidade ${isOculto ? 'guia-oculto' : ''} ${(!isPro && !isAutor) ? 'locked' : ''}`}>
                     <div className="guia-header">
                       <div className="guia-icone">📄</div>
-                      <div className="guia-categoria">{guia.categoria}</div>
+                      <div className="guia-categoria comunidade">{guia.categoria || 'MECÂNICA GERAL'}</div>
                       {isAutor && (
                         <div className="guia-author-badge" title="Você é o autor deste guia">
                           👤 Seu Guia
@@ -213,13 +215,16 @@ function PageGuias() {
                     )}
                     
                     <div className="guia-content">
-                      <h3 className="guia-titulo">{guia.titulo}</h3>
-                      
-                      {isOculto && isAutor && (
-                        <div className="guia-status-warning">
-                          ⚠️ Este guia está oculto devido a avaliações baixas. Edite-o para melhorar!
-                        </div>
-                      )}
+                      <div className="guia-info">
+                        <h3 className="guia-titulo">{guia.titulo}</h3>
+                        <p className="guia-descricao">{guia.descricao || 'Guia da comunidade'}</p>
+                        
+                        {isOculto && isAutor && (
+                          <div className="guia-status-warning">
+                            ⚠️ Este guia está oculto devido a avaliações baixas. Edite-o para melhorar!
+                          </div>
+                        )}
+                      </div>
 
                       <div className="guia-avaliacao">
                         {(() => {

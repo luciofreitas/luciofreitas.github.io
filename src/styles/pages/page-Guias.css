@@ -95,7 +95,7 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(17.5rem, 30vw, 25rem)), 1fr));
   gap: clamp(1rem, 2vw, 1.5rem);
   margin-bottom: clamp(1.5rem, 2.5vw, 2rem);
-  align-items: start; /* ensures grid cells align at top before cards stretch */
+  align-items: stretch; /* garante que todos os cards tenham a mesma altura */
 }
 
 .guia-card {
@@ -114,22 +114,34 @@
 .guia-card {
   display: flex;
   flex-direction: column;
-  /* Set a consistent min and max height so cards align visually. Adjust as needed. */
-  min-height: 20rem; /* slightly larger to match reference */
-  max-height: 26rem; /* cap so very long content doesn't expand the card too much */
-  height: 100%;
+  /* Set a consistent height so cards align visually */
+  height: 22rem; /* Altura fixa para todos os cards */
 }
 
 /* Ensure header, content and footer behave consistently */
 .guia-header {
   flex: 0 0 auto; /* fixed at top */
 }
+
 .guia-content {
-  flex: 1 1 auto; /* grow to fill space */
+  flex: 1 1 auto; /* grow to fill available space */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.guia-info {
+  flex: 1 1 auto; /* grows to take available space */
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
+
+.guia-avaliacao {
+  flex: 0 0 auto; /* fixed at bottom of content */
+  margin-top: auto; /* push to bottom */
+}
+
 .guia-footer {
   flex: 0 0 auto; /* fixed footer */
 }
@@ -167,6 +179,25 @@
   box-shadow: 0 8px 30px rgba(0,0,0,0.12);
 }
 
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+  .guia-card {
+    height: auto; /* altura dinâmica em mobile */
+    min-height: 18rem; /* altura mínima menor em mobile */
+  }
+  
+  .guia-titulo {
+    font-size: 1.1rem;
+    -webkit-line-clamp: 3; /* permite 3 linhas em mobile */
+    line-clamp: 3;
+    max-height: 4.5em;
+  }
+  
+  .guia-descricao {
+    max-height: 4rem; /* menos altura para descrição em mobile */
+  }
+}
+
 @supports not (width: clamp(1rem, 2vw, 1.5rem)) {
   .guias-grid {
     gap: 1.5rem;
@@ -178,9 +209,10 @@
 
 /* Sistema de Avaliação */
 .guia-avaliacao {
-  margin-top: 1rem;
+  margin-top: auto; /* empurra para o final do content */
   padding-top: 1rem;
   border-top: 1px solid #e5e7eb;
+  flex-shrink: 0; /* não permite redução */
 }
 
 .sistema-avaliacao {
@@ -297,32 +329,49 @@
 }
 
 .guia-categoria {
-  background: #0052CC;
   color: white;
-  padding: 0.25rem 0.75rem;
   padding: clamp(0.2rem, 0.5vw, 0.25rem) clamp(0.5rem, 1vw, 0.75rem);
   border-radius: clamp(1.15rem, 2.3vw, 1.25rem); /* ~18.4px a 20px - fluido */
-  font-size: 0.75rem;
   font-size: clamp(0.65rem, 1.2vw, 0.75rem);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+/* Categoria oficial (guias do sistema) */
+.guia-categoria.oficial {
+  background: #0052CC;
+}
+
+/* Categoria comunidade (guias de usuários) */
+.guia-categoria.comunidade {
+  background: #f59e0b;
+}
+
 .guia-content {
   padding: clamp(1rem, 3vw, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* garante que ocupe todo o espaço disponível */
 }
 
 .guia-titulo {
-  font-size: 1.25rem;
   font-size: clamp(1.1rem, 2.5vw, 1.25rem);
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 0.5rem 0;
+  /* Limitar altura do título para evitar empurrar as estrelas */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* máximo 2 linhas */
+  line-clamp: 2; /* padrão para compatibilidade */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  max-height: 3.2em; /* aprox 2 linhas considerando line-height */
 }
 
 .guia-subtitulo {
-  font-size: 1rem;
   font-size: clamp(0.9rem, 2vw, 1rem);
   font-weight: 600;
   color: #475569;
@@ -331,10 +380,17 @@
 
 .guia-descricao {
   color: #64748b;
-  font-size: 0.95rem;
   font-size: clamp(0.85rem, 1.8vw, 0.95rem);
-  line-height: 1.6;
+  line-height: 1.5;
   margin: 0;
+  /* Permitir scroll se o conteúdo for muito longo */
+  flex: 1 1 auto;
+  overflow-y: auto;
+  /* Limitar altura máxima para manter consistência */
+  max-height: 6rem;
+  /* Adicionar gradiente para indicar scroll */
+  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
 }
 
 /* Botão criar guia (Pro) */
@@ -389,14 +445,20 @@
 /* Imagem do guia */
 .guia-imagem {
   width: 100%;
-  height: 12rem;
+  height: 8rem; /* altura consistente para todas as imagens */
   overflow: hidden;
+  flex-shrink: 0; /* não permite redução */
 }
 
 .guia-imagem img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.guia-card:hover .guia-imagem img {
+  transform: scale(1.05); /* efeito sutil de hover na imagem */
 }
 
 /* Status de ocultação */
@@ -404,11 +466,12 @@
   background: #fef3c7;
   border: 1px solid #fde68a;
   border-radius: 0.375rem;
-  padding: 0.75rem;
-  margin-top: 0.75rem;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
   color: #92400e;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  flex-shrink: 0; /* não permite redução */
 }
 
 /* Card oculto */
