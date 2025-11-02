@@ -127,30 +127,51 @@ export async function addCar(userId, car) {
  * @returns {Promise<boolean>} Sucesso ou não
  */
 export async function removeCar(userId, carId) {
-  if (!userId || !carId) return false;
+  if (!userId || !carId) {
+    console.error('🗑️ removeCar: Missing userId or carId', { userId, carId });
+    return false;
+  }
   
-  // Tentar API primeiro (tanto em localhost quanto em produção)
-    try {
-      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
-        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
-      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars/${encodeURIComponent(carId)}`, {
+  console.log(`🗑️ AUTO-REMOVE: Attempting to remove car ${carId} for user ${userId}`);
+  
+  // Tentar API automática primeiro 
+  try {
+    const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+      || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+    
+    const url = `${baseUrl}/api/users/${encodeURIComponent(userId)}/cars-auto/${encodeURIComponent(carId)}`;
+    console.log(`🗑️ DELETE URL: ${url}`);
+    
+    const response = await fetch(url, {
       method: 'DELETE'
     });
+    
+    console.log(`🗑️ DELETE Response: ${response.status} ${response.statusText}`);
+    
     if (response.ok) {
+      const result = await response.json();
+      console.log('🗑️ Car deleted via API automatically:', result);
       return true;
+    } else {
+      const errorText = await response.text();
+      console.error('🗑️ DELETE API failed:', response.status, errorText);
     }
   } catch (error) {
-    console.warn('API removeCar failed, falling back to localStorage:', error);
+    console.error('🗑️ API removeCar failed, falling back to localStorage:', error);
   }
   
   // Fallback localStorage
+  console.log('🗑️ Falling back to localStorage removal');
   try {
     const cars = await getCars(userId);
+    console.log(`🗑️ Current cars in localStorage: ${cars.length}`);
     const filtered = cars.filter(c => c.id !== carId);
+    console.log(`🗑️ Cars after filtering: ${filtered.length}`);
     await saveCars(userId, filtered);
+    console.log('🗑️ Car removed from localStorage successfully');
     return true;
   } catch (error) {
-    console.error('Erro ao remover carro:', error);
+    console.error('🗑️ Erro ao remover carro do localStorage:', error);
     return false;
   }
 }

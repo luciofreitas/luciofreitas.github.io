@@ -3500,6 +3500,48 @@ app.put('/api/users/:userId/cars', async (req, res) => {
   return res.status(500).json({ error: 'Database not available' });
 });
 
+// ENDPOINT AUTOMÁTICO PARA DELETAR CARROS
+app.delete('/api/users/:userId/cars-auto/:carId', async (req, res) => {
+  const { userId, carId } = req.params;
+  console.log(`🗑️ AUTO-DELETE CAR: userId=${userId}, carId=${carId}`);
+  
+  if(pgClient){
+    try{
+      // EXCLUSÃO AUTOMÁTICA UNIFICADA - deleta o carro independente de onde estiver
+      const deleteQuery = `
+        WITH user_variants AS (
+          -- Encontra todas as variantes do usuário
+          SELECT DISTINCT u.id as user_id, u.email, u.auth_id
+          FROM users u
+          WHERE u.id = $1 OR u.auth_id = $1 
+             OR (u.email IS NOT NULL AND LOWER(u.email) = (
+                 SELECT LOWER(email) FROM users 
+                 WHERE (id = $1 OR auth_id = $1) AND email IS NOT NULL
+                 LIMIT 1
+               ))
+        )
+        DELETE FROM cars 
+        WHERE id = $2 
+          AND (user_id IN (SELECT user_id FROM user_variants) 
+               OR user_id IN (SELECT auth_id FROM user_variants WHERE auth_id IS NOT NULL)
+               OR user_id = $1)
+        RETURNING id
+      `;
+      
+      const result = await pgClient.query(deleteQuery, [userId, carId]);
+      console.log(`🗑️ AUTO-DELETE: Removed ${result.rowCount} cars automatically`);
+      
+      return res.json({ success: true, deletedCount: result.rowCount });
+      
+    }catch(err){ 
+      console.error('Auto-delete car failed:', err.message);
+      return res.status(500).json({ error: 'Failed to delete car automatically' });
+    }
+  }
+  
+  return res.status(503).json({ error: 'Database not available' });
+});
+
 app.delete('/api/users/:userId/cars/:carId', async (req, res) => {
   const { userId, carId } = req.params;
   try {
