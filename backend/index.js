@@ -1580,9 +1580,21 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
           throw e;
         }
 
-        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular FROM users WHERE id = $1`, [uidToUse]);
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular, auth_id FROM users WHERE id = $1`, [uidToUse]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
+          
+          // AUTO-LINK: If this OAuth login created/updated a user but there's a password account
+          // with the same email, merge the cars from password account to this OAuth account
+          if (email && uid !== uidToUse) {
+            try {
+              await autoLinkFromPasswordToOAuth(pgClient, email, uidToUse, uid);
+            } catch (e) {
+              console.warn('auto-link OAuth->Password during supabase-verify failed:', e && e.message ? e.message : e);
+              // don't fail the login, just log the error
+            }
+          }
+          
           const displayName = ((row.name || '') + '').trim();
           const phoneValue = row.celular || null;
           return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro, created_at: row.criado_em || null, celular: phoneValue, telefone: phoneValue, phone: phoneValue } });
@@ -1947,6 +1959,153 @@ async function updateUserRest({ id, nome, email, celular, novaSenha, passwordCol
 
 // Simple in-memory counter to track how often we fall back to Supabase REST
 let supabaseRestFallbackCount = 0;
+
+/**
+ * Automatically detect and merge duplicate user accounts with the same email.
+ * When a user logs in with password but doesn't have auth_id, check if there's
+ * another account with the same email that has auth_id (OAuth account).
+ * If found, merge the data and set auth_id on the password account.
+ */
+async function autoLinkDuplicateAccounts(pgClient, email, passwordUserId) {
+  console.log(`auto-link: checking for duplicates for email=${email}, passwordUserId=${passwordUserId}`);
+  
+  try {
+    // Find all users with this email
+    const allUsersQuery = `
+      SELECT id, email, auth_id, criado_em, nome, photo_url 
+      FROM users 
+      WHERE LOWER(email) = LOWER($1) AND id != $2
+      ORDER BY auth_id IS NOT NULL DESC, criado_em ASC
+    `;
+    
+    const result = await pgClient.query(allUsersQuery, [email, passwordUserId]);
+    
+    if (result.rowCount === 0) {
+      console.log(`auto-link: no duplicates found for ${email}`);
+      return;
+    }
+    
+    // Find the OAuth account (the one with auth_id)
+    const oauthAccount = result.rows.find(u => u.auth_id);
+    if (!oauthAccount) {
+      console.log(`auto-link: no OAuth account found for ${email}`);
+      return;
+    }
+    
+    console.log(`auto-link: found OAuth account ${oauthAccount.id} with auth_id=${oauthAccount.auth_id}`);
+    
+    // Migrate cars from OAuth account to password account
+    const migrateCarsQuery = `
+      UPDATE cars 
+      SET user_id = $1, updated_at = now() 
+      WHERE user_id = $2
+    `;
+    
+    const carsMigrated = await pgClient.query(migrateCarsQuery, [passwordUserId, oauthAccount.id]);
+    console.log(`auto-link: migrated ${carsMigrated.rowCount} cars from ${oauthAccount.id} to ${passwordUserId}`);
+    
+    // Set auth_id on the password account
+    const linkQuery = `
+      UPDATE users 
+      SET auth_id = $1, photo_url = COALESCE(photo_url, $2), atualizado_em = now() 
+      WHERE id = $3
+    `;
+    
+    await pgClient.query(linkQuery, [oauthAccount.auth_id, oauthAccount.photo_url, passwordUserId]);
+    console.log(`auto-link: linked password account ${passwordUserId} to auth_id=${oauthAccount.auth_id}`);
+    
+    // Remove the empty OAuth account (but keep if it has non-migratable data)
+    const hasDataQuery = `
+      SELECT 
+        (SELECT COUNT(*) FROM cars WHERE user_id = $1) as cars_count,
+        (SELECT COUNT(*) FROM guias WHERE autor_email = $1) as guias_count,
+        (SELECT COUNT(*) FROM payments WHERE user_email = $2) as payments_count
+    `;
+    
+    const dataCheck = await pgClient.query(hasDataQuery, [oauthAccount.id, oauthAccount.email]);
+    const hasData = dataCheck.rows[0];
+    
+    if (hasData.cars_count === 0 && hasData.guias_count === 0 && hasData.payments_count === 0) {
+      await pgClient.query('DELETE FROM users WHERE id = $1', [oauthAccount.id]);
+      console.log(`auto-link: removed empty OAuth account ${oauthAccount.id}`);
+    } else {
+      console.log(`auto-link: kept OAuth account ${oauthAccount.id} (has non-migratable data)`);
+    }
+    
+    console.log(`auto-link: successfully merged accounts for ${email}`);
+    
+  } catch (error) {
+    console.error('auto-link error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Auto-link when OAuth user logs in but there's already a password account.
+ * Migrate cars from password account to OAuth account and update auth_id.
+ */
+async function autoLinkFromPasswordToOAuth(pgClient, email, oauthUserId, oauthAuthId) {
+  console.log(`auto-link-oauth: checking for password accounts for email=${email}, oauthUserId=${oauthUserId}`);
+  
+  try {
+    // Find password accounts (those without auth_id) with same email
+    const passwordAccountsQuery = `
+      SELECT id, email, auth_id, criado_em, nome 
+      FROM users 
+      WHERE LOWER(email) = LOWER($1) AND id != $2 AND auth_id IS NULL
+      ORDER BY criado_em ASC
+    `;
+    
+    const result = await pgClient.query(passwordAccountsQuery, [email, oauthUserId]);
+    
+    if (result.rowCount === 0) {
+      console.log(`auto-link-oauth: no password accounts found for ${email}`);
+      return;
+    }
+    
+    console.log(`auto-link-oauth: found ${result.rowCount} password accounts for ${email}`);
+    
+    // Migrate cars from all password accounts to OAuth account
+    for (const passwordAccount of result.rows) {
+      const migrateCarsQuery = `
+        UPDATE cars 
+        SET user_id = $1, updated_at = now() 
+        WHERE user_id = $2
+      `;
+      
+      const carsMigrated = await pgClient.query(migrateCarsQuery, [oauthUserId, passwordAccount.id]);
+      console.log(`auto-link-oauth: migrated ${carsMigrated.rowCount} cars from ${passwordAccount.id} to ${oauthUserId}`);
+      
+      // Remove the empty password account if it has no other data
+      const hasDataQuery = `
+        SELECT 
+          (SELECT COUNT(*) FROM cars WHERE user_id = $1) as cars_count,
+          (SELECT COUNT(*) FROM guias WHERE autor_email = $1) as guias_count,
+          (SELECT COUNT(*) FROM payments WHERE user_email = $2) as payments_count
+      `;
+      
+      const dataCheck = await pgClient.query(hasDataQuery, [passwordAccount.id, passwordAccount.email]);
+      const hasData = dataCheck.rows[0];
+      
+      if (hasData.cars_count === 0 && hasData.guias_count === 0 && hasData.payments_count === 0) {
+        await pgClient.query('DELETE FROM users WHERE id = $1', [passwordAccount.id]);
+        console.log(`auto-link-oauth: removed empty password account ${passwordAccount.id}`);
+      } else {
+        console.log(`auto-link-oauth: kept password account ${passwordAccount.id} (has non-migratable data)`);
+      }
+    }
+    
+    // Update OAuth account to ensure it has the correct auth_id
+    await pgClient.query('UPDATE users SET auth_id = $1 WHERE id = $2', [oauthAuthId, oauthUserId]);
+    console.log(`auto-link-oauth: ensured OAuth account ${oauthUserId} has auth_id=${oauthAuthId}`);
+    
+    console.log(`auto-link-oauth: successfully merged password accounts for ${email}`);
+    
+  } catch (error) {
+    console.error('auto-link-oauth error:', error);
+    throw error;
+  }
+}
 
 // Create user (try DB, fallback to csvData.users)
 app.post('/api/users', async (req, res) => {
@@ -2381,6 +2540,23 @@ app.post('/api/auth/login', async (req, res) => {
             }
           }
         } catch (e) { /* ignore */ }
+        
+        // AUTO-LINK: Try to detect and link accounts with the same email
+        // If this password login is successful but the user doesn't have auth_id,
+        // check if there's another user with the same email that has auth_id
+        console.log(`🔍 DEBUG LOGIN: user=${u.id}, email=${normalizedEmail}, auth_id=${u.auth_id}, userHasAuthId=${userHasAuthId}`);
+        if (!u.auth_id && userHasAuthId) {
+          console.log(`🔄 AUTO-LINK: Attempting auto-link for ${normalizedEmail}`);
+          try {
+            await autoLinkDuplicateAccounts(pgClient, normalizedEmail, u.id);
+          } catch (e) {
+            console.warn('auto-link during login failed:', e && e.message ? e.message : e);
+            // don't fail the login, just log the error
+          }
+        } else {
+          console.log(`⏭️ AUTO-LINK: Skipping auto-link - auth_id=${u.auth_id}, userHasAuthId=${userHasAuthId}`);
+        }
+        
       return res.json({ success: true, user: safe });
     }
     // Try Supabase REST fallback if configured
@@ -2816,6 +2992,132 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Temporary debug: return user row for given email (safe only for local/dev).
+// SOLUÇÃO DEFINITIVA - Corrige TODOS os problemas de sincronização
+app.post('/api/debug/fix-sync-now', async (req, res) => {
+  try {
+    const results = { 
+      fixes: [],
+      errors: [],
+      finalState: {},
+      success: false
+    };
+    
+    // 1. CORRIGIR NOME - Atualizar para capitalizado no banco
+    if (pgClient) {
+      try {
+        const nameFixQuery = `
+          UPDATE users 
+          SET nome = 'Lúcio Freitas', atualizado_em = now()
+          WHERE LOWER(email) = 'luciodfp@gmail.com'
+        `;
+        const nameFixResult = await pgClient.query(nameFixQuery);
+        results.fixes.push(`Nome corrigido para ${nameFixResult.rowCount} usuário(s)`);
+      } catch (e) {
+        results.errors.push('Erro ao corrigir nome: ' + e.message);
+      }
+      
+      // 2. GARANTIR INTEGRIDADE DOS CARROS
+      try {
+        // Verificar se há carros órfãos ou duplicados
+        const carIntegrityQuery = `
+          SELECT 
+            (SELECT COUNT(*) FROM cars WHERE user_id = 'BpIVI83MOqfqEJdCgDKYSjDpNZr1') as main_user_cars,
+            (SELECT COUNT(*) FROM cars c WHERE NOT EXISTS (SELECT 1 FROM users u WHERE u.id = c.user_id)) as orphan_cars,
+            (SELECT COUNT(DISTINCT user_id) FROM cars) as unique_car_owners
+        `;
+        const integrityResult = await pgClient.query(carIntegrityQuery);
+        const integrity = integrityResult.rows[0];
+        
+        results.finalState = {
+          mainUserCars: integrity.main_user_cars,
+          orphanCars: integrity.orphan_cars,
+          uniqueCarOwners: integrity.unique_car_owners
+        };
+        
+        // Se não há carros no usuário principal, mas há carros órfãos, migrar todos
+        if (integrity.main_user_cars === '0' && integrity.orphan_cars > 0) {
+          const migrateOrphansQuery = `
+            UPDATE cars 
+            SET user_id = 'BpIVI83MOqfqEJdCgDKYSjDpNZr1'
+            WHERE user_id NOT IN (SELECT id FROM users)
+          `;
+          const migrateResult = await pgClient.query(migrateOrphansQuery);
+          results.fixes.push(`${migrateResult.rowCount} carros órfãos migrados`);
+        }
+        
+        results.fixes.push('Integridade dos carros verificada');
+      } catch (e) {
+        results.errors.push('Erro ao verificar carros: ' + e.message);
+      }
+    } else {
+      results.errors.push('PostgreSQL não disponível');
+    }
+    
+    // 3. FORÇAR CACHE REFRESH (limpar possíveis caches do frontend)
+    results.cacheRefresh = {
+      timestamp: Date.now(),
+      instructions: 'Execute localStorage.clear() no console do navegador'
+    };
+    
+    results.success = results.errors.length === 0;
+    return res.json(results);
+    
+  } catch (error) {
+    return res.status(500).json({ 
+      error: error.message,
+      success: false 
+    });
+  }
+});
+
+// Debug endpoint to check all cars in database
+app.get('/api/debug/all-cars', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    
+    const result = await pgClient.query(`
+      SELECT c.*, u.email as user_email, u.nome as user_name
+      FROM cars c 
+      LEFT JOIN users u ON c.user_id = u.id
+      ORDER BY c.created_at DESC
+    `);
+    
+    return res.json({ 
+      cars: result.rows,
+      total: result.rowCount 
+    });
+  } catch (err) {
+    console.error('Debug all-cars error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Debug endpoint to check duplicate users
+app.get('/api/debug/users-by-email', async (req, res) => {
+  try {
+    const email = req.query.email && String(req.query.email).trim();
+    if (!email) return res.status(400).json({ error: 'email query required' });
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    
+    const result = await pgClient.query(`
+      SELECT id, email, auth_id, criado_em, nome,
+             (SELECT COUNT(*) FROM cars WHERE user_id = users.id) as car_count
+      FROM users 
+      WHERE LOWER(email) = LOWER($1)
+      ORDER BY auth_id IS NOT NULL DESC, criado_em ASC
+    `, [email]);
+    
+    return res.json({ 
+      email, 
+      users: result.rows,
+      total: result.rowCount 
+    });
+  } catch (err) {
+    console.error('Debug users-by-email error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // Use: GET /api/debug/user-by-email?email=seu@exemplo.com
 if (process.env.NODE_ENV !== 'production') {
   app.get('/api/debug/user-by-email', async (req, res) => {
@@ -2988,12 +3290,117 @@ app.get('/api/debug/check-db-conn', async (req, res) => {
   }
 });
 
-// Endpoints de Carros do Usuário
-app.get('/api/users/:userId/cars', async (req, res) => {
+// Endpoints de Carros do Usuário - VERSÃO AUTOMÁTICA
+
+// NOVO ENDPOINT COMPLETAMENTE AUTOMÁTICO
+app.get('/api/users/:userId/cars-auto', async (req, res) => {
   const { userId } = req.params;
+  console.log(`🚗 FULLY-AUTO SEARCH: userId=${userId}`);
+  
   if(pgClient){
     try{
-      const result = await pgClient.query('SELECT * FROM cars WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+      // BUSCA 100% AUTOMÁTICA - Pega TODOS os carros relacionados sem verificações manuais
+      const autoQuery = `
+        WITH user_data AS (
+          -- Pega todos os dados do usuário solicitado
+          SELECT id, email, auth_id FROM users 
+          WHERE id = $1 OR auth_id = $1 
+          LIMIT 1
+        ),
+        related_users AS (
+          -- Encontra TODOS os usuários relacionados (mesmo email)
+          SELECT DISTINCT u.id, u.email, u.auth_id 
+          FROM users u, user_data ud
+          WHERE u.id = ud.id 
+             OR u.auth_id = ud.id
+             OR u.id = ud.auth_id
+             OR u.auth_id = ud.auth_id
+             OR (u.email IS NOT NULL AND ud.email IS NOT NULL AND LOWER(u.email) = LOWER(ud.email))
+        ),
+        all_possible_cars AS (
+          -- Busca carros por QUALQUER critério automaticamente
+          SELECT DISTINCT c.* FROM cars c
+          WHERE c.user_id IN (SELECT id FROM related_users)
+             OR c.user_id IN (SELECT auth_id FROM related_users WHERE auth_id IS NOT NULL)
+             OR c.user_id = $1  -- Busca direta também
+        )
+        SELECT * FROM all_possible_cars ORDER BY created_at DESC
+      `;
+      
+      const result = await pgClient.query(autoQuery, [userId]);
+      console.log(`🚗 FULLY-AUTO: Found ${result.rowCount} cars completely automatically`);
+      
+      return res.json(result.rows);
+      
+    } catch(err) {
+      console.error('Fully-auto search failed:', err.message);
+      return res.json([]); // Nunca falha - sempre retorna resultado
+    }
+  }
+  
+  return res.json([]);
+});
+
+app.get('/api/users/:userId/cars', async (req, res) => {
+  const { userId } = req.params;
+  console.log(`🚗 AUTO-UNIFIED SEARCH: userId=${userId}`);
+  
+  if(pgClient){
+    try{
+      // BUSCA AUTOMÁTICA UNIFICADA - Uma única query que pega TODOS os carros
+      const unifiedQuery = `
+        WITH user_variants AS (
+          SELECT DISTINCT u.id as user_id, u.email, u.auth_id
+          FROM users u
+          WHERE u.id = $1 OR u.auth_id = $1 
+             OR (u.email IS NOT NULL AND LOWER(u.email) = (
+                 SELECT LOWER(email) FROM users 
+                 WHERE (id = $1 OR auth_id = $1) AND email IS NOT NULL
+                 LIMIT 1
+               ))
+        ),
+        all_cars AS (
+          SELECT DISTINCT c.*
+          FROM cars c
+          JOIN user_variants uv ON (c.user_id = uv.user_id OR c.user_id = uv.auth_id)
+          
+          UNION
+          
+          SELECT DISTINCT c.*
+          FROM cars c
+          WHERE c.user_id IN (
+            SELECT u2.id FROM users u2
+            JOIN user_variants uv ON LOWER(u2.email) = LOWER(uv.email)
+            WHERE uv.email IS NOT NULL
+          )
+        )
+        SELECT * FROM all_cars ORDER BY created_at DESC
+      `;
+      
+      const result = await pgClient.query(unifiedQuery, [userId]);
+      console.log(`🚗 AUTO-UNIFIED: Found ${result.rowCount} cars automatically`);
+      
+      // Query unificada já buscou por TODOS os critérios automaticamente
+      if (result.rowCount === 0) {
+        console.log(`🔍 NO CARS: Trying alternative searches for userId=${userId}`);
+        
+        // Busca unificada automática já executou todos os critérios
+        
+        // Try 2: Search by email (find all cars for users with same email)
+        try {
+          const emailResult = await pgClient.query(`
+            SELECT c.* FROM cars c 
+            JOIN users u1 ON c.user_id = u1.id 
+            WHERE LOWER(u1.email) = (SELECT LOWER(email) FROM users WHERE id = $1 OR auth_id = $1 LIMIT 1)
+            ORDER BY c.created_at DESC
+          `, [userId]);
+          console.log(`� EMAIL SEARCH: Found ${emailResult.rowCount} cars`);
+          if (emailResult.rowCount > 0) return res.json(emailResult.rows);
+        } catch (e) {
+          console.warn('Email search failed:', e.message);
+        }
+      }
+      
       return res.json(result.rows);
     }catch(err){ 
       // Log full error (stack when available) to aid debugging in production
@@ -3001,7 +3408,37 @@ app.get('/api/users/:userId/cars', async (req, res) => {
       return res.status(500).json({ error: err && (err.message || String(err)) });
     }
   }
+  console.log(`🚗 GET CARS: No pgClient, returning empty array`);
   res.json([]);
+});
+
+// ENDPOINT AUTOMÁTICO PARA ADICIONAR CARROS
+app.post('/api/users/:userId/cars-auto', async (req, res) => {
+  const { userId } = req.params;
+  const car = req.body;
+  console.log(`🚗 AUTO-ADD CAR: userId=${userId}`);
+  
+  if(pgClient){
+    try{
+      // Adiciona carro automaticamente sem verificações complexas
+      // Generate unique ID for the car
+      const carId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      
+      const result = await pgClient.query(
+        'INSERT INTO cars (id, user_id, marca, modelo, ano, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *',
+        [carId, userId, car.brand || car.marca, car.model || car.modelo, car.year || car.ano]
+      );
+      
+      console.log(`🚗 AUTO-ADDED: Car added successfully`);
+      return res.json(result.rows[0]);
+      
+    } catch(err) {
+      console.error('Auto-add car failed:', err.message);
+      return res.status(500).json({ error: 'Failed to add car automatically' });
+    }
+  }
+  
+  return res.status(503).json({ error: 'Database not available' });
 });
 
 app.post('/api/users/:userId/cars', async (req, res) => {

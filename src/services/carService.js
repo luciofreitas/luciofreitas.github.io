@@ -18,7 +18,7 @@ export async function getCars(userId) {
     try {
       const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
         || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
-      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`);
+      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars-auto`);
     if (response.ok) {
       const cars = await response.json();
       return cars;
@@ -82,6 +82,28 @@ export async function saveCars(userId, cars) {
  */
 export async function addCar(userId, car) {
   if (!userId || !car) return null;
+  
+  // Tentar API automática primeiro
+  try {
+    const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+      || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+    
+    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars-auto`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(car)
+    });
+    
+    if (response.ok) {
+      const addedCar = await response.json();
+      console.log('🚗 Car added via API automatically:', addedCar);
+      return addedCar;
+    }
+  } catch (error) {
+    console.warn('Auto API addCar failed, falling back to localStorage:', error);
+  }
+  
+  // Fallback localStorage
   try {
     const cars = await getCars(userId);
     const newCar = {
