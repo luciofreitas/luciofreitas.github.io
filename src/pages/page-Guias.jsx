@@ -17,6 +17,9 @@ function PageGuias() {
   // Estado para guias customizados
   const [guiasCustomizados, setGuiasCustomizados] = useState([]);
 
+  // Estado para pesquisa
+  const [termoPesquisa, setTermoPesquisa] = useState('');
+
   // Verificar se é Pro
   const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
 
@@ -104,6 +107,25 @@ function PageGuias() {
     navigate(`/guia/${guiaId}`);
   };
 
+  // Função para filtrar guias baseado no termo de pesquisa
+  const filtrarGuias = (guias) => {
+    if (!termoPesquisa.trim()) return guias;
+    
+    const termo = termoPesquisa.toLowerCase().trim();
+    return guias.filter(guia => {
+      return (
+        guia.titulo?.toLowerCase().includes(termo) ||
+        guia.subtitulo?.toLowerCase().includes(termo) ||
+        guia.descricao?.toLowerCase().includes(termo) ||
+        guia.categoria?.toLowerCase().includes(termo)
+      );
+    });
+  };
+
+  // Filtrar guias fixos e customizados
+  const guiasFixosFiltrados = filtrarGuias(guiasFixos);
+  const guiasCustomizadosFiltrados = filtrarGuias(guiasCustomizados);
+
   return (
     <>
       <Menu />
@@ -150,10 +172,34 @@ function PageGuias() {
             </div>
           )}
 
+          {/* Barra de Pesquisa */}
+          <div className="guias-search-section">
+            <div className="search-container">
+              <div className="search-icon">🔍</div>
+              <input
+                type="text"
+                placeholder="Pesquisar guias por título, descrição ou categoria..."
+                value={termoPesquisa}
+                onChange={(e) => setTermoPesquisa(e.target.value)}
+                className="search-input"
+              />
+              {termoPesquisa && (
+                <button
+                  className="clear-search-btn"
+                  onClick={() => setTermoPesquisa('')}
+                  title="Limpar pesquisa"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Guias Oficiais */}
           <h3 className="section-title">📖 Guias Oficiais</h3>
-          <div className="guias-grid">
-            {guiasFixos.map(guia => (
+          {guiasFixosFiltrados.length > 0 ? (
+            <div className="guias-grid">
+              {guiasFixosFiltrados.map(guia => (
               <div key={guia.id} className="guia-card guia-oficial">
                 <div className="guia-header">
                   <div className="guia-icone">{guia.icone}</div>
@@ -184,14 +230,19 @@ function PageGuias() {
                   </span>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : termoPesquisa && (
+            <div className="search-no-results">
+              <p>Nenhum guia oficial encontrado para "{termoPesquisa}"</p>
+            </div>
+          )}
 
           {/* Guias da Comunidade - sempre exibe o título */}
           <h3 className="section-title">� Guias da Comunidade</h3>
-          {guiasCustomizados.length > 0 ? (
+          {guiasCustomizadosFiltrados.length > 0 ? (
             <div className="guias-grid">
-              {guiasCustomizados.map(guia => {
+              {guiasCustomizadosFiltrados.map(guia => {
                 const isAutor = usuarioLogado?.email === guia.autorEmail;
                 const averageRating = guiasService.calculateAverageRating(guia);
                 const isOculto = guia.status === 'oculto';
@@ -275,6 +326,10 @@ function PageGuias() {
                   </div>
                 );
               })}
+            </div>
+          ) : termoPesquisa ? (
+            <div className="search-no-results">
+              <p>Nenhum guia da comunidade encontrado para "{termoPesquisa}"</p>
             </div>
           ) : (
             <p className="guias-empty-message">
