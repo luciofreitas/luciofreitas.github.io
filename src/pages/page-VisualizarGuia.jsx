@@ -170,9 +170,6 @@ function PageVisualizarGuia() {
       <Menu />
       <div className="page-wrapper menu-page">
         <div className="page-content visualizar-guia">
-          {/* Botão voltar */}
-          <Link to="/guias" className="voltar-link">← Voltar para Guias</Link>
-
           {/* Cabeçalho do guia */}
           <div className="guia-header-full">
             <div className="guia-meta">
@@ -267,6 +264,13 @@ function PageVisualizarGuia() {
             <p>
               💡 <strong>Dica:</strong> Se este guia foi útil para você, não esqueça de avaliá-lo!
             </p>
+          </div>
+
+          {/* Botão voltar no final da página */}
+          <div className="guia-footer-voltar">
+            <span className="guia-cta" onClick={() => navigate('/guias')}>
+              ← Voltar para Guias
+            </span>
           </div>
         </div>
       </div>
