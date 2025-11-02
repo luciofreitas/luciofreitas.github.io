@@ -75,6 +75,17 @@ export default function Login() {
 
   async function processFirebaseUser(user, googleCredential = null) {
     if (!user || processedRef.current) return;
+    
+    // LOG RAW USER DATA FROM FIREBASE/GOOGLE
+    console.log('🔍 [RAW] Firebase User Object:', {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      emailVerified: user.emailVerified,
+      providerData: user.providerData
+    });
+    
     processedRef.current = true; // Mark immediately to prevent double processing
     
     try { console.time('[auth-timing] processFirebaseUser total'); } catch (e) {}
