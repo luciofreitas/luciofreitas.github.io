@@ -10,6 +10,7 @@ export default function PagePerfil() {
     return (
       <>
         <Menu />
+        <div className="site-header-spacer"></div>
         <div className="menu-page">
           <div className="perfil-error">
             <h2 className="page-heading">Acesso Negado</h2>
@@ -23,6 +24,7 @@ export default function PagePerfil() {
   return (
     <>
       <Menu />
+      <div className="site-header-spacer"></div>
       <div className="page-wrapper menu-page">
   <div className="page-content" id="perfil">
             <h2 className="page-title">Meu Perfil</h2>

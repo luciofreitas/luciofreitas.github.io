@@ -8,7 +8,8 @@ export default function VersaoPro() {
   return (
     <>
   <Menu />
-  <div className="page-wrapper menu-page">
+      <div className="site-header-spacer"></div>
+      <div className="page-wrapper menu-page">
   <div className="page-content" id="versao-pro">
             <h2 className="page-title">Versão Pro</h2>
           <p className="versao-pro-intro">

@@ -30,7 +30,8 @@ export default function VersaoPro_Assinado() {
   return (
     <>
   <Menu />
-  <div className="page-wrapper menu-page">
+      <div className="site-header-spacer"></div>
+      <div className="page-wrapper menu-page">
   <div className="page-content versao-pro-assinado-section">
         <div className="versao-pro-assinado-container">
           <h2 className="page-title">Assinatura Pro ativada</h2>

@@ -267,6 +267,7 @@ const PecasOriginaisVsCompativeis = () => {
   return (
     <div className="pecas-page">
       {usuarioLogado ? <Menu /> : <MenuLogin />}
+      <div className="site-header-spacer"></div>
       
       <div className="pecas-container">
         {/* Header */}

@@ -86,6 +86,7 @@ function LuzesDoPainel() {
   return (
     <>
       {usuarioLogado ? <Menu /> : <MenuLogin />}
+      <div className="site-header-spacer"></div>
       <div className="page-wrapper menu-page">
         <div className="page-content">
           {/* Header com ícone */}

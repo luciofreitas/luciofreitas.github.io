@@ -157,6 +157,7 @@ export default function CriarGuia() {
   return (
     <>
       <Menu />
+      <div className="site-header-spacer"></div>
       <div className="page-wrapper">
         <div className="page-content" id="criar-guia">
           <h2 className="page-title">

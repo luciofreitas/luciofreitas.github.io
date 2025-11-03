@@ -74,6 +74,7 @@ export default function TabelaFIPE() {
   return (
     <>
       <Menu />
+      <div className="site-header-spacer"></div>
       <div className="page-wrapper">
         <div className="page-content" id="tabela-fipe">
           <h2 className="page-title">Tabela FIPE</h2>

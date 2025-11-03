@@ -168,6 +168,7 @@ function PageVisualizarGuia() {
   return (
     <>
       <Menu />
+      <div className="site-header-spacer"></div>
       <div className="page-wrapper menu-page">
         <div className="page-content visualizar-guia">
           {/* Cabeçalho do guia */}

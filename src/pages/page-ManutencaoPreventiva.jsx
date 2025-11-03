@@ -200,6 +200,7 @@ const ManutencaoPreventiva = () => {
   return (
     <div className="manutencao-page">
       {usuarioLogado ? <Menu /> : <MenuLogin />}
+      <div className="site-header-spacer"></div>
       
       <div className="manutencao-container">
         <div className="manutencao-header">

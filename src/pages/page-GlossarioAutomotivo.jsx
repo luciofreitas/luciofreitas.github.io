@@ -145,7 +145,8 @@ function PageGlossarioAutomotivo() {
     return (
       <>
         <Menu />
-        <div className="page-wrapper menu-page">
+      <div className="site-header-spacer"></div>
+      <div className="page-wrapper menu-page">
           <div className="page-content">
             <div className="loading-container">
               <div className="loading-spinner"></div>
@@ -161,7 +162,8 @@ function PageGlossarioAutomotivo() {
     return (
       <>
         <Menu />
-        <div className="page-wrapper menu-page">
+      <div className="site-header-spacer"></div>
+      <div className="page-wrapper menu-page">
           <div className="page-content">
             <div className="error-container">
               <h2>Erro ao carregar dados</h2>
@@ -176,6 +178,7 @@ function PageGlossarioAutomotivo() {
   return (
     <>
       <Menu />
+      <div className="site-header-spacer"></div>
       <div className="page-wrapper menu-page">
         <div className="page-content">
           <h2 className="page-title">Glossário Automotivo</h2>

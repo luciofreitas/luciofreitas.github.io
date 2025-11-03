@@ -112,7 +112,8 @@ export default function Checkin() {
     return (
       <>
   <Menu />
-        <div className="page-wrapper menu-page">
+      <div className="site-header-spacer"></div>
+      <div className="page-wrapper menu-page">
         <div className="page-content">
               <h2 className="page-title">Pagamento concluído</h2>
             <p className="checkin-success-text">Obrigado — sua assinatura Pro foi ativada (simulado).</p>
@@ -126,6 +127,7 @@ export default function Checkin() {
   return (
     <>
       <Menu />
+      <div className="site-header-spacer"></div>
       <div className="page-wrapper menu-page">
         <div className="page-content checkin-section">
           <div className="checkin-container">

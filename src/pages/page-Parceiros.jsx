@@ -6,7 +6,8 @@ export default function Parceiros() {
   return (
     <>
   <Menu />
-  <div className="page-wrapper menu-page">
+      <div className="site-header-spacer"></div>
+      <div className="page-wrapper menu-page">
   <div className="page-content" id="parceiros">
           <h2 className="page-title">Parceiros</h2>
           
