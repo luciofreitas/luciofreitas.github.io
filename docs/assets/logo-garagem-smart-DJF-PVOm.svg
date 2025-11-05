@@ -1,0 +1,14 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Hexágono externo (era azul, agora branco) -->
+  <path d="M25 8L38 15V30L25 37L12 30V15L25 8Z" fill="white" stroke="white" stroke-width="2"/>
+  
+  <!-- Forma interna G estilizada (era branca, agora azul) -->
+  <path d="M25 13L33 17.5V27.5L25 32L17 27.5V17.5L25 13Z" fill="#1E5BA8"/>
+  <path d="M25 18V27L30 24V21H27V23H28V23.5L25 25V19.5L32 23.5V26L25 30L18 26V19L25 15L32 19V21L25 18Z" fill="white"/>
+  
+  <!-- Texto "Garagem" -->
+  <text x="50" y="26" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="white">Garagem</text>
+  
+  <!-- Texto "Smart" -->
+  <text x="50" y="43" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="white">Smart</text>
+</svg>
