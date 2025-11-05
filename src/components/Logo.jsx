@@ -21,10 +21,14 @@ const Logo = ({ className = '', onClick, ...props }) => {
         {...props}
       >
           <img 
-            src="/images/logo-garagem-smart.svg" 
-            alt="Logo Garagem Smart" 
+            src="/images/logo.png" 
+            alt="Logo Peça Fácil" 
             className="logo-image"
           />
+        <div className="logo-text-container">
+          <h1 className="logo-title">Peça Fácil</h1>
+          <p className="logo-subtitle">Confiança e Economia</p>
+        </div>
       </div>
     </div>
   );
