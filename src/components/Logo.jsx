@@ -22,12 +22,12 @@ const Logo = ({ className = '', onClick, ...props }) => {
       >
           <img 
             src="/images/logo.png" 
-            alt="Logo Garagem Smart" 
+            alt="Logo Peça Fácil" 
             className="logo-image"
           />
         <div className="logo-text-container">
-          <h1 className="logo-title">Garagem Smart</h1>
-          <p className="logo-subtitle">Sua opção automotiva inteligente</p>
+          <h1 className="logo-title">Peça Fácil</h1>
+          <p className="logo-subtitle">Confiança e Economia</p>
         </div>
       </div>
     </div>

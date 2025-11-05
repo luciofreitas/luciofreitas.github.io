@@ -100,17 +100,17 @@
   }
 }
 
-.menu-login-logo img {
+/* .menu-login-logo img {
   /* larger logo: make it visually prominent in the header */
-  height: calc(4.5rem * 0.95) !important; /* nearly the full header height */
-  width: auto !important; /* preserve aspect ratio */
-  max-width: 220px !important; /* limit extreme wide logos */
-  border-radius: 6px !important; /* subtle rounding */
-  object-fit: contain !important;
+  /* height: calc(4.5rem * 0.95) !important; /* nearly the full header height */
+  /* width: auto !important; /* preserve aspect ratio */
+  /* max-width: 220px !important; /* limit extreme wide logos */
+  /* border-radius: 6px !important; /* subtle rounding */
+  /* object-fit: contain !important;
   cursor: pointer;
   vertical-align: middle;
   transition: transform 0.18s ease, filter 0.18s ease !important;
-}
+} */
 
 /* Header-level avatar enforcement (high specificity) so we avoid inline styles */
 .site-header button.user-button.icon-only img.user-avatar,
@@ -382,10 +382,10 @@ button.menu-login-item {
     margin-right: 0;
   }
   
-  .menu-responsive .menu-login-logo img {
+  /* .menu-responsive .menu-login-logo img {
   height: calc(4.5rem * 0.7);
   width: calc(4.5rem * 0.7);
-  }
+  } */
   
   .menu-responsive .menu-list {
     gap: 0.5rem;
@@ -567,7 +567,7 @@ button.menu-login-item {
   margin-left: 0.5rem; 
 }
 
-.menu-login-logo img { 
+/* .menu-login-logo img { 
   height: 4.375rem; 
   cursor: pointer; 
   vertical-align: middle; 
@@ -576,7 +576,7 @@ button.menu-login-item {
 
 .menu-login-logo img:hover {
   transform: scale(1.05);
-}
+} */
 
 .menu-login-center { 
   flex: 1; 
@@ -660,10 +660,10 @@ button.menu-login-item {
   line-height: 1 !important;
 }
 
-  .menu-login-logo img { 
+/* .menu-login-logo img { 
   max-height: calc(4.5rem + 1rem) !important;
   height: auto !important;
-}
+} */
 
 /* Reduce chance of pseudo-element being clipped by header children */
 .site-header * {
@@ -719,9 +719,9 @@ button.menu-login-item {
     margin-left: 0 !important;
   }
   
-  .menu-login-logo img { 
+  /* .menu-login-logo img { 
     height: 2.812rem !important;
-  }
+  } */
   
   .menu-list {
     gap: 0.5rem !important;
@@ -764,9 +764,9 @@ button.menu-login-item {
     padding-left: 3rem; 
     padding-right: 3rem; 
   }
-  .menu-login-logo img { 
+  /* .menu-login-logo img { 
     height: 7rem; 
-  }
+  } */
 }
 
 /* OVERRIDE FINAL - Força aplicação dos estilos independente de qualquer framework */
@@ -787,10 +787,10 @@ button.menu-login-item {
   margin-right: 0.5rem !important;
 }
 
-.menu-compact .menu-login-logo img {
+/* .menu-compact .menu-login-logo img {
   height: 2.812rem !important;
   width: auto !important;
-}
+} */
 
 .menu-compact .custom-menu-list {
   gap: 0.5rem !important;
@@ -1069,17 +1069,16 @@ button.menu-login-item {
     overflow: visible !important; /* Garante que nada seja cortado */
   }
 
-  /* Logo image com dimensões proporcionais */
-  .menu-login-logo .logo-image {
+  /* Logo image com dimensões proporcionais - REMOVIDO, agora controlado por Logo.css */
+  /* .menu-login-logo .logo-image {
     width: auto !important;
-    /* increase the inline logo image to be prominent */
-    height: calc(4.5rem * 0.95) !important; /* match .menu-login-logo img */
-    max-width: 260px !important; /* allow wider logos on desktop */
+    height: calc(4.5rem * 0.95) !important;
+    max-width: 260px !important;
     object-fit: contain !important;
     border: none !important;
     outline: none !important;
     flex-shrink: 0 !important;
-  }
+  } */
 
   /* If the logo image is focusable (inside a link), ensure keyboard users see a focus ring */
   .menu-login-logo .logo-image:focus-visible {
@@ -1353,9 +1352,9 @@ a.menu-login-item {
 /* FINAL OVERRIDE: Force a much larger header logo for visual prominence
    This override intentionally uses !important and high-specificity selectors
    so it applies regardless of previous rules. It also reduces size on small screens. */
+/* Removido para deixar Logo.css controlar o tamanho
 .menu-login-logo.logo-container .logo-image,
 .menu-login-logo img {
-  /* Stable sizes for the logo: desktop ~64px height, mobile smaller */
   height: 64px !important;
   max-height: 64px !important;
   max-width: 280px !important;
@@ -1366,7 +1365,7 @@ a.menu-login-item {
 @media (max-width: 48rem) {
   .menu-login-logo.logo-container .logo-image,
   .menu-login-logo img {
-    height: 40px !important; /* mobile friendly */
+    height: 40px !important;
     max-width: 160px !important;
   }
 }

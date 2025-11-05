@@ -981,7 +981,6 @@ body:not(:has(.page-inicio)) {
     padding: 0 0.5em;
   }
   .menu-items-center { left: 50%; gap: 1em; }
-  .logo-container img { height: 2.5rem; }
 }
 
 /* Mobile - 375x667 */
@@ -993,7 +992,6 @@ body:not(:has(.page-inicio)) {
     padding: 0 0.5em;
   }
   .menu-items-center { left: 50%; gap: 1em; }
-  .logo-container img { height: 2.5rem; }
 }
 
 /* Mobile - 360x640 */
@@ -1005,7 +1003,6 @@ body:not(:has(.page-inicio)) {
     padding: 0 0.5em;
   }
   .menu-items-center { left: 50%; gap: 1em; }
-  .logo-container img { height: 2.5rem; }
 }
 
 /* Ensure spacer takes no space so the header sits flush with content */
