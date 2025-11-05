@@ -16,10 +16,9 @@
 }
 
 .logo-image {
-  height: 6.375rem !important;
-  width: 6.375rem !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
+  height: 3.5rem !important;
+  width: auto !important;
+  object-fit: contain !important;
   transition: transform 0.2s ease !important;
   flex-shrink: 0;
   display: block !important;
@@ -28,16 +27,6 @@
 
 .logo-image:hover {
   transform: scale(1.05);
-}
-
-.logo-text-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  line-height: 1.2;
-  margin-left: -12px; /* aproximar o texto ainda mais - sem espaçamento */
-  width: fit-content; /* width acompanha o tamanho máximo do conteúdo */
-  max-width: max-content; /* sem largura desnecessária */
 }
 
 .logo-title {
