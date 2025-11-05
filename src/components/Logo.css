@@ -15,7 +15,9 @@
   transform: scale(1.02);
 }
 
-.logo-image {
+.logo-container .logo-image,
+.menu-login-logo .logo-container .logo-image,
+.menu-login-logo .logo-image {
   height: 3.5rem !important;
   width: 3.5rem !important;
   border-radius: 50% !important;
@@ -24,6 +26,8 @@
   flex-shrink: 0;
   display: block !important;
   filter: none !important;
+  max-height: 3.5rem !important;
+  min-height: 3.5rem !important;
 }
 
 .logo-image:hover {
