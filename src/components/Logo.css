@@ -16,8 +16,8 @@
 }
 
 .logo-image {
-  height: 6.375rem !important;
-  width: 6.375rem !important;
+  height: 4rem !important;
+  width: 4rem !important;
   border-radius: 50% !important;
   object-fit: cover !important;
   transition: transform 0.2s ease !important;
@@ -62,8 +62,8 @@
 /* Responsividade */
 @media screen and (max-width: 85.375rem) {
   .logo-image {
-    height: 5.125rem !important;
-    width: 5.125rem !important;
+    height: 3.5rem !important;
+    width: 3.5rem !important;
   }
   
   .logo-title {
@@ -85,8 +85,8 @@
 
 @media screen and (min-width: 30.01rem) and (max-width: 48rem) {
   .logo-image {
-    height: 5.125rem !important;
-    width: 5.125rem !important;
+    height: 3.5rem !important;
+    width: 3.5rem !important;
   }
   
   .logo-title {
