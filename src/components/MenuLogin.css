@@ -193,8 +193,14 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
     left: auto !important;
     transform: none !important;
     flex: 1 !important;
-    justify-content: flex-start !important; /* Alinha à esquerda após a logo */
-    padding-left: 1rem !important; /* Espaço mínimo após a logo */
+    justify-content: center !important; /* Centraliza no espaço disponível */
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+  
+  .menu-login-center .menu-nav {
+    margin-left: auto !important; /* Empurra o menu para a direita */
+    margin-right: auto !important;
   }
 }
 
