@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import './WhatsAppButton.css';
 import TooltipPortal from './TooltipPortal';
+import padlockIcon from '/images/padlock.png';
 
 function WhatsAppButton({ vehicle, isPro }) {
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent('Olá, tenho interesse na peça para: ' + (vehicle || ''))}`;
@@ -36,7 +37,7 @@ function WhatsAppButton({ vehicle, isPro }) {
           onMouseLeave={hideTooltip}
         >
           <div className="whatsapp-tooltip-icon" ref={padlockRef} onFocus={showTooltip} onBlur={hideTooltip} tabIndex={0}>
-            <img src="/imagens/padlock.png" alt="Cadeado" className="whatsapp-padlock" />
+            <img src={padlockIcon} alt="Cadeado" className="whatsapp-padlock" />
           </div>
 
           {/* Render tooltip into document.body via portal to escape stacking contexts */}
