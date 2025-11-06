@@ -23,15 +23,25 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 1.125rem;
-  background: #25D366;
-  color: #fff;
+  background: #ffffff;
+  color: #25D366;
   text-decoration: none;
+  border: 1px solid #dadce0;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
   transition: all 0.2s ease;
+  font-size: 1.25rem;
 }
 
 .whatsapp-button:hover {
-  background: #128C7E;
-  transform: scale(1.05);
+  border-color: #d2d3d4;
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+.whatsapp-button:active {
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  background: #f1f3f4;
+  transform: translateY(0);
 }
 
 .whatsapp-button svg {
@@ -134,11 +144,14 @@
 /* ===== DARK MODE ===== */
 
 .theme-dark .whatsapp-button {
-  background: #25D366;
+  background: #374151;
+  border-color: #4b5563;
+  color: #25D366;
 }
 
 .theme-dark .whatsapp-button:hover {
-  background: #1da851;
+  background: #4b5563;
+  border-color: #6b7280;
 }
 
 .theme-dark .whatsapp-button-blur {

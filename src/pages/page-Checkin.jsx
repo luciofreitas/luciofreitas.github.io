@@ -1,4 +1,5 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
 import '../styles/pages/page-Checkin.css';
@@ -17,7 +18,15 @@ export default function Checkin() {
   const [expiryError, setExpiryError] = useState('');
   const [cvcError, setCvcError] = useState('');
 
+  const navigate = useNavigate();
   const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext) || {};
+
+  // Redireciona para login se não estiver logado
+  useEffect(() => {
+    if (!usuarioLogado) {
+      navigate('/login', { state: { redirectTo: '/checkin' } });
+    }
+  }, [usuarioLogado, navigate]);
 
   function handleSubmit(e) {
     e.preventDefault();
