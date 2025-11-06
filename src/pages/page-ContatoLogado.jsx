@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { Menu, ContatoForm } from '../components';
 import { AuthContext } from '../App';
+import { FaWhatsapp, FaEnvelope } from 'react-icons/fa';
 import '../styles/pages/page-ContatoLogado.css';
 
 export default function ContatoLogado() {
@@ -28,8 +29,8 @@ export default function ContatoLogado() {
             <ContatoForm requireAuth={true} user={usuarioLogado} onSubmit={handleSubmit} />
 
             <div className="contato-logado-info">
-              <p>Telefone: (00) 0000-0000</p>
-              <p>EMail: suporte@garagemsmart.com.br</p>
+              <p><FaWhatsapp className="contato-icon" /> (00) 0000-0000</p>
+              <p><FaEnvelope className="contato-icon" /> suporte@garagemsmart.com.br</p>
             </div>
   </div>
       </div>

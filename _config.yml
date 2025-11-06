@@ -30,4 +30,3 @@ mime_types:
   .mjs: "application/javascript"
   .json: "application/json"
   .css: "text/css"
-  .mjs: "text/javascript"

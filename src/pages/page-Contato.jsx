@@ -1,5 +1,6 @@
 import React from 'react';
 import { MenuLogin, ContatoForm } from '../components';
+import { FaWhatsapp, FaEnvelope } from 'react-icons/fa';
 import '../styles/pages/page-Contato.css';
 
 export default function Contato() {
@@ -19,8 +20,8 @@ export default function Contato() {
           <ContatoForm />
 
           <div className="contato-info">
-            <p>Telefone: (00) 0000-0000</p>
-            <p>EMail: suporte@garagemsmart.com.br</p>
+            <p><FaWhatsapp className="contato-icon" /> (00) 0000-0000</p>
+            <p><FaEnvelope className="contato-icon" /> suporte@garagemsmart.com.br</p>
           </div>
     </div>
   </div>
