@@ -71,6 +71,19 @@
   box-sizing: border-box;
   -webkit-appearance: none;
   appearance: none;
+  /* Limita a altura do dropdown nativo para evitar scroll duplo */
+  max-height: 2.5rem;
+}
+
+/* Melhora a visualização do dropdown em telas menores */
+.search-form-field select option {
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Para navegadores que suportam, ajusta tamanho do dropdown */
+.search-form-field select {
+  size: auto;
 }
 
 /* Ajustes para CustomDropdown utilizado no lugar do select nativo */
@@ -192,6 +205,43 @@
 }
 
 /* Responsividade */
+
+/* Media query para 1366x768 e resoluções similares */
+@media (min-width: 768px) and (max-width: 1440px) and (max-height: 900px) {
+  .search-form {
+    max-width: 48rem;
+  }
+  
+  .search-form-field {
+    min-width: 18rem;
+  }
+  
+  /* Ajusta comportamento do select para evitar scroll duplo */
+  .search-form-field select {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+  
+  .search-form-field select::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .search-form-field select::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+  
+  .search-form-field select::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+  
+  .search-form-field select::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
 @media (max-width: 48rem) {
   .search-form {
     padding: 1rem;
@@ -337,4 +387,23 @@
   background-color: #78350f; /* Amber-900 */
   border-color: #f59e0b; /* Amber-500 */
   color: #fcd34d; /* Amber-300 */
+}
+
+/* Dark mode para media query 1366x768 */
+@media (min-width: 768px) and (max-width: 1440px) and (max-height: 900px) {
+  .theme-dark .search-form-field select {
+    scrollbar-color: #475569 #1e293b;
+  }
+  
+  .theme-dark .search-form-field select::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+  
+  .theme-dark .search-form-field select::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
+  
+  .theme-dark .search-form-field select::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
 }
