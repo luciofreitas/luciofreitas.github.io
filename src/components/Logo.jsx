@@ -27,7 +27,6 @@ const Logo = ({ className = '', onClick, ...props }) => {
           />
         <div className="logo-text-container">
           <h1 className="logo-title">Garagem Smart</h1>
-          <p className="logo-subtitle">Sua opção automotiva inteligente</p>
         </div>
       </div>
     </div>

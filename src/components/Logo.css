@@ -38,6 +38,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
   line-height: 1.2;
   margin-left: 0; /* espaçamento adequado entre imagem e texto */
   width: fit-content; /* width acompanha o tamanho máximo do conteúdo */
@@ -47,7 +48,7 @@
 .logo-title {
   font-family: 'Segoe UI', Arial, sans-serif;
   font-size: 1.75rem;
-  font-weight: bold;
+  font-weight: 630; /* reduzido de bold (700) para ~630 (10% a menos) */
   color: #000000;
   margin: 0;
   white-space: nowrap;
