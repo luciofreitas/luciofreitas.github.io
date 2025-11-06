@@ -223,8 +223,8 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
     gap: 1.2rem;
   }
   .menu-login-item {
-    font-size: 0.99rem; /* Aumentado de 0.9rem para 0.99rem (10% maior) */
-    padding: 0.3em 0.7em;
+    font-size: 1.05rem; /* Ajustado para melhor proporção */
+    padding: 0.35em 0.8em;
   }
   /* Centralização mantida via position absolute - removido margin-left */
 }
@@ -235,8 +235,8 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
     gap: 1.5rem;
   }
   .menu-login-item {
-    font-size: 1.1rem; /* Aumentado de 1rem para 1.1rem (10% maior) */
-    padding: 0.35em 0.9em;
+    font-size: 1.15rem; /* Ajustado para melhor proporção */
+    padding: 0.4em 1em;
   }
   /* Centralização mantida via position absolute - removido margin-left */
 }
@@ -247,8 +247,8 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
     gap: 2rem;
   }
   .menu-login-item {
-    font-size: 1.21rem; /* Aumentado de 1.1rem para 1.21rem (10% maior) */
-    padding: 0.4em 1em;
+    font-size: 1.25rem; /* Ajustado para melhor proporção */
+    padding: 0.45em 1.1em;
   }
   /* Centralização mantida via position absolute - removido margin-left */
 }
@@ -295,8 +295,8 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
     gap: 2.5rem;
   }
   .menu-login-item {
-    font-size: 1.32rem; /* Aumentado de 1.2rem para 1.32rem (10% maior) */
-    padding: 0.45em 1.1em;
+    font-size: 1.35rem; /* Ajustado para melhor proporção */
+    padding: 0.5em 1.2em;
   }
   /* Centralização mantida via position absolute - removido margin-left */
 }
@@ -306,8 +306,8 @@ a.menu-login-item,
 button.menu-login-item {
   color: #ffffff !important; /* Branco para contrastar com fundo azul - aplicado globalmente */
   font-weight: 600 !important;
-  font-size: 1.1rem; /* Aumentado de 1rem para 1.1rem (10% maior) */
-  padding: 0.35em 0.9em;
+  font-size: 1.15rem; /* Aumentado para 1.15rem para melhor legibilidade */
+  padding: 0.4em 1em; /* Aumentado o padding para mais espaço */
   border-radius: 0.5rem;
   position: relative;
   text-decoration: none;
@@ -704,8 +704,8 @@ button.menu-login-item {
 }
 
 .menu-compact .menu-login-item {
-  font-size: 0.893rem !important; /* Aumentado de 0.812rem para 0.893rem (10% maior) */
-  padding: 0.25em 0.5em !important;
+  font-size: 0.95rem !important; /* Ajustado para melhor legibilidade em modo compacto */
+  padding: 0.3em 0.6em !important;
   white-space: nowrap !important;
 }
 
@@ -728,8 +728,8 @@ button.menu-login-item {
   }
   
   .menu-login-item {
-    font-size: 0.893rem !important; /* Aumentado de 0.812rem para 0.893rem (10% maior) */
-    padding: 0.25em 0.5em !important;
+    font-size: 0.95rem !important; /* Ajustado para melhor legibilidade */
+    padding: 0.3em 0.6em !important;
   }
 }
 
@@ -802,8 +802,8 @@ button.menu-login-item {
 }
 
 .menu-compact .menu-login-item {
-  font-size: 0.893rem !important; /* Aumentado de 0.812rem para 0.893rem (10% maior) */
-  padding: 0.25em 0.5em !important;
+  font-size: 0.95rem !important; /* Ajustado para melhor legibilidade */
+  padding: 0.3em 0.6em !important;
   white-space: nowrap !important;
   margin: 0 !important;
   border: none !important;
