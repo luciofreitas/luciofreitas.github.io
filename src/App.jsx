@@ -1,6 +1,8 @@
 import React, { useState, createContext, useContext, useEffect, lazy, Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+// Import migration helper to run data migration on app load
+import './utils/migrationHelper';
 // Critical routes: load immediately (Login, PageInicio)
 import Login from './pages/page-Login';
 import PageInicio from './pages/page-Inicio';

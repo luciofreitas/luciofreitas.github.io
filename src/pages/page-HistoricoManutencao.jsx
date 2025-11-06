@@ -1,12 +1,22 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { Menu, MenuLogin } from '../components';
+import { getCars } from '../services/carService';
+import { 
+  getMaintenances, 
+  addMaintenance, 
+  updateMaintenance, 
+  deleteMaintenance 
+} from '../services/maintenanceService';
 import '../styles/pages/page-HistoricoManutencao.css';
 
 export default function HistoricoManutencao() {
   const { usuarioLogado } = useContext(AuthContext) || {};
+  const navigate = useNavigate();
   const [manutencoes, setManutencoes] = useState([]);
   const [carros, setCarros] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [filtroVeiculo, setFiltroVeiculo] = useState('todos');
@@ -21,49 +31,57 @@ export default function HistoricoManutencao() {
     observacoes: ''
   });
 
-  // Carregar dados do localStorage
+  // Carregar carros e manutenções do sistema integrado
   useEffect(() => {
-    if (usuarioLogado) {
-      const storedManutencoes = localStorage.getItem(`manutencoes_${usuarioLogado.email}`);
-      const storedCarros = localStorage.getItem(`carros_${usuarioLogado.email}`);
-      
-      if (storedManutencoes) {
-        setManutencoes(JSON.parse(storedManutencoes));
+    const loadData = async () => {
+      if (usuarioLogado) {
+        setLoading(true);
+        try {
+          const userId = usuarioLogado.id || usuarioLogado.email;
+          
+          // Carrega carros do sistema "Meus Carros"
+          const userCars = await getCars(userId);
+          setCarros(userCars);
+          
+          // Carrega manutenções
+          const userMaintenances = await getMaintenances(userId);
+          setManutencoes(userMaintenances);
+        } catch (error) {
+          console.error('Erro ao carregar dados:', error);
+        } finally {
+          setLoading(false);
+        }
       }
-      
-      if (storedCarros) {
-        setCarros(JSON.parse(storedCarros));
-      }
-    }
+    };
+    
+    loadData();
   }, [usuarioLogado]);
 
-  const salvarManutencoes = (novasManutencoes) => {
-    if (usuarioLogado) {
-      localStorage.setItem(`manutencoes_${usuarioLogado.email}`, JSON.stringify(novasManutencoes));
-      setManutencoes(novasManutencoes);
-    }
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (editingId) {
-      // Editar manutenção existente
-      const updated = manutencoes.map(m => 
-        m.id === editingId ? { ...formData, id: editingId } : m
-      );
-      salvarManutencoes(updated);
-    } else {
-      // Adicionar nova manutenção
-      const novaManutencao = {
-        ...formData,
-        id: Date.now().toString()
-      };
-      salvarManutencoes([...manutencoes, novaManutencao]);
-    }
+    if (!usuarioLogado) return;
+    const userId = usuarioLogado.id || usuarioLogado.email;
     
-    resetForm();
-    setShowModal(false);
+    try {
+      if (editingId) {
+        // Editar manutenção existente
+        await updateMaintenance(userId, editingId, formData);
+        const updated = await getMaintenances(userId);
+        setManutencoes(updated);
+      } else {
+        // Adicionar nova manutenção
+        await addMaintenance(userId, formData);
+        const updated = await getMaintenances(userId);
+        setManutencoes(updated);
+      }
+      
+      resetForm();
+      setShowModal(false);
+    } catch (error) {
+      console.error('Erro ao salvar manutenção:', error);
+      alert('Erro ao salvar manutenção. Tente novamente.');
+    }
   };
 
   const handleEdit = (manutencao) => {
@@ -72,10 +90,19 @@ export default function HistoricoManutencao() {
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este registro?')) {
-      const updated = manutencoes.filter(m => m.id !== id);
-      salvarManutencoes(updated);
+  const handleDelete = async (id) => {
+    if (!window.confirm('Tem certeza que deseja excluir este registro?')) return;
+    
+    if (!usuarioLogado) return;
+    const userId = usuarioLogado.id || usuarioLogado.email;
+    
+    try {
+      await deleteMaintenance(userId, id);
+      const updated = await getMaintenances(userId);
+      setManutencoes(updated);
+    } catch (error) {
+      console.error('Erro ao deletar manutenção:', error);
+      alert('Erro ao deletar manutenção. Tente novamente.');
     }
   };
 
@@ -139,10 +166,20 @@ export default function HistoricoManutencao() {
             </p>
           </div>
 
-          {carros.length === 0 ? (
+          {loading ? (
+            <div className="historico-loading">
+              <p>Carregando dados...</p>
+            </div>
+          ) : carros.length === 0 ? (
             <div className="historico-no-cars">
               <p>Você ainda não possui veículos cadastrados.</p>
-              <a href="/meus-carros" className="historico-add-car-btn">Cadastrar Veículo</a>
+              <p>Cadastre seu primeiro veículo para começar a registrar manutenções.</p>
+              <button 
+                onClick={() => navigate('/meus-carros')} 
+                className="historico-add-car-btn"
+              >
+                📝 Ir para Meus Carros
+              </button>
             </div>
           ) : (
             <>

@@ -34,6 +34,39 @@
   margin-bottom: 1.5rem;
 }
 
+/* Loading State */
+.historico-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.historico-loading p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* No Cars State */
+.historico-no-cars {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: var(--bg-gray-neutral);
+  border: 1px solid var(--border-gray);
+  border-radius: 0.75rem;
+  margin: 2rem 0;
+}
+
+.historico-no-cars p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
 .historico-login-btn,
 .historico-add-car-btn {
   display: inline-block;
@@ -41,8 +74,11 @@
   background: #0052CC;
   color: #fff;
   text-decoration: none;
+  border: none;
   border-radius: 0.5rem;
   font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
