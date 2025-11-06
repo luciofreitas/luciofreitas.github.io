@@ -47,8 +47,8 @@
 
 .logo-title {
   font-family: 'Segoe UI', Arial, sans-serif;
-  font-size: 1.575rem; /* reduzido de 1.75rem para 1.575rem (10% a menos) */
-  font-weight: 630; /* reduzido de bold (700) para ~630 (10% a menos) */
+  font-size: 1.42rem; /* reduzido ainda mais (~10% a menos de 1.575rem) */
+  font-weight: 600; /* levemente reduzido */
   color: #000000;
   margin: 0;
   white-space: nowrap;

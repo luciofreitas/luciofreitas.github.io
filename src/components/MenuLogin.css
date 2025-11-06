@@ -243,12 +243,12 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
 @media (min-width: 48rem) and (max-width: 64rem) {
   /* Small desktop: 768px - 1024px */
   .menu-list {
-    gap: 0.65rem; /* Reduzido ainda mais */
-    margin-left: 0.5rem; /* Espaço mínimo após a logo */
+    gap: 0.55rem; /* Reduzido ainda mais para tablets */
+    margin-left: 0.5rem;
   }
   .menu-login-item {
-    font-size: 1rem;
-    padding: 0.3em 0.65em; /* Padding mais compacto */
+    font-size: 0.9rem; /* Diminuído em ~10% de 1rem */
+    padding: 0.28em 0.58em; /* Padding proporcionalmente reduzido */
   }
 }
 
