@@ -232,36 +232,36 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
 @media (min-width: 48rem) and (max-width: 64rem) {
   /* Small desktop: 768px - 1024px */
   .menu-list {
-    gap: 0.8rem; /* Reduzido para dar mais espaço */
-    margin-left: 1rem; /* Garante espaço mínimo após a logo */
+    gap: 0.65rem; /* Reduzido ainda mais */
+    margin-left: 0.5rem; /* Espaço mínimo após a logo */
   }
   .menu-login-item {
-    font-size: 1.05rem;
-    padding: 0.35em 0.7em; /* Padding reduzido */
+    font-size: 1rem;
+    padding: 0.3em 0.65em; /* Padding mais compacto */
   }
 }
 
 @media (min-width: 64rem) and (max-width: 80rem) {
   /* Medium desktop: 1024px - 1280px */
   .menu-list {
-    gap: 1rem; /* Reduzido de 1.5rem */
-    margin-left: 1.5rem; /* Garante espaço após a logo */
+    gap: 0.75rem; /* Reduzido ainda mais */
+    margin-left: 0.75rem; /* Reduzido */
   }
   .menu-login-item {
-    font-size: 1.15rem;
-    padding: 0.4em 0.9em; /* Padding levemente reduzido */
+    font-size: 1.08rem;
+    padding: 0.35em 0.8em; /* Padding reduzido */
   }
 }
 
 @media (min-width: 80rem) and (max-width: 90rem) {
   /* Large desktop: 1280px - 1440px - Resolução onde botão fica circular */
   .menu-list {
-    gap: 0.9rem; /* Espaçamento ainda menor para acomodar menu */
-    margin-left: 1.5rem; /* Mantém distância da logo */
+    gap: 0.7rem; /* Espaçamento ainda menor para acomodar menu */
+    margin-left: 0.5rem; /* Distância mínima da logo */
   }
   .menu-login-item {
-    font-size: 1.2rem; /* Levemente menor */
-    padding: 0.4em 0.9em; /* Padding mais compacto */
+    font-size: 1.1rem; /* Menor para caber melhor */
+    padding: 0.35em 0.75em; /* Padding mais compacto */
   }
 }
 
