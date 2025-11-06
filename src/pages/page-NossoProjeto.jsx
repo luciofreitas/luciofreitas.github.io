@@ -12,7 +12,7 @@ export default function NossoProjeto() {
           
           <div className="nossoprojeto-intro">
             <p>
-              Conheça o Garagem Smart - nossa solução para compatibilidade automotiva.
+              Conheça o Garagem Smart - nossa solução para o seu problema automotivo.
             </p>
           </div>
 
