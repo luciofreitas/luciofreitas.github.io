@@ -185,14 +185,25 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
   order: 2 !important; /* Segunda posição na ordem */
 }
 
-/* Centralização absoluta apenas em desktop (768px+) */
-@media (min-width: 48rem) {
+/* Centralização ajustável em desktop (768px+) */
+@media (min-width: 48rem) and (max-width: 90rem) {
   .menu-login-center {
-    /* Centralização absoluta baseada na viewport */
+    /* Remove centralização absoluta em resoluções menores para dar espaço */
+    position: relative !important;
+    left: auto !important;
+    transform: none !important;
+    flex: 1 !important;
+    justify-content: flex-start !important; /* Alinha à esquerda após a logo */
+    padding-left: 1rem !important; /* Espaço mínimo após a logo */
+  }
+}
+
+@media (min-width: 90rem) {
+  .menu-login-center {
+    /* Centralização absoluta apenas em telas grandes */
     position: absolute !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    /* Removido margin-left para usar centralização absoluta */
   }
 }
 
