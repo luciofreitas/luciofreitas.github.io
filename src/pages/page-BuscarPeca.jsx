@@ -183,6 +183,12 @@ export default function BuscarPeca() {
     });
     
     const nomesUnicos = Array.from(new Set(pecasFiltradas.map(p => p.name || '').filter(Boolean)));
+    
+    // Always include the currently selected category to prevent it from disappearing
+    if (selectedCategoria && !nomesUnicos.includes(selectedCategoria)) {
+      nomesUnicos.push(selectedCategoria);
+    }
+    
     return nomesUnicos;
   };
 
@@ -195,7 +201,15 @@ export default function BuscarPeca() {
     if (selectedCategoria) {
       filtered = filtered.filter(p => p && p.name === selectedCategoria);
     }
-    return Array.from(new Set(filtered.map(p => p && p.manufacturer).filter(Boolean)));
+    
+    const fabricantesArray = Array.from(new Set(filtered.map(p => p && p.manufacturer).filter(Boolean)));
+    
+    // Always include the currently selected manufacturer to prevent it from disappearing
+    if (selectedFabricante && !fabricantesArray.includes(selectedFabricante)) {
+      fabricantesArray.push(selectedFabricante);
+    }
+    
+    return fabricantesArray;
   };
 
   const getFilteredMarcas = () => {
@@ -226,7 +240,15 @@ export default function BuscarPeca() {
         });
       }
     });
-    return Array.from(marcasSet);
+    
+    const marcasArray = Array.from(marcasSet);
+    
+    // Always include the currently selected brand to prevent it from disappearing
+    if (selectedMarca && !marcasArray.includes(selectedMarca)) {
+      marcasArray.push(selectedMarca);
+    }
+    
+    return marcasArray;
   };
 
   const getFilteredModelos = () => {
