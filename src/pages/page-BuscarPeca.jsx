@@ -25,6 +25,9 @@ export default function BuscarPeca() {
   const [pecas, setPecas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Track if user selected a specific car (to preserve filter values)
+  const [carroSelecionadoId, setCarroSelecionadoId] = useState('');
 
   // Estados para mensagens de incompatibilidade
   const [warningMarca, setWarningMarca] = useState('');
@@ -184,8 +187,8 @@ export default function BuscarPeca() {
     
     const nomesUnicos = Array.from(new Set(pecasFiltradas.map(p => p.name || '').filter(Boolean)));
     
-    // Always include the currently selected category to prevent it from disappearing
-    if (selectedCategoria && !nomesUnicos.includes(selectedCategoria)) {
+    // Only preserve selected category if user has selected a specific car
+    if (carroSelecionadoId && selectedCategoria && !nomesUnicos.includes(selectedCategoria)) {
       nomesUnicos.push(selectedCategoria);
     }
     
@@ -204,8 +207,8 @@ export default function BuscarPeca() {
     
     const fabricantesArray = Array.from(new Set(filtered.map(p => p && p.manufacturer).filter(Boolean)));
     
-    // Always include the currently selected manufacturer to prevent it from disappearing
-    if (selectedFabricante && !fabricantesArray.includes(selectedFabricante)) {
+    // Only preserve selected manufacturer if user has selected a specific car
+    if (carroSelecionadoId && selectedFabricante && !fabricantesArray.includes(selectedFabricante)) {
       fabricantesArray.push(selectedFabricante);
     }
     
@@ -243,8 +246,8 @@ export default function BuscarPeca() {
     
     const marcasArray = Array.from(marcasSet);
     
-    // Always include the currently selected brand to prevent it from disappearing
-    if (selectedMarca && !marcasArray.includes(selectedMarca)) {
+    // Only preserve selected brand if user has selected a specific car
+    if (carroSelecionadoId && selectedMarca && !marcasArray.includes(selectedMarca)) {
       marcasArray.push(selectedMarca);
     }
     
@@ -288,12 +291,14 @@ export default function BuscarPeca() {
       }
     });
     
-    // Always include the currently selected model to prevent it from disappearing
-    if (selectedModelo) {
-      modelosSet.add(selectedModelo);
+    const modelosArray = Array.from(modelosSet);
+    
+    // Only preserve selected model if user has selected a specific car
+    if (carroSelecionadoId && selectedModelo && !modelosArray.includes(selectedModelo)) {
+      modelosArray.push(selectedModelo);
     }
     
-    return Array.from(modelosSet);
+    return modelosArray;
   };
 
   const getFilteredAnos = () => {
@@ -341,12 +346,15 @@ export default function BuscarPeca() {
       }
     });
     
-    // Always include the currently selected year to prevent it from disappearing
-    if (selectedAno) {
-      anosSet.add(selectedAno);
+    const anosArray = Array.from(anosSet).sort();
+    
+    // Only preserve selected year if user has selected a specific car
+    if (carroSelecionadoId && selectedAno && !anosArray.includes(selectedAno)) {
+      anosArray.push(selectedAno);
+      anosArray.sort();
     }
     
-    return Array.from(anosSet).sort();
+    return anosArray;
   };
 
   const renderPecasModal = (lista) => (
@@ -509,6 +517,7 @@ export default function BuscarPeca() {
               fabricantes={getFilteredFabricantes()}
               onSearch={handleSearch}
               onClear={handleClear}
+              onCarroChange={setCarroSelecionadoId}
               loading={loading}
               error={error}
               warningMarca={warningMarca}

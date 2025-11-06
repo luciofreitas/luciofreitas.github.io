@@ -32,7 +32,8 @@ function SearchForm({
   warningModelo,
   warningAno,
   warningFabricante,
-  emptyFieldsWarning
+  emptyFieldsWarning,
+  onCarroChange // NEW: callback to notify parent when car is selected
 }) {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const [carros, setCarros] = useState([]);
@@ -56,6 +57,11 @@ function SearchForm({
   // Quando seleciona um carro, preenche os campos
   const handleCarroChange = (carId) => {
     setCarroSelecionado(carId);
+    
+    // Notify parent component about car selection change
+    if (onCarroChange) {
+      onCarroChange(carId);
+    }
     
     if (!carId) {
       // Se desmarcou, não faz nada (permite busca geral)
