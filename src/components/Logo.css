@@ -3,12 +3,18 @@
 .logo-container {
   display: flex !important;
   align-items: center !important;
-  gap: 1rem;
+  gap: clamp(1rem, 2.5vw, 1.2rem) !important; /* Responsivo: 1rem (mobile/tablet) até 1.2rem (desktop) */
   cursor: pointer;
   transition: transform 0.2s ease;
   visibility: visible !important;
   opacity: 1 !important;
   position: relative !important;
+}
+
+/* Força o gap em todas as variações do logo-container */
+.menu-login-logo .logo-container,
+div.logo-container {
+  gap: clamp(1rem, 2.5vw, 1.2rem) !important;
 }
 
 .logo-container:hover {

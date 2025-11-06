@@ -26,7 +26,7 @@ export default function PageConfiguracoes() {
                 Voltar
               </button>
               <h1 className="config-title">Configurações</h1>
-              <p className="config-subtitle">Personalize sua experiência no Peça Fácil</p>
+              <p className="config-subtitle">Personalize sua experiência no Garagem Smart</p>
             </div>
 
             <div className="config-sections">

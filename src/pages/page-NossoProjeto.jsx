@@ -12,13 +12,13 @@ export default function NossoProjeto() {
           
           <div className="nossoprojeto-intro">
             <p>
-              Conheça o Peça Fácil - nossa solução para compatibilidade automotiva.
+              Conheça o Garagem Smart - nossa solução para compatibilidade automotiva.
             </p>
           </div>
 
           <div className="nosso-projeto-content">
             <p className="nosso-projeto-body">
-              O Peça Fácil é uma plataforma completa e intuitiva desenvolvida para transformar a forma como você cuida do seu veículo. 
+              O Garagem Smart é uma plataforma completa e intuitiva desenvolvida para transformar a forma como você cuida do seu veículo. 
               Nascemos da necessidade de simplificar o complexo universo automotivo, oferecendo ferramentas práticas que colocam o 
               conhecimento técnico ao alcance de todos — desde consumidores finais até profissionais do setor.
               <br /><br />
@@ -45,7 +45,7 @@ export default function NossoProjeto() {
               verificados que compartilham nosso compromisso com qualidade e transparência. Ao precisar de um serviço especializado, você encontra 
               profissionais qualificados próximos a você, com avaliações reais de outros usuários e a certeza de um atendimento ético.
               <br /><br />
-              <strong>Histórico de Manutenção Organizado:</strong> Com o Peça Fácil, você mantém um registro completo de todas as manutenções, 
+              <strong>Histórico de Manutenção Organizado:</strong> Com o Garagem Smart, você mantém um registro completo de todas as manutenções, 
               trocas de peças e serviços realizados no seu veículo. Esse histórico digital facilita o acompanhamento de revisões periódicas, 
               aumenta o valor de revenda e garante que nenhum cuidado essencial seja esquecido.
               <br /><br />
@@ -53,7 +53,7 @@ export default function NossoProjeto() {
               notificações personalizadas de recalls, acesso antecipado a novos guias técnicos, suporte prioritário e ferramentas avançadas 
               de gestão de frota — ideal para oficinas, revendedoras e entusiastas que levam a sério o cuidado automotivo.
               <br /><br />
-              Em resumo, o Peça Fácil centraliza informações técnicas, preços de mercado, alertas de segurança e conhecimento especializado 
+              Em resumo, o Garagem Smart centraliza informações técnicas, preços de mercado, alertas de segurança e conhecimento especializado 
               em uma única plataforma moderna e acessível. Nosso compromisso é entregar economia de tempo e dinheiro, decisões mais informadas 
               e a confiança de que você está fazendo as escolhas certas para o seu veículo. Seja bem-vindo a uma nova era de autonomia e 
               transparência no setor automotivo.

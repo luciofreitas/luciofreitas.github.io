@@ -149,7 +149,7 @@ async function fetchUrlBytes(url) {
   // Try node-fetch dynamically
   try {
     const nf = require('node-fetch');
-    const r = await nf(url, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': 'PecaFacil-AvatarProxy/1.0' }, timeout: 15000 });
+    const r = await nf(url, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': 'GaragemSmart-AvatarProxy/1.0' }, timeout: 15000 });
     if (!r.ok) throw new Error(`status ${r.status}`);
     const contentType = r.headers.get('content-type') || 'application/octet-stream';
     const buf = await r.buffer();
@@ -161,7 +161,7 @@ async function fetchUrlBytes(url) {
     try {
       const https = require('https');
       const parsed = new URL(url);
-      const opts = { headers: { 'User-Agent': 'PecaFacil-AvatarProxy/1.0' } };
+      const opts = { headers: { 'User-Agent': 'GaragemSmart-AvatarProxy/1.0' } };
       https.get(parsed, opts, (resp) => {
         const statusCode = resp.statusCode || 0;
         if (statusCode >= 400) return reject(new Error('status ' + statusCode));

@@ -43,7 +43,7 @@ export default function PageInicio() {
               <h1 className="page-title">Seja um entendedor automotivo, agora mesmo!</h1>
               <div className="inicio-intro">
                 <p className="inicio-subtitle">
-                  No PeçaFácil você conseguirá se virar sozinho, aprenderá a identificar e comprar as peças certas para o
+                  No Garagem Smart você conseguirá se virar sozinho, aprenderá a identificar e comprar as peças certas para o
                   seu carro com confiança e economia, aprenderá sobre manutenção preventiva, instalação de peças e muito mais.
                 </p>
               </div>
@@ -86,7 +86,7 @@ export default function PageInicio() {
             <div className="inicio-band">
               <div className="inicio-band-inner">
                 <div className="inicio-band-left">
-                  <h1 className="inicio-band-title">10 motivos para que você escolha o Peça Fácil</h1>
+                  <h1 className="inicio-band-title">10 motivos para que você escolha o Garagem Smart</h1>
                 </div>
                 <div className="inicio-band-right">
                   <div className="inicio-reasons">
@@ -114,7 +114,7 @@ export default function PageInicio() {
             {/* Nova seção: Impacto e Credibilidade */}
             <div className="inicio-stats-section">
               <div className="inicio-stats-container">
-                <h2 className="inicio-stats-title">Impacto e Credibilidade: A Peça Fácil em Números</h2>
+                <h2 className="inicio-stats-title">Impacto e Credibilidade: O Garagem Smart em Números</h2>
                 
                 <div className="inicio-stats-grid">
                   <div className="inicio-stat-card">

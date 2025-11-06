@@ -13,9 +13,9 @@ import { auth } from '../firebase';
 import { onAuthStateChanged, signOut, fetchSignInMethodsForEmail, linkWithCredential, EmailAuthProvider, signInWithEmailAndPassword } from 'firebase/auth';
 
 const usuariosDemoGlobais = [
-  { id: 'demo1', nome: 'Usuário Demo', email: 'demo@pecafacil.com', senha: '123456', celular: '11999999999', isDemo: true },
-  { id: 'admin1', nome: 'Admin Demo', email: 'admin@pecafacil.com', senha: 'admin123', celular: '11888888888', isDemo: true },
-  { id: 'teste1', nome: 'Teste Público', email: 'teste@pecafacil.com', senha: 'teste123', celular: '11777777777', isDemo: true }
+  { id: 'demo1', nome: 'Usuário Demo', email: 'demo@garagemsmart.com', senha: '123456', celular: '11999999999', isDemo: true },
+  { id: 'admin1', nome: 'Admin Demo', email: 'admin@garagemsmart.com', senha: 'admin123', celular: '11888888888', isDemo: true },
+  { id: 'teste1', nome: 'Teste Público', email: 'teste@garagemsmart.com', senha: 'teste123', celular: '11777777777', isDemo: true }
 ];
 
 export default function Login() {

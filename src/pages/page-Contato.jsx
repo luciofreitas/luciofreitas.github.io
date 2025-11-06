@@ -20,7 +20,7 @@ export default function Contato() {
 
           <div className="contato-info">
             <p>Telefone: (00) 0000-0000</p>
-            <p>EMail: suporte@pecafacil.com.br</p>
+            <p>EMail: suporte@garagemsmart.com.br</p>
           </div>
     </div>
   </div>

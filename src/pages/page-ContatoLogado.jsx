@@ -29,7 +29,7 @@ export default function ContatoLogado() {
 
             <div className="contato-logado-info">
               <p>Telefone: (00) 0000-0000</p>
-              <p>EMail: suporte@pecafacil.com.br</p>
+              <p>EMail: suporte@garagemsmart.com.br</p>
             </div>
   </div>
       </div>

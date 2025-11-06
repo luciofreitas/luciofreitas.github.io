@@ -40,7 +40,7 @@ export default function QuemSomos() {
                   <h4 className="equipe-nome">Rafael de Almeida</h4>
                   <p className="equipe-cargo">Fundador & Head de Inovação</p>
                   <p className="equipe-bio">
-                   Idealizador do Peça Fácil, é quem trouxe a visão inicial do projeto e ajuda a guiar seus rumos estratégicos. 
+                   Idealizador do Garagem Smart, é quem trouxe a visão inicial do projeto e ajuda a guiar seus rumos estratégicos. 
                    Tem perfil criativo e inovador, buscando sempre novas formas de gerar valor para o negócio e seus usuários.
                   </p>
                 </div>
@@ -55,7 +55,7 @@ export default function QuemSomos() {
                   <h4 className="equipe-nome">Guilherme Melo Fleury</h4>
                   <p className="equipe-cargo">Co-Fundador & Head de Negócios</p>
                   <p className="equipe-bio">
-                    Responsável pela liderança e pela representação do Peça Fácil em eventos e apresentações. 
+                    Responsável pela liderança e pela representação do Garagem Smart em eventos e apresentações. 
                     Atua como porta-voz do projeto, conduzindo negociações e transmitindo a visão da empresa. 
                     Tem foco em crescimento, conexões estratégicas e novos negócios.
                   </p>
@@ -71,7 +71,7 @@ export default function QuemSomos() {
                   <h4 className="equipe-nome">Lúcio de Freitas Pereira</h4>
                   <p className="equipe-cargo">Co-Fundador & Head de Design/Desenvolvimento</p>
                   <p className="equipe-bio">
-                 Apaixonado por tecnologia e design, é responsável pelo desenvolvimento e pela experiência digital do Peça Fácil. 
+                 Apaixonado por tecnologia e design, é responsável pelo desenvolvimento e pela experiência digital do Garagem Smart. 
                  Com formação em TI e experiência em análise de dados, encontrou no design UX/UI uma forma de unir criatividade 
                  e funcionalidade.
                   </p>

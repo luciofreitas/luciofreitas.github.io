@@ -1099,7 +1099,7 @@ button.menu-login-item {
     width: auto !important;
     /* make the logo container match the header height so it aligns vertically */
     height: 4.5rem !important; /* same as header */
-    gap: 0.5rem !important; /* Espaço entre imagem e texto */
+    gap: clamp(1rem, 2.5vw, 1.2rem) !important; /* Espaçamento proporcional: 1rem até 1.2rem */
     overflow: visible !important; /* Garante que nada seja cortado */
   }
 
