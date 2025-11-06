@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
+import { activateProSubscription } from '../services/subscriptionService';
 import '../styles/pages/page-Checkin.css';
 
 export default function Checkin() {
@@ -75,13 +76,19 @@ export default function Checkin() {
           localStorage.setItem('payments', JSON.stringify(payments));
         } catch (e) {}
 
-      // atualiza usuário para Pro
+      // atualiza usuário para Pro com duração de 1 mês
       if (usuarioLogado && setUsuarioLogado) {
-        const updated = { ...usuarioLogado, isPro: true };
-        setUsuarioLogado(updated);
-        localStorage.setItem('usuario-logado', JSON.stringify(updated));
+        const userId = usuarioLogado.id || usuarioLogado.email;
+        const subscription = activateProSubscription(userId, 1); // 1 mês
+        
+        if (subscription) {
+          const updated = { ...usuarioLogado, isPro: true, subscription };
+          setUsuarioLogado(updated);
+          localStorage.setItem('usuario-logado', JSON.stringify(updated));
+          console.log('✅ Assinatura Pro ativada com sucesso:', subscription);
+        }
       } else {
-        // marca flag geral
+        // marca flag geral para compatibilidade (sem ID)
         try { localStorage.setItem('versaoProAtiva', 'true'); } catch (e) {}
       }
     }, 1200);

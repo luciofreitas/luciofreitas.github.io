@@ -2,12 +2,16 @@ import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
+import { isProActive, getFormattedExpiryDate, getDaysUntilExpiry } from '../services/subscriptionService';
 import '../styles/pages/page-VersaoPro_Assinado.css';
 
 export default function VersaoPro_Assinado() {
   const navigate = useNavigate();
   const { usuarioLogado } = useContext(AuthContext) || {};
-  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
+  const userId = usuarioLogado ? (usuarioLogado.id || usuarioLogado.email) : null;
+  const isPro = isProActive(userId) || Boolean(usuarioLogado && usuarioLogado.isPro);
+  const expiryDate = userId ? getFormattedExpiryDate(userId) : '';
+  const daysLeft = userId ? getDaysUntilExpiry(userId) : null;
 
   const btnPrimary = {
     padding: '10px 16px',
@@ -47,12 +51,24 @@ export default function VersaoPro_Assinado() {
           <div className="versao-pro-assinado-benefits">
             <h3 className="versao-pro-assinado-benefits-title">Benefícios ativos</h3>
             {isPro ? (
-              <ul className="versao-pro-assinado-benefits-list">
-                <li>✓ Acesso ao endereço das lojas que vendem as peças.</li>
-                <li>✓ Contato direto via WhatsApp dentro das compatibilidades.</li>
-                <li>✓ Suporte prioritário por eMail e WhatsApp.</li>
-                <li>✓ Acesso à comunidade exclusiva (Discord).</li>
-              </ul>
+              <>
+                {expiryDate && (
+                  <div className="versao-pro-subscription-info">
+                    <p><strong>Válida até:</strong> {expiryDate}</p>
+                    {daysLeft !== null && daysLeft <= 7 && (
+                      <p className="versao-pro-expiry-warning">
+                        ⚠️ Sua assinatura expira em {daysLeft} {daysLeft === 1 ? 'dia' : 'dias'}!
+                      </p>
+                    )}
+                  </div>
+                )}
+                <ul className="versao-pro-assinado-benefits-list">
+                  <li>✓ Acesso ao endereço das lojas que vendem as peças.</li>
+                  <li>✓ Contato direto via WhatsApp dentro das compatibilidades.</li>
+                  <li>✓ Suporte prioritário por eMail e WhatsApp.</li>
+                  <li>✓ Acesso à comunidade exclusiva (Discord).</li>
+                </ul>
+              </>
             ) : (
               <p className="versao-pro-assinado-empty">Nenhuma assinatura ativa encontrada. Se você acabou de pagar, recarregue a página ou faça login novamente para sincronizar o status.</p>
             )}

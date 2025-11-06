@@ -3,6 +3,9 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 // Import migration helper to run data migration on app load
 import './utils/migrationHelper';
+// Import subscription service
+import { shouldShowExpiryWarning, getDaysUntilExpiry, markWarningAsShown } from './services/subscriptionService';
+import ProExpiryWarning from './components/ProExpiryWarning';
 // Critical routes: load immediately (Login, PageInicio)
 import Login from './pages/page-Login';
 import PageInicio from './pages/page-Inicio';
@@ -81,6 +84,10 @@ export default function App() {
   // Provide a stable setter name `setAuthLoaded` for backward compatibility
   // with any consumers expecting it from the context.
   const setAuthLoaded = setAuthLoadedState;
+
+  // Pro subscription expiry warning
+  const [showExpiryWarning, setShowExpiryWarning] = useState(false);
+  const [daysUntilExpiry, setDaysUntilExpiry] = useState(null);
 
   // Mirror derived value into the setter-state so consumers reading the
   // boolean from context see a stable true once both phases complete.
@@ -343,12 +350,44 @@ export default function App() {
     })();
   }, [setUsuarioLogado]);
 
+  // Check Pro subscription expiry and show warning
+  useEffect(() => {
+    if (!usuarioLogado || !authLoaded) return;
+
+    const userId = usuarioLogado.id || usuarioLogado.email;
+    if (!userId) return;
+
+    // Check if should show expiry warning (1 day before expiration)
+    if (shouldShowExpiryWarning(userId)) {
+      const days = getDaysUntilExpiry(userId);
+      setDaysUntilExpiry(days);
+      setShowExpiryWarning(true);
+    }
+  }, [usuarioLogado, authLoaded]);
+
+  const handleCloseExpiryWarning = () => {
+    setShowExpiryWarning(false);
+    if (usuarioLogado) {
+      const userId = usuarioLogado.id || usuarioLogado.email;
+      markWarningAsShown(userId);
+    }
+  };
+
   return (
     <ThemeProvider>
       <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
         <HashRouter>
           <div className="app">
             <ThemeToggle />
+            
+            {/* Pro Expiry Warning Popup */}
+            {showExpiryWarning && (
+              <ProExpiryWarning 
+                daysLeft={daysUntilExpiry}
+                onClose={handleCloseExpiryWarning}
+              />
+            )}
+            
             <Suspense fallback={<PageLoader />}>
               <Routes>
             {/* Rota raiz redireciona para catálogo se logado, ou página inicial se não logado */}
