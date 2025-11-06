@@ -235,7 +235,7 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
 /* Adiciona espaço à esquerda do menu em resoluções menores */
 @media (min-width: 48rem) and (max-width: 90rem) {
   .menu-list {
-    padding-left: 8rem !important; /* Empurra o menu para longe da logo */
+    padding-left: 11rem !important; /* Empurra o menu mais para a direita */
   }
 }
 
