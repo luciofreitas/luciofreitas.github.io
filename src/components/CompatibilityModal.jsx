@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { FaCheckCircle } from 'react-icons/fa';
 import useFocusTrap from '../hooks/useFocusTrap';
 
 export default function CompatibilityModal({ show, onClose, title, titleIcon, children }) {
@@ -29,7 +30,7 @@ export default function CompatibilityModal({ show, onClose, title, titleIcon, ch
 			<div ref={modalRef} className="compat-modal" role="dialog" aria-modal="true" aria-label={title || 'Modal'}>
 				<div className="app-compat-header">
 					<div className="app-compat-title-wrapper">
-						{titleIcon && <img src={titleIcon} alt="" className="app-compat-title-icon" />}
+						{titleIcon && <FaCheckCircle className="app-compat-title-icon" style={{ color: '#10b981', fontSize: '1.5rem' }} />}
 						<span className="app-compat-title">{title}</span>
 					</div>
 					<button className="app-compat-close" aria-label="Fechar" onClick={onClose}>✕</button>

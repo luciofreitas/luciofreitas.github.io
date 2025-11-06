@@ -1,6 +1,6 @@
 import React from 'react';
 import { MenuLogin, ContatoForm } from '../components';
-import { FaWhatsapp, FaEnvelope } from 'react-icons/fa';
+import { FaWhatsapp, FaEnvelope, FaInstagram } from 'react-icons/fa';
 import '../styles/pages/page-Contato.css';
 
 export default function Contato() {
@@ -19,9 +19,30 @@ export default function Contato() {
 
           <ContatoForm />
 
-          <div className="contato-info">
-            <p><FaWhatsapp className="contato-icon" /> (00) 0000-0000</p>
-            <p><FaEnvelope className="contato-icon" /> suporte@garagemsmart.com.br</p>
+          <div className="contato-buttons">
+            <button 
+              className="contato-btn contato-btn-whatsapp"
+              onClick={() => window.open('https://wa.me/5500000000000', '_blank')}
+              title="WhatsApp"
+            >
+              <FaWhatsapp />
+            </button>
+            
+            <button 
+              className="contato-btn contato-btn-email"
+              onClick={() => window.location.href = 'mailto:suporte@garagemsmart.com.br'}
+              title="Email"
+            >
+              <FaEnvelope />
+            </button>
+            
+            <button 
+              className="contato-btn contato-btn-instagram"
+              onClick={() => window.open('https://instagram.com/garagemsmart', '_blank')}
+              title="Instagram"
+            >
+              <FaInstagram />
+            </button>
           </div>
     </div>
   </div>
