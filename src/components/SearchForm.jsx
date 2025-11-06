@@ -65,6 +65,7 @@ function SearchForm({
     const carro = carros.find(c => c.id === carId);
     if (carro) {
       setSelectedMarca(carro.marca);
+      // Set only the model name (without brand) to match getFilteredModelos format
       setSelectedModelo(carro.modelo);
       // Converte ano para string, pois pode estar como número
       setSelectedAno(String(carro.ano));
@@ -76,7 +77,7 @@ function SearchForm({
       {/* Dropdown de carros - só aparece se usuário logado e tiver carros */}
       {usuarioLogado && carros.length > 0 && (
         <div className="search-form-car-selector">
-          <label htmlFor="carro-selecionado">Buscar para um carro específico (opcional)</label>
+          <label htmlFor="carro-selecionado">Buscar por um carro específico (opcional)</label>
           <CustomDropdown
             options={[
               { value: '', label: '-- Busca geral (deixar em branco) --' },

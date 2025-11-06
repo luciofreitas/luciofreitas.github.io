@@ -394,7 +394,7 @@ export default function BuscarPeca() {
     console.log('📋 Peças encontradas:', data.pecas?.length || 0);
     // A API retorna data.pecas, não data.results
     const pecasFiltradas = data.pecas || [];
-      setPecas(pecasFiltradas);
+      
       if (pecasFiltradas.length === 0) {
         const filtrosAtivos = [];
         if (filtros.marca) filtrosAtivos.push(`Marca: ${filtros.marca}`);
@@ -408,7 +408,10 @@ export default function BuscarPeca() {
           ? `Nenhuma peça encontrada para: ${filtrosAtivos.join(', ')}. Tente remover alguns filtros ou buscar por termos mais genéricos.`
           : 'Nenhuma peça encontrada para os filtros selecionados.';
         setError(mensagem);
+        // Não limpar as peças - manter catálogo visível
+        // setPecas(pecasFiltradas); - REMOVIDO
       } else {
+        setPecas(pecasFiltradas);
         setModalTitle(`Encontradas ${pecasFiltradas.length} peça(s)`);
         setModalContent(renderPecasModal(pecasFiltradas));
         setShowModal(true);
