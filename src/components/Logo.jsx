@@ -26,7 +26,10 @@ const Logo = ({ className = '', onClick, ...props }) => {
             className="logo-image"
           />
         <div className="logo-text-container">
-          <h1 className="logo-title">Garagem Smart</h1>
+          <h1 className="logo-title">
+            <span className="logo-title-line">Garagem</span>
+            <span className="logo-title-line">Smart</span>
+          </h1>
         </div>
       </div>
     </div>

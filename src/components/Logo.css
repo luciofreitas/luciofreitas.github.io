@@ -51,8 +51,15 @@
   font-weight: 600; /* levemente reduzido */
   color: #000000;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2; /* linha mais compacta */
+  justify-content: center;
+}
+
+.logo-title-line {
+  display: block;
   white-space: nowrap;
-  line-height: 3.5rem; /* alinha com a altura da imagem */
 }
 
 .logo-subtitle {
