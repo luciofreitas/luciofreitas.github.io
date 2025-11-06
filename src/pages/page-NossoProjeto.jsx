@@ -23,7 +23,7 @@ export default function NossoProjeto() {
               conhecimento técnico ao alcance de todos — desde consumidores finais até profissionais do setor.
               <br /><br />
               <strong>Busca Inteligente de Peças:</strong> Nossa ferramenta de busca foi projetada para eliminar a frustração de encontrar 
-              a peça certa. Utilizando um sistema de compatibilidade preciso, você seleciona marca, modelo e ano do seu veículo e recebe 
+              a peça errada. Utilizando um sistema de compatibilidade preciso, você seleciona marca, modelo e ano do seu veículo e recebe 
               apenas as peças que realmente servem. Acabaram-se as compras erradas, devoluções e tempo perdido — cada resultado é verificado 
               e validado para garantir compatibilidade total.
               <br /><br />
@@ -40,10 +40,6 @@ export default function NossoProjeto() {
               até procedimentos técnicos avançados. Aprenda sobre manutenção preventiva, instalação de componentes, diagnóstico de problemas 
               comuns e muito mais. Nossos guias são escritos em linguagem acessível, com ilustrações e explicações passo a passo para que você 
               ganhe autonomia e confiança no cuidado com seu veículo.
-              <br /><br />
-              <strong>Conexão com Oficinas Parceiras:</strong> Construímos uma rede de parceiros confiáveis — oficinas, mecânicos e fornecedores 
-              verificados que compartilham nosso compromisso com qualidade e transparência. Ao precisar de um serviço especializado, você encontra 
-              profissionais qualificados próximos a você, com avaliações reais de outros usuários e a certeza de um atendimento ético.
               <br /><br />
               <strong>Histórico de Manutenção Organizado:</strong> Com o Garagem Smart, você mantém um registro completo de todas as manutenções, 
               trocas de peças e serviços realizados no seu veículo. Esse histórico digital facilita o acompanhamento de revisões periódicas, 

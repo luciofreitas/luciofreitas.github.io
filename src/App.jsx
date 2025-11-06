@@ -27,6 +27,7 @@ const TabelaFIPE = lazy(() => import('./pages/page-TabelaFIPE'));
 const ManutencaoPreventiva = lazy(() => import('./pages/page-ManutencaoPreventiva'));
 const PecasOriginaisVsCompativeis = lazy(() => import('./pages/page-PecasOriginaisVsCompativeis'));
 const LuzesDoPainel = lazy(() => import('./pages/page-LuzesDoPainel'));
+const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'));
 import { ThemeToggle } from './components';
 import './styles/App.css';
 import './styles/CustomDropdown.css';
@@ -385,6 +386,11 @@ export default function App() {
             <Route path="/manutencao-preventiva" element={<ManutencaoPreventiva />} />
             <Route path="/pecas-originais-vs-compativeis" element={<PecasOriginaisVsCompativeis />} />
             <Route path="/luzes-do-painel" element={<LuzesDoPainel />} />
+            <Route path="/historico-manutencao" element={
+              <ProtectedRoute>
+                <HistoricoManutencao />
+              </ProtectedRoute>
+            } />
             <Route path="/nosso-projeto" element={<NossoProjeto />} />
             <Route path="/perfil" element={
               <ProtectedRoute>
