@@ -265,6 +265,12 @@ export default function BuscarPeca() {
         });
       }
     });
+    
+    // Always include the currently selected model to prevent it from disappearing
+    if (selectedModelo) {
+      modelosSet.add(selectedModelo);
+    }
+    
     return Array.from(modelosSet);
   };
 
@@ -312,6 +318,12 @@ export default function BuscarPeca() {
         });
       }
     });
+    
+    // Always include the currently selected year to prevent it from disappearing
+    if (selectedAno) {
+      anosSet.add(selectedAno);
+    }
+    
     return Array.from(anosSet).sort();
   };
 
