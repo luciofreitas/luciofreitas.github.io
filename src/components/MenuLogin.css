@@ -193,8 +193,25 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
     transform: none !important;
     flex: 1 !important;
     display: flex !important;
-    justify-content: center !important;
-    padding-left: 4rem !important; /* Espaço após a logo */
+    justify-content: center !important; /* Centraliza */
+    align-items: center !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+  
+  .menu-login-center .menu-nav {
+    margin-left: 3rem !important; /* Deslocamento reduzido */
+    margin-right: auto !important;
+  }
+  
+  /* Traz o botão também para a esquerda */
+  .menu-login-right {
+    margin-right: 2rem !important;
+  }
+  
+  .menu-login-center .menu-list {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
   }
 }
 
