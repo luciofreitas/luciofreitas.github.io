@@ -229,9 +229,14 @@ html body .menu-login-root .user-menu-root button.user-button.icon-only > img.us
   padding: 0;
   align-items: center;
   flex-wrap: nowrap;
-  /* Garantindo que os itens fiquem centralizados mas respeitando a logo */
   justify-content: center;
-  margin-left: auto; /* Empurra o menu para a direita quando necessário */
+}
+
+/* Adiciona espaço à esquerda do menu em resoluções menores */
+@media (min-width: 48rem) and (max-width: 90rem) {
+  .menu-list {
+    padding-left: 8rem !important; /* Empurra o menu para longe da logo */
+  }
 }
 
 /* Responsive spacing for different desktop resolutions */
