@@ -40,7 +40,7 @@ export default function PageInicio() {
         <div className="page-content inicio-main">
           <div className="inicio-hero">
             <div className="inicio-hero-inner">
-              <h1 className="page-title">Seja um entendedor automotivo, agora mesmo!</h1>
+              <h1 className="page-title">Seja um expert automotivo, agora mesmo!</h1>
               <div className="inicio-intro">
                 <p className="inicio-subtitle">
                   No Garagem Smart você conseguirá se virar sozinho, aprenderá a identificar e comprar as peças certas para o
@@ -92,7 +92,7 @@ export default function PageInicio() {
                   <div className="inicio-reasons">
                     <div className="reasons-grid">
                       <ol className="reasons-col">
-                        <li><span className="reason-number">1</span>Conexão Simplificada com Oficinas.</li>
+                        <li><span className="reason-number">1</span>Conhecimento sobre tabela FIPE.</li>
                         <li><span className="reason-number">2</span>Busca Inteligente de Peças.</li>
                         <li><span className="reason-number">3</span>Especificação Completa das Peças.</li>
                         <li><span className="reason-number">4</span>Informações Essenciais sobre Recalls.</li>
