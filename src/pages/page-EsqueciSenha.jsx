@@ -51,7 +51,7 @@ export default function EsqueciSenha() {
       
       // Detectar ambiente (localhost ou produção)
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const baseUrl = isLocalhost ? window.location.origin : 'https://luciofreitas.github.io';
+      const baseUrl = isLocalhost ? window.location.origin : 'https://www.garagemsmart.com.br';
       const resetLink = `${baseUrl}/#/redefinir-senha?token=${resetToken}&email=${encodeURIComponent(emailTrimmed)}`;
 
       console.log('Link de recuperação gerado:', resetLink);
