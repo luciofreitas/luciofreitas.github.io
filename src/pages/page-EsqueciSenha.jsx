@@ -48,7 +48,11 @@ export default function EsqueciSenha() {
 
       // Gerar token único para recuperação
       const resetToken = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
-      const resetLink = `${window.location.origin}/#/redefinir-senha?token=${resetToken}&email=${encodeURIComponent(emailTrimmed)}`;
+      
+      // Detectar ambiente (localhost ou produção)
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocalhost ? window.location.origin : 'https://luciofreitas.github.io';
+      const resetLink = `${baseUrl}/#/redefinir-senha?token=${resetToken}&email=${encodeURIComponent(emailTrimmed)}`;
 
       console.log('Link de recuperação gerado:', resetLink);
 
