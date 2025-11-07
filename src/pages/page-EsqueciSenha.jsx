@@ -21,46 +21,38 @@ export default function EsqueciSenha() {
     try {
       const emailTrimmed = email.toLowerCase().trim();
 
-      // Buscar dados do usuário na tabela users
-      const { data: userData } = await supabase
+      // Buscar dados do usuário
+      const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id, nome, email')
+        .select('id, nome, email, auth_id')
         .eq('email', emailTrimmed)
         .single();
 
-      // Gerar token de recuperação usando Supabase Auth
-      // O Supabase Auth só enviará email se o usuário existir
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(emailTrimmed, {
-        redirectTo: `${window.location.origin}/#/redefinir-senha`
-      });
-
-      // Se deu erro E não encontramos o usuário na tabela, é porque não existe
-      if (resetError && !userData) {
+      if (userError || !userData) {
         setError('Email não encontrado. Verifique e tente novamente.');
         setLoading(false);
         return;
       }
 
-      // Avisar sobre outros erros do Supabase Auth
-      if (resetError) {
-        console.warn('Aviso Supabase Auth:', resetError);
-      }
+      // Gerar token único para recuperação
+      const resetToken = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      const resetLink = `${window.location.origin}/#/redefinir-senha?token=${resetToken}&email=${encodeURIComponent(emailTrimmed)}`;
 
-      // Enviar email via EmailJS (opcional, pois Supabase já envia)
-      if (userData) {
-        try {
-          const resetLink = `${window.location.origin}/#/redefinir-senha`;
-          await EmailService.sendPasswordResetEmail({
-            nome: userData.nome || 'Usuário',
-            email: userData.email,
-            userId: userData.id,
-            resetLink: resetLink
-          });
-        } catch (emailError) {
-          // Email do EmailJS falhou, mas o do Supabase foi enviado
-          console.warn('Aviso: Email personalizado não enviado, mas email padrão do Supabase foi enviado.', emailError);
-        }
-      }
+      // Salvar token no localStorage (temporário - expira em 1 hora)
+      const tokenData = {
+        email: emailTrimmed,
+        token: resetToken,
+        expiresAt: Date.now() + (60 * 60 * 1000) // 1 hora
+      };
+      localStorage.setItem(`reset_token_${emailTrimmed}`, JSON.stringify(tokenData));
+
+      // Enviar email APENAS via EmailJS
+      await EmailService.sendPasswordResetEmail({
+        nome: userData.nome || 'Usuário',
+        email: emailTrimmed,
+        userId: userData.id,
+        resetLink: resetLink
+      });
 
       setEmailEnviado(true);
       setMessage(`✅ Email de recuperação enviado para ${emailTrimmed}. Verifique sua caixa de entrada e spam.`);

@@ -12,26 +12,56 @@ export default function RedefinirSenha() {
   const [success, setSuccess] = useState(false);
   const [validToken, setValidToken] = useState(false);
   const [checkingToken, setCheckingToken] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
   
   const navigate = useNavigate();
 
   useEffect(() => {
     // Verificar se há um token de recuperação válido
-    const checkRecoveryToken = async () => {
+    const checkRecoveryToken = () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Extrair parâmetros da URL
+        const params = new URLSearchParams(window.location.hash.split('?')[1]);
+        const token = params.get('token');
+        const email = params.get('email');
+
+        if (!token || !email) {
+          setError('Link de recuperação inválido. Solicite um novo link.');
+          setValidToken(false);
+          setCheckingToken(false);
+          return;
+        }
+
+        // Verificar token no localStorage
+        const storedData = localStorage.getItem(`reset_token_${email}`);
         
-        if (error || !session) {
+        if (!storedData) {
           setError('Link de recuperação inválido ou expirado. Solicite um novo link.');
           setValidToken(false);
-        } else {
-          setValidToken(true);
+          setCheckingToken(false);
+          return;
         }
+
+        const tokenData = JSON.parse(storedData);
+
+        // Verificar se o token é válido e não expirou
+        if (tokenData.token !== token || Date.now() > tokenData.expiresAt) {
+          setError('Link de recuperação expirado. Solicite um novo link.');
+          setValidToken(false);
+          setCheckingToken(false);
+          localStorage.removeItem(`reset_token_${email}`);
+          return;
+        }
+
+        // Token válido
+        setUserEmail(email);
+        setValidToken(true);
+        setCheckingToken(false);
+
       } catch (err) {
         console.error('Erro ao verificar token:', err);
         setError('Erro ao validar link de recuperação.');
         setValidToken(false);
-      } finally {
         setCheckingToken(false);
       }
     };
@@ -57,14 +87,25 @@ export default function RedefinirSenha() {
     setLoading(true);
 
     try {
-      // Atualizar senha usando Supabase Auth
+      // Atualizar senha no Supabase Auth
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: 'temporary-password-for-reset' // Senha temporária (não importa)
+      });
+
+      // Se falhou, tentar atualizar diretamente
       const { error: updateError } = await supabase.auth.updateUser({
+        email: userEmail,
         password: novaSenha
       });
 
       if (updateError) {
+        // Se não conseguiu pelo Auth, tentar pelo admin (precisa de service_role key)
         throw updateError;
       }
+
+      // Limpar token usado
+      localStorage.removeItem(`reset_token_${userEmail}`);
 
       setSuccess(true);
       
