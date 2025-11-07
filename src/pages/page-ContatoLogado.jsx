@@ -39,7 +39,7 @@ export default function ContatoLogado() {
               
               <button 
                 className="contato-btn contato-btn-email"
-                onClick={() => window.location.href = 'mailto:suporte@garagemsmart.com.br'}
+                onClick={() => window.location.href = 'mailto:suportegaragemsmart@gmail.com'}
                 title="Email"
               >
                 <FaEnvelope />
