@@ -18,6 +18,7 @@ export { default as MenuUsuario } from './MenuUsuario';
 export { default as PecaCard } from './PecaCard';
 export { default as PecasGrid } from './PecasGrid';
 export { default as PerfilForm } from './PerfilForm';
+export { default as ProExpiryWarning } from './ProExpiryWarning';
 export { default as ProductDetailModal } from './ProductDetailModal';
 export { default as RatingStars } from './RatingStars';
 export { default as SearchForm } from './SearchForm';
