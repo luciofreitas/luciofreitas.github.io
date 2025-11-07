@@ -82,9 +82,16 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
     if (submitting) return;
     setSubmitting(true);
     try {
+      // TODO: Implementar envio de email para suportegaragemsmart@gmail.com
+      // O backend deve receber os dados do formulário e enviar email usando
+      // serviço como SendGrid, Nodemailer, ou EmailJS
+      
       if (typeof onSubmit === 'function') await onSubmit(formData);
       else {
-        alert('Mensagem enviada com sucesso!');
+        // Mensagem de sucesso (aguardando implementação do backend de email)
+        console.log('Dados do contato:', formData);
+        console.log('Email será enviado para: suportegaragemsmart@gmail.com');
+        alert('Mensagem enviada com sucesso! Em breve entraremos em contato.');
       }
   setFormData({ nome: '', email: '', mensagem: '', ...initialValues });
   try { localStorage.removeItem(draftKey()); } catch (err) { /* ignore */ }

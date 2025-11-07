@@ -1,6 +1,6 @@
 import React from 'react';
 import { MenuLogin, ContatoForm } from '../components';
-import { FaWhatsapp, FaEnvelope, FaInstagram } from 'react-icons/fa';
+import { FaWhatsapp, FaInstagram } from 'react-icons/fa';
 import '../styles/pages/page-Contato.css';
 
 export default function Contato() {
@@ -26,14 +26,6 @@ export default function Contato() {
               title="WhatsApp"
             >
               <FaWhatsapp />
-            </button>
-            
-            <button 
-              className="contato-btn contato-btn-email"
-              onClick={() => window.location.href = 'mailto:suportegaragemsmart@gmail.com'}
-              title="Email"
-            >
-              <FaEnvelope />
             </button>
             
             <button 

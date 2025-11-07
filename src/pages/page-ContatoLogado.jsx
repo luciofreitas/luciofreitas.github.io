@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Menu, ContatoForm } from '../components';
 import { AuthContext } from '../App';
-import { FaWhatsapp, FaEnvelope, FaInstagram } from 'react-icons/fa';
+import { FaWhatsapp, FaInstagram } from 'react-icons/fa';
 import '../styles/pages/page-ContatoLogado.css';
 
 export default function ContatoLogado() {
@@ -35,16 +35,7 @@ export default function ContatoLogado() {
                 title="WhatsApp"
               >
                 <FaWhatsapp />
-              </button>
-              
-              <button 
-                className="contato-btn contato-btn-email"
-                onClick={() => window.location.href = 'mailto:suportegaragemsmart@gmail.com'}
-                title="Email"
-              >
-                <FaEnvelope />
-              </button>
-              
+              </button>              
               <button 
                 className="contato-btn contato-btn-instagram"
                 onClick={() => window.open('https://instagram.com/garagemsmart', '_blank')}
