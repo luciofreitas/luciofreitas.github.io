@@ -22,8 +22,6 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
-  const [devResetInfo, setDevResetInfo] = useState(null);
-  const [showDevResetModal, setShowDevResetModal] = useState(false);
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [redirectPending, setRedirectPending] = useState(false);
@@ -735,53 +733,9 @@ export default function Login() {
                     </div>
                   </label>
 
-                  <div className="cadastro-forgot-row"><a href="#" className="login-forgot-link" onClick={async (e) => {
-                    e.preventDefault();
-                    // In development (localhost) provide a dev-friendly password reset simulation
-                    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-                    if (!isLocal) {
-                      // In production just navigate to recover page (existing behavior placeholder)
-                      try { window.location.href = '/recuperar-senha'; } catch (err) {}
-                      return;
-                    }
-                    setError('');
-                    const targetEmail = String(email || '').trim();
-                    if (!targetEmail) { setError('Digite o e-mail antes de recuperar a senha (dev).'); return; }
-                    try {
-                      const apiBase = window.__API_BASE || '';
-                      const resp = await fetch(`${apiBase}/api/debug/dev-generate-reset`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-Debug-Key': 'let-me-debug' },
-                        body: JSON.stringify({ email: targetEmail })
-                      });
-                      if (!resp.ok) {
-                        const b = await resp.json().catch(() => ({}));
-                        setError(b && b.error ? String(b.error) : 'Falha ao gerar token de recuperação.');
-                        return;
-                      }
-                      const body = await resp.json().catch(() => ({}));
-                      setDevResetInfo(body);
-                      setShowDevResetModal(true);
-                    } catch (err) {
-                      console.error('dev generate reset failed', err);
-                      setError('Erro ao gerar token de recuperação. Veja o console.');
-                    }
-                  }}>Esqueci minha senha (dev)</a> <Link to="/esqueci-senha" className="forgot-password-link">Esqueci minha senha</Link></div>
-
-                  {showDevResetModal && devResetInfo && (
-                    <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:9999}}>
-                      <div className="modal" role="dialog" aria-modal="true" style={{background:'#fff',padding:'20px',maxWidth:'520px',width:'100%',borderRadius:8}}>
-                        <h3>Recuperação (modo dev)</h3>
-                        <p>Token temporal e senha gerados para <strong>{devResetInfo && devResetInfo.email}</strong>. Estes dados existem apenas no ambiente de desenvolvimento.</p>
-                        <pre style={{background:'#f6f6f6',padding:12,borderRadius:6,overflowX:'auto'}}>
-{`token: ${devResetInfo && devResetInfo.token}\ntempPassword: ${devResetInfo && devResetInfo.tempPassword}\nexpiresAt: ${devResetInfo && devResetInfo.expiresAt}`}
-                        </pre>
-                        <div style={{display:'flex',gap:8,marginTop:12}}>
-                          <button className="submit" onClick={() => { setShowDevResetModal(false); setDevResetInfo(null); }}>Fechar</button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="cadastro-forgot-row">
+                    <Link to="/esqueci-senha" className="forgot-password-link">Esqueci minha senha</Link>
+                  </div>
 
                   <button className="submit" type="submit">Entrar</button>
 
