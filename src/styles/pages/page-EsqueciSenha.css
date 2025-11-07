@@ -1,20 +1,16 @@
 /* Página Esqueci Senha */
-.esqueci-senha-container {
+.esqueci-senha-card {
   min-height: calc(100vh - 80px);
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.esqueci-senha-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  margin: 0 auto 2rem auto;
+  padding: 1.5rem 2.5rem;
   max-width: 500px;
-  width: 100%;
-  padding: 2.5rem;
+  background: var(--bg-white);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--border-gray);
   animation: slideIn 0.4s ease-out;
 }
 
@@ -229,7 +225,9 @@
 /* Responsividade */
 @media (max-width: 640px) {
   .esqueci-senha-card {
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
+    margin: 1rem;
+    min-height: auto;
   }
 
   .esqueci-senha-header h1 {
