@@ -5,14 +5,14 @@
   "homepage": "https://luciofreitas.github.io",
   "description": "Web UI (React + Vite) para catálogo de peças automotivas; use `npm run dev:chrome` para abrir o site automaticamente no Google Chrome sem alterar o navegador padrão do sistema.",
   "scripts": {
-  "dev": "vite --host --port 5174",
+    "dev": "vite --host --port 5174",
     "dev:chrome": "concurrently \"npm run dev\" \"wait-on http://localhost:5174 && .\\open-chrome.bat\"",
-  "build": "vite build",
-  "prebuild": "node scripts/generate-components-index.js",
-  "preview": "vite preview",
-  "postbuild": "node scripts/copy-static.js",
-  "generate-barrel": "node scripts/generate-components-index.js",
-  "deploy": "npm run build && node scripts/deploy-to-master.js",
+    "build": "vite build",
+    "prebuild": "node scripts/generate-components-index.js",
+    "preview": "vite preview",
+    "postbuild": "node scripts/copy-static.js",
+    "generate-barrel": "node scripts/generate-components-index.js",
+    "deploy": "npm run build && node scripts/deploy-to-master.js",
     "test-db": "node scripts/test-db.js",
     "seed": "node scripts/seed.js"
   },
@@ -21,6 +21,7 @@
     "npm": ">=10.9.3"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.1",

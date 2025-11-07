@@ -33,6 +33,8 @@ const ManutencaoPreventiva = lazy(() => import('./pages/page-ManutencaoPreventiv
 const PecasOriginaisVsCompativeis = lazy(() => import('./pages/page-PecasOriginaisVsCompativeis'));
 const LuzesDoPainel = lazy(() => import('./pages/page-LuzesDoPainel'));
 const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'));
+const EsqueciSenha = lazy(() => import('./pages/page-EsqueciSenha'));
+const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
 import { ThemeToggle } from './components';
 import './styles/App.css';
 import './styles/CustomDropdown.css';
@@ -398,6 +400,8 @@ export default function App() {
 
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<PageCadastro />} />
+            <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/inicio" element={<PageInicio />} />
             <Route path="/quem-somos" element={<QuemSomos />} />
             <Route path="/seja-pro" element={<SejaPro />} />

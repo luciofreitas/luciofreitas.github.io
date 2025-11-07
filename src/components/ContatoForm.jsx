@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import EmailService from '../services/emailService';
 import './ContatoForm.css';
 
 function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onRequireLogin = null, onSubmit = null }) {
@@ -81,23 +82,39 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
+    
     try {
-      // TODO: Implementar envio de email para suportegaragemsmart@gmail.com
-      // O backend deve receber os dados do formulário e enviar email usando
-      // serviço como SendGrid, Nodemailer, ou EmailJS
-      
-      if (typeof onSubmit === 'function') await onSubmit(formData);
-      else {
-        // Mensagem de sucesso (aguardando implementação do backend de email)
-        console.log('Dados do contato:', formData);
-        console.log('Email será enviado para: suportegaragemsmart@gmail.com');
-        alert('Mensagem enviada com sucesso! Em breve entraremos em contato.');
+      // Enviar email usando o serviço centralizado
+      await EmailService.sendContactEmail({
+        nome: formData.nome,
+        email: formData.email,
+        mensagem: formData.mensagem,
+        userId: user?.id || 'Visitante'
+      });
+
+      // Callback customizado (se fornecido)
+      if (typeof onSubmit === 'function') {
+        await onSubmit(formData);
       }
-  setFormData({ nome: '', email: '', mensagem: '', ...initialValues });
-  try { localStorage.removeItem(draftKey()); } catch (err) { /* ignore */ }
+
+      // Limpar formulário e rascunho
+      setFormData({ nome: '', email: '', mensagem: '', ...initialValues });
+      try { 
+        localStorage.removeItem(draftKey()); 
+      } catch (err) { 
+        console.warn('Erro ao limpar rascunho', err);
+      }
+
+      // Mensagem de sucesso
+      alert('✅ Mensagem enviada com sucesso! Em breve entraremos em contato.');
+      console.log('✅ Email enviado para: suportegaragemsmart@gmail.com');
+      
     } catch (err) {
-      console.error('Erro ao enviar contato:', err);
-      alert('Falha ao enviar a mensagem. Tente novamente.');
+      console.error('❌ Erro ao enviar email:', err);
+      
+      // Mensagem de erro amigável
+      const errorMessage = EmailService.getErrorMessage(err);
+      alert(`Falha ao enviar a mensagem. ${errorMessage}`);
     } finally {
       setSubmitting(false);
     }

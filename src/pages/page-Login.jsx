@@ -766,7 +766,7 @@ export default function Login() {
                       console.error('dev generate reset failed', err);
                       setError('Erro ao gerar token de recuperação. Veja o console.');
                     }
-                  }}>Esqueci minha senha</a></div>
+                  }}>Esqueci minha senha (dev)</a> <Link to="/esqueci-senha" className="forgot-password-link">Esqueci minha senha</Link></div>
 
                   {showDevResetModal && devResetInfo && (
                     <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:9999}}>
