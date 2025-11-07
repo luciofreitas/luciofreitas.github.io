@@ -20,17 +20,26 @@ export default function EsqueciSenha() {
 
     try {
       const emailTrimmed = email.toLowerCase().trim();
+      console.log('Email processado:', emailTrimmed);
 
-      // Buscar dados do usuário na tabela users
-      const { data: userData, error: userError } = await supabase
+      // SOLUÇÃO ALTERNATIVA: Tentar buscar sem filtro e filtrar no JavaScript
+      const { data: allUsers, error: allError } = await supabase
         .from('users')
-        .select('id, nome, email, auth_id')
-        .eq('email', emailTrimmed)
-        .single();
+        .select('id, nome, email, auth_id');
 
-      console.log('Busca de usuário:', { userData, userError });
+      console.log('Todos os usuários:', allUsers, 'Erro:', allError);
 
-      if (userError || !userData) {
+      if (allError) {
+        console.error('Erro ao buscar usuários:', allError);
+        throw new Error('Erro ao acessar o banco de dados.');
+      }
+
+      // Filtrar manualmente no JavaScript
+      const userData = allUsers?.find(user => user.email?.toLowerCase() === emailTrimmed);
+
+      console.log('Usuário encontrado:', userData);
+
+      if (!userData) {
         console.warn('Usuário não encontrado na tabela users:', emailTrimmed);
         setError('Email não encontrado. Verifique e tente novamente.');
         setLoading(false);
