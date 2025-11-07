@@ -10,6 +10,3 @@ backend/node_modules/
 backend/.env
 backend/.env.local
 
-# EmailJS credentials (sensitive data)
-src/config/emailjs.config.js
-
