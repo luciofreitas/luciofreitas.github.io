@@ -6,7 +6,6 @@ import './styles/reset.css' // Reset CSS primeiro para garantir que não haja ma
 import './styles/index.css'
 import './utils/add-region-roles';
 import App from './App.jsx'
-import './debug-env.js'; // Debug temporário
 
 // Lightweight startup instrumentation to measure dev/perceived load times.
 try { console.time('[app-timing] module-load'); } catch(e){}
