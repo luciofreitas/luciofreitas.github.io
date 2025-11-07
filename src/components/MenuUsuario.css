@@ -287,6 +287,14 @@
   border-bottom: 1px solid #e5e7eb !important;
   cursor: default !important;
   padding: 0.75rem 1rem !important;
+  color: #1f2937 !important; /* Cor do texto visível */
+}
+
+/* Row interna com o texto "Olá, Nome" */
+.dropdown-user-name-row {
+  color: #1f2937 !important; /* Garantir que o texto seja visível */
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
 }
 
 /* Header específico - não interativo - SIMPLES */
