@@ -91,11 +91,11 @@ class EmailService {
     }
 
     const templateParams = {
-      from_name: nome,
-      from_email: email,
-      user_id: userId,
+      to_email: email,
+      to_name: nome,
+      user_name: nome,
       reset_link: resetLink,
-      to_email: email // Email vai para o próprio usuário
+      user_id: userId
     };
 
     return await emailjs.send(
