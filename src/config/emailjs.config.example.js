@@ -1,4 +1,4 @@
-// Configuração do EmailJS
+// Configuração do EmailJS - EXEMPLO
 // Para obter essas credenciais:
 // 1. Acesse https://emailjs.com e crie uma conta
 // 2. Vá em "Email Services" e adicione seu provedor de email (Gmail, Outlook, etc.)
@@ -14,7 +14,7 @@ export const EMAILJS_CONFIG = {
   
   // Template IDs (encontrados em "Email Templates")
   TEMPLATE_ID_CONTACT: 'SEU_TEMPLATE_CONTATO_AQUI',        // Template: Formulário de Contato
-  TEMPLATE_ID_WELCOME: 'SEU_TEMPLATE_BOAS_VINDAS_AQUI',    // Template: Boas-Vindas ao Cadastro
+  TEMPLATE_ID_WELCOME: 'SEU_TEMPLATE_BOAS_VINDAS_AQUI',    // Template: Boas-Vindas (opcional)
   TEMPLATE_ID_RESET_PASSWORD: 'SEU_TEMPLATE_SENHA_AQUI',   // Template: Recuperação de Senha
   
   // Template ID padrão (compatibilidade com código antigo)
@@ -24,10 +24,7 @@ export const EMAILJS_CONFIG = {
   DESTINATION_EMAIL: 'suportegaragemsmart@gmail.com'
 };
 
-// Instruções para configurar o template no EmailJS:
-// 1. No template, use estas variáveis:
-//    {{from_name}} - Nome do remetente
-//    {{from_email}} - Email do remetente  
-//    {{message}} - Mensagem do contato
-//    {{user_id}} - ID do usuário (se logado)
-// 2. Configure o email de destino como: suportegaragemsmart@gmail.com
+// INSTRUÇÕES:
+// 1. Copie este arquivo para: src/config/emailjs.config.js
+// 2. Preencha com suas credenciais reais
+// 3. O arquivo src/config/emailjs.config.js está no .gitignore (não será commitado)
