@@ -21,14 +21,17 @@ export default function EsqueciSenha() {
     try {
       const emailTrimmed = email.toLowerCase().trim();
 
-      // Buscar dados do usuário
+      // Buscar dados do usuário na tabela users
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, nome, email, auth_id')
         .eq('email', emailTrimmed)
         .single();
 
+      console.log('Busca de usuário:', { userData, userError });
+
       if (userError || !userData) {
+        console.warn('Usuário não encontrado na tabela users:', emailTrimmed);
         setError('Email não encontrado. Verifique e tente novamente.');
         setLoading(false);
         return;
@@ -37,6 +40,8 @@ export default function EsqueciSenha() {
       // Gerar token único para recuperação
       const resetToken = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
       const resetLink = `${window.location.origin}/#/redefinir-senha?token=${resetToken}&email=${encodeURIComponent(emailTrimmed)}`;
+
+      console.log('Link de recuperação gerado:', resetLink);
 
       // Salvar token no localStorage (temporário - expira em 1 hora)
       const tokenData = {
@@ -47,6 +52,7 @@ export default function EsqueciSenha() {
       localStorage.setItem(`reset_token_${emailTrimmed}`, JSON.stringify(tokenData));
 
       // Enviar email APENAS via EmailJS
+      console.log('Enviando email via EmailJS...');
       await EmailService.sendPasswordResetEmail({
         nome: userData.nome || 'Usuário',
         email: emailTrimmed,
@@ -54,6 +60,7 @@ export default function EsqueciSenha() {
         resetLink: resetLink
       });
 
+      console.log('Email enviado com sucesso!');
       setEmailEnviado(true);
       setMessage(`✅ Email de recuperação enviado para ${emailTrimmed}. Verifique sua caixa de entrada e spam.`);
       
