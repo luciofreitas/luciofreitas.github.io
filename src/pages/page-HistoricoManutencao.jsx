@@ -20,6 +20,7 @@ export default function HistoricoManutencao() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [filtroVeiculo, setFiltroVeiculo] = useState('todos');
+  const [carroSelecionadoHelper, setCarroSelecionadoHelper] = useState('');
   const [formData, setFormData] = useState({
     veiculoId: '',
     data: '',
@@ -87,6 +88,7 @@ export default function HistoricoManutencao() {
   const handleEdit = (manutencao) => {
     setFormData(manutencao);
     setEditingId(manutencao.id);
+    setCarroSelecionadoHelper(manutencao.veiculoId);
     setShowModal(true);
   };
 
@@ -118,6 +120,16 @@ export default function HistoricoManutencao() {
       observacoes: ''
     });
     setEditingId(null);
+    setCarroSelecionadoHelper('');
+  };
+
+  const handleCarroHelperChange = (carroId) => {
+    setCarroSelecionadoHelper(carroId);
+    
+    if (carroId) {
+      // Preenche o veiculoId no formData
+      setFormData({...formData, veiculoId: carroId});
+    }
   };
 
   const getVeiculoNome = (veiculoId) => {
@@ -302,6 +314,31 @@ export default function HistoricoManutencao() {
                 </div>
                 
                 <form onSubmit={handleSubmit} className="historico-form">
+                  {/* Seletor de carro - facilita preenchimento */}
+                  {!editingId && carros.length > 0 && (
+                    <div className="historico-form-group historico-car-helper">
+                      <label htmlFor="carroHelper">
+                        🚗 Selecione um veículo cadastrado (facilita o preenchimento)
+                      </label>
+                      <select
+                        id="carroHelper"
+                        value={carroSelecionadoHelper}
+                        onChange={(e) => handleCarroHelperChange(e.target.value)}
+                        className="historico-input historico-car-selector"
+                      >
+                        <option value="">-- Selecione um carro cadastrado --</option>
+                        {carros.map(carro => (
+                          <option key={carro.id} value={carro.id}>
+                            {carro.marca} {carro.modelo} ({carro.ano}){carro.isDefault ? ' ⭐' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <small className="historico-helper-text">
+                        Ao selecionar um veículo, o campo "Veículo" será preenchido automaticamente
+                      </small>
+                    </div>
+                  )}
+
                   <div className="historico-form-group">
                     <label htmlFor="veiculoId">Veículo *</label>
                     <select

@@ -372,6 +372,37 @@
   font-size: 0.95rem;
 }
 
+/* Seletor de carro helper */
+.historico-car-helper {
+  background: var(--bg-primary-50);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px dashed var(--color-primary);
+  margin-bottom: 1.5rem;
+}
+
+.historico-car-helper label {
+  color: var(--color-primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.historico-car-selector {
+  margin-top: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.historico-helper-text {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
 .historico-input,
 .historico-textarea {
   width: 100%;
@@ -450,6 +481,19 @@
 
 .theme-dark .historico-intro p {
   color: #cbd5e1;
+}
+
+.theme-dark .historico-car-helper {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+}
+
+.theme-dark .historico-car-helper label {
+  color: #60a5fa;
+}
+
+.theme-dark .historico-helper-text {
+  color: #94a3b8;
 }
 
 .theme-dark .historico-select,
