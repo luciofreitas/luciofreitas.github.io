@@ -46,7 +46,9 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://127.0.0.1:5173',
   'https://luciofreitas.github.io',
-  'https://luciofreitas-github-io.onrender.com'
+  'https://luciofreitas-github-io.onrender.com',
+  'https://garagemsmart.com.br',
+  'http://garagemsmart.com.br'
 ];
 app.use(cors({
   origin: function(origin, callback){
