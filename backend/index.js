@@ -52,15 +52,24 @@ app.use(cors({
   origin: function(origin, callback){
     // allow requests with no origin (like mobile apps, curl)
     if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    
+    // Normalize origin: remove trailing slash for comparison
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    const isAllowed = allowedOrigins.some(allowed => {
+      const normalizedAllowed = allowed.replace(/\/$/, '');
+      return normalizedOrigin === normalizedAllowed;
+    });
+    
+    if(!isAllowed){
+      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+      console.error(`[CORS] Blocked origin: ${origin}. Allowed: ${allowedOrigins.join(', ')}`);
       return callback(new Error(msg), false);
     }
     return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Debug', 'X-Debug-Key']
 }));
 // Explicitly respond to preflight on all routes to ensure CORS headers are present
 app.options('*', (req, res) => {
