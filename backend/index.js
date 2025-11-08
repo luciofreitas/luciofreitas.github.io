@@ -3342,11 +3342,14 @@ app.get('/api/users/:userId/cars-auto', async (req, res) => {
       return res.json(result.rows);
       
     } catch(err) {
-      console.error('Fully-auto search failed:', err.message);
+      console.error('❌ Fully-auto search failed:', err.message);
+      console.error('❌ Full error:', err);
+      console.error('❌ Stack:', err.stack);
       return res.json([]); // Nunca falha - sempre retorna resultado
     }
   }
   
+  console.log('⚠️ pgClient not available, returning empty array');
   return res.json([]);
 });
 
