@@ -133,7 +133,7 @@ export default function Checkin() {
         <div className="page-content">
               <h2 className="page-title">Pagamento concluído</h2>
             <p className="checkin-success-text">Obrigado — sua assinatura Pro foi ativada (simulado).</p>
-            <p className="checkin-success-text">Você pode retornar à <a href="/">página inicial</a>.</p>
+            <p className="checkin-success-text">Você pode retornar à <a href="/#/">página inicial</a>.</p>
   </div>
         </div>
       </>

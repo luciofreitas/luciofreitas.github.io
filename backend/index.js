@@ -3425,7 +3425,7 @@ app.get('/api/users/:userId/cars', async (req, res) => {
 app.post('/api/users/:userId/cars-auto', async (req, res) => {
   const { userId } = req.params;
   const car = req.body;
-  console.log(`🚗 AUTO-ADD CAR: userId=${userId}`);
+  console.log(`🚗 AUTO-ADD CAR: userId=${userId}, car=`, JSON.stringify(car));
   
   if(pgClient){
     try{
@@ -3433,20 +3433,28 @@ app.post('/api/users/:userId/cars-auto', async (req, res) => {
       // Generate unique ID for the car
       const carId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
       
+      // Convert ano to integer if it's a string
+      const anoValue = car.year || car.ano;
+      const anoInt = anoValue ? parseInt(anoValue, 10) : null;
+      
+      console.log(`🚗 Attempting INSERT: id=${carId}, user_id=${userId}, marca=${car.brand || car.marca}, modelo=${car.model || car.modelo}, ano=${anoInt}`);
+      
       const result = await pgClient.query(
         'INSERT INTO cars (id, user_id, marca, modelo, ano, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *',
-        [carId, userId, car.brand || car.marca, car.model || car.modelo, car.year || car.ano]
+        [carId, userId, car.brand || car.marca, car.model || car.modelo, anoInt]
       );
       
-      console.log(`🚗 AUTO-ADDED: Car added successfully`);
+      console.log(`🚗 AUTO-ADDED: Car added successfully`, result.rows[0]);
       return res.json(result.rows[0]);
       
     } catch(err) {
       console.error('Auto-add car failed:', err.message);
-      return res.status(500).json({ error: 'Failed to add car automatically' });
+      console.error('Full error:', err);
+      return res.status(500).json({ error: 'Failed to add car automatically', details: err.message });
     }
   }
   
+  console.error('🚗 AUTO-ADD FAILED: pgClient not available');
   return res.status(503).json({ error: 'Database not available' });
 });
 

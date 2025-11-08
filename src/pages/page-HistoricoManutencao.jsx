@@ -154,7 +154,7 @@ export default function HistoricoManutencao() {
             <h2 className="page-title">Histórico de Manutenção</h2>
             <div className="historico-login-required">
               <p>Você precisa estar logado para acessar o histórico de manutenção.</p>
-              <a href="/login" className="historico-login-btn">Fazer Login</a>
+              <a href="/#/login" className="historico-login-btn">Fazer Login</a>
             </div>
           </div>
         </div>

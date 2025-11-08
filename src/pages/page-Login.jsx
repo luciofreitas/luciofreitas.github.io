@@ -662,7 +662,7 @@ export default function Login() {
                         <div style={{display: 'flex', gap: '8px', marginTop: 12}}>
                           <button type="button" className="submit" onClick={confirmLinkAccounts}>Confirmar e unir contas</button>
                           <button type="button" className="submit" onClick={async () => { try { await signOut(auth); } catch (e) {} setShowLinkPrompt(false); setLinkingCredential(null); setLinkPassword(''); }}>Cancelar</button>
-                          <button type="button" className="submit" onClick={() => { try { window.location.href = '/recuperar-senha'; } catch (e) {} }}>Recuperar senha</button>
+                          <button type="button" className="submit" onClick={() => { navigate('/esqueci-senha'); }}>Recuperar senha</button>
                         </div>
                         {/* If link via Firebase is not possible, allow server-side merge directly from this modal */}
                         {linkError && /autentica[cç][ãa]o por senha|senha/i.test(linkError) && (
@@ -698,7 +698,7 @@ export default function Login() {
                             }}>Unir contas no sistema (merge)</button>
                           </div>
                         )}
-                        <div style={{marginTop:8,fontSize:12}}><a href="/contato">Precisa de ajuda? Contate o suporte.</a></div>
+                        <div style={{marginTop:8,fontSize:12}}><a href="/#/contato">Precisa de ajuda? Contate o suporte.</a></div>
                       </div>
                     </div>
                   )}
@@ -715,7 +715,7 @@ export default function Login() {
                             <button type="button" className="submit" onClick={confirmMerge} disabled={mergeLoading}>{mergeLoading ? 'Unindo...' : 'Confirmar e unir contas'}</button>
                             <button type="button" className="submit" onClick={() => { setShowMergeConfirm(false); setPendingMergeIdToken(null); setPendingMergeEmail(null); setMergeError(''); }}>Cancelar</button>
                           </div>
-                          <div style={{marginTop:8,fontSize:12}}><a href="/contato">Precisa de ajuda? Contate o suporte.</a></div>
+                          <div style={{marginTop:8,fontSize:12}}><a href="/#/contato">Precisa de ajuda? Contate o suporte.</a></div>
                         </div>
                       </div>
                     )}

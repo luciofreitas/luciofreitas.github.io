@@ -131,8 +131,11 @@ export const carBrands = {
   'Outro': [] // Permite que o usuário digite manualmente
 };
 
-// Lista apenas das marcas (em ordem alfabética)
-export const brandList = Object.keys(carBrands).sort();
+// Lista apenas das marcas (em ordem alfabética, mas com "Outro" sempre no final)
+export const brandList = Object.keys(carBrands)
+  .filter(brand => brand !== 'Outro')
+  .sort()
+  .concat(['Outro']);
 
 // Função helper para obter modelos de uma marca
 export const getModelsByBrand = (brand) => {

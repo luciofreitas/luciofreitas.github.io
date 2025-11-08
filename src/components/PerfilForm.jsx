@@ -346,7 +346,7 @@ export default function PerfilForm({
               <div style={{padding:'8px',borderRadius:6,background:'#f3f7ff',border:'1px solid #e0e7ff'}}>
                 <strong>Conexões de conta:</strong>
                 <div style={{marginTop:6}}>Google: <span style={{fontWeight:700,color:'#1a73e8'}}>Conectado</span></div>
-                <div style={{marginTop:6,fontSize:13}}>Se quiser desvincular a conta do Google, vá em <a href="/configuracoes">Configurações</a> ou contate o suporte.</div>
+                <div style={{marginTop:6,fontSize:13}}>Se quiser desvincular a conta do Google, vá em <a href="/#/configuracoes">Configurações</a> ou contate o suporte.</div>
               </div>
             </div>
           )}
