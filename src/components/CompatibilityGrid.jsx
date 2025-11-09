@@ -1,5 +1,4 @@
 import React from 'react';
-import WhatsAppButton from './WhatsAppButton';
 import './CompatibilityGrid.css';
 
 function CompatibilityGrid({ applications, usuarioLogado }) {
@@ -10,7 +9,6 @@ function CompatibilityGrid({ applications, usuarioLogado }) {
       <div className="compatibility-grid-header">
         <div className="compatibility-header-vehicle"><strong>Carro</strong></div>
         <div className="compatibility-header-years"><strong>Anos</strong></div>
-        <div className="compatibility-header-contact"><strong>Contato</strong></div>
       </div>
       
       {applications.map((app, idx) => {
@@ -40,9 +38,6 @@ function CompatibilityGrid({ applications, usuarioLogado }) {
               <div className="compatibility-years-text">
                 {anosList.length ? anosList.join(', ') : '-'}
               </div>
-            </div>
-            <div className="compatibility-grid-contact">
-              <WhatsAppButton vehicle={veiculo} isPro={isPro} />
             </div>
           </div>
         );
