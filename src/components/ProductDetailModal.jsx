@@ -31,6 +31,9 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
   // trap focus while modal is open
   useFocusTrap(isOpen, modalRef);
 
+  // Inline SVG placeholder (data URI) to avoid 404s when the static image is missing
+  const PLACEHOLDER_SRC = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><rect width='100%25' height='100%25' fill='%23f3f4f6'/><text x='50%25' y='50%25' fill='%239ca3af' font-size='24' font-family='Arial' dominant-baseline='middle' text-anchor='middle'>Imagem%20indispon%C3%ADvel</text></svg>";
+
   const loadProductDetails = async (id) => {
     setLoading(true);
     try {
@@ -81,21 +84,21 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
               <div className="product-images">
                 <div className="main-image">
                   <img 
-                    src={productDetails.imagens?.[selectedImage] || '/images/placeholderPart.jpg'} 
+                    src={productDetails.imagens?.[selectedImage] || PLACEHOLDER_SRC} 
                     alt={productDetails?.nome || ''}
-                    onError={(e) => { e.target.src = '/images/placeholderPart.jpg'; }}
+                    onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
                   />
                 </div>
                 {productDetails.imagens && productDetails.imagens.length > 1 && (
                   <div className="image-thumbnails">
                     {productDetails.imagens.map((img, index) => (
-                      <img 
+                        <img 
                         key={index}
                         src={img}
                         alt={productDetails?.nome ? `${productDetails.nome} - ${index + 1}` : ''}
                         className={selectedImage === index ? 'active' : ''}
                         onClick={() => setSelectedImage(index)}
-                        onError={(e) => { e.target.src = '/images/placeholderPart.jpg'; }}
+                        onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
                       />
                     ))}
                   </div>
