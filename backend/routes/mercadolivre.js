@@ -3,6 +3,56 @@ const router = express.Router();
 const crypto = require('crypto');
 const fetch = require('node-fetch');
 
+// Simple in-memory caches to reduce calls to Mercado Livre
+const searchCache = new Map(); // key -> { expiresAt, data }
+const detailsCache = new Map();
+const SEARCH_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const DETAILS_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// Helper: proxied fetch to ML with consistent headers, optional Authorization forwarding,
+// retry with exponential backoff and improved logging.
+async function proxiedFetch(url, req, options = {}) {
+  const maxRetries = typeof options.retries === 'number' ? options.retries : 2;
+  const baseDelay = 400; // ms
+
+  // Build headers
+  const headers = Object.assign({}, options.headers || {});
+  headers['Accept'] = headers['Accept'] || 'application/json';
+  headers['User-Agent'] = headers['User-Agent'] || 'Garagem-Smart-App/1.0';
+  headers['Accept-Language'] = headers['Accept-Language'] || 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7';
+  // Optionally set Referer to your frontend domain (if available via env)
+  try {
+    const referer = process.env.FRONTEND_BASE_URL || 'https://luciofreitas.github.io';
+    headers['Referer'] = headers['Referer'] || referer;
+  } catch (e) {}
+
+  // Forward Authorization from incoming request if present and requested
+  if (req && req.headers && req.headers.authorization) {
+    headers['Authorization'] = headers['Authorization'] || req.headers.authorization;
+  }
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, Object.assign({}, options, { headers, method: options.method || 'GET' }));
+      // If status is 5xx, consider retrying
+      if (res.status >= 500 && attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      // network error - retry if attempts left
+      if (attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 // Mercado Livre OAuth 2.0 Configuration
 const ML_CLIENT_ID = process.env.MERCADO_LIVRE_CLIENT_ID;
 const ML_CLIENT_SECRET = process.env.MERCADO_LIVRE_CLIENT_SECRET;
@@ -14,6 +64,90 @@ const ML_API_BASE = 'https://api.mercadolibre.com';
 // In-memory store for OAuth states (for CSRF protection)
 // In production, use Redis or database
 const oauthStates = new Map();
+
+// Helper: persist ML tokens into Supabase (server-side). Table: ml_tokens
+async function saveMlTokens(userId, tokenData){
+  try{
+    if(!userId || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const expiresAt = tokenData.expires_in ? (Date.now() + (parseInt(tokenData.expires_in,10) * 1000)) : null;
+    const payload = {
+      user_id: String(userId),
+      access_token: tokenData.access_token || null,
+      refresh_token: tokenData.refresh_token || null,
+      expires_in: tokenData.expires_in ? parseInt(tokenData.expires_in,10) : null,
+      expires_at: expiresAt,
+      token_type: tokenData.token_type || null,
+      scope: tokenData.scope || null,
+      updated_at: new Date().toISOString()
+    };
+    // Upsert by user_id
+    const { data, error } = await supabaseAdmin.from('ml_tokens').upsert([payload], { onConflict: 'user_id' });
+    if(error){
+      console.warn('Failed to save ML tokens to Supabase:', error.message || error);
+      return null;
+    }
+    return data;
+  }catch(e){
+    console.warn('saveMlTokens error:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+// Helper: fetch ML tokens from Supabase by userId
+async function getMlTokens(userId){
+  try{
+    if(!userId || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const { data, error } = await supabaseAdmin.from('ml_tokens').select('*').eq('user_id', String(userId)).limit(1).maybeSingle();
+    if(error){
+      console.warn('getMlTokens supabase error:', error && error.message ? error.message : error);
+      return null;
+    }
+    return data || null;
+  }catch(e){
+    console.warn('getMlTokens error:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+// Helper: try to resolve a userId and ML token from the incoming request.
+// Priority: Authorization Bearer <supabase_access_token> -> query.userId -> header x-user-id
+async function getMlTokensFromReq(req){
+  try{
+    // 1) If client passed a Supabase access token in Authorization header, validate it and use that user
+    const authHeader = req.headers.authorization || '';
+    const bearer = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    if(bearer && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
+      try{
+        const { createClient } = require('@supabase/supabase-js');
+        const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+        const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(bearer);
+        if(!userErr && userData && userData.user && userData.user.id){
+          const userId = userData.user.id;
+          const tokenRow = await getMlTokens(userId);
+          if(tokenRow) return { userId, tokenRow };
+        }
+      }catch(e){ /* ignore and fallback */ }
+    }
+
+    // 2) Query param or header (convenience for testing)
+    const qUser = req.query && req.query.userId ? String(req.query.userId) : null;
+    const hUser = req.headers['x-user-id'] ? String(req.headers['x-user-id']) : null;
+    const candidate = qUser || hUser;
+    if(candidate){
+      const tokenRow = await getMlTokens(candidate);
+      if(tokenRow) return { userId: candidate, tokenRow };
+    }
+
+    return { userId: null, tokenRow: null };
+  }catch(e){
+    console.warn('getMlTokensFromReq error:', e && e.message ? e.message : e);
+    return { userId: null, tokenRow: null };
+  }
+}
 
 /**
  * Initiate OAuth flow
@@ -113,6 +247,13 @@ router.get('/callback', async (req, res) => {
 
     console.log(`ML OAuth successful for userId=${storedState.userId}`);
 
+    // Persist tokens server-side if we have Supabase configured
+    try {
+      await saveMlTokens(storedState.userId, tokenData);
+    } catch (e) {
+      console.warn('Failed to persist ML tokens after callback:', e && e.message ? e.message : e);
+    }
+
     // Redirect to frontend with success - usando garagemsmart.com.br
     const redirectUrl = `https://garagemsmart.com.br/#/ml/callback?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}&expires_in=${tokenData.expires_in}&userId=${storedState.userId}`;
     res.redirect(redirectUrl);
@@ -129,10 +270,46 @@ router.get('/callback', async (req, res) => {
  */
 router.post('/token', async (req, res) => {
   try {
-    const { code, redirectUri } = req.body;
+    // Support two modes:
+    // 1) Exchange code -> token (client sends { code, redirectUri })
+    // 2) Persist already-obtained token (client sends { access_token, refresh_token, expires_in, userId })
+    // Accept both snake_case and camelCase from different clients
+    const {
+      code,
+      redirectUri,
+      access_token,
+      refresh_token,
+      expires_in,
+      userId,
+      // camelCase alternatives
+      accessToken,
+      refreshToken,
+      expiresIn,
+      user_id
+    } = req.body || {};
 
+    // Normalize incoming token fields (prefer snake_case but accept camelCase)
+    const accessTokenFinal = access_token || accessToken || null;
+    const refreshTokenFinal = refresh_token || refreshToken || null;
+    const expiresInFinal = typeof expires_in !== 'undefined' ? expires_in : (typeof expiresIn !== 'undefined' ? expiresIn : null);
+    const userIdFinal = userId || user_id || null;
+
+    // If client already has token (e.g., OAuth handled elsewhere), persist directly
+    if (accessTokenFinal) {
+      try {
+        const tokenData = { access_token: accessTokenFinal, refresh_token: refreshTokenFinal, expires_in: expiresInFinal };
+        if (userIdFinal) await saveMlTokens(userIdFinal, tokenData);
+      } catch (e) { console.warn('Failed to persist ML token from client:', e && e.message ? e.message : e); }
+      return res.json({ ok: true });
+    }
+
+    // If neither an authorization code nor an access token was provided, return a more descriptive error
     if (!code) {
-      return res.status(400).json({ error: 'code required' });
+      // Allow explicit debug request via header X-Debug-Key: let-me-debug or X-Debug: true
+      const headerDebug = (String(req.headers['x-debug-key'] || '').toLowerCase() === 'let-me-debug')
+        || (String(req.headers['x-debug'] || '').toLowerCase() === 'true');
+      const debugPayload = headerDebug ? (req.rawBody || req.body) : ((process.env.NODE_ENV !== 'production') ? (req.rawBody || req.body) : undefined);
+      return res.status(400).json({ error: 'code or access_token required', received: debugPayload });
     }
 
     const tokenResponse = await fetch(ML_TOKEN_URL, {
@@ -157,6 +334,11 @@ router.post('/token', async (req, res) => {
     }
 
     const tokenData = await tokenResponse.json();
+    // Optionally persist tokens server-side if client provided userId
+    try {
+      const userId = req.body.userId || null;
+      if (userId) await saveMlTokens(userId, tokenData);
+    } catch (e) { console.warn('Failed to persist ML token on /token:', e && e.message ? e.message : e); }
 
     res.json({
       access_token: tokenData.access_token,
@@ -303,17 +485,29 @@ router.get('/products/search', async (req, res) => {
       searchUrl.searchParams.set('category', category);
     }
 
-    // Make request to ML API
-    const response = await fetch(searchUrl.toString(), {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Garagem-Smart-App/1.0'
+    // Resolve token (if any) and build cache key per-user to avoid leaking authenticated results
+    const tokenInfo = await getMlTokensFromReq(req);
+    const cacheKey = `${searchUrl.toString()}::user:${tokenInfo.userId || 'public'}`;
+    const cached = searchCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return res.json(cached.data);
+    }
+
+    // Make request to ML API via proxiedFetch (adds headers, retries, forwards Authorization)
+    let response;
+    try {
+      const extraHeaders = {};
+      if (tokenInfo && tokenInfo.tokenRow && tokenInfo.tokenRow.access_token) {
+        extraHeaders['Authorization'] = `Bearer ${tokenInfo.tokenRow.access_token}`;
       }
-    });
+      response = await proxiedFetch(searchUrl.toString(), req, { method: 'GET', headers: extraHeaders });
+    } catch (err) {
+      console.error('ML search fetch failed:', err && err.message ? err.message : err);
+      return res.status(502).json({ error: 'Mercado Livre fetch failed', message: String(err) });
+    }
 
     if (!response.ok) {
-      const errorText = await response.text();
+      const errorText = await response.text().catch(() => '<no body>');
       console.error('ML search error:', response.status, errorText);
       return res.status(response.status).json({ 
         error: 'Mercado Livre API error',
@@ -323,14 +517,19 @@ router.get('/products/search', async (req, res) => {
 
     const data = await response.json();
     
-    // Return results with normalized structure
-    res.json({
+    // Normalize and cache result
+    const payload = {
       results: data.results || [],
       paging: data.paging || {},
       filters: data.filters || [],
       available_filters: data.available_filters || [],
       total: data.paging?.total || 0
-    });
+    };
+    try {
+      searchCache.set(cacheKey, { expiresAt: Date.now() + SEARCH_TTL_MS, data: payload });
+    } catch (e) { /* ignore cache set errors */ }
+
+    res.json(payload);
 
   } catch (error) {
     console.error('ML products search error:', error);
@@ -354,17 +553,30 @@ router.get('/products/:id', async (req, res) => {
 
     // Get product details
     const productUrl = `${ML_API_BASE}/items/${id}`;
-    
-    const response = await fetch(productUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Garagem-Smart-App/1.0'
+
+    // Resolve token (if any) and build cache key per-user to avoid leaking authenticated results
+    const tokenInfo = await getMlTokensFromReq(req);
+    // Cache key includes user to keep auth/non-auth caches separate
+    const cacheKey = `${productUrl}::user:${tokenInfo.userId || 'public'}`;
+    const cached = detailsCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return res.json(cached.data);
+    }
+
+    let response;
+    try {
+      const extraHeaders = {};
+      if (tokenInfo && tokenInfo.tokenRow && tokenInfo.tokenRow.access_token) {
+        extraHeaders['Authorization'] = `Bearer ${tokenInfo.tokenRow.access_token}`;
       }
-    });
+      response = await proxiedFetch(productUrl, req, { method: 'GET', headers: extraHeaders });
+    } catch (err) {
+      console.error('ML product fetch failed:', err && err.message ? err.message : err);
+      return res.status(502).json({ error: 'Mercado Livre fetch failed', message: String(err) });
+    }
 
     if (!response.ok) {
-      const errorText = await response.text();
+      const errorText = await response.text().catch(() => '<no body>');
       console.error('ML product details error:', response.status, errorText);
       return res.status(response.status).json({ 
         error: 'Product not found',
@@ -373,8 +585,8 @@ router.get('/products/:id', async (req, res) => {
     }
 
     const product = await response.json();
-    
-    res.json(product);
+    try { detailsCache.set(cacheKey, { expiresAt: Date.now() + DETAILS_TTL_MS, data: product }); } catch (e) {}
+    return res.json(product);
 
   } catch (error) {
     console.error('ML product details error:', error);
@@ -403,16 +615,28 @@ router.get('/products/category/:categoryId', async (req, res) => {
     searchUrl.searchParams.set('limit', limit);
     searchUrl.searchParams.set('offset', offset);
 
-    const response = await fetch(searchUrl.toString(), {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Garagem-Smart-App/1.0'
+    // Resolve token (if any) and build cache key per-user to avoid leaking authenticated results
+    const tokenInfo = await getMlTokensFromReq(req);
+    const cacheKey = `${searchUrl.toString()}::user:${tokenInfo.userId || 'public'}`;
+    const cached = searchCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return res.json(cached.data);
+    }
+
+    let response;
+    try {
+      const extraHeaders = {};
+      if (tokenInfo && tokenInfo.tokenRow && tokenInfo.tokenRow.access_token) {
+        extraHeaders['Authorization'] = `Bearer ${tokenInfo.tokenRow.access_token}`;
       }
-    });
+      response = await proxiedFetch(searchUrl.toString(), req, { method: 'GET', headers: extraHeaders });
+    } catch (err) {
+      console.error('ML category fetch failed:', err && err.message ? err.message : err);
+      return res.status(502).json({ error: 'Mercado Livre fetch failed', message: String(err) });
+    }
 
     if (!response.ok) {
-      const errorText = await response.text();
+      const errorText = await response.text().catch(() => '<no body>');
       console.error('ML category search error:', response.status, errorText);
       return res.status(response.status).json({ 
         error: 'Mercado Livre API error',
@@ -421,14 +645,15 @@ router.get('/products/category/:categoryId', async (req, res) => {
     }
 
     const data = await response.json();
-    
-    res.json({
+    const payload = {
       results: data.results || [],
       paging: data.paging || {},
       filters: data.filters || [],
       available_filters: data.available_filters || [],
       total: data.paging?.total || 0
-    });
+    };
+    try { searchCache.set(cacheKey, { expiresAt: Date.now() + SEARCH_TTL_MS, data: payload }); } catch (e) {}
+    return res.json(payload);
 
   } catch (error) {
     console.error('ML category search error:', error);
@@ -437,3 +662,29 @@ router.get('/products/category/:categoryId', async (req, res) => {
 });
 
 module.exports = router;
+
+// Development-only debug endpoint: call ML /users/me using stored token for resolved user
+// GET /api/ml/debug/me?userId=<userId>
+router.get('/debug/me', async (req, res) => {
+  try {
+    // Only allow when X-Debug-Key header is present or not in production
+    const headerDebug = (String(req.headers['x-debug-key'] || '').toLowerCase() === 'let-me-debug')
+      || (String(req.headers['x-debug'] || '').toLowerCase() === 'true');
+    if (!headerDebug && process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'debug not allowed in production' });
+    }
+
+    const tokenInfo = await getMlTokensFromReq(req);
+    if (!tokenInfo || !tokenInfo.tokenRow || !tokenInfo.tokenRow.access_token) {
+      return res.status(404).json({ error: 'no token found for user', userId: tokenInfo && tokenInfo.userId });
+    }
+
+    const url = `${ML_API_BASE}/users/me`;
+    const response = await proxiedFetch(url, req, { method: 'GET', headers: { Authorization: `Bearer ${tokenInfo.tokenRow.access_token}` } });
+    const body = await response.text().catch(() => '<no body>');
+    return res.status(response.status).json({ status: response.status, body: body });
+  } catch (e) {
+    console.error('debug/me error:', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal debug error' });
+  }
+});

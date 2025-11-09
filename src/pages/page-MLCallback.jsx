@@ -59,6 +59,24 @@ const MLCallback = () => {
         localStorage.setItem('ml_token_data', JSON.stringify(mlTokenData));
         console.log('ML tokens stored successfully');
 
+        // Send token to backend to persist server-side (optional but recommended)
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || '';
+          await fetch(`${API_URL}/api/ml/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+              expires_in: parseInt(expiresIn),
+              userId: user?.id
+            })
+          });
+          console.log('ML token sent to backend for persistence');
+        } catch (err) {
+          console.warn('Failed to send ML token to backend:', err);
+        }
+
         // Success - redirect to settings
         setStatus('success');
         setTimeout(() => navigate('/#/configuracoes?ml_success=true'), 1500);
