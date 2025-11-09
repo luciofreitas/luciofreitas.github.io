@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MenuLogin } from '../components';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
+import { AuthContext } from '../App';
 import * as mlService from '../services/mlService';
 import '../styles/pages/page-Configuracoes.css';
 
@@ -10,7 +10,7 @@ export default function PageConfiguracoes() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme, isDark } = useTheme();
-  const { user } = useAuth();
+  const { usuarioLogado: user } = useContext(AuthContext) || {};
   const [mlStatus, setMlStatus] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

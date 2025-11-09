@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { AuthContext } from '../App';
 
 /**
  * Mercado Livre OAuth Callback Handler
@@ -11,7 +11,7 @@ import { useAuth } from '../context/AuthContext';
 const MLCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { usuarioLogado: user } = useContext(AuthContext) || {};
   const [status, setStatus] = useState('processing');
   const [error, setError] = useState(null);
 
