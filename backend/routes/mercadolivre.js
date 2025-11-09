@@ -2,6 +2,16 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const fetch = require('node-fetch');
+const path = require('path');
+
+// Local fallback data (used when Mercado Livre blocks requests)
+let localParts = [];
+try {
+  // parts_db.json lives in backend/parts_db.json
+  localParts = require(path.join(__dirname, '..', 'parts_db.json')) || [];
+} catch (e) {
+  localParts = [];
+}
 
 // Simple in-memory caches to reduce calls to Mercado Livre
 const searchCache = new Map(); // key -> { expiresAt, data }
@@ -50,6 +60,37 @@ async function proxiedFetch(url, req, options = {}) {
       }
       throw err;
     }
+  }
+}
+
+// Simple local search fallback using backend/parts_db.json
+function doLocalSearch(q, limit = 50, offset = 0) {
+  try {
+    if (!q) return { results: [], paging: { total: 0, limit, offset }, total: 0 };
+    const needle = String(q).toLowerCase();
+    const matched = localParts.filter(p => JSON.stringify(p).toLowerCase().indexOf(needle) !== -1);
+    const total = matched.length;
+    const results = matched.slice(Number(offset || 0), Number(offset || 0) + Number(limit || 50));
+    return {
+      results: results || [],
+      paging: { total, limit: Number(limit || 50), offset: Number(offset || 0) },
+      filters: [],
+      available_filters: [],
+      total
+    };
+  } catch (e) {
+    return { results: [], paging: { total: 0, limit, offset }, total: 0 };
+  }
+}
+
+// Simple local product detail fallback by id (search in JSON fields)
+function doLocalProductDetail(id) {
+  try {
+    if (!id) return null;
+    const found = localParts.find(p => String(p.id) === String(id) || String(p.id).toLowerCase() === String(id).toLowerCase());
+    return found || null;
+  } catch (e) {
+    return null;
   }
 }
 
@@ -509,6 +550,15 @@ router.get('/products/search', async (req, res) => {
     if (!response.ok) {
       const errorText = await response.text().catch(() => '<no body>');
       console.error('ML search error:', response.status, errorText);
+      // If blocked by PolicyAgent (403) provide local fallback so UI doesn't break
+      try {
+        const parsed = JSON.parse(errorText || '{}');
+        if (response.status === 403 && parsed && parsed.code && String(parsed.code).startsWith('PA_')) {
+          console.warn('ML blocked by policy; returning local fallback for search');
+          const local = doLocalSearch(q, limit, offset);
+          return res.json(local);
+        }
+      } catch (e) { /* ignore parse errors */ }
       return res.status(response.status).json({ 
         error: 'Mercado Livre API error',
         details: errorText 
@@ -578,6 +628,16 @@ router.get('/products/:id', async (req, res) => {
     if (!response.ok) {
       const errorText = await response.text().catch(() => '<no body>');
       console.error('ML product details error:', response.status, errorText);
+      // If blocked by PolicyAgent (403) provide local fallback for product detail
+      try {
+        const parsed = JSON.parse(errorText || '{}');
+        if (response.status === 403 && parsed && parsed.code && String(parsed.code).startsWith('PA_')) {
+          console.warn('ML blocked by policy; returning local fallback for product detail');
+          const local = doLocalProductDetail(id);
+          if (local) return res.json(local);
+          return res.status(404).json({ error: 'Product not found (local fallback)' });
+        }
+      } catch (e) { /* ignore parse errors */ }
       return res.status(response.status).json({ 
         error: 'Product not found',
         details: errorText 
@@ -638,6 +698,15 @@ router.get('/products/category/:categoryId', async (req, res) => {
     if (!response.ok) {
       const errorText = await response.text().catch(() => '<no body>');
       console.error('ML category search error:', response.status, errorText);
+      // If blocked by PolicyAgent (403) provide local fallback for category search
+      try {
+        const parsed = JSON.parse(errorText || '{}');
+        if (response.status === 403 && parsed && parsed.code && String(parsed.code).startsWith('PA_')) {
+          console.warn('ML blocked by policy; returning local fallback for category search');
+          const local = doLocalSearch(q, limit, offset);
+          return res.json(local);
+        }
+      } catch (e) { /* ignore parse errors */ }
       return res.status(response.status).json({ 
         error: 'Mercado Livre API error',
         details: errorText 
