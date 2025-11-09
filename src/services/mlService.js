@@ -292,7 +292,10 @@ const clearTokens = () => {
 
 // Cache to prevent infinite loops on API errors
 let lastMLError = null;
+let consecutiveErrors = 0;
 const ML_ERROR_COOLDOWN = 30000; // 30 seconds cooldown after error
+const MAX_CONSECUTIVE_ERRORS = 3; // After 3 consecutive errors, stop trying for longer
+const EXTENDED_COOLDOWN = 300000; // 5 minutes after multiple failures
 
 /**
  * Search products on Mercado Livre
@@ -308,7 +311,11 @@ const ML_ERROR_COOLDOWN = 30000; // 30 seconds cooldown after error
 export const searchProducts = async (query, options = {}) => {
   try {
     // Check if we're in cooldown period after an error
-    if (lastMLError && (Date.now() - lastMLError) < ML_ERROR_COOLDOWN) {
+    const cooldownPeriod = consecutiveErrors >= MAX_CONSECUTIVE_ERRORS ? EXTENDED_COOLDOWN : ML_ERROR_COOLDOWN;
+    
+    if (lastMLError && (Date.now() - lastMLError) < cooldownPeriod) {
+      const remainingTime = Math.ceil((cooldownPeriod - (Date.now() - lastMLError)) / 1000);
+      console.warn(`⏸️ ML API em cooldown. Tentando novamente em ${remainingTime}s. Usando dados locais.`);
       throw new Error('ML API temporarily unavailable, using local data');
     }
 
@@ -334,12 +341,22 @@ export const searchProducts = async (query, options = {}) => {
     if (!response.ok) {
       // Set error timestamp to prevent repeated failed requests
       lastMLError = Date.now();
+      consecutiveErrors++;
+      
       const errorData = await response.json().catch(() => ({ error: 'API error' }));
+      
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        console.error(`🔴 ML API falhou ${consecutiveErrors} vezes consecutivas. Pausando por 5 minutos.`);
+      } else {
+        console.warn(`⚠️ ML API erro ${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}. Pausando por 30s.`);
+      }
+      
       throw new Error(errorData.error || 'Failed to search products');
     }
 
     // Clear error on success
     lastMLError = null;
+    consecutiveErrors = 0;
 
     const data = await response.json();
 
