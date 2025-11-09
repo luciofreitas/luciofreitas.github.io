@@ -290,6 +290,10 @@ const clearTokens = () => {
 // Product Search Functions (Public API)
 // ========================================
 
+// Cache to prevent infinite loops on API errors
+let lastMLError = null;
+const ML_ERROR_COOLDOWN = 30000; // 30 seconds cooldown after error
+
 /**
  * Search products on Mercado Livre
  * Public API - does not require authentication
@@ -303,6 +307,11 @@ const clearTokens = () => {
  */
 export const searchProducts = async (query, options = {}) => {
   try {
+    // Check if we're in cooldown period after an error
+    if (lastMLError && (Date.now() - lastMLError) < ML_ERROR_COOLDOWN) {
+      throw new Error('ML API temporarily unavailable, using local data');
+    }
+
     if (!query) {
       throw new Error('Search query is required');
     }
@@ -323,9 +332,14 @@ export const searchProducts = async (query, options = {}) => {
     const response = await fetch(`${API_URL}/api/ml/products/search?${params.toString()}`);
 
     if (!response.ok) {
-      const errorData = await response.json();
+      // Set error timestamp to prevent repeated failed requests
+      lastMLError = Date.now();
+      const errorData = await response.json().catch(() => ({ error: 'API error' }));
       throw new Error(errorData.error || 'Failed to search products');
     }
+
+    // Clear error on success
+    lastMLError = null;
 
     const data = await response.json();
 
@@ -352,6 +366,11 @@ export const searchProducts = async (query, options = {}) => {
  */
 export const getProductDetails = async (productId) => {
   try {
+    // Check cooldown
+    if (lastMLError && (Date.now() - lastMLError) < ML_ERROR_COOLDOWN) {
+      throw new Error('ML API temporarily unavailable');
+    }
+
     if (!productId) {
       throw new Error('Product ID is required');
     }
@@ -359,10 +378,12 @@ export const getProductDetails = async (productId) => {
     const response = await fetch(`${API_URL}/api/ml/products/${productId}`);
 
     if (!response.ok) {
-      const errorData = await response.json();
+      lastMLError = Date.now();
+      const errorData = await response.json().catch(() => ({ error: 'API error' }));
       throw new Error(errorData.error || 'Failed to get product details');
     }
 
+    lastMLError = null;
     return await response.json();
 
   } catch (error) {
@@ -383,6 +404,11 @@ export const getProductDetails = async (productId) => {
  */
 export const searchByCategory = async (categoryId, options = {}) => {
   try {
+    // Check cooldown
+    if (lastMLError && (Date.now() - lastMLError) < ML_ERROR_COOLDOWN) {
+      throw new Error('ML API temporarily unavailable');
+    }
+
     if (!categoryId) {
       throw new Error('Category ID is required');
     }
@@ -397,10 +423,12 @@ export const searchByCategory = async (categoryId, options = {}) => {
     const response = await fetch(`${API_URL}/api/ml/products/category/${categoryId}?${params.toString()}`);
 
     if (!response.ok) {
-      const errorData = await response.json();
+      lastMLError = Date.now();
+      const errorData = await response.json().catch(() => ({ error: 'API error' }));
       throw new Error(errorData.error || 'Failed to search by category');
     }
 
+    lastMLError = null;
     const data = await response.json();
 
     return {
