@@ -5,7 +5,7 @@
  * and provides methods to interact with the API.
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'https://luciofreitas-github-io.onrender.com ?';
 
 /**
  * Initiate OAuth authorization flow
