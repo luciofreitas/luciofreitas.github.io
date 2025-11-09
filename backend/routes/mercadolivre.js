@@ -278,4 +278,162 @@ router.post('/revoke', async (req, res) => {
   }
 });
 
+/**
+ * Search products on Mercado Livre (Public API - no auth required)
+ * GET /api/ml/products/search?q=<query>&limit=<limit>&offset=<offset>
+ * 
+ * Example: GET /api/ml/products/search?q=pastilha%20freio%20gol&limit=50
+ */
+router.get('/products/search', async (req, res) => {
+  try {
+    const { q, limit = 50, offset = 0, category } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ error: 'Query parameter "q" is required' });
+    }
+
+    // Build search URL
+    const searchUrl = new URL(`${ML_API_BASE}/sites/MLB/search`);
+    searchUrl.searchParams.set('q', q);
+    searchUrl.searchParams.set('limit', limit);
+    searchUrl.searchParams.set('offset', offset);
+    
+    // Filter by category if provided
+    if (category) {
+      searchUrl.searchParams.set('category', category);
+    }
+
+    // Make request to ML API
+    const response = await fetch(searchUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Garagem-Smart-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('ML search error:', response.status, errorText);
+      return res.status(response.status).json({ 
+        error: 'Mercado Livre API error',
+        details: errorText 
+      });
+    }
+
+    const data = await response.json();
+    
+    // Return results with normalized structure
+    res.json({
+      results: data.results || [],
+      paging: data.paging || {},
+      filters: data.filters || [],
+      available_filters: data.available_filters || [],
+      total: data.paging?.total || 0
+    });
+
+  } catch (error) {
+    console.error('ML products search error:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * Get product details by ID (Public API - no auth required)
+ * GET /api/ml/products/:id
+ * 
+ * Example: GET /api/ml/products/MLB123456789
+ */
+router.get('/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
+
+    // Get product details
+    const productUrl = `${ML_API_BASE}/items/${id}`;
+    
+    const response = await fetch(productUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Garagem-Smart-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('ML product details error:', response.status, errorText);
+      return res.status(response.status).json({ 
+        error: 'Product not found',
+        details: errorText 
+      });
+    }
+
+    const product = await response.json();
+    
+    res.json(product);
+
+  } catch (error) {
+    console.error('ML product details error:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * Search by category (Public API - no auth required)
+ * GET /api/ml/products/category/:categoryId
+ * 
+ * Example: GET /api/ml/products/category/MLB1747?limit=50
+ */
+router.get('/products/category/:categoryId', async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const { limit = 50, offset = 0 } = req.query;
+
+    if (!categoryId) {
+      return res.status(400).json({ error: 'Category ID is required' });
+    }
+
+    // Build category search URL
+    const searchUrl = new URL(`${ML_API_BASE}/sites/MLB/search`);
+    searchUrl.searchParams.set('category', categoryId);
+    searchUrl.searchParams.set('limit', limit);
+    searchUrl.searchParams.set('offset', offset);
+
+    const response = await fetch(searchUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Garagem-Smart-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('ML category search error:', response.status, errorText);
+      return res.status(response.status).json({ 
+        error: 'Mercado Livre API error',
+        details: errorText 
+      });
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      results: data.results || [],
+      paging: data.paging || {},
+      filters: data.filters || [],
+      available_filters: data.available_filters || [],
+      total: data.paging?.total || 0
+    });
+
+  } catch (error) {
+    console.error('ML category search error:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
 module.exports = router;

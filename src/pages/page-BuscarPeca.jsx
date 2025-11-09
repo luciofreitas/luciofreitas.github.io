@@ -430,10 +430,12 @@ export default function BuscarPeca() {
       fabricante: selectedFabricante 
     };
     try {
-    const data = await apiService.filtrarPecas(filtros);
+    // Usar API do Mercado Livre (com fallback para JSON local)
+    const data = await apiService.buscarPecasML(filtros);
     console.log('🔍 Filtros aplicados:', filtros);
-    console.log('📦 Dados retornados da API:', data);
+    console.log('📦 Dados retornados:', data);
     console.log('📋 Peças encontradas:', data.pecas?.length || 0);
+    console.log('🌐 Fonte:', data.source || 'local');
     // A API retorna data.pecas, não data.results
     const pecasFiltradas = data.pecas || [];
       

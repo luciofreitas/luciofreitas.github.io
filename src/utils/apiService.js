@@ -1,5 +1,7 @@
 // API utility with JSON fallback for GitHub Pages
 import { glossarioMockData } from '../data/glossarioData.js';
+import * as mlService from '../services/mlService.js';
+
 class ApiService {
   constructor() {
     this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -271,6 +273,175 @@ class ApiService {
     }
 
     return { error: 'Peça não encontrada' };
+  }
+
+  // ========================================
+  // Mercado Livre Product Search Methods
+  // ========================================
+
+  /**
+   * Search parts on Mercado Livre
+   * Primary method - uses ML API for real products
+   * Falls back to local JSON if ML fails
+   * 
+   * @param {Object} filtros - Search filters
+   * @returns {Promise<Object>} Products from ML or local JSON
+   */
+  async buscarPecasML(filtros) {
+    try {
+      // Build search query from filters
+      const query = this.buildMLSearchQuery(filtros);
+      
+      if (!query) {
+        console.warn('No search query built from filters, using local data');
+        return this.filtrarPecas(filtros);
+      }
+
+      console.log('🔍 Buscando produtos no Mercado Livre:', query);
+
+      // Search on Mercado Livre
+      const mlResult = await mlService.searchProducts(query, {
+        limit: 50,
+        offset: 0
+      });
+
+      if (mlResult && mlResult.products && mlResult.products.length > 0) {
+        console.log(`✅ Encontrados ${mlResult.products.length} produtos no ML`);
+        
+        // Convert ML products to our format
+        const pecasML = mlResult.products.map(this.convertMLProductToPeca);
+        
+        return {
+          pecas: pecasML,
+          total: mlResult.total,
+          source: 'mercado_livre',
+          paging: mlResult.paging
+        };
+      }
+
+      console.warn('Nenhum produto encontrado no ML, usando dados locais');
+      return this.filtrarPecas(filtros);
+
+    } catch (error) {
+      console.error('Erro ao buscar no Mercado Livre, usando dados locais:', error);
+      return this.filtrarPecas(filtros);
+    }
+  }
+
+  /**
+   * Build search query for Mercado Livre from filters
+   */
+  buildMLSearchQuery(filtros) {
+    const parts = [];
+
+    // Part name/category is most important
+    if (filtros.categoria || filtros.peca) {
+      parts.push(filtros.categoria || filtros.peca);
+    } else if (filtros.grupo) {
+      parts.push(filtros.grupo);
+    }
+
+    // Add vehicle info
+    if (filtros.marca) {
+      parts.push(filtros.marca);
+    }
+    
+    if (filtros.modelo) {
+      parts.push(filtros.modelo);
+    }
+    
+    if (filtros.ano) {
+      parts.push(filtros.ano);
+    }
+
+    // Add manufacturer if specified
+    if (filtros.fabricante) {
+      parts.push(filtros.fabricante);
+    }
+
+    const query = parts.join(' ').trim();
+    return query || null;
+  }
+
+  /**
+   * Convert ML product format to our internal format
+   */
+  convertMLProductToPeca(mlProduct) {
+    return {
+      id: mlProduct.id,
+      name: mlProduct.title,
+      category: mlProduct.category_id || 'Peças Automotivas',
+      manufacturer: mlProduct.seller?.nickname || 'Mercado Livre',
+      price: mlProduct.price,
+      currency: mlProduct.currency_id || 'BRL',
+      condition: mlProduct.condition, // new, used
+      thumbnail: mlProduct.thumbnail,
+      pictures: mlProduct.pictures || [],
+      permalink: mlProduct.permalink,
+      available_quantity: mlProduct.available_quantity || 0,
+      sold_quantity: mlProduct.sold_quantity || 0,
+      shipping: {
+        free_shipping: mlProduct.shipping?.free_shipping || false,
+        store_pick_up: mlProduct.shipping?.store_pick_up || false
+      },
+      attributes: mlProduct.attributes || [],
+      // ML specific fields
+      ml_product: true,
+      ml_id: mlProduct.id,
+      original_price: mlProduct.original_price,
+      listing_type_id: mlProduct.listing_type_id,
+      // Compatibility info (if available in attributes)
+      applications: this.extractApplicationsFromMLProduct(mlProduct)
+    };
+  }
+
+  /**
+   * Extract vehicle applications from ML product attributes
+   */
+  extractApplicationsFromMLProduct(mlProduct) {
+    const applications = [];
+    
+    if (mlProduct.attributes && Array.isArray(mlProduct.attributes)) {
+      const marca = mlProduct.attributes.find(a => a.id === 'BRAND' || a.id === 'VEHICLE_BRAND');
+      const modelo = mlProduct.attributes.find(a => a.id === 'MODEL' || a.id === 'VEHICLE_MODEL');
+      const ano = mlProduct.attributes.find(a => a.id === 'VEHICLE_YEAR');
+
+      if (marca || modelo || ano) {
+        const app = [
+          marca?.value_name,
+          modelo?.value_name,
+          ano?.value_name
+        ].filter(Boolean).join(' ');
+        
+        if (app) {
+          applications.push(app);
+        }
+      }
+    }
+
+    return applications;
+  }
+
+  /**
+   * Get product details from Mercado Livre
+   */
+  async getPecaByIdML(mlId) {
+    try {
+      console.log('🔍 Buscando detalhes do produto ML:', mlId);
+      
+      const product = await mlService.getProductDetails(mlId);
+      
+      if (product) {
+        return this.convertMLProductToPeca(product);
+      }
+
+      // Fallback to local data
+      return this.getPecaById(mlId);
+
+    } catch (error) {
+      console.error('Erro ao buscar detalhes no ML, usando dados locais:', error);
+      return this.getPecaById(mlId);
+    }
   }
 }
 

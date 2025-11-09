@@ -286,7 +286,170 @@ const clearTokens = () => {
   console.log('ML tokens cleared');
 };
 
+// ========================================
+// Product Search Functions (Public API)
+// ========================================
+
+/**
+ * Search products on Mercado Livre
+ * Public API - does not require authentication
+ * 
+ * @param {string} query - Search query (e.g., "pastilha freio gol")
+ * @param {Object} options - Search options
+ * @param {number} options.limit - Number of results (default: 50)
+ * @param {number} options.offset - Offset for pagination (default: 0)
+ * @param {string} options.category - Category ID to filter
+ * @returns {Promise<Object>} Search results
+ */
+export const searchProducts = async (query, options = {}) => {
+  try {
+    if (!query) {
+      throw new Error('Search query is required');
+    }
+
+    const { limit = 50, offset = 0, category } = options;
+
+    // Build query params
+    const params = new URLSearchParams({
+      q: query,
+      limit: limit.toString(),
+      offset: offset.toString()
+    });
+
+    if (category) {
+      params.set('category', category);
+    }
+
+    const response = await fetch(`${API_URL}/api/ml/products/search?${params.toString()}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to search products');
+    }
+
+    const data = await response.json();
+
+    return {
+      products: data.results || [],
+      total: data.total || 0,
+      paging: data.paging || {},
+      filters: data.filters || [],
+      availableFilters: data.available_filters || []
+    };
+
+  } catch (error) {
+    console.error('Error searching ML products:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get product details by ID
+ * Public API - does not require authentication
+ * 
+ * @param {string} productId - ML product ID (e.g., "MLB123456789")
+ * @returns {Promise<Object>} Product details
+ */
+export const getProductDetails = async (productId) => {
+  try {
+    if (!productId) {
+      throw new Error('Product ID is required');
+    }
+
+    const response = await fetch(`${API_URL}/api/ml/products/${productId}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to get product details');
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error getting ML product details:', error);
+    throw error;
+  }
+};
+
+/**
+ * Search products by category
+ * Public API - does not require authentication
+ * 
+ * @param {string} categoryId - ML category ID
+ * @param {Object} options - Search options
+ * @param {number} options.limit - Number of results (default: 50)
+ * @param {number} options.offset - Offset for pagination (default: 0)
+ * @returns {Promise<Object>} Search results
+ */
+export const searchByCategory = async (categoryId, options = {}) => {
+  try {
+    if (!categoryId) {
+      throw new Error('Category ID is required');
+    }
+
+    const { limit = 50, offset = 0 } = options;
+
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString()
+    });
+
+    const response = await fetch(`${API_URL}/api/ml/products/category/${categoryId}?${params.toString()}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to search by category');
+    }
+
+    const data = await response.json();
+
+    return {
+      products: data.results || [],
+      total: data.total || 0,
+      paging: data.paging || {},
+      filters: data.filters || [],
+      availableFilters: data.available_filters || []
+    };
+
+  } catch (error) {
+    console.error('Error searching ML by category:', error);
+    throw error;
+  }
+};
+
+/**
+ * Build automotive part search query
+ * Helper to create optimized search queries for car parts
+ * 
+ * @param {Object} partInfo - Part information
+ * @param {string} partInfo.partName - Part name (e.g., "pastilha de freio")
+ * @param {string} partInfo.brand - Car brand (e.g., "volkswagen")
+ * @param {string} partInfo.model - Car model (e.g., "gol")
+ * @param {string} partInfo.year - Car year (e.g., "2015")
+ * @returns {string} Optimized search query
+ */
+export const buildPartSearchQuery = (partInfo) => {
+  const { partName, brand, model, year } = partInfo;
+  
+  let query = partName || '';
+  
+  if (brand) {
+    query += ` ${brand}`;
+  }
+  
+  if (model) {
+    query += ` ${model}`;
+  }
+  
+  if (year) {
+    query += ` ${year}`;
+  }
+  
+  return query.trim();
+};
+
 export default {
+  // Authentication
   initiateAuth,
   handleCallback,
   refreshToken,
@@ -294,5 +457,11 @@ export default {
   disconnect,
   isConnected,
   getConnectionStatus,
-  getStoredTokens
+  getStoredTokens,
+  
+  // Product Search (Public)
+  searchProducts,
+  getProductDetails,
+  searchByCategory,
+  buildPartSearchQuery
 };
