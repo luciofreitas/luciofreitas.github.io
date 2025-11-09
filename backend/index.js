@@ -14,6 +14,9 @@ const crypto = require('crypto');
 // usage and add the dependency back to backend/package.json.
 
 const app = express();
+
+// Mercado Livre OAuth routes
+const mercadoLivreRoutes = require('./routes/mercadolivre');
 // Lightweight health check used by PaaS (Render) to detect readiness quickly.
 // Keep this as the very first route so the platform can probe the process
 // even if other initialization (DB connect) is still in progress.
@@ -89,6 +92,9 @@ app.options('*', (req, res) => {
 app.use(express.json({ verify: function (req, res, buf, encoding) {
   try { req.rawBody = buf && buf.toString(encoding || 'utf8'); } catch (e) { req.rawBody = null; }
 }}));
+
+// Mount Mercado Livre OAuth routes
+app.use('/api/ml', mercadoLivreRoutes);
 
 // Simple request logger to help debug missing routes / 404s in dev
 app.use((req, res, next) => {

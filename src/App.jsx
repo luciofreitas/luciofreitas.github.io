@@ -35,6 +35,7 @@ const LuzesDoPainel = lazy(() => import('./pages/page-LuzesDoPainel'));
 const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'));
 const EsqueciSenha = lazy(() => import('./pages/page-EsqueciSenha'));
 const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
+const MLCallback = lazy(() => import('./pages/page-MLCallback'));
 import { ThemeToggle } from './components';
 import './styles/App.css';
 import './styles/CustomDropdown.css';
@@ -452,6 +453,7 @@ export default function App() {
                 <PageConfiguracoes />
               </ProtectedRoute>
             } />
+            <Route path="/ml/callback" element={<MLCallback />} />
             <Route path="/tabela-fipe" element={
               <ProtectedRoute>
                 <TabelaFIPE />
