@@ -194,6 +194,35 @@ async function fetchUrlBytes(url) {
   });
 }
 
+// Production-capable, secure PG connectivity check.
+// Requires header `X-Debug-Key: <DEBUG_KEY>` to run when NODE_ENV === 'production'.
+// When not in production the endpoint is allowed without a key to simplify local testing.
+app.get('/api/debug/pg-check', async (req, res) => {
+  let client = null;
+  try {
+    const envKey = String(process.env.DEBUG_KEY || '');
+    const headerKey = String(req.headers['x-debug-key'] || '');
+    if (process.env.NODE_ENV === 'production') {
+      if (!envKey || headerKey !== envKey) return res.status(403).json({ ok: false, error: 'forbidden' });
+    }
+
+    const cfg = buildPgConfig();
+    if (!cfg) return res.status(503).json({ ok: false, error: 'no pg config available in process env' });
+
+    const { Client } = require('pg');
+    client = new Client(cfg);
+    await client.connect();
+    const r = await client.query('SELECT version() AS v, current_database() AS db');
+    await client.end();
+    client = null;
+    return res.json({ ok: true, rows: r.rows });
+  } catch (e) {
+    try { if (client) await client.end().catch(()=>{}); } catch(_){}
+    console.error('/api/debug/pg-check failed:', e && e.message ? e.message : e);
+    return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
+  }
+});
+
 // Avatar proxy: /api/avatar/proxy?url=<encoded_url>
 app.get('/api/avatar/proxy', async (req, res) => {
   try {
