@@ -166,7 +166,7 @@ export default function HistoricoManutencao() {
     <>
       <Menu />
       <div className="site-header-spacer"></div>
-      <div className="page-wrapper menu-page">
+  <div className="page-wrapper menu-page historico-page">
         <div className="page-content historico-section">
           <h2 className="page-title">Histórico de Manutenção</h2>
           

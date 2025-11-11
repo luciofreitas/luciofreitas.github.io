@@ -1,7 +1,8 @@
 /* page-HistoricoManutencao.css */
 
 .historico-section {
-  padding: 2rem 1rem;
+  /* Remove vertical padding (2rem = 32px) as requested; keep horizontal padding */
+  padding: 0 1rem;
   max-width: 75rem;
   margin: 0 auto;
 }
@@ -304,10 +305,12 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  /* align to top so modal sits below the fixed header; keeps centered horizontally */
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
+  /* add top padding equal to header height + a small gap so modal doesn't overlap the menu */
+  padding: calc(4.5rem + 1rem) 1rem 1.25rem;
 }
 
 .historico-modal {
@@ -318,6 +321,23 @@
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Page-specific override to restore the default page title spacing for this page only.
+   The global stylesheet reduces title top padding for .menu-page; make a more specific
+   selector to re-enable the normal top padding here. Use !important to override the
+   previous rule which also used !important. */
+.page-wrapper.menu-page.historico-page .page-title {
+  padding-top: 0.85rem !important;
+}
+
+/* Responsive: on small screens center the modal vertically (original behavior), and
+   reduce top padding so modal feels centered even with the header present. */
+@media (max-width: 48rem), (max-height: 640px) {
+  .historico-modal-overlay {
+    align-items: center;
+    padding: 1rem;
+  }
 }
 
 .historico-modal-header {
