@@ -306,11 +306,13 @@
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   /* align to top so modal sits below the fixed header; keeps centered horizontally */
-  align-items: flex-start;
-  justify-content: center;
-  z-index: 1000;
-  /* add top padding equal to header height + a small gap so modal doesn't overlap the menu */
-  padding: calc(4.5rem + 1rem) 1rem 1.25rem;
+  align-items: flex-start; 
+  justify-content: center; 
+  z-index: 1000; 
+  /* allow the overlay to scroll if the modal is taller than the viewport */ 
+  overflow-y: auto; 
+  /* add top padding equal to header height + a small gap so modal doesn't overlap the menu */ 
+  padding: calc(4.5rem + 1rem) 1rem 1.25rem; 
 }
 
 .historico-modal {
@@ -318,7 +320,9 @@
   border-radius: 0.75rem;
   width: 100%;
   max-width: 40rem;
-  max-height: 90vh;
+  /* Limit modal height to viewport minus header+gap so it never gets cut off.
+     Using a fixed rem subtraction keeps a small breathing room at top/bottom. */
+  max-height: calc(100vh - 6rem); 
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
