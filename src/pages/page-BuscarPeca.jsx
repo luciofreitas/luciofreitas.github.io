@@ -544,6 +544,7 @@ export default function BuscarPeca() {
         isOpen={showProductDetailModal}
         onClose={closeProductDetailModal}
         productId={selectedProductId}
+        selectedCarId={carroSelecionadoId}
       />
     </>
   );

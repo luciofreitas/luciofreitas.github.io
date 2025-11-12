@@ -1,6 +1,10 @@
 // Serviço para gerenciar manutenções (localStorage por enquanto, migrar para Supabase depois)
 const STORAGE_KEY = 'pf_maintenances';
 
+function normalizeUserKey(userId) {
+  try { return String(userId || '').trim().toLowerCase(); } catch (e) { return String(userId || ''); }
+}
+
 /**
  * Obtém todas as manutenções de um usuário
  * @param {string} userId - ID do usuário
@@ -8,10 +12,10 @@ const STORAGE_KEY = 'pf_maintenances';
  */
 export async function getMaintenances(userId) {
   if (!userId) return [];
-  
   try {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    return all[userId] || [];
+    const key = normalizeUserKey(userId);
+    return all[key] || [];
   } catch (error) {
     console.error('Erro ao carregar manutenções:', error);
     return [];
@@ -26,10 +30,10 @@ export async function getMaintenances(userId) {
  */
 export async function saveMaintenances(userId, maintenances) {
   if (!userId) return false;
-  
   try {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    all[userId] = maintenances;
+    const key = normalizeUserKey(userId);
+    all[key] = maintenances;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
     return true;
   } catch (error) {
@@ -46,7 +50,6 @@ export async function saveMaintenances(userId, maintenances) {
  */
 export async function addMaintenance(userId, maintenance) {
   if (!userId || !maintenance) return null;
-  
   try {
     const maintenances = await getMaintenances(userId);
     const newMaintenance = {
@@ -54,7 +57,6 @@ export async function addMaintenance(userId, maintenance) {
       id: Date.now().toString(),
       createdAt: new Date().toISOString()
     };
-    
     const updated = [...maintenances, newMaintenance];
     await saveMaintenances(userId, updated);
     return newMaintenance;
@@ -73,13 +75,11 @@ export async function addMaintenance(userId, maintenance) {
  */
 export async function updateMaintenance(userId, maintenanceId, updatedData) {
   if (!userId || !maintenanceId) return false;
-  
   try {
     const maintenances = await getMaintenances(userId);
     const updated = maintenances.map(m => 
       m.id === maintenanceId ? { ...m, ...updatedData, updatedAt: new Date().toISOString() } : m
     );
-    
     await saveMaintenances(userId, updated);
     return true;
   } catch (error) {
@@ -96,11 +96,9 @@ export async function updateMaintenance(userId, maintenanceId, updatedData) {
  */
 export async function deleteMaintenance(userId, maintenanceId) {
   if (!userId || !maintenanceId) return false;
-  
   try {
     const maintenances = await getMaintenances(userId);
     const updated = maintenances.filter(m => m.id !== maintenanceId);
-    
     await saveMaintenances(userId, updated);
     return true;
   } catch (error) {
@@ -120,7 +118,8 @@ export async function getMaintenancesByCar(userId, carId) {
   
   try {
     const allMaintenances = await getMaintenances(userId);
-    return allMaintenances.filter(m => m.veiculoId === carId);
+    // compare as strings to be tolerant
+    return allMaintenances.filter(m => String(m.veiculoId) === String(carId));
   } catch (error) {
     console.error('Erro ao carregar manutenções do veículo:', error);
     return [];

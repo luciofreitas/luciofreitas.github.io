@@ -1,19 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { apiService } from '../utils/apiService';
 import './ProductDetailModal.css';
 import useFocusTrap from '../hooks/useFocusTrap';
+import { AuthContext } from '../App';
+import { addMaintenance } from '../services/maintenanceService';
+import { getCars } from '../services/carService';
 
-function ProductDetailModal({ isOpen, onClose, productId }) {
+function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
   const [productDetails, setProductDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('geral');
   const [selectedImage, setSelectedImage] = useState(0);
+  const [userCars, setUserCars] = useState([]);
+
+  const { usuarioLogado } = useContext(AuthContext) || {};
 
   useEffect(() => {
     if (isOpen && productId) {
       loadProductDetails(productId);
     }
   }, [isOpen, productId]);
+
+  // Load user's cars when modal opens so we can associate a saved search with a vehicle
+  useEffect(() => {
+    let mounted = true;
+    async function loadCars() {
+      try {
+        if (!usuarioLogado) return setUserCars([]);
+        const userId = usuarioLogado.id || usuarioLogado.email;
+        const cars = await getCars(userId);
+        if (mounted) setUserCars(Array.isArray(cars) ? cars : []);
+      } catch (e) { console.warn('Failed to load user cars for ProductDetailModal', e); }
+    }
+    if (isOpen) loadCars();
+    return () => { mounted = false; };
+  }, [isOpen, usuarioLogado]);
 
   const modalRef = useRef(null);
   // dynamic import to avoid circular issues if any; local hook
@@ -65,6 +86,48 @@ function ProductDetailModal({ isOpen, onClose, productId }) {
       <div ref={modalRef} className="product-modal" role="dialog" aria-modal="true" aria-label={productDetails?.nome || 'Detalhes da peça'}>
         <div className="product-modal-header">
           <h2>{productDetails?.nome || 'Carregando...'}</h2>
+          <div className="product-modal-actions">
+            <button className="btn product-modal-save" onClick={async () => {
+              try {
+                const usuario = usuarioLogado;
+                if (!usuario) {
+                  if (window.showToast) window.showToast('Faça login para salvar pesquisas', 'error', 3000);
+                  return;
+                }
+                const rawUserId = usuario.id || usuario.email;
+                const userId = rawUserId ? String(rawUserId).trim().toLowerCase() : rawUserId;
+                // pick a vehicle: prefer default, else first, else empty
+                // If a car was selected in the catalog page, prefer that one
+                let preferredCar = null;
+                if (selectedCarId) {
+                  preferredCar = (userCars && userCars.find(c => String(c.id) === String(selectedCarId))) || null;
+                }
+                if (!preferredCar) {
+                  preferredCar = (userCars && userCars.find(c => c.isDefault)) || (userCars && userCars[0]) || null;
+                }
+                const toSave = {
+                  veiculoId: preferredCar ? (preferredCar.id || '') : '',
+                  // record the moment the user saved this search as the maintenance date
+                  data: new Date().toISOString(),
+                  tipo: 'preventiva',
+                  descricao: productDetails?.nome || '',
+                  kmAtual: '',
+                  oficina: '',
+                  valor: '',
+                  observacoes: '',
+                  meta: { savedFrom: 'search', mappedFields: { id: productDetails?.id } }
+                };
+                await addMaintenance(userId, toSave);
+                onClose();
+                if (window.showToast) window.showToast('Pesquisa salva no histórico', 'success', 2500);
+              } catch (err) {
+                console.error('Salvar pesquisa falhou', err);
+                if (window.showToast) window.showToast('Erro ao salvar pesquisa', 'error', 3000);
+              }
+            }} aria-label="Salvar pesquisa">
+              Salvar pesquisa
+            </button>
+          </div>
           <button className="product-modal-close" onClick={onClose}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>

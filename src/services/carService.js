@@ -1,6 +1,12 @@
 // Serviço para gerenciar carros do usuário (DB + localStorage fallback)
 const STORAGE_KEY = 'pf_user_cars';
 
+function normalizeUserKey(userId) {
+  try {
+    return String(userId || '').trim().toLowerCase();
+  } catch (e) { return String(userId || ''); }
+}
+
 // Helper para detectar se estamos em ambiente local
 const isLocal = () => {
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -27,10 +33,11 @@ export async function getCars(userId) {
     console.warn('API getCars failed, falling back to localStorage:', error);
   }
   
-  // Fallback para localStorage
+  // Fallback para localStorage (normalize user key)
   try {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    return all[userId] || [];
+    const key = normalizeUserKey(userId);
+    return all[key] || [];
   } catch (error) {
     console.error('Erro ao carregar carros:', error);
     return [];
@@ -62,10 +69,11 @@ export async function saveCars(userId, cars) {
     console.warn('API saveCars failed, falling back to localStorage:', error);
   }
   
-  // Fallback para localStorage
+  // Fallback para localStorage (normalize user key)
   try {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    all[userId] = cars;
+    const key = normalizeUserKey(userId);
+    all[key] = cars;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
     return true;
   } catch (error) {

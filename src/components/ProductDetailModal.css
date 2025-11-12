@@ -43,6 +43,19 @@
   color: #0052CC !important;
 }
 
+/* Actions container inside modal header */
+.product-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.product-modal-actions .btn {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.95rem;
+  border-radius: 0.5rem;
+}
+
 .product-modal-close {
   background: none;
   border: none;

@@ -86,7 +86,20 @@ export default function HistoricoManutencao() {
   };
 
   const handleEdit = (manutencao) => {
-    setFormData(manutencao);
+    // Ensure the date is in yyyy-mm-dd format for <input type="date" />
+    const rawDate = manutencao && (manutencao.data || manutencao.createdAt || new Date().toISOString());
+    let dateForInput = '';
+    if (rawDate) {
+      const d = new Date(rawDate);
+      if (!isNaN(d.getTime())) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        dateForInput = `${yyyy}-${mm}-${dd}`;
+      }
+    }
+
+    setFormData({ ...manutencao, data: dateForInput });
     setEditingId(manutencao.id);
     setCarroSelecionadoHelper(manutencao.veiculoId);
     setShowModal(true);
@@ -133,8 +146,17 @@ export default function HistoricoManutencao() {
   };
 
   const getVeiculoNome = (veiculoId) => {
-    const carro = carros.find(c => c.id === veiculoId);
+    // Compare IDs as strings to be tolerant to number/string mismatches
+    const carro = carros.find(c => String(c.id) === String(veiculoId));
     return carro ? `${carro.marca} ${carro.modelo} (${carro.ano})` : 'Veículo não encontrado';
+  };
+
+  const formatManutencaoDate = (manutencao) => {
+    // Prefer explicit data field, then createdAt, then fallback to now
+    const raw = manutencao && (manutencao.data || manutencao.createdAt || manutencao.createdAt) || '';
+    const d = raw ? new Date(raw) : new Date();
+    if (isNaN(d.getTime())) return new Date().toLocaleDateString('pt-BR');
+    return d.toLocaleDateString('pt-BR');
   };
 
   const manutencoesFiltered = filtroVeiculo === 'todos' 
@@ -238,7 +260,7 @@ export default function HistoricoManutencao() {
                           {getVeiculoNome(manutencao.veiculoId)}
                         </div>
                         <div className="historico-card-data">
-                          {new Date(manutencao.data).toLocaleDateString('pt-BR')}
+                          {formatManutencaoDate(manutencao)}
                         </div>
                       </div>
                       
