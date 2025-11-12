@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiService } from '../utils/apiService';
 import './ProductDetailModal.css';
 import useFocusTrap from '../hooks/useFocusTrap';
@@ -14,6 +15,7 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
   const [userCars, setUserCars] = useState([]);
 
   const { usuarioLogado } = useContext(AuthContext) || {};
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isOpen && productId) {
@@ -117,8 +119,17 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
                   observacoes: '',
                   meta: { savedFrom: 'search', mappedFields: { id: productDetails?.id } }
                 };
-                await addMaintenance(userId, toSave);
+                const saved = await addMaintenance(userId, toSave);
                 onClose();
+                if (saved && saved.id) {
+                  // Navigate to history and request the new maintenance to be opened
+                  try {
+                    navigate('/historico-manutencao', { state: { openMaintenanceId: saved.id } });
+                  } catch (e) {
+                    // fallback to hash navigation if navigate fails in some environments
+                    try { window.location.hash = '#/historico-manutencao'; } catch (err) {}
+                  }
+                }
                 if (window.showToast) window.showToast('Pesquisa salva no histórico', 'success', 2500);
               } catch (err) {
                 console.error('Salvar pesquisa falhou', err);

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { Menu, MenuLogin } from '../components';
 import { getCars } from '../services/carService';
@@ -13,7 +13,6 @@ import '../styles/pages/page-HistoricoManutencao.css';
 
 export default function HistoricoManutencao() {
   const { usuarioLogado } = useContext(AuthContext) || {};
-  const navigate = useNavigate();
   const [manutencoes, setManutencoes] = useState([]);
   const [carros, setCarros] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +30,8 @@ export default function HistoricoManutencao() {
     valor: '',
     observacoes: ''
   });
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Carregar carros e manutenções do sistema integrado
   useEffect(() => {
@@ -57,6 +58,22 @@ export default function HistoricoManutencao() {
     
     loadData();
   }, [usuarioLogado]);
+
+  // If navigation sent an openMaintenanceId via state, open the modal after maintenances load
+  useEffect(() => {
+    try {
+      const openId = location && location.state && location.state.openMaintenanceId;
+      if (openId && manutencoes && manutencoes.length > 0) {
+        const target = manutencoes.find(m => String(m.id) === String(openId));
+        if (target) {
+          // open edit modal for the newly created/imported maintenance
+          handleEdit(target);
+          // Clear the state in history so refresh doesn't reopen the modal
+          try { navigate(location.pathname + (window.location.hash || ''), { replace: true }); } catch (e) { /* ignore */ }
+        }
+      }
+    } catch (e) { /* ignore */ }
+  }, [location, manutencoes]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
