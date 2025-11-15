@@ -1,0 +1,17 @@
+
+
+# ignore local/build deps
+node_modules/
+dist/
+backend/node_modules/
+.env
+.env.local
+.env.*
+backend/.env
+backend/.env.local
+
+.env
+.env.local
+backend/.env
+dist
+docs/assets

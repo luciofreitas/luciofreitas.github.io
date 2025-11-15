@@ -1,0 +1,258 @@
+/* Page wrapper styles moved to .page-wrapper/.page-content or handled by outer grid */
+
+.cadastro-card {
+  /* Card dentro do grid - deixa o grid controlar a largura */
+  box-sizing: border-box;
+  /* Não usa width:100% pois está dentro de grid-template-columns: 1fr 1fr */
+  min-width: 0; /* Permite que o grid item encolha se necessário */
+  padding: clamp(1.5rem, 2vw, 1.75rem); /* ~24px a 28px - fluido controlado */
+  background: #FFFFFF;
+  border-radius: clamp(0.4rem, 1vw, 0.5rem) 0 0 clamp(0.4rem, 1vw, 0.5rem); /* rounded left side for grid layout */
+  border: 0.062rem solid #e5e7eb;
+  box-shadow: 0 clamp(0.3rem, 0.6vw, 0.375rem) clamp(0.9rem, 1.8vw, 1.125rem) rgba(15, 23, 42, 0.06);
+  /* Sem overflow - deixa a página rolar naturalmente */
+}
+
+.cadastro-title {
+  margin: 0 0 clamp(0.3rem, 0.6vw, 0.375rem) 0;
+  font-size: clamp(1.25rem, 2vw, 1.4rem); /* ~20px a 22.4px - fluido controlado */
+  color: #111827;
+}
+
+.cadastro-sub {
+  margin: 0 0 clamp(0.8rem, 1.6vw, 1rem) 0;
+  color: #6b7280;
+  font-size: clamp(0.85rem, 1.2vw, 0.9rem); /* ~13.6px a 14.4px - fluido controlado */
+}
+
+.cadastro-form .field {
+  margin-bottom: clamp(1rem, 1.5vw, 1.1rem); /* ~16px a 17.6px - espaçamento controlado */
+}
+
+.label {
+  display: block;
+  font-size: clamp(0.8rem, 1.4vw, 0.85rem); /* ~12.8px a 13.6px - fluido */
+  color: #374151;
+  margin-bottom: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
+}
+
+.input {
+  width: 100%;
+  padding: clamp(0.7rem, 1vw, 0.8rem) clamp(0.7rem, 1vw, 0.8rem); /* ~11px a 12.8px - fluido controlado */
+  border: 1px solid #e5e7eb;
+  border-radius: clamp(0.4rem, 1vw, 0.5rem);
+  font-size: clamp(0.9rem, 1.2vw, 0.95rem); /* ~14.4px a 15.2px - fluido controlado */
+  color: #111827;
+  background: #fff;
+  box-sizing: border-box;
+  margin-bottom: clamp(0.4rem, 0.8vw, 0.5rem);
+}
+
+.input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.06);
+}
+
+.input-error {
+  border-color: #ef4444;
+}
+
+.error {
+  margin-top: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
+  color: #b91c1c;
+  font-size: clamp(0.8rem, 1.4vw, 0.85rem); /* ~12.8px a 13.6px - fluido */
+}
+
+.form-error {
+  margin-bottom: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
+  padding: clamp(0.6rem, 1.2vw, 0.65rem) clamp(0.7rem, 1.4vw, 0.75rem); /* ~9.6px a 10.4px, ~11.2px a 12px - fluido */
+  background: #fff1f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
+}
+
+.success {
+  margin-top: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
+  padding: clamp(0.6rem, 1.2vw, 0.65rem) clamp(0.7rem, 1.4vw, 0.75rem); /* ~9.6px a 10.4px, ~11.2px a 12px - fluido */
+  background: #ecfeff;
+  border: 1px solid #bbf7d0;
+  color: #065f46;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
+}
+
+.password-row {
+  position: relative; /* allow absolutely positioned toggle inside */
+  display: flex;
+  align-items: center;
+}
+
+.field-password .input {
+  flex: 1 1 auto;
+  padding-right: clamp(3rem, 5vw, 3.25rem); /* ~48px a 52px - espaço para toggle - fluido */
+}
+
+.car-toggle {
+  position: absolute;
+  right: clamp(0.5rem, 1vw, 0.625rem); /* ~8px a 10px */
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(2rem, 3.5vw, 2.25rem); /* ~32px a 36px */
+  height: clamp(2rem, 3.5vw, 2.25rem); /* ~32px a 36px - fluido */
+  background: transparent;
+  border-radius: clamp(0.35rem, 0.7vw, 0.4rem); /* ~5.6px a 6.4px - fluido */
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Ensure toggle is visible and SVG sized correctly */
+.password-field .car-toggle {
+  z-index: 10;
+  border: none;
+  padding: 0;
+}
+.password-field .car-toggle svg {
+  display: block !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+.password-input {
+  padding-right: 2.75rem !important;
+}
+
+/* Strongly prevent default focus rectangle on car toggle button */
+button.car-toggle:focus, button.car-toggle:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.submit {
+  width: 100%;
+  padding: clamp(0.7rem, 1.4vw, 0.75rem) clamp(0.9rem, 1.8vw, 1rem); /* ~11.2px a 12px, ~14.4px a 16px - fluido */
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  border-radius: clamp(0.55rem, 1.1vw, 0.625rem); /* ~8.8px a 10px - fluido */
+  margin-top: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
+  cursor: pointer;
+}
+
+.submit:hover { filter: brightness(0.98); }
+
+.submit:focus,
+.submit:focus-visible,
+.submit:active {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important; /* Sombra azul suave ao invés de borda preta */
+}
+
+.submit:active {
+  transform: translateY(1px); /* Leve movimento ao clicar */
+}
+
+@media (max-width: 420px) {
+  /* Padding e max-width já são fluidos na regra principal, não precisa sobrescrever */
+  .cadastro-title { font-size: clamp(1.1rem, 4vw, 1.25rem); } /* ~17.6px a 20px */
+}
+
+/* Align helper rows inside the form */
+.cadastro-forgot-row{
+  text-align: right;
+  margin-bottom: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
+}
+.cadastro-forgot-row .login-forgot-link{
+  color: #2563eb;
+  font-size: clamp(0.85rem, 1.5vw, 0.9rem); /* ~13.6px a 14.4px - fluido */
+  text-decoration: none;
+}
+.cadastro-forgot-row .login-forgot-link:hover{ text-decoration: underline; }
+
+.cadastro-signup-row{
+  text-align: center;
+  margin-top: clamp(0.45rem, 0.9vw, 0.5rem); /* ~7.2px a 8px - fluido */
+}
+.cadastro-signup-row .signup-link{
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+.cadastro-signup-row .signup-link:hover{ text-decoration: underline; }
+
+/* Layout: form (left) + hero (right) */
+/* Mirror login two-column card styles so both columns are equal width and height */
+.cadastro-card-outer{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  padding: 0 clamp(0.5rem, 1vw, 1rem) clamp(2rem, 3vw, 2.5rem); /* ~8px a 16px lateral, ~32px a 40px inferior */
+  background: #ffffff;
+}
+.cadastro-card-grid{
+  width:100%;
+  max-width: clamp(38rem, 75vw, 58rem); /* ~608px a 928px - MAIS ESTREITO para caber em 1366px */
+  display:grid;
+  grid-template-columns: 1fr 1fr; /* Cada coluna fica com 50% do grid */
+  gap: 0;
+  background: transparent;
+  border-radius: clamp(0.4rem, 1vw, 0.5rem);
+  overflow: visible; /* Permite conteúdo ultrapassar quando necessário */
+  box-shadow: 0 clamp(0.3rem, 0.6vw, 0.375rem) clamp(1rem, 2vw, 1.5rem) rgba(15,23,42,0.06);
+  max-height: none; /* Remove limitação para permitir expansão com erros */
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+/* Left column (form) styling is defined above in the main .cadastro-card rule */
+
+.cadastro-right{ display:flex; align-items: stretch; justify-content: stretch; padding:0; }
+.cadastro-hero{
+  /* Use an <img> element for the hero so the browser can lazy-load it. */
+  display:block;
+  width:100%;
+  height:100%;
+  margin:0;
+  object-fit:cover;
+  object-position:center;
+  min-height:clamp(32rem,70vh,40rem);
+  border-radius:0 clamp(.4rem,1vw,.5rem) clamp(.4rem,1vw,.5rem) 0;
+}
+
+@media (max-width:900px){
+  .cadastro-card-grid{
+    grid-template-columns: 1fr;
+    /* constrain the overall card width on mobile so both children
+       (form and hero) line up and have the same width */
+    max-width: clamp(20rem, 90vw, 35rem); /* ~320px a 560px - fluido */
+    margin: 0 auto;
+    box-shadow: none;
+  }
+
+  /* On mobile show the hero below the form instead of hiding it.
+     Ensure both the form and hero occupy 100% of the stacked grid width */
+  .cadastro-right{ display:block !important; order: 2; width:100%; }
+  .cadastro-card{ 
+    /* Apenas ajusta border-radius para mobile (stacked), max-width já é fluido na regra principal */
+    border-radius: clamp(0.4rem, 1vw, 0.5rem) clamp(0.4rem, 1vw, 0.5rem) 0 0; 
+  }
+  .cadastro-hero{ min-height: clamp(12rem, 25vh, 13.75rem); border-radius: 0 0 clamp(0.4rem, 1vw, 0.5rem) clamp(0.4rem, 1vw, 0.5rem); width:100%; } /* ~192px a 220px */
+}
+
+/* Dark mode styles */
+.theme-dark .cadastro-card-outer {
+  background: #0f172a;
+}
+
+.theme-dark .cadastro-card {
+  background: #1e293b;
+}
+
+.theme-dark .cadastro-sub {
+  color: #ffffff;
+}

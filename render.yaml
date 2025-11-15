@@ -1,0 +1,34 @@
+# Render manifest básico
+# - Frontend: builda o projeto (npm install + npm run build) e publica a pasta `dist` como site estático
+# - Backend: roda no Node; instala dependências e inicia com `npm start` dentro da pasta `backend`
+# Ajuste os campos (branch, name, environment, region) conforme suas preferências no painel do Render.
+
+services:
+  - type: static
+    name: frontend
+    env: static
+    # Branch que o Render irá observar; altere se necessário
+    branch: master
+    # Comando para instalar e construir o frontend (executado na raiz do repositório)
+    buildCommand: npm install && npm run build
+    # Pasta que contém a build estática (padrão do Vite)
+    staticPublishPath: dist
+
+  - type: web
+    name: backend
+    env: node
+    branch: master
+    # Executado para preparar o backend; instala dependências dentro de /backend
+    buildCommand: cd backend && npm install
+    # Comando usado para iniciar o servidor do backend
+    startCommand: cd backend && npm start
+
+# Observação:
+# - Se você preferir que frontend e backend rodem no mesmo serviço, remova um dos blocos
+#   e ajuste os comandos accordingly. Este arquivo é um ponto de partida que pode ser
+#   personalizado no painel do Render.
+type: web
+name: fixed-backend
+env: node
+buildCommand: cd backend && npm config set registry https://registry.npmjs.org/ && npm cache clean --force && npm ci --prefer-online
+startCommand: cd backend && npm start

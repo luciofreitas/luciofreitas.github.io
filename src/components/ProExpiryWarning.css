@@ -1,0 +1,218 @@
+/* ProExpiryWarning.css */
+
+.pro-expiry-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pro-expiry-modal {
+  background: var(--bg-secondary);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.pro-expiry-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.pro-expiry-close:hover {
+  background: var(--bg-gray-neutral);
+  color: var(--text-primary);
+}
+
+.pro-expiry-icon {
+  font-size: 4rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.pro-expiry-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.pro-expiry-content {
+  margin-bottom: 2rem;
+}
+
+.pro-expiry-message {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.pro-expiry-message strong {
+  color: #FF6B6B;
+  font-weight: 700;
+}
+
+.pro-expiry-description {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.pro-expiry-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: var(--bg-gray-neutral);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.pro-expiry-benefits li {
+  font-size: 1rem;
+  color: var(--text-primary);
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pro-expiry-benefits li:not(:last-child) {
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.pro-expiry-actions {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+.pro-expiry-btn-renew,
+.pro-expiry-btn-later {
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  width: 100%;
+}
+
+.pro-expiry-btn-renew {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.pro-expiry-btn-renew:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.pro-expiry-btn-later {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-gray);
+}
+
+.pro-expiry-btn-later:hover {
+  background: var(--bg-gray-neutral);
+  color: var(--text-primary);
+}
+
+/* Dark mode adjustments */
+.theme-dark .pro-expiry-modal {
+  background: #1a1a1a;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.theme-dark .pro-expiry-benefits {
+  background: #2a2a2a;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .pro-expiry-modal {
+    padding: 1.5rem;
+  }
+
+  .pro-expiry-icon {
+    font-size: 3rem;
+  }
+
+  .pro-expiry-title {
+    font-size: 1.5rem;
+  }
+
+  .pro-expiry-message {
+    font-size: 1rem;
+  }
+
+  .pro-expiry-benefits {
+    padding: 1rem;
+  }
+
+  .pro-expiry-benefits li {
+    font-size: 0.9rem;
+  }
+}

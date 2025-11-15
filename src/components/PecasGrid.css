@@ -1,0 +1,50 @@
+/* PecasGrid.css - Estilos para o grid de peças */
+
+.pecas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.pecas-grid-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+  font-size: 1.1rem;
+  background: #f9fafb;
+  border-radius: 0.75rem;
+  border: 0.062rem solid #e5e7eb;
+}
+
+.pecas-grid-empty p {
+  margin: 0;
+  font-style: italic;
+}
+
+/* Responsividade */
+@media (max-width: 48rem) {
+  .pecas-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .pecas-grid-empty {
+    padding: 2rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .pecas-grid {
+    padding: 0.5rem 0;
+  }
+}
+
+/* ===== DARK MODE ===== */
+
+.theme-dark .pecas-grid-empty {
+  color: var(--text-secondary);
+  background: var(--bg-gray-neutral);
+  border: 0.062rem solid var(--border-gray);
+}

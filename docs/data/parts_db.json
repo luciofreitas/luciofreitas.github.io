@@ -1,0 +1,1478 @@
+[
+    {
+        "id": "1",
+        "name": "Filtro de Ar",
+        "category": "Filtros",
+        "manufacturer": "Mann",
+        "part_number": "C 25 024",
+        "description": "Filtro de ar para veículos leves.",
+        "specifications": {
+            "Tipo": "Ar",
+            "Dimensões": "250x200mm"
+        },
+        "applications": [
+            "Fiat Uno 2010-2011-2012-2013-2014-2015",
+            "Volkswagen Gol 2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "2",
+        "name": "Filtro de Óleo",
+        "category": "Filtros",
+        "manufacturer": "Fram",
+        "part_number": "PH3614",
+        "description": "Filtro de óleo para motores a gasolina.",
+        "specifications": {
+            "Tipo": "Óleo",
+            "Rosca": "M20x1.5"
+        },
+        "applications": [
+            "Fiat Uno 2010-2011-2012-2013-2014-2015",
+            "Chevrolet Onix 2013-2014-2015-2016-2017-2018"
+        ]
+    },
+    {
+        "id": "3",
+        "name": "Pastilha de Freio Dianteira",
+        "category": "Freios",
+        "manufacturer": "Bosch",
+        "part_number": "0986AB1234",
+        "description": "Pastilha dianteira para freios a disco.",
+        "specifications": {
+            "Material": "Cerâmica"
+        },
+        "applications": [
+            "Volkswagen Gol 2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "4",
+        "name": "Disco de Freio",
+        "category": "Freios",
+        "manufacturer": "TRW",
+        "part_number": "DF1234",
+        "description": "Disco de freio ventilado.",
+        "specifications": {
+            "Diâmetro": "280mm"
+        },
+        "applications": [
+            "Fiat Uno 2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "5",
+        "name": "Vela de Ignição",
+        "category": "Ignição",
+        "manufacturer": "NGK",
+        "part_number": "BPR6ES",
+        "description": "Vela de ignição padrão.",
+        "specifications": {
+            "Tipo": "Resistiva"
+        },
+        "applications": [
+            "Chevrolet Onix 2013-2014-2015-2016-2017-2018"
+        ]
+    },
+    {
+        "id": "6",
+        "name": "Filtro de Combustível",
+        "category": "Filtros",
+        "manufacturer": "Tecfil",
+        "part_number": "PSC519",
+        "description": "Filtro de combustível para injeção eletrônica.",
+        "specifications": {
+            "Tipo": "Combustível"
+        },
+        "applications": [
+            "Fiat Uno 2010-2011-2012-2013-2014-2015",
+            "Volkswagen Gol 2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "7",
+        "name": "Amortecedor Dianteiro",
+        "category": "Suspensão",
+        "manufacturer": "Monroe",
+        "part_number": "G7364",
+        "description": "Amortecedor dianteiro pressurizado.",
+        "specifications": {
+            "Tipo": "Pressurizado"
+        },
+        "applications": [
+            "Ford Ka 2015-2016-2017-2018-2019-2020"
+        ]
+    },
+    {
+        "id": "8",
+        "name": "Amortecedor Traseiro",
+        "category": "Suspensão",
+        "manufacturer": "Cofap",
+        "part_number": "GP32089",
+        "description": "Amortecedor traseiro para veículos leves.",
+        "specifications": {
+            "Tipo": "Hidráulico"
+        },
+        "applications": [
+            "Renault Sandero 2014-2015-2016-2017-2018-2019-2020"
+        ]
+    },
+    {
+        "id": "9",
+        "name": "Bieleta",
+        "category": "Suspensão",
+        "manufacturer": "TRW",
+        "part_number": "JTS467",
+        "description": "Bieleta de barra estabilizadora.",
+        "specifications": {
+            "Material": "Aço"
+        },
+        "applications": [
+            "Volkswagen Polo 2018-2019-2020-2021-2022"
+        ]
+    },
+    {
+        "id": "10",
+        "name": "Pivô de Suspensão",
+        "category": "Suspensão",
+        "manufacturer": "Viemar",
+        "part_number": "110010",
+        "description": "Pivô de suspensão dianteira.",
+        "specifications": {
+            "Tipo": "Dianteiro"
+        },
+        "applications": [
+            "Chevrolet Corsa 2002-2003-2004-2005-2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "11",
+        "name": "Filtro de Cabine",
+        "category": "Filtros",
+        "manufacturer": "Mann",
+        "part_number": "CUK 2545",
+        "description": "Filtro de cabine para ar condicionado.",
+        "specifications": {
+            "Tipo": "Cabine"
+        },
+        "applications": [
+            "Honda Civic 2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "12",
+        "name": "Sensor de ABS",
+        "category": "Freios",
+        "manufacturer": "Bosch",
+        "part_number": "0265006337",
+        "description": "Sensor de velocidade ABS.",
+        "specifications": {
+            "Tipo": "Sensor"
+        },
+        "applications": [
+            "Toyota Corolla 2014-2015-2016-2017-2018-2019"
+        ]
+    },
+    {
+        "id": "13",
+        "name": "Cilindro Mestre",
+        "category": "Freios",
+        "manufacturer": "TRW",
+        "part_number": "PMH1234",
+        "description": "Cilindro mestre de freio.",
+        "specifications": {
+            "Material": "Alumínio"
+        },
+        "applications": [
+            "Fiat Palio 2008-2009-2010-2011-2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "14",
+        "name": "Bobina de Ignição",
+        "category": "Ignição",
+        "manufacturer": "Bosch",
+        "part_number": "0221504470",
+        "description": "Bobina de ignição eletrônica.",
+        "specifications": {
+            "Tipo": "Eletrônica"
+        },
+        "applications": [
+            "Volkswagen Fox 2010-2011-2012-2013-2014-2015-2016-2017-2018"
+        ]
+    },
+    {
+        "id": "15",
+        "name": "Cabo de Vela",
+        "category": "Ignição",
+        "manufacturer": "NGK",
+        "part_number": "RC-FX58",
+        "description": "Cabo de vela de alta performance.",
+        "specifications": {
+            "Material": "Silicone"
+        },
+        "applications": [
+            "Fiat Siena 2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "16",
+        "name": "Filtro de Ar Esportivo",
+        "category": "Filtros",
+        "manufacturer": "K&N",
+        "part_number": "33-2128",
+        "description": "Filtro de ar esportivo lavável.",
+        "specifications": {
+            "Tipo": "Esportivo"
+        },
+        "applications": [
+            "Honda Fit 2015-2016-2017-2018-2019-2020"
+        ]
+    },
+    {
+        "id": "17",
+        "name": "Filtro de Óleo Sintético",
+        "category": "Filtros",
+        "manufacturer": "Mobil",
+        "part_number": "M1-110A",
+        "description": "Filtro de óleo sintético premium.",
+        "specifications": {
+            "Tipo": "Óleo Sintético"
+        },
+        "applications": [
+            "Toyota Corolla 2014-2015-2016-2017-2018-2019"
+        ]
+    },
+    {
+        "id": "18",
+        "name": "Filtro de Combustível Flex",
+        "category": "Filtros",
+        "manufacturer": "Fram",
+        "part_number": "G7733",
+        "description": "Filtro de combustível para veículos flex.",
+        "specifications": {
+            "Tipo": "Flex"
+        },
+        "applications": [
+            "Renault Logan 2014-2015-2016-2017-2018-2019-2020"
+        ]
+    },
+    {
+        "id": "19",
+        "name": "Pastilha de Freio Traseira",
+        "category": "Freios",
+        "manufacturer": "Cobreq",
+        "part_number": "N-1422",
+        "description": "Pastilha traseira para freios a disco.",
+        "specifications": {
+            "Material": "Semi-metálica"
+        },
+        "applications": [
+            "Ford Fiesta 2011-2012-2013-2014"
+        ]
+    },
+    {
+        "id": "20",
+        "name": "Disco de Freio Traseiro",
+        "category": "Freios",
+        "manufacturer": "Fremax",
+        "part_number": "BD-1012",
+        "description": "Disco de freio traseiro sólido.",
+        "specifications": {
+            "Diâmetro": "230mm"
+        },
+        "applications": [
+            "Chevrolet Onix 2013-2014-2015-2016-2017-2018"
+        ]
+    },
+    {
+        "id": "21",
+        "name": "Vela de Ignição Iridium",
+        "category": "Ignição",
+        "manufacturer": "Denso",
+        "part_number": "IK20",
+        "description": "Vela de ignição de iridium.",
+        "specifications": {
+            "Tipo": "Iridium"
+        },
+        "applications": [
+            "Toyota Corolla 2014-2015-2016-2017-2018-2019"
+        ]
+    },
+    {
+        "id": "22",
+        "name": "Braço Axial",
+        "category": "Suspensão",
+        "manufacturer": "TRW",
+        "part_number": "JAR120",
+        "description": "Braço axial para direção.",
+        "specifications": {
+            "Material": "Aço"
+        },
+        "applications": [
+            "Volkswagen Fox 2010-2011-2012-2013-2014-2015-2016-2017-2018"
+        ]
+    },
+    {
+        "id": "23",
+        "name": "Terminal de Direção",
+        "category": "Suspensão",
+        "manufacturer": "Viemar",
+        "part_number": "120020",
+        "description": "Terminal de direção dianteiro.",
+        "specifications": {
+            "Tipo": "Dianteiro"
+        },
+        "applications": [
+            "Chevrolet Corsa 2002-2003-2004-2005-2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "24",
+        "name": "Coxim do Motor",
+        "category": "Motor",
+        "manufacturer": "Febi",
+        "part_number": "12345",
+        "description": "Coxim de motor dianteiro.",
+        "specifications": {
+            "Material": "Borracha"
+        },
+        "applications": [
+            "Fiat Palio 2008-2009-2010-2011-2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "25",
+        "name": "Correia Dentada",
+        "category": "Motor",
+        "manufacturer": "Gates",
+        "part_number": "T275",
+        "description": "Correia dentada para motores 1.0.",
+        "specifications": {
+            "Tipo": "Dentada"
+        },
+        "applications": [
+            "Volkswagen Gol 2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "26",
+        "name": "Bomba de Combustível",
+        "category": "Motor",
+        "manufacturer": "Bosch",
+        "part_number": "0580453456",
+        "description": "Bomba elétrica de combustível.",
+        "specifications": {
+            "Tipo": "Elétrica"
+        },
+        "applications": [
+            "Chevrolet Onix 2013-2014-2015-2016-2017-2018"
+        ]
+    },
+    {
+        "id": "27",
+        "name": "Sensor de Oxigênio",
+        "category": "Motor",
+        "manufacturer": "NTK",
+        "part_number": "OZA668-EE1",
+        "description": "Sensor de oxigênio universal.",
+        "specifications": {
+            "Tipo": "Universal"
+        },
+        "applications": [
+            "Renault Logan 2014-2015-2016-2017-2018-2019-2020"
+        ]
+    },
+    {
+        "id": "28",
+        "name": "Junta do Cabeçote",
+        "category": "Motor",
+        "manufacturer": "Sabó",
+        "part_number": "820012",
+        "description": "Junta do cabeçote em aço.",
+        "specifications": {
+            "Material": "Aço"
+        },
+        "applications": [
+            "Fiat Uno 2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "29",
+        "name": "Filtro de Ar Secundário",
+        "category": "Filtros",
+        "manufacturer": "Mann",
+        "part_number": "C 28 130",
+        "description": "Filtro de ar secundário para caminhonetes.",
+        "specifications": {
+            "Tipo": "Secundário"
+        },
+        "applications": [
+            "Toyota Hilux 2012-2013-2014-2015-2016-2017-2018"
+        ]
+    },
+    {
+        "id": "30",
+        "name": "Filtro de Óleo Diesel",
+        "category": "Filtros",
+        "manufacturer": "Tecfil",
+        "part_number": "PL420",
+        "description": "Filtro de óleo para motores diesel.",
+        "specifications": {
+            "Tipo": "Diesel"
+        },
+        "applications": [
+            "Toyota Hilux 2012-2013-2014-2015-2016-2017-2018"
+        ]
+    },
+    {
+        "id": "31",
+        "name": "Pastilha de Freio Dianteira",
+        "category": "Freios",
+        "manufacturer": "Jurid",
+        "part_number": "HQJ2094A",
+        "description": "Pastilha de freio dianteira cerâmica.",
+        "specifications": {
+            "Material": "Cerâmica",
+            "Espessura": "17mm"
+        },
+        "applications": [
+            "Honda City 2015-2016-2017-2018-2019-2020"
+        ]
+    },
+    {
+        "id": "32",
+        "name": "Amortecedor Dianteiro",
+        "category": "Suspensão",
+        "manufacturer": "KYB",
+        "part_number": "333433",
+        "description": "Amortecedor dianteiro a gás.",
+        "specifications": {
+            "Tipo": "Gás",
+            "Curso": "170mm"
+        },
+        "applications": [
+            "Nissan March 2011-2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "33",
+        "name": "Filtro de Combustível",
+        "category": "Filtros",
+        "manufacturer": "Wix",
+        "part_number": "WF8035",
+        "description": "Filtro de combustível para motores flex.",
+        "specifications": {
+            "Tipo": "Flex",
+            "Pressão": "4 bar"
+        },
+        "applications": [
+            "Hyundai HB20 2012-2013-2014-2015-2016-2017"
+        ]
+    },
+    {
+        "id": "34",
+        "name": "Correia do Alternador",
+        "category": "Motor",
+        "manufacturer": "Continental",
+        "part_number": "6PK1193",
+        "description": "Correia poly-V do alternador.",
+        "specifications": {
+            "Tipo": "Poly-V",
+            "Comprimento": "1193mm"
+        },
+        "applications": [
+            "Mitsubishi Lancer 2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "35",
+        "name": "Vela de Ignição",
+        "category": "Ignição",
+        "manufacturer": "Champion",
+        "part_number": "RC9YC",
+        "description": "Vela de ignição resistiva.",
+        "specifications": {
+            "Abertura": "0.8mm",
+            "Rosca": "14mm"
+        },
+        "applications": [
+            "Suzuki Swift 2011-2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "36",
+        "name": "Disco de Freio Ventilado",
+        "category": "Freios",
+        "manufacturer": "Brembo",
+        "part_number": "09.9772.11",
+        "description": "Disco de freio ventilado dianteiro.",
+        "specifications": {
+            "Diâmetro": "280mm",
+            "Espessura": "25mm"
+        },
+        "applications": [
+            "Peugeot 207 2008-2009-2010-2011-2012-2013"
+        ]
+    },
+    {
+        "id": "37",
+        "name": "Filtro de Óleo",
+        "category": "Filtros",
+        "manufacturer": "Mahle",
+        "part_number": "OC 274",
+        "description": "Filtro de óleo para motores 1.0 e 1.4.",
+        "specifications": {
+            "Rosca": "M20x1.5",
+            "Altura": "85mm"
+        },
+        "applications": [
+            "Citroen C3 2012-2013-2014-2015-2016-2017",
+            "Peugeot 208 2012-2013-2014-2015-2016-2017"
+        ]
+    },
+    {
+        "id": "38",
+        "name": "Terminal de Direção",
+        "category": "Suspensão",
+        "manufacturer": "TRW",
+        "part_number": "JTE1058",
+        "description": "Terminal de direção externa.",
+        "specifications": {
+            "Lado": "Direito",
+            "Rosca": "M14x1.5"
+        },
+        "applications": [
+            "Kia Picanto 2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "39",
+        "name": "Bomba d'Água",
+        "category": "Motor",
+        "manufacturer": "Graf",
+        "part_number": "PA1047",
+        "description": "Bomba d'água do sistema de arrefecimento.",
+        "specifications": {
+            "Material": "Ferro fundido",
+            "Vedação": "Anel O-ring"
+        },
+        "applications": [
+            "Chery QQ 2011-2012-2013-2014"
+        ]
+    },
+    {
+        "id": "40",
+        "name": "Pastilha de Freio Traseira",
+        "category": "Freios",
+        "manufacturer": "Textar",
+        "part_number": "2355401",
+        "description": "Pastilha traseira para freio a disco.",
+        "specifications": {
+            "Material": "Semi-metálica",
+            "Indicador": "Com sensor"
+        },
+        "applications": [
+            "Volkswagen Tiguan 2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "41",
+        "name": "Filtro de Ar Condicionado",
+        "category": "Filtros",
+        "manufacturer": "Hengst",
+        "part_number": "E2905LC",
+        "description": "Filtro de ar condicionado com carvão ativado.",
+        "specifications": {
+            "Tipo": "Carvão ativado",
+            "Dimensões": "215x195mm"
+        },
+        "applications": [
+            "Audi A1 2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "42",
+        "name": "Amortecedor Traseiro",
+        "category": "Suspensão",
+        "manufacturer": "Bilstein",
+        "part_number": "24-067648",
+        "description": "Amortecedor traseiro monotubo.",
+        "specifications": {
+            "Tipo": "Monotubo",
+            "Curso": "165mm"
+        },
+        "applications": [
+            "BMW 118i 2011-2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "43",
+        "name": "Correia Dentada",
+        "category": "Motor",
+        "manufacturer": "INA",
+        "part_number": "530 0542 10",
+        "description": "Correia dentada do comando de válvulas.",
+        "specifications": {
+            "Dentes": "111",
+            "Largura": "25mm"
+        },
+        "applications": [
+            "Mercedes A 160 2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "44",
+        "name": "Sensor de ABS",
+        "category": "Freios",
+        "manufacturer": "Continental",
+        "part_number": "ABS270",
+        "description": "Sensor de rotação ABS dianteiro.",
+        "specifications": {
+            "Posição": "Dianteiro",
+            "Comprimento cabo": "1.5m"
+        },
+        "applications": [
+            "Land Rover Freelander 2006-2007-2008-2009-2010"
+        ]
+    },
+    {
+        "id": "45",
+        "name": "Bobina de Ignição",
+        "category": "Ignição",
+        "manufacturer": "Delphi",
+        "part_number": "GN10328-12B1",
+        "description": "Bobina de ignição individual.",
+        "specifications": {
+            "Tensão": "12V",
+            "Conectores": "4 pinos"
+        },
+        "applications": [
+            "Volvo XC60 2008-2009-2010-2011-2012-2013"
+        ]
+    },
+    {
+        "id": "46",
+        "name": "Filtro de Combustível Diesel",
+        "category": "Filtros",
+        "manufacturer": "Purflux",
+        "part_number": "CS497",
+        "description": "Filtro de combustível para motores diesel.",
+        "specifications": {
+            "Tipo": "Diesel",
+            "Separador água": "Sim"
+        },
+        "applications": [
+            "Iveco Daily 2011-2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "47",
+        "name": "Pastilha de Freio Cerâmica",
+        "category": "Freios",
+        "manufacturer": "Akebono",
+        "part_number": "ACT1089",
+        "description": "Pastilha cerâmica premium.",
+        "specifications": {
+            "Material": "Cerâmica premium",
+            "Ruído": "Ultra baixo"
+        },
+        "applications": [
+            "Infiniti G37 2008-2009-2010-2011-2012-2013"
+        ]
+    },
+    {
+        "id": "48",
+        "name": "Mola Helicoidal",
+        "category": "Suspensão",
+        "manufacturer": "Eibach",
+        "part_number": "E10-85-021-02-22",
+        "description": "Mola helicoidal dianteira.",
+        "specifications": {
+            "Tipo": "Progressiva",
+            "Comprimento": "320mm"
+        },
+        "applications": [
+            "MINI Cooper 2006-2007-2008-2009-2010-2011-2012-2013"
+        ]
+    },
+    {
+        "id": "49",
+        "name": "Radiador",
+        "category": "Motor",
+        "manufacturer": "Valeo",
+        "part_number": "734896",
+        "description": "Radiador do sistema de arrefecimento.",
+        "specifications": {
+            "Material": "Alumínio",
+            "Fileiras": "2"
+        },
+        "applications": [
+            "Fiat Doblo 2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "50",
+        "name": "Filtro de Ar Esportivo",
+        "category": "Filtros",
+        "manufacturer": "K&N",
+        "part_number": "33-2865",
+        "description": "Filtro de ar esportivo lavável.",
+        "specifications": {
+            "Tipo": "Algodão oleado",
+            "Reutilizável": "Sim"
+        },
+        "applications": [
+            "Subaru Impreza 2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "51",
+        "name": "Disco de Embreagem",
+        "category": "Transmissão",
+        "manufacturer": "LuK",
+        "part_number": "324 0122 10",
+        "description": "Disco de embreagem orgânico.",
+        "specifications": {
+            "Diâmetro": "240mm",
+            "Estrias": "23"
+        },
+        "applications": [
+            "Renault Duster 2011-2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "52",
+        "name": "Bomba de Combustível",
+        "category": "Motor",
+        "manufacturer": "Walbro",
+        "part_number": "GSS342",
+        "description": "Bomba elétrica de combustível.",
+        "specifications": {
+            "Pressão": "3.5 bar",
+            "Vazão": "255 L/h"
+        },
+        "applications": [
+            "Mitsubishi Pajero TR4 2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "53",
+        "name": "Vela de Ignição Iridium",
+        "category": "Ignição",
+        "manufacturer": "Denso",
+        "part_number": "IKH20TT",
+        "description": "Vela de ignição com eletrodo de irídio.",
+        "specifications": {
+            "Eletrodo": "Irídio",
+            "Vida útil": "100.000 km"
+        },
+        "applications": [
+            "Lexus IS250 2005-2006-2007-2008-2009-2010"
+        ]
+    },
+    {
+        "id": "54",
+        "name": "Amortecedor Regulável",
+        "category": "Suspensão",
+        "manufacturer": "Koni",
+        "part_number": "8241-1394",
+        "description": "Amortecedor com regulagem de dureza.",
+        "specifications": {
+            "Regulagem": "26 posições",
+            "Tipo": "Esportivo"
+        },
+        "applications": [
+            "Porsche Boxster 2005-2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "55",
+        "name": "Filtro de Óleo Performance",
+        "category": "Filtros",
+        "manufacturer": "Mobil 1",
+        "part_number": "M1-301A",
+        "description": "Filtro de óleo para óleos sintéticos.",
+        "specifications": {
+            "Tipo": "Performance",
+            "Eficiência": "99.6%"
+        },
+        "applications": [
+            "Dodge Journey 2008-2009-2010-2011-2012-2013-2014"
+        ]
+    },
+    {
+        "id": "56",
+        "name": "Pastilha de Freio Performance",
+        "category": "Freios",
+        "manufacturer": "Ferodo",
+        "part_number": "FDB4050",
+        "description": "Pastilha de alto desempenho.",
+        "specifications": {
+            "Material": "Racing compound",
+            "Temperatura": "Até 600°C"
+        },
+        "applications": [
+            "Jaguar XF 2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "57",
+        "name": "Correia Poly-V",
+        "category": "Motor",
+        "manufacturer": "Dayco",
+        "part_number": "5PK1130",
+        "description": "Correia poly-v multi-acessórios.",
+        "specifications": {
+            "Nervuras": "5",
+            "Comprimento": "1130mm"
+        },
+        "applications": [
+            "Jeep Compass 2006-2007-2008-2009-2010-2011-2012-2013-2014-2015-2016"
+        ]
+    },
+    {
+        "id": "58",
+        "name": "Sensor MAP",
+        "category": "Motor",
+        "manufacturer": "Magneti Marelli",
+        "part_number": "215810007019",
+        "description": "Sensor de pressão absoluta do coletor.",
+        "specifications": {
+            "Tipo": "Piezoresistivo",
+            "Faixa": "10-250 kPa"
+        },
+        "applications": [
+            "Alfa Romeo 159 2005-2006-2007-2008-2009-2010-2011"
+        ]
+    },
+    {
+        "id": "59",
+        "name": "Filtro Separador",
+        "category": "Filtros",
+        "manufacturer": "Parker",
+        "part_number": "RACOR R90T",
+        "description": "Filtro separador de água diesel.",
+        "specifications": {
+            "Tipo": "Separador água",
+            "Eficiência": "30 microns"
+        },
+        "applications": [
+            "Ford Ranger 2012-2013-2014-2015-2016-2017-2018-2019-2020"
+        ]
+    },
+    {
+        "id": "60",
+        "name": "Disco de Freio Perfurado",
+        "category": "Freios",
+        "manufacturer": "Zimmermann",
+        "part_number": "100.3243.52",
+        "description": "Disco perfurado para alta performance.",
+        "specifications": {
+            "Tipo": "Perfurado",
+            "Material": "Ferro fundido G3000"
+        },
+        "applications": [
+            "Audi TT 2006-2007-2008-2009-2010-2011-2012-2013-2014"
+        ]
+    },
+    {
+        "id": "61",
+        "name": "Terminal Axial",
+        "category": "Suspensão",
+        "manufacturer": "Lemförder",
+        "part_number": "29776 01",
+        "description": "Terminal axial da barra de direção.",
+        "specifications": {
+            "Tipo": "Axial",
+            "Material": "Aço forjado"
+        },
+        "applications": [
+            "Skoda Fabia 2007-2008-2009-2010-2011-2012-2013-2014"
+        ]
+    },
+    {
+        "id": "62",
+        "name": "Bomba de Direção Hidráulica",
+        "category": "Direção",
+        "manufacturer": "ZF",
+        "part_number": "7692 955 119",
+        "description": "Bomba da direção hidráulica.",
+        "specifications": {
+            "Tipo": "Palhetas",
+            "Pressão": "140 bar"
+        },
+        "applications": [
+            "Seat Leon 2005-2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "63",
+        "name": "Filtro Hidráulico CVT",
+        "category": "Transmissão",
+        "manufacturer": "Aisin",
+        "part_number": "35330-0W020",
+        "description": "Filtro para transmissão CVT.",
+        "specifications": {
+            "Tipo": "CVT",
+            "Malha": "100 microns"
+        },
+        "applications": [
+            "Toyota Corolla 2014-2015-2016-2017-2018-2019-2020"
+        ]
+    },
+    {
+        "id": "64",
+        "name": "Junta Homocinética",
+        "category": "Transmissão",
+        "manufacturer": "GKN",
+        "part_number": "304717",
+        "description": "Junta homocinética externa.",
+        "specifications": {
+            "Posição": "Externa",
+            "Estrias": "25"
+        },
+        "applications": [
+            "Mazda 3 2009-2010-2011-2012-2013-2014"
+        ]
+    },
+    {
+        "id": "65",
+        "name": "Sensor de Temperatura",
+        "category": "Motor",
+        "manufacturer": "FAE",
+        "part_number": "33510",
+        "description": "Sensor de temperatura do líquido de arrefecimento.",
+        "specifications": {
+            "Faixa": "-40°C a +130°C",
+            "Conectores": "2 pinos"
+        },
+        "applications": [
+            "Opel Astra 2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "66",
+        "name": "Filtro de Partículas",
+        "category": "Escapamento",
+        "manufacturer": "HJS",
+        "part_number": "93 22 7090",
+        "description": "Filtro de partículas diesel (DPF).",
+        "specifications": {
+            "Tipo": "Cordierite",
+            "Capacidade": "5.66L"
+        },
+        "applications": [
+            "BMW 320d 2005-2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "67",
+        "name": "Pastilha Freio EBC",
+        "category": "Freios",
+        "manufacturer": "EBC",
+        "part_number": "DP41518R",
+        "description": "Pastilha de freio red stuff.",
+        "specifications": {
+            "Série": "Red Stuff",
+            "Temperatura": "Até 750°C"
+        },
+        "applications": [
+            "Lotus Elise 2004-2005-2006-2007-2008-2009-2010-2011"
+        ]
+    },
+    {
+        "id": "68",
+        "name": "Amortecedor Bilstein B6",
+        "category": "Suspensão",
+        "manufacturer": "Bilstein",
+        "part_number": "24-067291",
+        "description": "Amortecedor Bilstein B6 Sport.",
+        "specifications": {
+            "Série": "B6 Sport",
+            "Dureza": "25% mais rígido"
+        },
+        "applications": [
+            "Volkswagen Golf GTI 2004-2005-2006-2007-2008-2009"
+        ]
+    },
+    {
+        "id": "69",
+        "name": "Correia de Distribuição",
+        "category": "Motor",
+        "manufacturer": "Gates",
+        "part_number": "5491XS",
+        "description": "Correia de distribuição reforçada.",
+        "specifications": {
+            "Material": "Borracha HNBR",
+            "Dentes": "137"
+        },
+        "applications": [
+            "Honda Civic 2006-2007-2008-2009-2010-2011"
+        ]
+    },
+    {
+        "id": "70",
+        "name": "Sensor de Oxigênio",
+        "category": "Escapamento",
+        "manufacturer": "Bosch",
+        "part_number": "0 258 006 537",
+        "description": "Sonda lambda banda larga.",
+        "specifications": {
+            "Tipo": "Banda larga",
+            "Aquecimento": "Sim"
+        },
+        "applications": [
+            "Acura TSX 2004-2005-2006-2007-2008"
+        ]
+    },
+    {
+        "id": "71",
+        "name": "Filtro Ar Fram",
+        "category": "Filtros",
+        "manufacturer": "Fram",
+        "part_number": "CA9997",
+        "description": "Filtro de ar com tecnologia fresh breeze.",
+        "specifications": {
+            "Tecnologia": "Fresh Breeze",
+            "Eficiência": "96%"
+        },
+        "applications": [
+            "Cadillac SRX 2004-2005-2006-2007-2008-2009"
+        ]
+    },
+    {
+        "id": "72",
+        "name": "Disco Freio Brembo Max",
+        "category": "Freios",
+        "manufacturer": "Brembo",
+        "part_number": "09.7011.75",
+        "description": "Disco Brembo Max ranhurado.",
+        "specifications": {
+            "Tipo": "MAX ranhurado",
+            "Tratamento": "UV coating"
+        },
+        "applications": [
+            "Ferrari 360 1999-2000-2001-2002-2003-2004-2005"
+        ]
+    },
+    {
+        "id": "73",
+        "name": "Mola Eibach Pro-Kit",
+        "category": "Suspensão",
+        "manufacturer": "Eibach",
+        "part_number": "E10-20-031-01-22",
+        "description": "Kit de molas esportivas.",
+        "specifications": {
+            "Rebaixamento": "25-30mm",
+            "Tipo": "Pro-Kit"
+        },
+        "applications": [
+            "Maserati GranTurismo 2007-2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "74",
+        "name": "Radiador Mishimoto",
+        "category": "Motor",
+        "manufacturer": "Mishimoto",
+        "part_number": "MMRAD-MUS-05",
+        "description": "Radiador de alumínio performance.",
+        "specifications": {
+            "Material": "Alumínio TIG welded",
+            "Fileiras": "2 + 25% fluxo"
+        },
+        "applications": [
+            "Ford Mustang GT 2005-2006-2007-2008-2009"
+        ]
+    },
+    {
+        "id": "75",
+        "name": "Filtro K&N Cónico",
+        "category": "Filtros",
+        "manufacturer": "K&N",
+        "part_number": "RU-3580",
+        "description": "Filtro cónico universal lavável.",
+        "specifications": {
+            "Formato": "Cónico",
+            "Diâmetro": "89mm"
+        },
+        "applications": [
+            "Chevrolet Camaro 2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "76",
+        "name": "Platô de Embreagem",
+        "category": "Transmissão",
+        "manufacturer": "Sachs",
+        "part_number": "3082 654 031",
+        "description": "Platô de embreagem reforçado.",
+        "specifications": {
+            "Tipo": "Reforçado",
+            "Força": "+20% pressão"
+        },
+        "applications": [
+            "Audi S3 2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "77",
+        "name": "Bomba Combustível Walbro 255",
+        "category": "Motor",
+        "manufacturer": "Walbro",
+        "part_number": "GSS340",
+        "description": "Bomba de alta pressão 255 L/h.",
+        "specifications": {
+            "Vazão": "255 L/h",
+            "Pressão": "3 bar @ 40A"
+        },
+        "applications": [
+            "Subaru WRX STI 2004-2005-2006-2007"
+        ]
+    },
+    {
+        "id": "78",
+        "name": "Vela NGK Laser Iridium",
+        "category": "Ignição",
+        "manufacturer": "NGK",
+        "part_number": "ILTR5A13G",
+        "description": "Vela iridium laser premium.",
+        "specifications": {
+            "Eletrodo": "Laser Iridium",
+            "Vida": "120.000 km"
+        },
+        "applications": [
+            "Lamborghini Gallardo 2003-2004-2005-2006-2007-2008-2009-2010-2011-2012-2013"
+        ]
+    },
+    {
+        "id": "79",
+        "name": "Amortecedor Öhlins",
+        "category": "Suspensão",
+        "manufacturer": "Öhlins",
+        "part_number": "DFV MI15",
+        "description": "Amortecedor regulável competition.",
+        "specifications": {
+            "Tipo": "Competition",
+            "Regulagens": "Compressão/Extensão"
+        },
+        "applications": [
+            "McLaren 570S 2015-2016-2017-2018-2019"
+        ]
+    },
+    {
+        "id": "80",
+        "name": "Filtro Óleo Mobil 1",
+        "category": "Filtros",
+        "manufacturer": "Mobil 1",
+        "part_number": "M1-108A",
+        "description": "Filtro premium para óleos sintéticos.",
+        "specifications": {
+            "Tipo": "Sintético",
+            "Capacidade": "25.000 km"
+        },
+        "applications": [
+            "Bentley Continental GT 2003-2004-2005-2006-2007-2008-2009-2010-2011"
+        ]
+    },
+    {
+        "id": "81",
+        "name": "Pastilha AP Racing",
+        "category": "Freios",
+        "manufacturer": "AP Racing",
+        "part_number": "CP5200-1001",
+        "description": "Pastilha racing compound.",
+        "specifications": {
+            "Compound": "Racing Pro",
+            "Temperatura": "20°C-850°C"
+        },
+        "applications": [
+            "Aston Martin DB9 2004-2005-2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "82",
+        "name": "Correia Optibelt",
+        "category": "Motor",
+        "manufacturer": "Optibelt",
+        "part_number": "RB PK1860",
+        "description": "Correia poly-v red power III.",
+        "specifications": {
+            "Série": "Red Power III",
+            "EPDM": "Resistente óleo"
+        },
+        "applications": [
+            "Rolls-Royce Ghost 2009-2010-2011-2012-2013-2014"
+        ]
+    },
+    {
+        "id": "83",
+        "name": "Sensor Bosch Motorsport",
+        "category": "Motor",
+        "manufacturer": "Bosch",
+        "part_number": "0 261 230 217",
+        "description": "Sensor pressão diferencial racing.",
+        "specifications": {
+            "Faixa": "0-2.5 bar diferencial",
+            "Precisão": "±0.25%"
+        },
+        "applications": [
+            "Bugatti Veyron 2005-2006-2007-2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "84",
+        "name": "Filtro Combustível Aeromotive",
+        "category": "Filtros",
+        "manufacturer": "Aeromotive",
+        "part_number": "12335",
+        "description": "Filtro alta vazão racing.",
+        "specifications": {
+            "Vazão": "1200 HP",
+            "Micronagem": "10 micron"
+        },
+        "applications": [
+            "Koenigsegg CCX 2006-2007-2008-2009-2010"
+        ]
+    },
+    {
+        "id": "85",
+        "name": "Disco Alcon SuperKit",
+        "category": "Freios",
+        "manufacturer": "Alcon",
+        "part_number": "BKF7088BE23",
+        "description": "Kit big brake 380mm.",
+        "specifications": {
+            "Diâmetro": "380mm",
+            "Tipo": "Flutuante 2 peças"
+        },
+        "applications": [
+            "Pagani Huayra 2011-2012-2013-2014-2015-2016-2017"
+        ]
+    },
+    {
+        "id": "86",
+        "name": "Terminal Direto H&R",
+        "category": "Suspensão",
+        "manufacturer": "H&R",
+        "part_number": "50415-88",
+        "description": "Terminal direto adjustable.",
+        "specifications": {
+            "Ajuste": "±12mm",
+            "Material": "Aço inox"
+        },
+        "applications": [
+            "Maybach 57S 2005-2006-2007-2008-2009-2010-2011-2012"
+        ]
+    },
+    {
+        "id": "87",
+        "name": "Bomba Água Stewart",
+        "category": "Motor",
+        "manufacturer": "Stewart",
+        "part_number": "EMP-150L",
+        "description": "Bomba elétrica racing.",
+        "specifications": {
+            "Vazão": "150 L/min",
+            "Voltagem": "12V 35A"
+        },
+        "applications": [
+            "Spyker C8 2006-2007-2008-2009"
+        ]
+    },
+    {
+        "id": "88",
+        "name": "Filtro Ar BMC Racing",
+        "category": "Filtros",
+        "manufacturer": "BMC",
+        "part_number": "ACOTAF-01",
+        "description": "Filtro ar racing washable.",
+        "specifications": {
+            "Material": "Algodão oleado",
+            "Fluxo": "+19% vs papel"
+        },
+        "applications": [
+            "Ariel Atom 2005-2006-2007-2008-2009-2010"
+        ]
+    },
+    {
+        "id": "89",
+        "name": "Pastilha CL Brakes",
+        "category": "Freios",
+        "manufacturer": "CL Brakes",
+        "part_number": "4000RC6E",
+        "description": "Pastilha endurance racing.",
+        "specifications": {
+            "Compound": "RC6E",
+            "Uso": "Track/Endurance"
+        },
+        "applications": [
+            "Caterham Seven 2004-2005-2006-2007-2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "90",
+        "name": "Correia Kevlar Gates",
+        "category": "Motor",
+        "manufacturer": "Gates",
+        "part_number": "T317RB",
+        "description": "Correia kevlar racing belt.",
+        "specifications": {
+            "Material": "Kevlar reinforced",
+            "Temperatura": "-40°C/+150°C"
+        },
+        "applications": [
+            "Morgan Aero 8 2002-2003-2004-2005-2006-2007-2008-2009-2010"
+        ]
+    },
+    {
+        "id": "91",
+        "name": "Sensor Racing Dynamics",
+        "category": "Motor",
+        "manufacturer": "Racing Dynamics",
+        "part_number": "RD-TPS-01",
+        "description": "Sensor posição borboleta racing.",
+        "specifications": {
+            "Tipo": "Contactless Hall",
+            "Resolução": "0.1°"
+        },
+        "applications": [
+            "Noble M12 2000-2001-2002-2003-2004-2005-2006-2007"
+        ]
+    },
+    {
+        "id": "92",
+        "name": "Filtro Combustível Pro-M",
+        "category": "Filtros",
+        "manufacturer": "Pro-M",
+        "part_number": "PMA555-10AN",
+        "description": "Filtro inline racing 10AN.",
+        "specifications": {
+            "Conexão": "10AN ORB",
+            "Vazão": "500+ HP"
+        },
+        "applications": [
+            "TVR Sagaris 2005-2006-2007"
+        ]
+    },
+    {
+        "id": "93",
+        "name": "Disco Stoptech Trophy",
+        "category": "Freios",
+        "manufacturer": "Stoptech",
+        "part_number": "328.33138.35",
+        "description": "Disco slotted trophy sport.",
+        "specifications": {
+            "Tipo": "Slotted",
+            "Série": "Trophy Sport"
+        },
+        "applications": [
+            "Wiesmann GT MF4 2005-2006-2007-2008-2009-2010-2011"
+        ]
+    },
+    {
+        "id": "94",
+        "name": "Mola King Springs",
+        "category": "Suspensão",
+        "manufacturer": "King Springs",
+        "part_number": "KDRL-04",
+        "description": "Mola progressive lowered.",
+        "specifications": {
+            "Rebaixamento": "40mm",
+            "Taxa": "Progressive"
+        },
+        "applications": [
+            "Holden Commodore 2006-2007-2008-2009-2010-2011-2012-2013-2014-2015-2016-2017"
+        ]
+    },
+    {
+        "id": "95",
+        "name": "Radiador CSF Racing",
+        "category": "Motor",
+        "manufacturer": "CSF",
+        "part_number": "7058",
+        "description": "Radiador all-aluminum racing.",
+        "specifications": {
+            "Material": "All-aluminum",
+            "Capacidade": "+25% cooling"
+        },
+        "applications": [
+            "Hennessey Venom GT 2010-2011-2012-2013-2014"
+        ]
+    },
+    {
+        "id": "96",
+        "name": "Filtro Ar Pipercross",
+        "category": "Filtros",
+        "manufacturer": "Pipercross",
+        "part_number": "PX1746",
+        "description": "Filtro ar foam reusable.",
+        "specifications": {
+            "Material": "Foam tri-layer",
+            "Lavável": "Sim"
+        },
+        "applications": [
+            "Westfield Seven 1998-1999-2000-2001-2002-2003-2004-2005-2006-2007-2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "97",
+        "name": "Pastilha Hawk Performance",
+        "category": "Freios",
+        "manufacturer": "Hawk",
+        "part_number": "HB453N.661",
+        "description": "Pastilha HP Plus street/track.",
+        "specifications": {
+            "Compound": "HP Plus",
+            "Temperatura": "100°C-650°C"
+        },
+        "applications": [
+            "Donkervoort D8 2004-2005-2006-2007-2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "98",
+        "name": "Correia Conti Tech",
+        "category": "Motor",
+        "manufacturer": "Continental",
+        "part_number": "CT1028",
+        "description": "Correia dentada synchro-drive.",
+        "specifications": {
+            "Tipo": "Synchro-Drive HTD",
+            "Dentes": "248"
+        },
+        "applications": [
+            "Radical SR3 2002-2003-2004-2005-2006-2007-2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "99",
+        "name": "Sensor Pectel McLaren",
+        "category": "Motor",
+        "manufacturer": "Pectel",
+        "part_number": "SQ6-2000",
+        "description": "Sensor lambda wide-band motorsport.",
+        "specifications": {
+            "Tipo": "Wide-band motorsport",
+            "Range": "0.7-∞ lambda"
+        },
+        "applications": [
+            "KTM X-Bow 2007-2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    },
+    {
+        "id": "100",
+        "name": "Filtro Final Setrab",
+        "category": "Filtros",
+        "manufacturer": "Setrab",
+        "part_number": "9-50-7612",
+        "description": "Filtro óleo motorsport final.",
+        "specifications": {
+            "Micronagem": "25 micron",
+            "Conexão": "12AN male"
+        },
+        "applications": [
+            "Ultima GTR 1999-2000-2001-2002-2003-2004-2005-2006-2007-2008-2009-2010-2011-2012-2013-2014-2015"
+        ]
+    }
+]

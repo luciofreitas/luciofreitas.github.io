@@ -1,0 +1,787 @@
+/* ===== MODAL FICHA COMPLETA DA PEÇA ===== */
+
+.product-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.product-modal {
+  background: white;
+  border-radius: 0.75rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 100%;
+  max-width: 1200px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.product-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.product-modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0052CC !important;
+}
+
+/* Actions container inside modal header */
+.product-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.product-modal-actions .btn {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.95rem;
+  border-radius: 0.5rem;
+}
+
+.product-modal-close {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.product-modal-close:hover {
+  background: #e5e7eb;
+  color: #172B4D;
+}
+
+.product-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.product-modal-loading,
+.product-modal-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #1A66FF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== SEÇÃO HEADER DA PEÇA ===== */
+
+.product-header-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.product-images {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.main-image {
+  aspect-ratio: 4/3;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.image-thumbnails img {
+  width: 60px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.image-thumbnails img:hover {
+  border-color: #1A66FF;
+}
+
+.image-thumbnails img.active {
+  border-color: #1A66FF;
+  box-shadow: 0 0 0 1px #1A66FF;
+}
+
+.product-basic-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.recall-alert {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  color: #92400e;
+}
+
+.recall-alert svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.recall-alert strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.recall-alert p {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.recall-alert small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.product-codes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.contact-workshop {
+  padding: 1rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  color: #003A99;
+  font-size: 0.875rem;
+}
+
+.contact-workshop p {
+  margin: 0 0 0.5rem 0;
+}
+
+.contact-workshop p:last-child {
+  margin: 0;
+}
+
+.installation-info {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.install-difficulty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.difficulty {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.difficulty.fácil {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.difficulty.médio {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.difficulty.difícil {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+.install-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* ===== ABAS DE CONTEÚDO ===== */
+
+.product-tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-buttons {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  overflow-x: auto;
+}
+
+.tab-buttons button {
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-buttons button:hover {
+  color: #172B4D;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.tab-buttons button.active {
+  color: #1A66FF;
+  border-bottom-color: #1A66FF;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.tab-panel {
+  padding: 1.5rem;
+}
+
+.tab-panel h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #172B4D;
+}
+
+.tab-panel p {
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+/* Conteúdo específico das abas */
+
+.workshop-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.workshop-info > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f0fdf4;
+  border-radius: 0.375rem;
+  border-left: 3px solid #16a34a;
+  font-size: 0.875rem;
+  color: #166534;
+}
+
+/* Seção removida: delivery-warranty (agora é workshop-info) */
+
+.related-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.related-part {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.375rem;
+  border-left: 3px solid #1A66FF;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.spec-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.375rem;
+}
+
+.spec-label {
+  font-weight: 500;
+  color: #172B4D;
+  text-transform: capitalize;
+}
+
+.spec-value {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.compatibility-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.compatibility-row {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border-left: 3px solid #10b981;
+}
+
+.app-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.app-main strong {
+  color: #172B4D;
+}
+
+.app-main span {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.app-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.app-details span {
+  color: #172B4D;
+  font-size: 0.875rem;
+}
+
+.app-details small {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.install-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.install-requirements,
+.install-precautions {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+}
+
+.install-precautions {
+  background: #fef3c7;
+  border-left: 3px solid #f59e0b;
+}
+
+.install-requirements ul,
+.install-precautions ul {
+  margin: 0.5rem 0 0 1.5rem;
+  color: #172B4D;
+}
+
+.reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.review-item {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border-left: 3px solid #1A66FF;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.review-rating {
+  color: #f59e0b;
+  font-size: 1.125rem;
+}
+
+.review-date {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.review-item p {
+  margin: 0;
+  color: #172B4D;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.faq-item {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+}
+
+.faq-item strong {
+  display: block;
+  color: #172B4D;
+  margin-bottom: 0.5rem;
+}
+
+.faq-item p {
+  margin: 0;
+  color: #172B4D;
+  font-size: 0.875rem;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+
+@media (max-width: 768px) {
+  .product-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .product-modal-header {
+    padding: 1rem;
+  }
+  
+  .product-modal-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .product-header-section {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .installation-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .tab-panel {
+    padding: 1rem;
+  }
+  
+  .specs-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .app-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ===== DARK MODE ===== */
+
+.theme-dark .product-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.theme-dark .product-modal {
+  background: var(--bg-white);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+}
+
+.theme-dark .product-modal-header {
+  border-bottom: 1px solid var(--border-gray);
+  background: var(--bg-gray-neutral);
+}
+
+.theme-dark .product-modal-header h2 {
+  color: var(--color-primary-light) !important;
+}
+
+.theme-dark .product-modal-close {
+  color: var(--text-secondary);
+}
+
+.theme-dark .product-modal-close:hover {
+  background: var(--bg-gray-100);
+  color: var(--text-primary);
+}
+
+.theme-dark .product-modal-loading,
+.theme-dark .product-modal-error {
+  color: var(--text-secondary);
+}
+
+.theme-dark .loading-spinner {
+  border: 3px solid var(--bg-gray-100);
+  border-top: 3px solid var(--color-primary);
+}
+
+.theme-dark .product-header-section {
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.theme-dark .main-image {
+  background: var(--bg-gray-neutral);
+  border: 1px solid var(--border-gray);
+}
+
+.theme-dark .image-thumbnails img:hover {
+  border-color: var(--color-primary);
+}
+
+.theme-dark .image-thumbnails img.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.theme-dark .recall-alert {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning);
+}
+
+.theme-dark .product-codes {
+  background: var(--bg-gray-neutral);
+  color: var(--text-secondary);
+}
+
+.theme-dark .contact-workshop {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary-light);
+}
+
+.theme-dark .difficulty.fácil {
+  background: rgba(34, 197, 94, 0.2);
+  color: var(--color-success);
+}
+
+.theme-dark .difficulty.médio {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-warning);
+}
+
+.theme-dark .difficulty.difícil {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--color-error);
+}
+
+.theme-dark .install-time {
+  color: var(--text-secondary);
+}
+
+.theme-dark .tab-buttons {
+  border-bottom: 1px solid var(--border-gray);
+  background: var(--bg-gray-neutral);
+}
+
+.theme-dark .tab-buttons button {
+  color: var(--text-secondary);
+}
+
+.theme-dark .tab-buttons button:hover {
+  color: var(--text-primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.theme-dark .tab-buttons button.active {
+  color: var(--color-primary-light);
+  border-bottom-color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.theme-dark .tab-panel h3 {
+  color: var(--text-primary);
+}
+
+.theme-dark .tab-panel p {
+  color: var(--text-secondary);
+}
+
+.theme-dark .workshop-info > div {
+  background: rgba(34, 197, 94, 0.15);
+  border-left: 3px solid var(--color-success);
+  color: var(--color-success);
+}
+
+.theme-dark .related-part {
+  background: var(--bg-gray-neutral);
+  border-left: 3px solid var(--color-primary);
+  color: var(--text-primary);
+}
+
+.theme-dark .specs-grid {
+  color: var(--text-primary);
+}
+
+.theme-dark .spec-item {
+  background: var(--bg-gray-neutral);
+}
+
+.theme-dark .spec-label {
+  color: var(--text-primary);
+}
+
+.theme-dark .spec-value {
+  color: var(--text-secondary);
+}
+
+.theme-dark .compatibility-row {
+  background: var(--bg-gray-neutral);
+  border-left: 3px solid var(--color-success);
+}
+
+.theme-dark .app-main strong {
+  color: var(--text-primary);
+}
+
+.theme-dark .app-main span {
+  color: var(--text-secondary);
+}
+
+.theme-dark .app-details span {
+  color: var(--text-primary);
+}
+
+.theme-dark .app-details small {
+  color: var(--text-muted);
+}
+
+.theme-dark .install-requirements,
+.theme-dark .install-precautions {
+  background: var(--bg-gray-neutral);
+}
+
+.theme-dark .install-precautions {
+  background: rgba(245, 158, 11, 0.15);
+  border-left: 3px solid var(--color-warning);
+}
+
+.theme-dark .install-requirements ul,
+.theme-dark .install-precautions ul {
+  color: var(--text-primary);
+}
+
+.theme-dark .review-item {
+  background: var(--bg-gray-neutral);
+  border-left: 3px solid var(--color-primary);
+}
+
+.theme-dark .review-header {
+  color: var(--text-primary);
+}
+
+.theme-dark .review-rating {
+  color: var(--color-warning);
+}
+
+.theme-dark .review-date {
+  color: var(--text-muted);
+}
+
+.theme-dark .review-item p {
+  color: var(--text-secondary);
+}
+
+.theme-dark .faq-item {
+  background: var(--bg-gray-neutral);
+}
+
+.theme-dark .faq-item strong {
+  color: var(--text-primary);
+}
+
+.theme-dark .faq-item p {
+  color: var(--text-secondary);
+}

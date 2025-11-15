@@ -1,0 +1,908 @@
+import React, { useState, useContext, useEffect, useRef } from 'react';
+import { MenuLogin } from '../components';
+import '../styles/pages/page-Login.css';
+import '../styles/pages/page-Cadastro.css';
+import usuariosData from '../data/usuarios.json';
+import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../App';
+import { ToggleCar } from '../components';
+// Lazy-load Supabase and Firebase auth modules only when needed to keep
+// the main bundle small. Helpers below cache imports per-session.
+let _supabaseCache = null;
+async function getSupabaseClient() {
+  if (_supabaseCache) return _supabaseCache;
+  try {
+    const mod = await import('../supabase');
+    const sup = mod.default || mod.supabase;
+    const isConfigured = !!(mod.isConfigured || mod.isConfigured === true);
+    _supabaseCache = { supabase: sup, isConfigured };
+    return _supabaseCache;
+  } catch (e) {
+    _supabaseCache = { supabase: null, isConfigured: false };
+    return _supabaseCache;
+  }
+}
+
+async function getFirebaseAuthHelpers() {
+  const [fb = {}, authMod = {}] = await Promise.all([
+    import('../firebase').catch(() => ({})),
+    import('firebase/auth').catch(() => ({})),
+  ]);
+  return { auth: fb.auth, authMod };
+}
+
+async function getFirebaseAuthApi() {
+  const mod = await import('../firebaseAuth').catch(() => ({}));
+  return mod;
+}
+
+const usuariosDemoGlobais = [
+  { id: 'demo1', nome: 'Usuário Demo', email: 'demo@garagemsmart.com', senha: '123456', celular: '11999999999', isDemo: true },
+  { id: 'admin1', nome: 'Admin Demo', email: 'admin@garagemsmart.com', senha: 'admin123', celular: '11888888888', isDemo: true },
+  { id: 'teste1', nome: 'Teste Público', email: 'teste@garagemsmart.com', senha: 'teste123', celular: '11777777777', isDemo: true }
+];
+
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [error, setError] = useState('');
+  const [showPasswordLogin, setShowPasswordLogin] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [redirectPending, setRedirectPending] = useState(false);
+  const [linkingCredential, setLinkingCredential] = useState(null);
+  const [linkPassword, setLinkPassword] = useState('');
+  const [showLinkPrompt, setShowLinkPrompt] = useState(false);
+  const [linkEmail, setLinkEmail] = useState(null);
+  const [linkError, setLinkError] = useState('');
+  const [showMergeConfirm, setShowMergeConfirm] = useState(false);
+  const [pendingMergeIdToken, setPendingMergeIdToken] = useState(null);
+  const [pendingMergeEmail, setPendingMergeEmail] = useState(null);
+  const [mergeLoading, setMergeLoading] = useState(false);
+  const [mergeError, setMergeError] = useState('');
+
+  const navigate = useNavigate();
+  const isDev = !!(typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV);
+  // Detect mobile: prefer user agent check for mobile devices or small viewport
+  const isMobile = (typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent)) || (typeof window !== 'undefined' && window.innerWidth <= 768);
+  // prefill email when redirected from cadastro
+  useEffect(() => {
+    try {
+      const st = window.history.state && window.history.state.usr && window.history.state.usr.state;
+      // react-router HashRouter stores the state inside history.state.usr.state in some setups
+      const forwarded = st || (window.history.state && window.history.state.state);
+      const pref = forwarded && forwarded.email;
+      if (pref) setEmail(String(pref).trim());
+    } catch (e) { /* ignore */ }
+  }, []);
+  const { setUsuarioLogado } = useContext(AuthContext || {});
+
+  useEffect(() => { try { localStorage.setItem('__test_localStorage__', 'test'); localStorage.removeItem('__test_localStorage__'); } catch (e) {} }, []);
+
+  // Helper to clean/format a display name (capitalize words, remove dev markers)
+  function formatDisplayName(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    // remove common dev prefixes/markers
+    let s = raw.trim();
+    s = s.replace(/^(devuser\+|dev_|dev-|testuser\+|teste_)/i, '');
+    // replace punctuation often used in emails/usernames with spaces
+    s = s.replace(/[._+\-]+/g, ' ');
+    // collapse multiple spaces
+    s = s.replace(/\s+/g, ' ').trim();
+    // capitalize words
+    s = s.split(' ').map(part => part ? (part.charAt(0).toUpperCase() + part.slice(1)) : '').join(' ').trim();
+    return s || raw;
+  }
+
+  // Handle Firebase redirect result (for mobile flows using signInWithRedirect)
+  const processedRef = useRef(false);
+
+  async function processFirebaseUser(user, googleCredential = null) {
+    if (!user || processedRef.current) return;
+    
+    // LOG RAW USER DATA FROM FIREBASE/GOOGLE
+    if (isDev) {
+      console.log('🔍 [RAW] Firebase User Object:', {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        emailVerified: user.emailVerified,
+        providerData: user.providerData
+      });
+    } else {
+      // In production, log only non-sensitive info to avoid exposing PII in console
+      try { console.info('[auth] Firebase user signed in', { uid: user.uid, displayName: user.displayName ? user.displayName : undefined }); } catch (e) {}
+    }
+    
+    processedRef.current = true; // Mark immediately to prevent double processing
+    
+    try { console.time('[auth-timing] processFirebaseUser total'); } catch (e) {}
+
+    try {
+      // Optimize idToken retrieval: get immediately without retries for faster experience
+      let idToken = null;
+      try { console.time('[auth-timing] wait-for-idToken'); } catch (e) {}
+      try {
+        idToken = await user.getIdToken();
+      } catch (e) {
+        console.warn('processFirebaseUser: could not obtain idToken', e);
+      }
+      try { console.timeEnd('[auth-timing] wait-for-idToken'); } catch (e) {}
+      if (!idToken) {
+        console.warn('processFirebaseUser: no idToken available');
+      }
+      // Backend verification: fetch additional user data asynchronously
+      try { console.time('[auth-timing] backend-verify'); } catch (e) {}
+      const apiBase = window.__API_BASE || '';
+      
+      // Start backend verification asynchronously - will update user data when ready
+      if (idToken) {
+        fetch(`${apiBase}/api/auth/firebase-verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+          body: JSON.stringify({})
+        })
+        .then(resp => {
+          if (isDev) console.log('[DEBUG] Backend response status:', resp.status);
+          return resp.ok ? resp.json() : null;
+        })
+        .then(body => {
+          if (isDev) console.log('[DEBUG] Backend response body:', body);
+          if (body && (body.user || body.usuario)) {
+            const backendUser = body.user || body.usuario;
+            if (isDev) console.log('[DEBUG] Backend user data:', backendUser);
+            if (isDev) console.log('[DEBUG] Phone fields:', {
+              phone: backendUser.phone,
+              telefone: backendUser.telefone,
+              celular: backendUser.celular
+            });
+            
+            // Merge backend data (phone, etc) with existing user data
+            const updatedUser = {
+              ...backendUser,
+              id: user.uid, // Keep Firebase uid as primary id
+              email: user.email,
+              nome: nomeFromToken || backendUser.nome || backendUser.name,
+              name: nomeFromToken || backendUser.name || backendUser.nome,
+              access_token: idToken,
+              photoURL: backendUser.photoURL || backendUser.photo_url || user.photoURL || null,
+              // Keep backend-specific fields like phone
+              phone: backendUser.phone || backendUser.telefone || backendUser.celular || null,
+              telefone: backendUser.telefone || backendUser.phone || backendUser.celular || null,
+              celular: backendUser.celular || backendUser.phone || backendUser.telefone || null,
+            };
+            
+            if (isDev) console.log('[DEBUG] Updated user with merged data:', updatedUser);
+            
+            // Update context and localStorage with complete data
+            if (setUsuarioLogado) {
+              if (isDev) console.log('[DEBUG] Updating context with:', updatedUser);
+              setUsuarioLogado(updatedUser);
+            }
+            try { 
+              localStorage.setItem('usuario-logado', JSON.stringify(updatedUser));
+              if (isDev) console.log('[DEBUG] Saved to localStorage');
+            } catch (e) {
+              if (isDev) console.error('[DEBUG] Failed to save to localStorage:', e);
+            }
+            console.log('[auth-timing] Backend user data merged successfully');
+          } else {
+            if (isDev) console.warn('[DEBUG] No user data in backend response');
+          }
+        })
+        .catch(e => console.warn('Backend verification failed (non-blocking):', e));
+      }
+      try { console.timeEnd('[auth-timing] backend-verify'); } catch (e) {}
+
+      const rawNomeFromToken = (user && user.displayName) || (user && user.email ? user.email.split('@')[0] : '');
+      const nomeFromToken = formatDisplayName(rawNomeFromToken) || '';
+      
+      // Create initial user object with Firebase data
+      // Backend will update this asynchronously with additional fields (phone, etc)
+      const normalizedUsuario = {
+        id: user.uid,
+        email: user.email,
+        nome: nomeFromToken,
+        name: nomeFromToken,
+        access_token: idToken,
+        photoURL: user.photoURL || null,
+        // These will be populated by backend response
+        phone: null,
+        telefone: null,
+        celular: null
+      };
+
+      // If the backend returned a development/mock user (id like 'dev_...') or a
+      // dev-style generated username (e.g. 'devuser+'), prefer the Firebase
+      // client's displayName when available to avoid showing mock names in the UI.
+      try {
+        const isDevBackendUser = (normalizedUsuario && String(normalizedUsuario.id || '').startsWith('dev_'))
+          || (normalizedUsuario && /devuser\+|dev_/.test(String(normalizedUsuario.nome || '').toLowerCase()));
+        if (isDevBackendUser && nomeFromToken) {
+          normalizedUsuario.nome = nomeFromToken;
+          normalizedUsuario.name = nomeFromToken;
+        }
+      } catch (e) { /* ignore */ }
+
+      // Update context and localStorage SYNCHRONOUSLY before navigate
+      if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+      try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+      
+      try { console.timeEnd('[auth-timing] processFirebaseUser total'); } catch (e) {}
+      
+      // Navigate immediately - toast will show after navigation
+      navigate('/buscar-pecas', { replace: true });
+      
+      // Show toast after navigation (non-blocking)
+      setTimeout(() => {
+        if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+      }, 100);
+    } catch (e) {
+      // swallow errors but keep processed flag
+      console.warn('processFirebaseUser failed', e && e.message ? e.message : e);
+    }
+  }
+
+  // Ensure we can obtain a fresh ID token from a Firebase user with retries
+  async function ensureIdToken(userObj, maxRetries = 6, delayMs = 500) {
+    if (!userObj || typeof userObj.getIdToken !== 'function') return null;
+    try {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const t = await userObj.getIdToken();
+          if (t) return t;
+        } catch (e) {
+          // ignore and retry
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(r => setTimeout(r, delayMs));
+      }
+      // final attempt forcing refresh
+      try {
+        const t = await userObj.getIdToken(true);
+        if (t) return t;
+      } catch (e) { /* ignore */ }
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
+  // Expose a helper to simulate a Google/Firebase signin for local testing
+  try {
+    if (typeof window !== 'undefined' && isDev) {
+      // Example usage in console: window.__simulateGoogleSignin({ uid: 'x', email: 'demo@...', displayName: 'Demo User', getIdToken: async () => 'fake' })
+      window.__simulateGoogleSignin = async (fakeUser) => {
+        try {
+          await processFirebaseUser(fakeUser);
+          return { ok: true };
+        } catch (e) {
+          return { error: e && e.message ? e.message : e };
+        }
+      };
+    }
+  } catch (e) { /* ignore exposure errors */ }
+
+  useEffect(() => {
+    // If we came back from a Google redirect, show a persistent loading indicator
+    try {
+      const flag = typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('__google_redirect_pending');
+      if (flag) {
+        setRedirectPending(true);
+        setGoogleLoading(true);
+      }
+    } catch (e) { /* ignore localStorage access errors */ }
+
+    // Try to handle redirect result first
+    (async () => {
+      try {
+        console.log('[page-Login] Starting handleRedirectResult check...');
+        const firebaseAuthApi = await getFirebaseAuthApi();
+        const result = firebaseAuthApi && typeof firebaseAuthApi.handleRedirectResult === 'function'
+          ? await firebaseAuthApi.handleRedirectResult()
+          : null;
+        console.log('[page-Login] handleRedirectResult result:', result);
+  // Clear the persisted redirect flag when we get a redirect result (success or error)
+  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+  setRedirectPending(false);
+  // Ensure the loading indicator is cleared if redirect handling didn't fully finalize login
+  try { setGoogleLoading(false); } catch (e) {}
+        if (result && result.user) {
+          console.log('[page-Login] Processing firebase user from redirect...');
+          await processFirebaseUser(result.user, result.credential || null);
+        } else if (result && result.error) {
+          console.warn('[page-Login] handleRedirectResult returned error', result.error);
+        } else {
+          console.log('[page-Login] No redirect result (expected on normal page load)');
+        }
+      } catch (e) {
+        // Clear flag on unexpected error to avoid a stuck loading screen
+        try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (ee) {}
+        setRedirectPending(false);
+        try { setGoogleLoading(false); } catch (ee) {}
+        console.error('[page-Login] handleRedirectResult threw error:', e && e.message ? e.message : e);
+      }
+    })();
+
+    // Fallback: listen for auth state changes (some environments signal sign-in via onAuthStateChanged instead)
+    // Attach listener asynchronously so we don't force-load Firebase on initial page load.
+    let unsubscribe = () => {};
+    (async () => {
+      try {
+        const { auth, authMod } = await getFirebaseAuthHelpers();
+        if (auth && authMod && typeof authMod.onAuthStateChanged === 'function') {
+          unsubscribe = authMod.onAuthStateChanged(auth, async (user) => {
+            if (user) {
+              try { await processFirebaseUser(user); }
+              finally {
+                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+                setRedirectPending(false);
+                try { setGoogleLoading(false); } catch (e) {}
+              }
+            }
+          });
+        } else {
+          console.warn('[page-Login] Firebase auth not configured; skipping onAuthStateChanged listener');
+        }
+      } catch (e) {
+        console.warn('[page-Login] failed to attach onAuthStateChanged listener', e && e.message ? e.message : e);
+        unsubscribe = () => {};
+      }
+    })();
+
+    return () => { try { unsubscribe && unsubscribe(); } catch (_) {} };
+  }, [setUsuarioLogado, navigate]);
+
+  // Handler to confirm server-side merge (called from confirmation modal)
+  async function confirmMerge(overrideIdToken = null) {
+    // Normalize and validate the token before sending to server. Avoid sending
+    // literal 'undefined' or empty values which cause server-side decode errors.
+    let tokenToUse = overrideIdToken || pendingMergeIdToken;
+    if (typeof tokenToUse !== 'string') tokenToUse = tokenToUse ? String(tokenToUse) : '';
+    tokenToUse = tokenToUse.trim();
+    console.debug('confirmMerge invoked', { tokenProvided: !!overrideIdToken, pendingMergeEmail, tokenPresent: !!tokenToUse });
+    if (!tokenToUse || tokenToUse === 'undefined') { setMergeError('Token indisponível para fusão.'); return; }
+    setMergeLoading(true);
+    setMergeError('');
+    try {
+      const apiBase = window.__API_BASE || '';
+      const resp = await fetch(`${apiBase}/api/auth/merge-google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenToUse}` },
+        body: JSON.stringify({})
+      });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        setMergeError(body && body.error ? String(body.error) : `Merge falhou: ${resp.status}`);
+        setMergeLoading(false);
+        return;
+      }
+      const body = await resp.json().catch(() => ({}));
+      if (body && body.success && body.user) {
+        // finalize sign-in with merged user
+        const merged = body.user;
+        if (setUsuarioLogado) setUsuarioLogado(merged);
+        try { localStorage.setItem('usuario-logado', JSON.stringify(merged)); } catch (e) {}
+        if (window.showToast) window.showToast(`Bem-vindo(a), ${merged.nome || merged.name || 'Usuário'}!`, 'success', 3000);
+        setShowMergeConfirm(false);
+        setPendingMergeIdToken(null);
+        setPendingMergeEmail(null);
+        navigate('/buscar-pecas');
+        return;
+      }
+      setMergeError('Não foi possível unir as contas. Tente novamente ou contate o suporte.');
+    } catch (e) {
+      console.error('confirmMerge failed', e);
+      setMergeError('Erro ao comunicar com o servidor. Tente novamente.');
+    } finally {
+      setMergeLoading(false);
+    }
+  }
+
+  function getUsuarios() {
+    let usuarios = [...usuariosDemoGlobais];
+    try { const raw = localStorage.getItem('usuarios'); if (raw) usuarios = usuarios.concat(JSON.parse(raw)); } catch (e) {}
+    try { const seedData = (usuariosData || []).map(u => ({ id: u.id, nome: u.nome || '', celular: String(u.celular || '').replace(/\D/g, ''), email: String(u.email || '').trim().toLowerCase(), senha: String(u.senha || '') })); usuarios = usuarios.concat(seedData); } catch (e) {}
+    return usuarios;
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedSenha = String(senha || '');
+
+    (async () => {
+      try {
+        const apiBase = window.__API_BASE || '';
+        // Try server-side login first (checks Postgres password hash)
+        try {
+          const respServer = await fetch(`${apiBase}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: normalizedEmail, senha: normalizedSenha })
+          });
+          if (respServer.ok) {
+            const body = await respServer.json().catch(() => ({}));
+            const usuario = (body && body.user) ? body.user : null;
+            if (usuario) {
+              // preserve any provider hints/auth_id from server
+              const uWithProviders = { ...usuario };
+              if (usuario.auth_id && !uWithProviders.providers) uWithProviders.providers = ['google'];
+              if (setUsuarioLogado) setUsuarioLogado(uWithProviders);
+              try { localStorage.setItem('usuario-logado', JSON.stringify(uWithProviders)); } catch (e) {}
+              if (window.showToast) window.showToast(`Bem-vindo(a), ${usuario.nome || usuario.name || 'Usuário'}!`, 'success', 3000);
+              navigate('/buscar-pecas');
+              return;
+            }
+          }
+        } catch (e) {
+          // server login failed/unreachable — fallthrough to Supabase attempt
+          console.debug('Server-side /api/auth/login failed (will try Supabase):', e && e.message ? e.message : e);
+        }
+        // If server-side login failed, try Firebase email/password first (if available)
+        try {
+          try {
+            const { auth, authMod } = await getFirebaseAuthHelpers();
+            if (auth && authMod && typeof authMod.signInWithEmailAndPassword === 'function') {
+              try {
+                const fbRes = await authMod.signInWithEmailAndPassword(auth, normalizedEmail, normalizedSenha);
+                const fbUser = fbRes && fbRes.user ? fbRes.user : null;
+                if (fbUser) {
+                  await processFirebaseUser(fbUser);
+                  return;
+                }
+              } catch (fbErr) {
+                // expected for non-Firebase users; fall through to Supabase attempt
+                console.debug('Firebase email/password signIn failed (falling back):', fbErr && fbErr.code ? fbErr.code : fbErr && fbErr.message ? fbErr.message : fbErr);
+              }
+            }
+          } catch (inner) {
+            console.debug('Firebase fallback check threw', inner && inner.message ? inner.message : inner);
+          }
+        } catch (e) {
+          console.debug('Firebase fallback overall failed', e && e.message ? e.message : e);
+        }
+
+        // Try Supabase Auth sign-in (frontend) and then verify token with backend
+        const { supabase: _supabase, isConfigured: _isSupabaseConfigured } = await getSupabaseClient();
+        if (!_supabase || !_isSupabaseConfigured) {
+          // supabase not configured or missing — skip client attempt
+          throw new Error('Supabase client not configured');
+        }
+        const { data, error } = await _supabase.auth.signInWithPassword({ email: normalizedEmail, password: normalizedSenha });
+        if (error) {
+          console.debug('Supabase auth signIn error (expected for non-Supabase users):', error);
+          setError('E-mail ou senha incorretos.');
+          return;
+        }
+
+        const session = data && data.session ? data.session : null;
+        const accessToken = session && session.access_token ? session.access_token : null;
+        if (!accessToken) {
+          console.warn('Supabase signIn returned no access token');
+          setError('Erro ao efetuar login. Tente novamente.');
+          return;
+        }
+
+        // Send token to backend for verification/upsert
+        const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+          body: JSON.stringify({ access_token: accessToken }),
+        });
+
+        if (!resp.ok) {
+          console.warn('Backend supabase-verify failed', resp.status);
+          setError('Erro ao verificar conta. Tente novamente.');
+          return;
+        }
+
+        const body = await resp.json().catch(() => ({}));
+        const usuario = (body && body.user) ? body.user : null;
+        if (!usuario) {
+          setError('Erro ao obter dados do usuário.');
+          return;
+        }
+
+        function displayNameFromEmail(email){
+          if(!email || typeof email !== 'string') return '';
+          const local = email.split('@')[0] || '';
+          return local.replace(/[._-]+/g,' ').split(' ').map(s => s ? (s.charAt(0).toUpperCase() + s.slice(1)) : '').join(' ').trim();
+        }
+
+        const inferredName = (usuario.nome || usuario.name || '').trim() || displayNameFromEmail(usuario.email || usuario.email_address || usuario.mail);
+        const normalizedUsuario = {
+          ...usuario,
+          nome: inferredName,
+          name: inferredName,
+          access_token: accessToken
+        };
+
+        // Preserve auth_id/providers hints returned by the server
+        if (usuario.auth_id && !normalizedUsuario.providers) normalizedUsuario.providers = ['google'];
+
+        setError('');
+        if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+        try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+        if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+        navigate('/buscar-pecas');
+        return;
+      } catch (err) {
+        console.warn('Login flow failed, falling back to local users', err && err.message);
+      }
+
+      // Fallback to existing local lookup
+      const usuario = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmail && String(u.senha || '') === normalizedSenha);
+      if (!usuario) { setError('E-mail ou senha incorretos.'); return; }
+      setError('');
+      if (setUsuarioLogado) setUsuarioLogado(usuario);
+      try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
+      if (window.showToast) window.showToast(`Bem-vindo(a), ${usuario.nome || 'Usuário'}!`, 'success', 3000);
+      navigate('/buscar-pecas');
+    })();
+  }
+
+  // Handler to confirm linking Google credential to existing email/password account
+  async function confirmLinkAccounts() {
+    // modal-specific error state
+    setLinkError('');
+    console.debug('confirmLinkAccounts called', { linkingCredential, linkEmail });
+    // keep global errors separate
+    if (!linkingCredential) { setLinkError('Credencial do Google não disponível. Tente novamente.'); return; }
+    try {
+  const currentEmail = (linkingCredential && linkingCredential.email) ? linkingCredential.email : (linkEmail || null);
+      // We expect the existing user to enter their password (linkPassword)
+      if (!currentEmail) {
+        setLinkError('Email não disponível para link.');
+        return;
+      }
+      // Ensure this email actually has a password-based sign-in method in Firebase
+      try {
+        const { auth, authMod } = await getFirebaseAuthHelpers();
+        if (!auth || !authMod) {
+          setLinkError('Firebase não configurado neste ambiente. Use a opção de Unir contas no sistema ou contate o suporte.');
+          return;
+        }
+        const methods = (typeof authMod.fetchSignInMethodsForEmail === 'function') ? await authMod.fetchSignInMethodsForEmail(auth, currentEmail) : [];
+        if (!Array.isArray(methods) || !methods.includes('password')) {
+          setLinkError('Não existe uma conta com autenticação por senha neste e-mail no Firebase. Use Recuperar senha ou contate o suporte para unir as contas.');
+          return;
+        }
+      } catch (e) {
+        // if the check fails (network etc.), continue but log
+        console.warn('fetchSignInMethodsForEmail failed', e);
+      }
+      if (!linkPassword) {
+        setLinkError('Digite a senha da conta existente para confirmar a união.');
+        return;
+      }
+
+      // Reauthenticate by signing in with email/password; this will return the existing user
+      let existingUser = null;
+      try {
+        const { auth, authMod } = await getFirebaseAuthHelpers();
+        const signInRes = (authMod && typeof authMod.signInWithEmailAndPassword === 'function') ? await authMod.signInWithEmailAndPassword(auth, currentEmail, linkPassword) : null;
+        existingUser = signInRes && signInRes.user ? signInRes.user : null;
+        if (!existingUser) {
+          setLinkError('Falha ao autenticar a conta existente. Verifique a senha.');
+          return;
+        }
+      } catch (signErr) {
+        console.error('signInWithEmailAndPassword failed', signErr);
+        // Provide clearer feedback for common firebase auth errors
+        if (signErr && signErr.code) {
+          if (signErr.code === 'auth/wrong-password' || signErr.code === 'AUTH_WRONG_PASSWORD') {
+            setLinkError('Senha incorreta. Verifique e tente novamente.');
+            return;
+          }
+          if (signErr.code === 'auth/user-not-found' || signErr.code === 'AUTH_USER_NOT_FOUND') {
+            setLinkError('Usuário não encontrado no provedor de autenticação. Tente recuperar sua senha ou contate o suporte.');
+            return;
+          }
+        }
+        setLinkError('Falha ao autenticar a conta existente. Verifique a senha ou tente recuperar sua senha.');
+        return;
+      }
+
+      // Now link the Google credential to the existing user
+      try {
+        const { authMod } = await getFirebaseAuthHelpers();
+        if (authMod && typeof authMod.linkWithCredential === 'function') {
+          await authMod.linkWithCredential(existingUser, linkingCredential);
+        } else {
+          throw new Error('Firebase auth.linkWithCredential not available');
+        }
+      } catch (linkErr) {
+        console.error('Erro ao linkar credencial:', linkErr);
+        // Provide the firebase error code/message when possible
+        if (linkErr && linkErr.code) {
+          setLinkError(`Erro ao unir contas: ${linkErr.code} - ${linkErr.message || ''}`);
+        } else if (linkErr && linkErr.message) {
+          setLinkError(`Erro ao unir contas: ${linkErr.message}`);
+        } else {
+          setLinkError('Erro ao unir contas. Tente novamente.');
+        }
+        return;
+      }
+
+      // If linking succeeded, finalize sign-in using the existingUser (which now has google linked)
+      try {
+        // After successful link in the Firebase client, also inform the backend so it can set users.auth_id
+        // Obtain a fresh ID token for the now-linked Firebase user
+        let idTokenForBackend = null;
+        try {
+          if (auth && auth.currentUser && typeof auth.currentUser.getIdToken === 'function') {
+            idTokenForBackend = await auth.currentUser.getIdToken();
+          }
+        } catch (e) {
+          console.warn('Could not obtain idToken to call backend link-account', e);
+        }
+        if (idTokenForBackend) {
+          try {
+            // DEBUG: small, safe log to verify this code path runs and whether an idToken is present.
+            // We intentionally don't log the full token; just a short preview.
+            try { console.info('DEBUG: calling backend /api/auth/link-account', { email: currentEmail, haveIdToken: !!idTokenForBackend, idTokenPreview: (typeof idTokenForBackend === 'string' ? idTokenForBackend.slice(0,8) + '...' : null), apiBase: (window.__API_BASE || '') }); } catch(e) {}
+            const apiBase = window.__API_BASE || '';
+            const resp = await fetch(`${apiBase}/api/auth/link-account`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idTokenForBackend}` },
+              body: JSON.stringify({ email: currentEmail, senha: linkPassword })
+            });
+            if (resp.ok) {
+              try { const j = await resp.json().catch(() => ({})); if (j && j.success) console.debug('Backend link-account succeeded', j); }
+              catch(e){}
+            } else {
+              // show a user-facing error if linking on server failed (but continue with client flow)
+              try { const body = await resp.json().catch(() => ({})); setLinkError(body && body.error ? String(body.error) : `Falha ao ligar contas: ${resp.status}`); } catch(e){}
+            }
+          } catch (e) {
+            console.warn('Calling backend /api/auth/link-account failed', e);
+          }
+        }
+
+        // finalize client sign-in flow
+        await processFirebaseUser(existingUser);
+      } catch (e) {
+        console.warn('Finalizing link flow failed', e);
+        await processFirebaseUser(existingUser);
+      }
+      setShowLinkPrompt(false);
+      setLinkPassword('');
+      setLinkingCredential(null);
+    } catch (e) {
+      console.error('confirmLinkAccounts failed', e);
+      setLinkError('Erro ao unir contas. Verifique os dados e tente novamente.');
+    }
+  }
+
+  // Suppress the global error banner while auth/merge/link flows are in progress
+  const suppressGlobalError = !!(showLinkPrompt || showMergeConfirm || mergeLoading || googleLoading || pendingMergeIdToken);
+
+  // Simple overlay shown while a Google redirect login is pending or popup flow is active
+  const showLoginOverlay = !!(googleLoading || redirectPending);
+
+  return (
+    <>
+      <MenuLogin />
+      <div className="page-wrapper">
+        <div className="page-content">
+          <div className="cadastro-card-outer">
+            <div className="cadastro-card-grid">
+              <section className="cadastro-card">
+                <h1 className="cadastro-title">Entrar</h1>
+                <p className="cadastro-sub">Acesse sua conta para gerenciar pedidos e recursos</p>
+
+                <form className="cadastro-form" onSubmit={handleLogin} noValidate>
+                  {/* show global errors only when not showing the link modal or when not suppressing during pending flows */}
+                  {!suppressGlobalError && !showLinkPrompt && error && <div className="form-error">{error}</div>}
+
+                  {/* Link accounts modal (shown when showLinkPrompt is true) */}
+                  {showLinkPrompt && (
+                    <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:9999}}>
+                      <div className="modal" role="dialog" aria-modal="true" style={{background:'#fff',padding:'20px',maxWidth:'420px',width:'100%',borderRadius:8}}>
+                        <h3>Unir contas</h3>
+                        <p>Foi encontrada uma conta existente com este e-mail. Para unir a conta do Google com sua conta existente, confirme sua senha:</p>
+                        <label className="field">
+                          <span className="label">E-mail</span>
+                          <input className={`input`} type="email" value={linkEmail || ''} readOnly />
+                        </label>
+                        {linkError && <div className="form-error" style={{marginTop:8}}>{linkError}</div>}
+                        <label className="field">
+                          <span className="label">Senha da conta existente</span>
+                          <input
+                            className={`input`}
+                            type="password"
+                            value={linkPassword}
+                            onChange={(e) => setLinkPassword(e.target.value)}
+                            placeholder="Senha"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                try { confirmLinkAccounts(); } catch (err) { /* ignore */ }
+                              }
+                            }}
+                          />
+                        </label>
+                        <div style={{display: 'flex', gap: '8px', marginTop: 12}}>
+                          <button type="button" className="submit" onClick={confirmLinkAccounts}>Confirmar e unir contas</button>
+                          <button type="button" className="submit" onClick={async () => {
+                            try {
+                              const { auth, authMod } = await getFirebaseAuthHelpers();
+                              if (auth && authMod && typeof authMod.signOut === 'function') {
+                                try { await authMod.signOut(auth); } catch (e) { /* ignore */ }
+                              }
+                            } catch (e) { /* ignore */ }
+                            setShowLinkPrompt(false); setLinkingCredential(null); setLinkPassword('');
+                          }}>Cancelar</button>
+                          <button type="button" className="submit" onClick={() => { navigate('/esqueci-senha'); }}>Recuperar senha</button>
+                        </div>
+                        {/* If link via Firebase is not possible, allow server-side merge directly from this modal */}
+                        {linkError && /autentica[cç][ãa]o por senha|senha/i.test(linkError) && (
+                          <div style={{marginTop:12}}>
+                            <button type="button" className="submit" onClick={async () => {
+                              setLinkError('');
+                              try {
+                                let idToken = pendingMergeIdToken;
+                                if (!idToken) {
+                                  if (!auth || !auth.currentUser) {
+                                    setLinkError('Usuário do provedor não disponível. Tente entrar novamente com Google.');
+                                    return;
+                                  }
+                                  idToken = await auth.currentUser.getIdToken();
+                                }
+                                if (!idToken) { setLinkError('Não foi possível obter token do provedor.'); return; }
+                                // Use pending merge flow: set token and call confirmMerge
+                                setPendingMergeIdToken(idToken);
+                                setPendingMergeEmail(linkEmail || (auth.currentUser && auth.currentUser.email));
+                                // close link modal and show merge confirmation UI while performing merge
+                                setShowLinkPrompt(false);
+                                setShowMergeConfirm(true);
+                                // Auto-run the merge so the POST is sent immediately
+                                try {
+                                  await confirmMerge();
+                                } catch (e) {
+                                  console.error('Auto confirmMerge failed', e);
+                                }
+                              } catch (e) {
+                                console.error('mergeFromLinkModal failed', e);
+                                setLinkError('Erro ao obter token/realizar fusão: ' + (e && e.message ? e.message : String(e)));
+                              }
+                            }}>Unir contas no sistema (merge)</button>
+                          </div>
+                        )}
+                        <div style={{marginTop:8,fontSize:12}}><a href="/#/contato">Precisa de ajuda? Contate o suporte.</a></div>
+                      </div>
+                    </div>
+                  )}
+
+                    {/* Merge confirmation modal (server-side merge) */}
+                    {showMergeConfirm && (
+                      <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:10000}}>
+                        <div className="modal" role="dialog" aria-modal="true" style={{background:'#fff',padding:'20px',maxWidth:'480px',width:'100%',borderRadius:8}}>
+                          <h3>Unir contas (confirmação)</h3>
+                          <p>Detectamos uma conta existente com o mesmo e-mail (<strong>{pendingMergeEmail}</strong>).</p>
+                          <p>Se confirmar, iremos unir sua conta do Google com a conta existente no nosso sistema. Isso pode atualizar ou mesclar seus dados de perfil.</p>
+                          {mergeError && <div className="form-error" style={{marginTop:8}}>{mergeError}</div>}
+                          <div style={{display:'flex',gap:8,marginTop:12}}>
+                            <button type="button" className="submit" onClick={confirmMerge} disabled={mergeLoading}>{mergeLoading ? 'Unindo...' : 'Confirmar e unir contas'}</button>
+                            <button type="button" className="submit" onClick={() => { setShowMergeConfirm(false); setPendingMergeIdToken(null); setPendingMergeEmail(null); setMergeError(''); }}>Cancelar</button>
+                          </div>
+                          <div style={{marginTop:8,fontSize:12}}><a href="/#/contato">Precisa de ajuda? Contate o suporte.</a></div>
+                        </div>
+                      </div>
+                    )}
+
+                  <label className="field">
+                    <span className="label">E-mail</span>
+                    <input className={`input`} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@exemplo.com" autoComplete="username" />
+                  </label>
+
+                  <label className="field">
+                    <span className="label">Senha</span>
+                    <div className="password-field">
+                      <input className={`input password-input`} type={showPasswordLogin ? 'text' : 'password'} value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Senha" autoComplete="current-password" />
+                      <ToggleCar on={showPasswordLogin} onClick={() => setShowPasswordLogin(s => !s)} ariaLabel={showPasswordLogin ? 'Ocultar senha' : 'Mostrar senha'} />
+                    </div>
+                  </label>
+
+                  <div className="cadastro-forgot-row">
+                    <Link to="/esqueci-senha" className="forgot-password-link">Esqueci minha senha</Link>
+                  </div>
+
+                  <button className="submit" type="submit">Entrar</button>
+
+                  {showLoginOverlay && (
+                    <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:10000}}>
+                      <div className="modal" role="status" aria-live="polite" style={{background:'#fff',padding:'20px',maxWidth:'420px',width:'100%',borderRadius:8,display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+                        <div style={{width:44,height:44,borderRadius:22,border:'4px solid #eee',borderTopColor:'#4285F4',animation:'spin 1s linear infinite'}} aria-hidden></div>
+                        <div style={{fontSize:16,fontWeight:600}}>Entrando com Google…</div>
+                        <div style={{fontSize:12,color:'#666'}}>Aguarde enquanto finalizamos sua autenticação.</div>
+                      </div>
+                      <style>{"@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}"}</style>
+                    </div>
+                  )}
+
+                  <div className="social-login-row">
+                    <button 
+                      type="button" 
+                      className="google-btn google-btn-round" 
+                      aria-label="Entrar com Google" 
+                      title="Entrar com Google"
+                      disabled={googleLoading}
+                      onClick={async () => {
+                          if (googleLoading) return; // prevent multiple clicks
+                          setGoogleLoading(true);
+                          setError('');
+                          
+                          // SEMPRE tente popup primeiro (funciona em mobile moderno)
+                          // Só use redirect se popup falhar
+                          // Isso evita problemas com Firebase redirect em GitHub Pages
+                            try {
+                            // Try popup first (better UX on desktop). If popup fails (blocked/error), fall back to redirect.
+                            let user = null;
+                            let res = null;
+                            try {
+                              const authApi = await getFirebaseAuthApi();
+                              res = authApi && typeof authApi.signInWithGooglePopup === 'function' ? await authApi.signInWithGooglePopup() : { error: new Error('Firebase auth api not available') };
+                              if (res && res.user) {
+                                user = res.user;
+                              } else if (res && res.error) {
+                                // Popup returned an error (could be blocked). We'll fallback to redirect below.
+                                console.warn('signInWithGooglePopup returned error, falling back to redirect', res.error);
+                              }
+                            } catch (popupErr) {
+                              // signInWithPopup threw (popup blocked or other). Fallback to redirect.
+                              console.warn('signInWithGooglePopup threw, falling back to redirect', popupErr && popupErr.message ? popupErr.message : popupErr);
+                            }
+
+                            if (!user) {
+                              // Popup failed/blocked - só mostre mensagem pedindo para permitir popup
+                              // Redirect não funciona bem em GitHub Pages com Firebase
+                              setError('Popup do Google foi bloqueado. Por favor, permita popups para este site e tente novamente.');
+                              setGoogleLoading(false);
+                              return;
+                            }
+
+                            // Login instantâneo - sem verificações extras
+                            if (!user) {
+                              setError('Falha ao obter usuário do provedor.');
+                              setGoogleLoading(false);
+                              return;
+                            }
+                            
+                            // Process user immediately without any duplicate checks
+                            await processFirebaseUser(user, res && res.credential ? res.credential : null);
+                            setGoogleLoading(false);
+                            return;
+                          } catch (err) {
+                            console.error('Google popup flow failed', err && err.message ? err.message : err);
+                            setError('Erro inesperado durante login. Tente novamente.');
+                          } finally {
+                            setGoogleLoading(false);
+                          }
+                        }}>
+                      {/* Colored Google G SVG */}
+                      <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                        <path fill="#EA4335" d="M24 9.5c3.9 0 7.1 1.4 9.2 3.2l6.8-6.6C35.6 3 30.1 1 24 1 14.7 1 6.9 6.6 3.1 14.7l7.9 6.1C12.4 15.1 17.7 9.5 24 9.5z"/>
+                        <path fill="#34A853" d="M46.5 24c0-1.6-.1-2.9-.4-4.3H24v8.2h12.9c-.6 3.2-2.9 5.9-6.1 7.4l9.4 7.3C43.9 37.4 46.5 31.1 46.5 24z"/>
+                        <path fill="#4A90E2" d="M10 29.8A14.9 14.9 0 0 1 9.1 24c0-1.2.2-2.3.5-3.4L2 14.5A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.5 10.8l7.5-5z"/>
+                        <path fill="#FBBC05" d="M24 46c6.1 0 11.6-2 15.7-5.4l-9.4-7.3c-2.5 1.7-5.7 2.8-9 2.8-6.3 0-11.6-4.6-13.6-10.8L2.5 34.8C6.9 41.4 14.7 46 24 46z"/>
+                        <path fill="none" d="M0 0h48v48H0z"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="cadastro-signup-row">
+                    <Link to="/cadastro" className="signup-link">Crie sua conta agora!</Link>
+                  </div>
+                </form>
+              </section>
+
+              <div className="cadastro-right" aria-hidden="true">
+                <img className="cadastro-hero" loading="lazy" src="/images/imagem-login.png" alt="Imagem ilustrativa de peças automotivas" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

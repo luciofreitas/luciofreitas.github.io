@@ -1,0 +1,58 @@
+name: pages-build-deployment
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-build-deploy
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Project requires Node >=22 (see package.json engines). Use 22 to match CI and avoid Vite errors.
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Stamp deploy-timestamp into generated index.html (if present)
+        run: |
+          if [ -f ./dist/index.html ]; then
+            node -e "const fs=require('fs'); const p='dist/index.html'; let s=fs.readFileSync(p,'utf8'); const ts=new Date().toISOString(); if(/<meta name=\"deploy-timestamp\"/.test(s)){ s=s.replace(/<meta name=\"deploy-timestamp\" content=\"[^\"]*\">/,'<meta name=\"deploy-timestamp\" content=\"'+ts+'\">'); } else { s=s.replace('</head>','  <meta name=\"deploy-timestamp\" content=\"'+ts+'\">\n</head>'); } fs.writeFileSync(p,s); console.log('Stamped',ts);"
+          else
+            echo 'No dist/index.html found — skipping stamp'
+          fi
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

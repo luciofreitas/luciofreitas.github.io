@@ -1,0 +1,218 @@
+/* Logo.css - Estilos para o componente Logo */
+
+.logo-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: clamp(1rem, 2.5vw, 1.2rem) !important; /* Responsivo: 1rem (mobile/tablet) até 1.2rem (desktop) */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+}
+
+/* Força o gap em todas as variações do logo-container */
+.menu-login-logo .logo-container,
+div.logo-container {
+  gap: clamp(1rem, 2.5vw, 1.2rem) !important;
+}
+
+.logo-container:hover {
+  transform: scale(1.02);
+}
+
+.logo-container .logo-image,
+.menu-login-logo .logo-container .logo-image,
+.menu-login-logo .logo-image {
+  height: 3.5rem !important;
+  width: 3.5rem !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  transition: transform 0.2s ease !important;
+  flex-shrink: 0;
+  display: block !important;
+  filter: none !important;
+  max-height: 3.5rem !important;
+  min-height: 3.5rem !important;
+}
+
+.logo-image:hover {
+  transform: scale(1.05);
+}
+
+.logo-text-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  line-height: 1.2;
+  margin-left: 0; /* espaçamento adequado entre imagem e texto */
+  width: fit-content; /* width acompanha o tamanho máximo do conteúdo */
+  max-width: max-content; /* sem largura desnecessária */
+}
+
+.logo-container .logo-title,
+.menu-login-logo .logo-container .logo-title,
+.logo-title {
+  font-family: 'Segoe UI', Arial, sans-serif !important;
+  font-size: 1.45rem !important; /* Aumentado 20% de 1.21rem */
+  font-weight: 600 !important;
+  color: #000000 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  line-height: 1.15 !important;
+  justify-content: center !important;
+}
+
+.logo-title-line {
+  display: block !important;
+  white-space: nowrap !important;
+  font-size: inherit !important;
+}
+
+.logo-subtitle {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #666666;
+  margin: 0;
+  margin-top: 0.062rem;
+  white-space: nowrap;
+}
+
+/* Responsividade */
+@media screen and (max-width: 85.375rem) {
+  .logo-image {
+    height: 3.5rem !important;
+    width: 3.5rem !important;
+  }
+  
+  .logo-title {
+    font-size: 1.5rem;
+  }
+  
+  .logo-subtitle {
+    font-size: 0.75rem;
+  }
+  
+  .logo-container {
+    gap: 0.75rem;
+  }
+
+  .logo-text-container {
+    margin-left: 0; /* espaçamento adequado para telas médias */
+  }
+}
+
+@media screen and (min-width: 30.01rem) and (max-width: 48rem) {
+  .logo-image {
+    height: 3.5rem !important;
+    width: 3.5rem !important;
+  }
+  
+  .logo-title {
+    font-size: 1.25rem;
+  }
+  
+  .logo-subtitle {
+    display: block !important; /* Mostrar "Compatibilidade e Economia" em telas médias */
+    font-size: 0.75rem; /* Reduzir tamanho em telas médias */
+    visibility: visible !important; /* Força visibilidade */
+    opacity: 1 !important; /* Força opacidade */
+  }
+  
+  .logo-container {
+    gap: 0rem;
+    /* Keep logo vertically centered inside header rather than absolute centering
+       This aligns logo with hamburger and right controls */
+    justify-content: flex-start; /* let MenuLogin control horizontal placement */
+    position: relative !important;
+    left: auto !important;
+    top: 0 !important;
+    transform: none !important;
+    width: auto !important;
+    height: 4.5rem !important; /* match header height */
+    margin: 0 !important;
+    z-index: 15 !important;
+    align-items: center !important;
+  }
+
+  .logo-text-container {
+    margin-left: -15px; /* aproximar ainda mais para telas pequenas */
+    justify-content: center; /* Centralizar o texto verticalmente */
+    height: 100% !important; /* fill header height so text centers vertically */
+  }
+}
+
+/* Para telas muito pequenas - esconder texto se necessário */
+@media screen and (max-width: 30rem) {
+  .logo-text-container {
+    display: none;
+  }
+  
+  .logo-image {
+    height: 3.75rem !important;
+    width: 3.75rem !important;
+  }
+}
+
+/* Mobile: esconder subtítulo em telas pequenas (ex.: smartphones) */
+@media screen and (max-width: 25rem) { /* 25rem = 400px */
+  .logo-subtitle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+  .logo-text-container {
+    margin-left: 0 !important;
+  }
+}
+
+/* Para telas muito grandes */
+@media (min-width: 100rem) {
+  .logo-image {
+    height: 7rem !important;
+    width: 7rem !important;
+  }
+  
+  .logo-title {
+    font-size: 2rem;
+  }
+  
+  .logo-subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* Ajustes para header com fundo azul - texto branco */
+.site-header .logo-title {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-text-stroke: none !important;
+  text-rendering: optimizeLegibility;
+}
+
+.site-header .logo-subtitle {
+  color: #e5e7eb !important;
+  -webkit-text-fill-color: #e5e7eb !important;
+}
+
+/* Debug removido - estilos limpos */
+.menu-login-logo {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+}
+
+.menu-login-logo .logo-container {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+}
+
+.menu-login-logo .logo-image {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}

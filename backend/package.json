@@ -1,0 +1,22 @@
+{
+  "name": "parts-api",
+  "version": "0.1.0",
+  "description": "Simple API that serves seed CSV data for parts/compatibility MVP",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "migrate": "node migrate.js",
+    "test:webhook": "node -r dotenv/config tests/webhook-harness.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.31.0",
+    "cors": "^2.8.5",
+    "csv-parse": "^5.3.4",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase-admin": "^13.5.0",
+    "node-fetch": "^2.6.7",
+    "pg": "^8.11.0",
+    "ws": "^8.13.0"
+  }
+}

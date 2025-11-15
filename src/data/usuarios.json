@@ -1,0 +1,17 @@
+
+[
+  {
+    "id": 1,
+    "nome": "João Silva",
+    "celular": "11999999999",
+    "email": "joao@email.com",
+    "senha": "123456"
+  },
+  {
+    "id": 2,
+    "nome": "Maria Souza",
+    "celular": "11988888888",
+    "email": "maria@email.com",
+    "senha": "abcdef"
+  }
+]

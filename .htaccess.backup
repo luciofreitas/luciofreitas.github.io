@@ -1,0 +1,36 @@
+AddType application/javascript .js
+AddType text/javascript .js
+AddType application/javascript .mjs
+AddType module .js
+AddType application/json .json
+AddType text/css .css
+
+# Specific configuration for ES6 modules
+<Files "*.js">
+    Header set Content-Type "text/javascript"
+</Files>
+
+# Enable CORS for assets
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+Header set Access-Control-Allow-Headers "Content-Type"
+
+# Force UTF-8 encoding
+AddDefaultCharset UTF-8
+
+# Enable compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# Cache control
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+</IfModule>

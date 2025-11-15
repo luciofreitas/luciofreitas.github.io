@@ -1,0 +1,692 @@
+/* ===== MENU DO USUÁRIO ===== */
+
+/* Container raiz do menu do usuário */
+.user-menu-root {
+  position: relative !important;
+  display: inline-block !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Use Montserrat for user menu items */
+.user-menu-root,
+.user-menu-root .user-button,
+.user-menu-root .dropdown-user-name,
+.user-dropdown,
+.user-menu-root .dropdown-item {
+  font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Botão principal com o nome do usuário */
+.user-menu-root .user-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  background-color: transparent !important;
+  border: none;
+  color: #172B4D !important;
+  font-weight: 600 !important;
+  font-size: 1rem;
+  padding: 0.35em 0.9em;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  text-decoration: none;
+  position: relative;
+}
+
+/* Desktop initials/avatar size */
+.user-initials-desktop, .user-avatar {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+/* Mobile initials/avatar size */
+.user-initials-mobile { width: 36px !important; height: 36px !important; font-size: 0.85rem !important; }
+
+/* Avatar image styling - match initials badge size and make circular */
+.user-avatar {
+  border-radius: 999px !important;
+  object-fit: cover !important;
+  display: inline-block !important;
+}
+
+
+
+/* Styling for initials fallback to ensure centered, visible badge */
+.user-initials-desktop,
+.user-initials-mobile {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  /* Background color is applied inline for deterministic per-user color */
+  color: #ffffff !important; /* white text like Gmail */
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  text-transform: uppercase !important;
+}
+
+/* Apply CSS variable as background with highest specificity; this prevents other
+   broad rules from overriding the per-user color even if they use !important. */
+.user-menu-root .user-button.icon-only .user-initials-desktop,
+.user-menu-root .user-button.icon-only .user-initials-mobile,
+.menu-login-root .user-menu-root .user-button.icon-only .user-initials-desktop,
+.menu-login-root .user-menu-root .user-button.icon-only .user-initials-mobile {
+  background-color: var(--avatar-bg) !important;
+}
+
+/* Palette classes (high specificity) */
+.user-menu-root .user-button.icon-only.avatar-color-0 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-0 .user-initials-mobile { background-color: #F44336 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-1 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-1 .user-initials-mobile { background-color: #E91E63 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-2 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-2 .user-initials-mobile { background-color: #9C27B0 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-3 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-3 .user-initials-mobile { background-color: #673AB7 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-4 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-4 .user-initials-mobile { background-color: #3F51B5 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-5 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-5 .user-initials-mobile { background-color: #2196F3 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-6 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-6 .user-initials-mobile { background-color: #03A9F4 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-7 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-7 .user-initials-mobile { background-color: #00BCD4 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-8 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-8 .user-initials-mobile { background-color: #009688 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-9 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-9 .user-initials-mobile { background-color: #4CAF50 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-10 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-10 .user-initials-mobile { background-color: #8BC34A !important; }
+.user-menu-root .user-button.icon-only.avatar-color-11 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-11 .user-initials-mobile { background-color: #CDDC39 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-12 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-12 .user-initials-mobile { background-color: #FFEB3B !important; }
+.user-menu-root .user-button.icon-only.avatar-color-13 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-13 .user-initials-mobile { background-color: #FFC107 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-14 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-14 .user-initials-mobile { background-color: #FF9800 !important; }
+.user-menu-root .user-button.icon-only.avatar-color-15 .user-initials-desktop,
+.user-menu-root .user-button.icon-only.avatar-color-15 .user-initials-mobile { background-color: #FF5722 !important; }
+
+.user-initials-desktop { font-size: 0.95rem !important; }
+.user-initials-mobile { font-size: 0.92rem !important; }
+
+@media (max-width: 48rem) {
+  .user-avatar { width: 36px !important; height: 36px !important; }
+}
+
+/* Make the icon-only user button a circular container that clips the image */
+.user-menu-root .user-button.icon-only {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  padding: 2px !important; /* space for white border ring */
+  border-radius: 999px !important;
+  overflow: hidden !important; /* clip the image to the circle */
+}
+
+/* White ring around avatar; when Pro, the ring becomes orange */
+.user-menu-root .user-button.icon-only {
+  background-color: transparent !important;
+  box-sizing: content-box !important;
+  border: 2px solid rgba(255,255,255,0.95) !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease !important;
+}
+.user-menu-root .user-button.user-pro.icon-only {
+  border-color: #f59e0b !important; /* orange for Pro */
+  box-shadow: 0 0 0 2px rgba(245,158,11,0.06) !important;
+}
+
+.user-menu-root .user-button.icon-only .user-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important; /* parent already rounds and clips */
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* When using initials inside an icon-only button, make the initials fill the inner area
+   so the outer button border becomes a visible ring (Gmail-like) */
+.user-menu-root .user-button.icon-only .user-initials-desktop,
+.user-menu-root .user-button.icon-only .user-initials-mobile {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important; /* parent handles final rounding */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+@media (max-width: 48rem) {
+  .user-menu-root .user-button.icon-only { width: 36px !important; height: 36px !important; }
+  .user-menu-root .user-button.icon-only { padding: 1px !important; border-width: 2px !important; }
+}
+
+/* Highest-specificity override for header context to counteract global header rules */
+.site-header .user-menu-root .user-button.icon-only,
+.menu-login-root .user-menu-root .user-button.icon-only {
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+}
+
+.site-header .user-menu-root .user-button.icon-only img.user-avatar,
+.menu-login-root .user-menu-root .user-button.icon-only img.user-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0 !important; /* parent handles rounding/clipping */
+  display: block !important;
+}
+
+/* Final safeguard: if any rule still forces a larger natural size, explicitly cap and round the image
+   using the most specific selector and ensure it cannot overflow. This also covers inline styles. */
+.site-header button.user-button.icon-only > img.user-avatar,
+.menu-login-root button.user-button.icon-only > img.user-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 999px !important; /* make the image itself circular as a fallback */
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+}
+
+@media (max-width: 48rem) {
+  .site-header button.user-button.icon-only > img.user-avatar,
+  .menu-login-root button.user-button.icon-only > img.user-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+
+  /* NEW: Vertical centering tweaks to ensure avatar is visually centered in the header */
+  /* Use header container and button centering with flex and align-items and adjust line-height fallback */
+  .site-header, .menu-login-root {
+    display: flex !important; /* ensure we can center children reliably */
+    align-items: center !important; /* center children vertically */
+  }
+
+  .site-header .menu-login-root, .menu-login-root .user-menu-root {
+    display: flex !important;
+    align-items: center !important; /* center the user button inside its container */
+  }
+
+  /* Make the user-button a flex container and center its content vertically */
+  .site-header button.user-button, .menu-login-root button.user-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important; /* avoid text baseline shifting the icon */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* For the icon-only button, ensure vertical centering within header height */
+  .site-header button.user-button.icon-only, .menu-login-root button.user-button.icon-only {
+    align-items: center !important;
+    justify-content: center !important;
+    display: inline-flex !important;
+  }
+
+  /* Fallback: if an ancestor sets strange line-height/vertical-align, force the image to be vertically centered */
+  .site-header button.user-button.icon-only > img.user-avatar,
+  .menu-login-root button.user-button.icon-only > img.user-avatar {
+    vertical-align: middle !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Mobile: esconder ícone grande, mostrar ícone pequeno */
+@media (max-width: 48rem) {
+  .user-icon-desktop {
+    display: none !important;
+  }
+  
+  .user-icon-mobile {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Ajustar padding do botão no mobile para acomodar apenas o ícone */
+  .user-menu-root .user-button {
+    padding: 0.5em !important;
+    min-width: 44px !important; /* Touch target mínimo */
+    min-height: 44px !important;
+  }
+  
+  /* Remover linha amarela (seletor) no mobile quando mostrar apenas ícone */
+  .user-menu-root .user-button::after {
+    display: none !important;
+  }
+  
+  .user-menu-root .user-button:hover::after {
+    display: none !important;
+    width: 0 !important;
+  }
+}
+
+/* Nome do usuário no dropdown (apenas visível no mobile) */
+.dropdown-user-name {
+  background-color: transparent !important; /* Sem background */
+  font-weight: 600 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  cursor: default !important;
+  padding: 0.75rem 1rem !important;
+  color: #1f2937 !important; /* Cor do texto visível */
+}
+
+/* Row interna com o texto "Olá, Nome" */
+.dropdown-user-name-row {
+  color: #1f2937 !important; /* Garantir que o texto seja visível */
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+}
+
+/* Header específico - não interativo - SIMPLES */
+.dropdown-user-name-header {
+  pointer-events: none !important; /* Não clicável */
+  cursor: default !important;
+  transition: none !important; /* Remove todas as transições */
+  background-color: transparent !important; /* Sem background */
+  position: static !important; /* Remove positioning que pode interferir com ::after */
+}
+
+/* Forçar que o header não tenha NENHUM hover effect */
+.dropdown-user-name-header:hover,
+.dropdown-user-name-header:focus,
+.dropdown-user-name-header:active {
+  background-color: transparent !important; /* Sem background mesmo no hover */
+  transform: none !important; /* Remove qualquer transformação */
+  box-shadow: none !important; /* Remove qualquer sombra */
+  color: inherit !important; /* Mantém cor original */
+  cursor: default !important; /* Cursor nunca muda */
+  border-radius: 0 !important; /* Remove qualquer border-radius de hover */
+}
+
+/* Remover COMPLETAMENTE qualquer seletor (linha amarela) do primeiro item */
+.dropdown-user-name-header::after,
+.dropdown-user-name-header::before {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+.dropdown-user-name:hover {
+  background-color: transparent !important; /* Sem background mesmo no hover */
+  transform: none !important; /* Remove qualquer transformação no hover */
+  box-shadow: none !important; /* Remove qualquer sombra */
+}
+
+/* Regra separada mais específica para o header - sobrescreve qualquer hover global */
+.dropdown-user-name-header:hover {
+  background-color: transparent !important; /* NUNCA muda background */
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Garantir que não haja NENHUM seletor em qualquer estado para o header */
+.dropdown-user-name-header:hover::after,
+.dropdown-user-name-header:focus::after,
+.dropdown-user-name-header:active::after,
+.dropdown-user-name-header:hover::before,
+.dropdown-user-name-header:focus::before,
+.dropdown-user-name-header:active::before {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  opacity: 0 !important;
+}
+
+/* Desktop: esconder nome do usuário no dropdown */
+@media (min-width: 48.1rem) {
+  .dropdown-user-name,
+  .dropdown-user-name-header {
+    display: none !important;
+  }
+}
+
+/* Linha amarela no hover do nome do usuário - stronger specificity */
+.user-menu-root .user-button::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 0.188rem;
+  background: #fbbf24 !important;
+  border-radius: 0.125rem;
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+  display: block !important; /* Force display */
+}
+
+.user-menu-root .user-button:hover {
+  background-color: transparent !important;
+  color: #172B4D !important; /* Force correct hover color */
+}
+
+.user-menu-root .user-button:hover::after {
+  width: 80% !important;
+}
+
+/* Hide the underline (traço) when the button is icon-only (user icon) */
+.user-menu-root .user-button.icon-only::after,
+.user-menu-root .user-button.icon-only:hover::after {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  content: none !important;
+}
+
+/* When the button is explicitly marked as no-overlay, ensure no pseudo elements
+   or background overlays are applied so the avatar SVG/fill is the only visible color. */
+.user-menu-root .user-button.no-overlay::before,
+.user-menu-root .user-button.no-overlay::after,
+.menu-login-root .user-menu-root .user-button.no-overlay::before,
+.menu-login-root .user-menu-root .user-button.no-overlay::after {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* High-specificity safeguard: ensure avatar image is visible, not transformed, and fills the circular button. */
+html body .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+.menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+.user-menu-root button.user-button.icon-only > img.user-avatar {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  transform: none !important;
+  filter: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+}
+
+/* Accessibility: keep a visible focus ring for keyboard users when the underline is removed */
+.user-menu-root .user-button.icon-only:focus-visible {
+  outline: 2px solid rgba(59,130,246,0.55) !important; /* blue focus ring */
+  outline-offset: 2px !important;
+  border-radius: 0.375rem !important;
+}
+
+/* Indicador de versão Pro */
+.pro-badge {
+  background-color: #fbbf24; /* amarelo */
+  color: #ffffff; /* texto escuro para contraste */
+  font-size: 0.7em;
+  padding: 0.15em 0.5em;
+  border-radius: 0.25rem;
+  font-weight: bold;
+  margin-left: 0.25rem;
+}
+
+/* Subtitle shown below the user name in the dropdown when the user is Pro */
+.dropdown-user-subtitle {
+  font-size: 0.85rem;
+  color: #f59e0b !important; /* orange for Pro */
+  margin-top: 0.18rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Dropdown do menu do usuário (visual mais leve) - stronger specificity */
+.user-menu-root .user-dropdown {
+  position: fixed; /* Alterado de absolute para fixed para escapar de qualquer container limitante */
+  top: auto; /* Removido o cálculo para usar posição fixa */
+  right: auto; /* Será posicionado com JS */
+  /* Ensure any left values set by other styles do not interfere with the
+     inline `right` value set by the component. This prevents the dropdown
+     from snapping to the left of the viewport when other CSS sets `left`. */
+  left: auto !important;
+  margin-top: 0.25rem; /* Espaçamento do botão */
+  background-color: #ffffff !important;
+  border-radius: 0.5rem;
+  border: 0.062rem solid rgba(16,24,40,0.06); /* borda sutil */
+  box-shadow: 0 0.375rem 1.125rem rgba(16,24,40,0.15) !important; /* Sombra mais visível */
+  padding: 0.5rem;
+  min-width: 11.25rem;
+  z-index: 99999 !important; /* Z-index muito alto para garantir que fique acima de tudo, incluindo modais */
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  pointer-events: auto !important; /* Garante que seja clicável */
+}
+
+/* Transition / animation helpers for dropdown open/close */
+.user-menu-root .user-dropdown {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 160ms cubic-bezier(.2,.8,.2,1), transform 160ms cubic-bezier(.2,.8,.2,1);
+}
+
+/* When dropdown is initially rendered but closed we keep it visually hidden but present to measure */
+.user-menu-root .user-dropdown.closed {
+  opacity: 0;
+  transform: scale(0.96);
+  pointer-events: none !important; /* avoid intercepting clicks when closed */
+  /* Also hide from cursor and assistive pointer hit-testing in all browsers */
+  visibility: hidden !important;
+}
+
+/* Robust selector: if the dropdown is marked aria-hidden="true" (set by JS),
+   ensure it is not interactive even if class/context differs. */
+.user-dropdown[aria-hidden="true"] {
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* EXTRA: disable pointer events for child items when the dropdown is hidden
+   to prevent invisible elements from receiving clicks in some stacking contexts. */
+.user-menu-root .user-dropdown.closed .dropdown-item,
+.user-dropdown[aria-hidden="true"] .dropdown-item {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Open state explicitly set via class or rendering state */
+.user-menu-root .user-dropdown.open {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto !important;
+}
+
+/* Force dropdown above any menu pseudo-elements that might overlap */
+.user-menu-root .user-dropdown {
+  z-index: 99999 !important;
+}
+
+/* Hide any decorative pseudo-elements that may bleed into the dropdown area */
+.user-dropdown::before,
+.user-dropdown::after,
+.user-dropdown *::before,
+.user-dropdown *::after {
+  /* hide generic decorative pseudo-elements by default */
+  display: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Exception: allow dropdown items to show their own underline pseudo-element - strongest specificity */
+.user-menu-root .user-dropdown .dropdown-item {
+  position: relative !important; /* required so ::after positions relative to the item */
+  overflow: visible !important; /* ensure the underline isn't clipped */
+  text-align: left !important;
+  padding: 0.5rem 0.75rem !important;
+  border: none !important;
+  background-color: transparent !important;
+  color: #172B4D !important; /* Force correct text color */
+  font-size: 0.875rem !important;
+  border-radius: 0.375rem !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+  width: 100% !important;
+  display: block !important;
+  text-decoration: none !important;
+  z-index: 1; /* acima do pseudo-underline */
+  pointer-events: auto !important; /* garante clique */
+}
+
+/* EXCEÇÃO: O header não deve ter hover - mais específico que a regra geral */
+.user-menu-root .user-dropdown .dropdown-user-name-header {
+  cursor: default !important;
+  pointer-events: none !important;
+  transition: none !important;
+}
+
+.user-menu-root .user-dropdown .dropdown-item::after {
+  /* re-enable the yellow underline specifically for dropdown items */
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  bottom: 0.375rem !important;
+  left: 50% !important;
+  width: 0 !important;
+  height: 0.188rem !important;
+  background: #fbbf24 !important;
+  border-radius: 0.125rem !important;
+  transform: translateX(-50%) !important;
+  transition: width 0.28s ease !important;
+  pointer-events: none !important; /* underline não intercepta clique */
+  z-index: 0;
+}
+
+.user-menu-root .user-dropdown .dropdown-item:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  color: #172B4D !important; /* Force correct hover color */
+}
+
+/* EXCEÇÃO ESPECÍFICA: O header NUNCA tem hover effect */
+.user-menu-root .user-dropdown .dropdown-user-name-header:hover,
+.user-menu-root .user-dropdown .dropdown-user-name-header:focus,
+.user-menu-root .user-dropdown .dropdown-user-name-header:active {
+  background-color: transparent !important; /* NUNCA muda */
+  color: inherit !important;
+  cursor: default !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.user-menu-root .user-dropdown .dropdown-item:hover::after,
+.user-menu-root .user-dropdown .dropdown-item:focus::after {
+  width: 80% !important;
+}
+
+/* Remove the top indicator on the user button specifically to avoid overlap - stronger specificity */
+.user-menu-root .user-button::before { 
+  display: none !important; 
+}
+
+/* Active / selected style: very subtle light background to indicate selection on keyboard nav */
+.dropdown-item[aria-pressed="true"],
+.dropdown-item.active {
+  background-color: rgba(16,24,40,0.02);
+}
+
+.user-menu-root .user-dropdown .dropdown-item-logout {
+  /* Make logout visually identical to other dropdown items */
+  border-top: none !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  color: #172B4D !important; /* same as other items */
+}
+
+/* Linha amarela também para o item de logout */
+.user-menu-root .user-dropdown .dropdown-item-logout::after {
+  background: #fbbf24 !important;
+}
+
+/* Ensure the logout item does not show the top blue indicator or focus outline */
+.user-menu-root .user-dropdown .dropdown-item-logout::before { 
+  display: none !important; 
+}
+
+.user-menu-root .user-dropdown .dropdown-item-logout:focus:not(:focus-visible), 
+.user-menu-root .user-dropdown .dropdown-item-logout:active { 
+  /* keep mouse/active appearance unchanged but preserve keyboard focus indicator */
+  outline: none !important; 
+  box-shadow: none !important; 
+}
+
+/* visible focus for keyboard users on logout item */
+.user-menu-root .user-dropdown .dropdown-item-logout:focus-visible {
+  outline: 2px solid rgba(251,191,36,0.6) !important; /* yellow-ish ring consistent with dropdown */
+  outline-offset: 2px !important;
+  border-radius: 0.375rem !important;
+}
+
+/* Force dropdown background white (override other themes) */
+.user-menu-root .user-dropdown { 
+  background-color: #ffffff !important; 
+}
+
+
+/* Versão responsiva para resolução 1366x768 e similares */
+@media screen and (max-width: 85.375rem) {
+  .menu-responsive .user-button {
+    font-size: 0.812rem;
+    padding: 0.25em 0.5em;
+  }
+}
+
+/* Fix: ensure the avatar image is always visible and fills the circular button.
+   This highly-specific override counters any conflicting rules that may hide
+   or shrink the image (padding, opacity, transforms, filters, etc.).
+   Keep this block at the end of the file so it takes precedence. */
+html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only,
+html body .menu-login-root .user-menu-root button.user-button.icon-only {
+  padding: 0 !important; /* ensure no inner gap that can reveal background */
+  box-sizing: border-box !important; /* make width/height include border */
+}
+
+html body .site-header .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+html body .menu-login-root .user-menu-root button.user-button.icon-only > img.user-avatar,
+.site-header button.user-button.icon-only > img.user-avatar,
+.menu-login-root button.user-button.icon-only > img.user-avatar {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  border-radius: 999px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+

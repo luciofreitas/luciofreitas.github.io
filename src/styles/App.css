@@ -1,0 +1,1579 @@
+/* ===== DESIGN TOKENS ===== */
+:root {
+  /* Layout & Spacing */
+  --header-height: 4.5rem;
+  --header-gap: 5rem;
+  --page-top-offset: calc(var(--header-height) + var(--header-gap));
+  
+  /* Spacing Scale */
+  --space-xs: 0.25rem;   /* 4px */
+  --space-sm: 0.5rem;    /* 8px */
+  --space-md: 1rem;      /* 16px */
+  --space-lg: 1.5rem;    /* 24px */
+  --space-xl: 2rem;      /* 32px */
+  --space-2xl: 3rem;     /* 48px */
+  --space-3xl: 4rem;     /* 64px */
+  
+  /* Colors */
+  --color-primary: #0052CC;
+  --color-primary-dark: #003A99;
+  --color-primary-light: #1A66FF;
+  --color-secondary: #64748b;
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+  --color-warning: #d97706;
+  
+  /* Seja Pro Colors */
+  --color-highlight: #FFAB00;
+  --color-success-icon: #36B37E;
+  --color-error-icon: #DE350B;
+  
+  /* Form Colors */
+  --form-background: #FFFFFF;
+  --form-border: #DFE1E6;
+  --form-border-focus: #0052CC;
+  --form-label-color: #172B4D;
+  
+  /* Text Colors */
+  --text-primary: #172B4D;
+  --text-secondary: #172B4D;
+  --text-muted: #6b7280;
+  --text-inverse: #FFFFFF;
+  
+  /* Section Titles */
+  --color-section-title: #0052CC;
+  
+  /* Background Colors */
+  --bg-white: #FFFFFF;
+  --bg-gray-neutral: #F4F5F7;
+  --bg-gray-50: #f9fafb;
+  --bg-gray-100: #f3f4f6;
+  --bg-gray-200: #e5e7eb;
+  --bg-primary-50: #eff6ff;
+  --bg-success-50: #f0fdf4;
+  --bg-error-50: #fef2f2;
+  
+  /* Border Colors */
+  --border-gray: #d1d5db;
+  --border-primary: #0052CC;
+  --border-success: #bbf7d0;
+  --border-error: #fecaca;
+  
+  /* Typography - Roboto como fonte principal */
+  --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-base: 0.5rem;  /* 8px */
+  --radius-md: 0.75rem;   /* 12px */
+  --radius-lg: 1rem;      /* 16px */
+  --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+  
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+}
+
+/* ===== DARK MODE THEME ===== */
+.theme-dark {
+  /* Colors - Dark Mode */
+  --color-primary: #3b82f6;              /* Blue-500 mais brilhante para contraste */
+  --color-primary-dark: #2563eb;         /* Blue-600 */
+  --color-primary-light: #60a5fa;        /* Blue-400 */
+  --color-secondary: #94a3b8;            /* Slate-400 */
+  --color-success: #22c55e;              /* Green-500 */
+  --color-error: #ef4444;                /* Red-500 */
+  --color-warning: #f59e0b;              /* Amber-500 */
+  
+  /* Seja Pro Colors - Dark Mode */
+  --color-highlight: #fbbf24;            /* Amber-400 mais visível */
+  --color-success-icon: #4ade80;         /* Green-400 */
+  --color-error-icon: #f87171;           /* Red-400 */
+  
+  /* Form Colors - Dark Mode */
+  --form-background: #1e293b;            /* Slate-800 */
+  --form-border: #475569;                /* Slate-600 */
+  --form-border-focus: #3b82f6;          /* Blue-500 */
+  --form-label-color: #f1f5f9;           /* Slate-100 */
+  
+  /* Text Colors - Dark Mode com contraste otimizado */
+  --text-primary: #f8fafc;               /* Slate-50 - texto principal branco */
+  --text-secondary: #e2e8f0;             /* Slate-200 - texto secundário claro */
+  --text-muted: #94a3b8;                 /* Slate-400 - texto menos importante */
+  --text-inverse: #0f172a;               /* Slate-900 - texto em fundos claros */
+  
+  /* Section Titles - Dark Mode */
+  --color-section-title: #60a5fa;        /* Blue-400 */
+  
+  /* Background Colors - Dark Mode */
+  --bg-white: #0f172a;                   /* Slate-900 - fundo principal */
+  --bg-gray-neutral: #1e293b;            /* Slate-800 - fundo neutro */
+  --bg-gray-50: #1e293b;                 /* Slate-800 */
+  --bg-gray-100: #334155;                /* Slate-700 */
+  --bg-gray-200: #475569;                /* Slate-600 */
+  --bg-primary-50: #1e3a8a;              /* Blue-900 com opacidade */
+  --bg-success-50: #14532d;              /* Green-900 com opacidade */
+  --bg-error-50: #7f1d1d;                /* Red-900 com opacidade */
+  
+  /* Border Colors - Dark Mode */
+  --border-gray: #475569;                /* Slate-600 */
+  --border-primary: #3b82f6;             /* Blue-500 */
+  --border-success: #22c55e;             /* Green-500 */
+  --border-error: #ef4444;               /* Red-500 */
+  
+  /* Shadows - Dark Mode com sombras mais sutis */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== RESET & BASE STYLES ===== */
+:root,
+.theme-light {
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+/* ===== REGRA GLOBAL PARA MENUS FIXOS NO TOPO ===== */
+/* Garantir que todos os menus (Menu.jsx e MenuLogin.jsx) fiquem fixos no topo sem espaço acima */
+.site-header,
+.main-menu,
+header[class*="menu"],
+nav[class*="menu"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: 0 !important;
+  /* margin-bottom doesn't work with position:fixed - removed */
+  z-index: var(--z-fixed) !important;
+}
+
+/* Garantir que todos os elementos DENTRO do header fixo mantenham posicionamento correto */
+.site-header .menu-login-root,
+.site-header .menu-login-logo,
+.site-header .menu-login-right,
+.site-header .logo-container,
+.site-header .user-menu-root,
+.site-header .user-button {
+  position: relative !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* O menu-login-center pode ser absolute apenas em telas grandes, mas deve estar dentro do header */
+@media (max-width: 48rem) {
+  .site-header .menu-login-center {
+    position: relative !important;
+    top: 0 !important;
+    margin-top: 0 !important;
+  }
+}
+
+/* Garantir que não haja espaçamento no topo da página */
+html, body {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+}
+
+#root, .app {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* NOTE: the project previously exposed CSS variables for header spacing.
+  Those variables were removed; layout now uses explicit rules.
+  If you need a variable-based approach again, we can reintroduce a
+  compact :root block. */
+
+/* Site header spacer - better alternative to padding-top on .page-wrapper */
+.site-header-spacer {
+  display: block; /* Ensure block-level behavior */
+  width: 100%; /* Full width */
+  height: 4.5rem; /* Match header height */
+  margin-bottom: 5rem; /* Add the visual gap we want below header */
+  flex-shrink: 0; /* Prevent shrinking in flexbox layouts */
+  background: transparent; /* Invisible spacer element */
+}
+
+/* Garantir espaçamento adequado para conteúdo abaixo do menu fixo */
+
+
+/* Responsive adjustments to the header spacing were removed with CSS variables.
+  If you want responsive header gaps, reintroduce small media-rule overrides here. */
+
+/* ==========================
+   Enhanced compatibility modal presentation - appended at end to ensure overrides
+   ========================== */
+
+/* Make sure modal content appears as a centered card with a header and scrollable body */
+.modal-overlay {
+  position: fixed;
+  top: 4.5rem !important; /* Start below fixed header (header height is 4.5rem) */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Fundo cinza semi-transparente */
+  display: flex;
+  align-items: flex-start; /* Align to top instead of center */
+  justify-content: center;
+  z-index: var(--z-modal-backdrop); /* Using design token - 1040, below menu 1050 */
+  padding: 0.5rem 1rem 3rem; /* Pouco padding em cima, muito embaixo para dar folga */
+}
+
+.modal-content {
+  background: transparent;
+  width: 100%;
+  max-width: 32.5rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Remover essa regra que não é mais necessária */
+
+.compat-modal {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-white);
+  border-radius: 0.75rem;
+  overflow: visible;
+  box-shadow: none;
+  max-height: calc(100vh - 8rem); /* Reduzindo altura para dar mais espaço */
+  max-width: 57.5rem;
+  width: calc(100% - 2rem);
+  margin: 0.5rem auto 2rem; /* Reduzindo margin-top para subir o modal */
+  box-sizing: border-box;
+}
+
+/* Essa div foi removida da estrutura do modal */
+
+.app-compat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.125rem;
+  border-bottom: 0.062rem solid #eef2f6;
+  background: linear-gradient(90deg, #FFFFFF, #fbfdff);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-compat-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #133d7a;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 0.75rem;
+}
+
+.app-compat-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.app-compat-title-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+}
+
+.app-compat-close {
+  background: transparent;
+  border: none;
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #556b86;
+  padding: 0.375rem;
+  border-radius: 0.375rem;
+  outline: none;
+}
+.app-compat-close:hover { background: rgba(0,0,0,0.04); }
+.app-compat-close:focus { outline: none; box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2); }
+.app-compat-close:focus:not(:focus-visible) { box-shadow: none; }
+
+.app-compat-body {
+  padding: 1rem;
+  padding-bottom: 1rem; /* Igual ao padding-top para simetria */
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 8rem); /* Reduzir altura para dar mais folga embaixo */
+  position: relative;
+  z-index: 1;
+}
+
+/* Footer and save button placement: keep the "Salvar pesquisa" button inside
+   the compatibility card (bottom-left internal footer). This makes the button
+   part of the modal content instead of floating behind it. */
+.app-compat-footer {
+  position: relative;
+  left: 0;
+  bottom: 0;
+  margin-top: 0.28rem;
+  padding: 0.75rem 1rem 1rem 1rem;
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  z-index: 6;
+}
+
+.compat-modal {
+  position: relative; /* anchor for the footer */
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+}
+
+.compat-save-btn {
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.6rem;
+  box-shadow: var(--shadow-md);
+  background: var(--color-primary) !important;
+  color: var(--text-inverse) !important;
+  border: none !important;
+  font-weight: 700 !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Responsive tweaks so the footer content fits on small screens */
+@media (max-width: 40rem) {
+  .app-compat-footer { padding-left: 0.6rem; padding-right: 0.6rem; margin-top: 0.28rem; }
+  .compat-save-btn { padding: 0.5rem 0.75rem; font-size: 0.95rem; }
+}
+
+/* Subtle scroll indicator shadow at the bottom when content overflows */
+.app-compat-body::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  display: block;
+  height: 0.5rem;
+  margin: 0 -16px -16px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.03));
+  pointer-events: none;
+}
+
+.compat-results-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+/* Make sure internal cards span full width in the vertical stack */
+.compat-results-grid .peca-card { 
+  width: 100%; 
+  box-sizing: border-box;
+  padding: 1rem;
+}
+
+/* When PecasGrid (which renders .pecas-grid) is wrapped by .compat-results-grid,
+   make sure the inner .pecas-grid also lays out as a vertical stack. */
+.compat-results-grid .pecas-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Global logo styling - ensures /images/logo.png is always circular */
+.menu-login-logo img, .menu-logo-image {
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  aspect-ratio: 1/1 !important;
+}
+
+
+body {
+  background-color: var(--bg-white) !important;
+  color: var(--text-primary) !important;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Use auto vertical overflow so scrollbar only appears when needed */
+/* Keep scrollbar gutter stable where supported to prevent content/header shifting */
+html { 
+  overflow-y: auto; 
+  scrollbar-gutter: stable; 
+}
+
+#root {
+  min-height: 100vh;
+  width: 100vw;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: var(--bg-white);
+}
+
+/* Global page offset: always push page content below the fixed header.
+   Uses rem so developers can tune spacing with em/rem units. */
+.page-offset {
+  /* `site-header-spacer` reserves header height; page-offset provides an
+     additional tuned gap. Spacing was converted from variable-based rules
+     to explicit values (header: 4.5rem, extra gap: 1rem). */
+  padding-top: 0 !important;
+  box-sizing: border-box;
+}
+
+/* spacer removed: site-header-spacer element was removed from markup - spacing is handled
+  with the CSS variables and `.page-offset` class so this rule is no longer required */
+
+/* Normalize only .page-heading distance from the fixed header. Do not affect
+  inner h2 titles inside cards/sections. */
+/* Ensure any legacy .page-heading inside a .page-offset does not add extra margin
+   - spacing is controlled by the container `.page-offset` (padding-top)
+   - visual appearance for page titles is provided by `.page-title` */
+.page-offset .page-heading {
+  padding-top: 0 !important;
+  /* margin-top intentionally not forced here so .page-section can control clearance */
+}
+
+/* New global class for page titles: apply to all top-level h2 used as page headings.
+   This lets pages opt-in by adding `page-title` to the h2 and keeps layout
+   spacing controlled by `.page-offset` on the container. */
+.page-title {
+  /* Global page title styles - used consistently across all pages */
+  padding: 0 !important; /* Remove all padding to ensure consistency */
+  margin-top: 0 !important; /* No top margin - container controls top spacing */
+  margin-bottom: var(--space-lg) !important; /* Consistent bottom spacing using token */
+  font-size: 2.5rem !important; /* Increased from var(--font-size-2xl) to match glossário size */
+  color: var(--color-section-title) !important; /* Using design token for section titles */
+  display: block !important;
+  text-align: center !important;
+  scroll-margin-top: calc(var(--header-height) + var(--space-sm)) !important; /* Using tokens */
+  font-weight: 700 !important; /* Bold weight to match glossário */
+  width: 100% !important; /* Full width for center alignment */
+}
+
+/* Ensure all top-level h2 page titles use the same blue as the menus */
+h2.page-title {
+  color: #0052CC !important;
+}
+
+/* Dark mode override for page titles */
+.theme-dark h2.page-title {
+  color: #60a5fa !important; /* Blue-400 for better contrast in dark mode */
+}
+
+/* Keep a specific rule for pages with .menu-page to avoid double spacing on some breakpoints. */
+.menu-page .page-title { padding-top: 0 !important; }
+
+/* For pages using the regular Menu (not MenuLogin) ensure the main page heading
+   clears the fixed header; do not affect inner h2 inside cards/sections. */
+/* Narrow tweak only for typical 1366px-wide displays */
+@media (min-width: 85.312rem) and (max-width: 85.375rem) {
+  /* Narrow breakpoint: use fixed spacing now that variables are removed */
+  .page-offset.menu-page {
+  padding-top: 0 !important;
+  }
+  /* Then keep the page title margin modest to avoid double spacing */
+  .menu-page .page-title {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  scroll-margin-top: calc(4.5rem + 0.5rem) !important;
+  }
+}
+
+/* Slightly broader guard for typical 1366x768 viewports accounting for UI chrome/scrollbars */
+@media screen and (min-width: 83.125rem) and (max-width: 85.375rem) and (min-height: 46.25rem) and (max-height: 49.375rem) {
+  .page-offset.menu-page {
+  padding-top: 0 !important;
+  }
+  /* .menu-page .page-title: margin-top not forced here so .page-section controls spacing */
+}
+
+/* Final override guard at end of file for 1366x768 viewport */
+@media screen and (min-width: 83.125rem) and (max-width: 85.375rem) and (min-height: 45.625rem) and (max-height: 50rem) {
+  .page-offset.menu-page .page-title { padding-top: 0 !important; }
+  .site-header-spacer { display: none !important; height: 0 !important; }
+}
+
+/* Let page-specific titles control their own styling */
+/* Page-specific title overrides moved into individual page CSS files for clarity */
+
+  /* Standardized page wrapper and content container
+     - .page-wrapper: outer container that reserves space for the fixed header
+       and optionally provides background, min-height and vertical alignment.
+     - .page-content: inner container that centers content and constrains width.
+     Pages should include both classes: <div className="page-wrapper"> <div className="page-content"> ...</div></div>
+  */
+  .page-wrapper {
+    box-sizing: border-box;
+    /* Fallback padding-top for header spacing in case spacer element fails */
+    padding-top: var(--page-top-offset); /* header height + gap using design token */
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center; /* center the inner content horizontally */
+    align-items: flex-start; /* default: start near top; pages can override */
+    background: var(--bg-white); /* Usa variável para suportar Dark Mode */
+  }
+  .page-content {
+    width: 100%;
+    max-width: 88rem; /* generous max width, tune per project */
+    /* padding removed to let .page-section control spacing */
+    box-sizing: border-box;
+    background: var(--bg-white); /* Garante background em todo conteúdo */
+  }
+
+/* Logo deve aparecer dentro dos menus */
+
+/* Garantindo que o menu esteja centralizado sem posicionamento absoluto */
+.menu-login-center {
+  flex: 1 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* Ajustando o centro dos itens do menu */
+.menu-items-center {
+  margin: 0 auto !important;
+}
+
+/* Apply the variable to main via a class to replace inline styles */
+.app-main {
+  padding-top: 0 !important;
+}
+
+/* Make MenuLogin visually match Menu.jsx: centered items, spacing and padding
+   (alignment/spacing only; position fixed remains controlled per breakpoint) */
+.menu.menu-horizontal {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  list-style: none !important;
+  margin: 0 auto !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* Default welcome title size */
+.welcome-title { font-size: 2.5rem; }
+
+/* Evita quebra de linha nas palavras destacadas */
+.nowrap {
+  white-space: nowrap;
+}
+
+.welcome-text {
+  max-width: 45rem;
+  margin-left: 0;
+  margin-right: 0;
+  text-align: center;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  margin-bottom: 0.7em;
+}
+
+/* Scrollbar customizado para modal de resultados */
+.compat-modal ::-webkit-scrollbar {
+  width: 0.375rem;
+  background: transparent;
+}
+.compat-modal ::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 0.375rem;
+}
+.compat-modal ::-webkit-scrollbar-thumb:hover {
+  background: #b0b7c3;
+}
+/* Firefox */
+.compat-modal {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+/* Modal sizing: prevent full-width overlays from stretching to 100% width */
+.compat-modal .app-compat-modal,
+.app-compat-modal {
+  max-width: 57.5rem; /* comfortable desktop width */
+  width: calc(100% - 2rem);
+  margin: 0.5rem auto !important; /* Subindo o modal com margin-top menor */
+  box-sizing: border-box !important;
+}
+
+/* modal-content should be centered and constrained */
+.modal-content {
+  background: transparent; /* content container lets inner .compat-modal style the card */
+  width: 100%;
+  max-width: 57.5rem;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* Specific rule when modal-content contains .compat-modal (compatibility content) */
+.modal-content.compat-modal {
+  background: none;
+  padding: 0;
+  display: block;
+}
+
+/* For very small screens allow full width but keep side padding */
+@media (max-width: 40rem) {
+  .compat-modal .app-compat-modal,
+  .app-compat-modal {
+    width: calc(100% - 1.5rem) !important;
+    margin: 0.75rem auto !important;
+    max-width: none !important;
+  }
+}
+
+/* ==========================
+   Forms visual baseline
+   Restores the previous visual appearance for all forms site-wide
+   (inputs, selects, textareas, form-cards and buttons).
+   Centralized here so we avoid inline styles in JSX.
+   ========================== */
+
+/* Card-like appearance for form containers used across the app */
+.filters,
+.contato-form-wrapper,
+.checkin-form,
+.login-form,
+.results,
+.results-container .card,
+.bg-white.bordered-card {
+  background: var(--bg-gray-neutral);
+  border: 0.062rem solid var(--border-gray);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-md);
+  box-sizing: border-box;
+}
+
+/* Inputs, selects and textarea visual (rounded, light border, comfortable padding) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+select,
+textarea,
+  .input,
+.results-container select,
+.filter-group select,
+.checkin-input,
+.contato-input,
+.contato-textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 0.062rem solid var(--form-border);
+  border-radius: 0.625rem;
+  background: var(--form-background);
+  color: var(--text-primary);
+  font-size: 1rem;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+/* Focus state: blue ring without shifting layout */
+input[type="text"]:focus:not(:focus-visible),
+input[type="email"]:focus:not(:focus-visible),
+input[type="password"]:focus:not(:focus-visible),
+input[type="tel"]:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+.input:focus:not(:focus-visible) {
+  outline: none;
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 0.25rem rgba(0, 82, 204, 0.08);
+}
+
+/* Keyboard users: visible focus state */
+input[type="text"]:focus-visible,
+input[type="email"]:focus-visible,
+input[type="password"]:focus-visible,
+input[type="tel"]:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.input:focus-visible {
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 0.35rem rgba(0, 82, 204, 0.12);
+  outline: 2px solid rgba(0,82,204,0.18);
+  outline-offset: 3px;
+}
+
+/* Labels and spacing */
+.results-container label,
+.filter-group label,
+.form-control label {
+  display: block;
+  margin-bottom: 0.375rem;
+  color: var(--form-label-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.form-control { margin-bottom: 1rem !important; }
+
+/* Primary buttons (search, submit, login/register) */
+.btn,
+.login-submit,
+.checkin-btn-primary,
+.search-btn,
+.results-container .btn {
+  background: var(--color-primary) !important;
+  color: var(--text-inverse) !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  padding: 0.625rem 0.875rem !important;
+  cursor: pointer !important;
+  box-shadow: var(--shadow-md) !important;
+  font-weight: 600 !important;
+}
+.btn:hover { background: var(--color-primary-dark) !important; }
+.btn[disabled],
+.results-container .btn[disabled] { opacity: 0.6 !important; cursor: default !important; box-shadow: none !important; }
+
+/* Secondary / neutral buttons */
+.btn.secondary,
+.checkin-btn-secondary {
+  background: var(--bg-gray-100) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-gray) !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Small helpers to keep consistent gap inside form containers (removed .form-containers) */
+/* spacing previously applied to .form-containers has been removed project-wide */
+
+/* Ensure selects inherit same visual on mobile */
+select { -webkit-appearance: none; appearance: none; }
+
+/* App-specific grid and layout classes */
+.app-pecas-grid { display: flex; flex-direction: column; gap: 1em; }
+
+.app-compat-wrapper { display: flex; flex-direction: column; align-items: stretch; padding: 0.1em; }
+.app-compat-header { display: flex; align-items: center; justify-content: flex-start; width: 100%; margin-bottom: 1.5em; margin-top: 0.375rem; min-height: 2.5rem; gap: 0.75rem; padding-left: 0.5rem; }
+.app-compat-checkimg { width: 2.25rem; display: inline-block; flex: 0 0 auto; }
+.app-compat-title { font-weight: 700; font-size: 1.15rem; color: var(--text-primary); text-align: left; display: block; }
+.app-compat-modal { background: var(--bg-white); border-radius: 0.5rem; padding: 0.9em; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 0.6em; }
+.app-compat-grid-header { display: grid; grid-template-columns: minmax(15rem, 1fr) 8.75rem 4.5rem; gap: 0.75rem; padding: 0.5em 0.6em; align-items: center; border-bottom: 0.062rem solid #f3f3f3; }
+.app-compat-col-left { text-align: left; }
+.app-compat-col-center { text-align: center; }
+.app-compat-row { background: var(--bg-gray-50); border-radius: 0.375rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-gray); padding: 0.5em; display: grid; grid-template-columns: minmax(15rem, 1fr) 8.75rem 4.5rem; gap: 0.75rem; align-items: center; }
+.app-compat-vehicle { overflow: hidden; }
+.app-compat-vehicle-text { white-space: normal; overflow-wrap: break-word; word-break: break-word; font-weight: 500; }
+.app-compat-years-text { white-space: normal; }
+.app-compat-contact-cell { text-align: center; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+.app-compat-contact-btn { position: relative; width: 2.25rem; height: 2.25rem; display: inline-flex; align-items: center; justify-content: center; }
+.app-whatsapp-btn { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border-radius: 1.125rem; background: #25D366; color: #fff; text-decoration: none; }
+.app-overlay-blur { position: absolute; inset: 0; border-radius: 1.125rem; backdrop-filter: blur(0.188rem); background: rgba(255,255,255,0.4); cursor: default; }
+.app-tooltip-wrapper { display: inline-block; }
+.app-tooltip-icon { width: 1.375rem; height: 1.375rem; display: inline-flex; align-items: center; justify-content: center; }
+.app-padlock-img { width: 1.375rem; height: 1.375rem; object-fit: contain; display: block; }
+
+/* Utility classes */
+.custom-margin-top { margin-top: 0.625rem !important; }
+.custom-margin-top.large { margin-top: 7.5rem !important; }
+.no-results svg { margin-top: -150px !important; }
+
+/* Full HD - 1920x1080 */
+@media (min-width: 118.75rem) and (max-width: 121.25rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 68.75rem;
+    font-size: 1.15em;
+  }
+  
+  .app { padding-top: 0 !important; margin-top: 0 !important; }
+  .page-offset { padding-top: 0 !important; box-sizing: border-box; }
+  
+  /* general containers */
+  .container, .main-content, .results-container, .filters { max-width: 68.75rem; margin: 0 auto; }
+
+  /* menu / header spacing */
+  /* At 85.375rem, make header's visual height exactly match the fixed header
+    height (4.5rem) to avoid content overlap; vertical space is inside the
+    header content rather than the header box itself. */
+  .site-root-header, .site-header { height: 4.5rem; padding: 0 1.5em; box-sizing: border-box; }
+  .menu-login-logo img { 
+    height: 6.375rem !important; 
+    width: 6.375rem !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+  }
+
+  /* page headings and sections - controlled only via .page-section */
+  .page-section { padding: 0 1rem; }
+  /* Removed global margin-top: 4rem as .page-wrapper padding-top already handles header spacing */
+  .page-offset > section, .page-offset > div { max-width: 62.5rem; margin: 0 auto; text-align: center; }
+  .page-offset .page-heading { padding: 0 0 !important; }
+
+  .menu-page .home-section {
+  padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .menu-page .buscarpeca-section {
+  padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .app.page-offset.menu-page .home-section .page-heading,
+  .menu-page .home-section .page-heading {
+  margin-top: 0 !important;
+    padding-top: 0 !important;
+  scroll-margin-top: 0 !important;
+  }
+
+  .menu-items-center { left: 48%; }
+  
+  /* Forms / inputs / cards spacing fallback */
+  .form-control { margin-bottom: 1.2em !important; }
+  .btn { margin-top: 1.5em !important; }
+}
+
+/* 1440p - 2560x1440 */
+@media (min-width: 156.25rem) and (max-width: 162.5rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 87.5rem;
+    margin: 0 auto;
+    font-size: 1.25em;
+  }
+}
+
+/* 4K UHD - 3840x2160 */
+@media (min-width: 237.5rem) and (max-width: 241.25rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 112.5rem;
+    margin: 0 auto;
+    font-size: 1.35em;
+  }
+}
+
+/* Final global normalization: use Catálogo de Peças as reference and make
+   all page titles align with it. This override uses high specificity and
+   !important to defeat earlier breakpoint rules. */
+.page-offset .page-title,
+.menu-page .page-title,
+.page-title {
+  margin-top: 0 !important;
+  padding-top: 0.85rem !important; /* small internal padding for visual gap */
+}
+
+/* IMPORTANTE: CSS para background da página inicial - máxima prioridade */
+/* Aplica imagem de fundo APENAS na página page-inicio com especificidade máxima */
+
+/* Background para o elemento body quando page-inicio está ativa */
+body .page-wrapper.page-inicio,
+/* Removed page-inicio background image to match other pages (use white background)
+  The original rules used /images/fundo.png which created a blue background on the home page.
+   We'll keep the selectors but force a white background so it matches the rest of the site. */
+html body div.page-wrapper.page-inicio,
+html body .page-wrapper.page-inicio.page-inicio,
+.page-wrapper.page-inicio.page-inicio,div.page-wrapper.page-inicio{
+  background: var(--bg-white) !important;
+  background-color: var(--bg-white) !important;
+  background-image: none !important;
+  min-height: 100vh !important;
+}
+
+/* Força transparência no body para mostrar o background do container */
+body.inicio-page,
+html body.inicio-page,
+body:has(.page-inicio) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Fallback: se o seletor :has() não funcionar, usa classe manual */
+body.page-inicio-body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Ensure other pages keep themed background */
+.page-wrapper:not(.page-inicio) {
+  background: var(--bg-white) !important;
+}
+
+/* Default background for body on non-inicio pages */
+body:not(:has(.page-inicio)) {
+  background: var(--bg-white) !important;
+}
+
+/* Ensure legacy selectors that targeted .page-heading don't reintroduce gaps */
+.page-offset .page-heading,
+.menu-page .page-heading {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* HD - 1366x768 */
+@media (min-width: 85.312rem) and (max-width: 85.375rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 56.25rem;
+    margin: 0 auto;
+    font-size: 1em;
+  }
+  
+  .site-root-header { position: fixed; top: 0; left: 0; z-index: 100; width: 100%; }
+
+  .no-results svg {
+    margin-top: -150px !important;
+  }
+  
+  .welcome-title { font-size: 2rem !important; }
+  
+  .site-header {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    z-index: 1000;
+    /* background removed here to avoid overriding MenuLogin.css on narrow 1366px breakpoints
+       MenuLogin.css defines the intended blue background (#0052CC) and should take precedence. */
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.1) !important;
+  }
+  
+  .menu-login-root {
+    padding: 0.75em 1.5em !important;
+  }
+
+  /* Ensure proper spacing for page headings in 1366x768 */
+  
+  .site-header-spacer { display: none !important; height: 0 !important; }
+}
+
+/* WXGA+ - 1440x900 */
+@media (min-width: 89.375rem) and (max-width: 91.25rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 59.375rem;
+    margin: 0 auto;
+    font-size: 1.05em;
+  }
+}
+
+/* Tablets - 768x1024 */
+@media (min-width: 47.5rem) and (max-width: 48.75rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 98vw;
+    margin: 0 auto;
+    font-size: 0.98em;
+  }
+}
+
+/* Mobile - 414x896 */
+@media (min-width: 25.625rem) and (max-width: 26.125rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 100%;
+    margin: 0;
+    font-size: 0.95em;
+    padding: 0 0.5em;
+  }
+  .menu-items-center { left: 50%; gap: 1em; }
+}
+
+/* Mobile - 375x667 */
+@media (min-width: 23.125rem) and (max-width: 23.75rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 100%;
+    margin: 0;
+    font-size: 0.95em;
+    padding: 0 0.5em;
+  }
+  .menu-items-center { left: 50%; gap: 1em; }
+}
+
+/* Mobile - 360x640 */
+@media (min-width: 22.188rem) and (max-width: 22.812rem) {
+  .main-content, .container, .results-container, .filters {
+    max-width: 100%;
+    margin: 0;
+    font-size: 0.95em;
+    padding: 0 0.5em;
+  }
+  .menu-items-center { left: 50%; gap: 1em; }
+}
+
+/* Ensure spacer takes no space so the header sits flush with content */
+.site-header-spacer {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Full HD: move the small spacer element up so any decorative band sits behind the fixed header
+   (affects only 1920x1080-like viewports). This keeps content spacing (page-offset) unchanged. */
+@media (min-width: 118.75rem) and (max-width: 121.25rem) and (min-height: 62.5rem) and (max-height: 68.75rem) {
+  .site-header-spacer {
+    display: none !important;
+    height: 0 !important;
+    z-index: 0 !important; /* ensure header (z-index:1000) stays above */
+    /* do not change background here - we only reposition the spacer */
+  }
+}
+/* Strong override: remove any page-offset spacing site-wide. */
+/* This sets page containers to no extra top margin/padding so pages sit flush */
+.page-offset,
+.page-offset.menu-page,
+.app.page-offset,
+.page-offset > section,
+.page-offset > div,
+.page-inicio.app.page-offset {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Also ensure any nested headings relying on the container gap don't add extra clearance */
+.page-offset .page-heading,
+.page-offset .page-title {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* ===== OVERRIDE FINAL PARA PAGE-INICIO BACKGROUND ===== */
+/* Esta regra deve vir por último para garantir máxima prioridade */
+/* Especificidade máxima para garantir que a imagem apareça */
+
+/* Final override for page-inicio: ensure white background (removed /images/fundo.png) */
+html body div.page-wrapper.page-inicio,
+html body .page-wrapper.page-inicio.page-inicio,
+body div.page-wrapper.page-inicio,
+div.page-wrapper.page-inicio {
+  background-image: none !important;
+  background: var(--bg-white) !important;
+  background-color: var(--bg-white) !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+}
+
+/* Força body transparente quando page-inicio está ativa */
+html body:has(.page-inicio),
+body:has(div.page-inicio),
+html body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Override para qualquer regra de background branco que ainda reste */
+.page-wrapper.page-inicio * {
+  background-color: initial !important;
+}
+
+/* Card Components */
+.card {
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-base);
+  padding: var(--space-md);
+  background: var(--bg-gray-neutral);
+  border: 1px solid var(--border-gray);
+  transition: box-shadow var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-lg);
+}
+
+.card-flat {
+  box-shadow: none;
+  border: 1px solid var(--border-gray);
+}
+
+/* Button Components */
+.btn {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-base);
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--text-inverse);
+  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.2);
+}
+
+.btn-secondary {
+  background-color: var(--bg-gray-100);
+  color: var(--text-primary);
+  border: 1px solid var(--border-gray);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--bg-gray-200);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  border-color: #94a3b8;
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Components */
+.input {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-gray);
+  border-radius: var(--radius-base);
+  background: var(--bg-white);
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--border-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-error {
+  border-color: var(--color-error);
+}
+
+.input-error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.label {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+
+/* Text Utilities */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-success { color: var(--color-success); }
+.text-error { color: var(--color-error); }
+.text-warning { color: var(--color-warning); }
+
+/* Background Utilities */
+.bg-primary { background-color: var(--color-primary); }
+.bg-success { background-color: var(--bg-success-50); }
+.bg-error { background-color: var(--bg-error-50); }
+.bg-gray { background-color: var(--bg-gray-50); }
+
+/* Spacing Utilities */
+.p-xs { padding: var(--space-xs); }
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
+.p-xl { padding: var(--space-xl); }
+
+.m-xs { margin: var(--space-xs); }
+.m-sm { margin: var(--space-sm); }
+.m-md { margin: var(--space-md); }
+.m-lg { margin: var(--space-lg); }
+.m-xl { margin: var(--space-xl); }
+
+.mt-xs { margin-top: var(--space-xs); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }
+
+.mb-xs { margin-bottom: var(--space-xs); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+.mb-xl { margin-bottom: var(--space-xl); }
+
+/* Border Radius Utilities */
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded { border-radius: var(--radius-base); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Shadow Utilities */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow { box-shadow: var(--shadow-base); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-xl { box-shadow: var(--shadow-xl); }
+
+/* ===== MOBILE RESPONSIVENESS IMPROVEMENTS ===== */
+/* Mobile-first approach with progressive enhancement */
+
+/* Mobile devices (up to 768px) */
+@media (max-width: 48rem) {
+  /* Reduce header spacing to save vertical space on mobile */
+  :root {
+    --mobile-header-gap: 2rem;
+    --mobile-page-top-offset: calc(var(--header-height) + var(--mobile-header-gap));
+  }
+  
+  .page-wrapper { 
+    padding-top: var(--mobile-page-top-offset) !important; 
+  }
+
+  /* Smaller page titles for mobile */
+  .page-title { 
+    font-size: var(--font-size-xl) !important; 
+    margin-bottom: var(--space-md) !important; 
+  }
+
+  /* Compact cards and forms */
+  .card,
+  .versao-pro-features,
+  .versao-pro-pricecard,
+  .checkin-container,
+  .checkin-form {
+    padding: var(--space-sm) !important;
+    margin-bottom: var(--space-md) !important;
+  }
+
+  /* Stack VersaoPro cards vertically */
+  .versao-pro-cards {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: var(--space-md) !important;
+  }
+  
+  .versao-pro-features,
+  .versao-pro-pricecard {
+    width: 100% !important;
+    max-width: 25rem !important;
+  }
+
+  /* Larger tap targets for inputs */
+  .input,
+  .checkin-input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  select,
+  textarea {
+    padding: var(--space-sm) var(--space-md) !important;
+    font-size: var(--font-size-base) !important;
+    min-height: 44px !important; /* iOS accessibility guideline */
+  }
+
+  /* Full-width buttons for easier tapping */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .checkin-btn-primary,
+  .checkin-btn-secondary,
+  .versao-pro-cta {
+    width: 100% !important;
+    padding: var(--space-sm) var(--space-md) !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Stack form actions vertically */
+  .checkin-actions {
+    flex-direction: column !important;
+    gap: var(--space-sm) !important;
+  }
+
+  /* Full-width modal with safe side padding */
+  .modal-overlay {
+    padding: var(--space-md) var(--space-sm) var(--space-sm) !important;
+  }
+  
+  .compat-modal,
+  .modal-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  /* Compact logo on mobile */
+  .menu-login-logo img,
+  .menu-logo-image {
+    height: 2.5rem !important;
+    width: 2.5rem !important;
+  }
+
+  /* Ensure page content has comfortable side padding */
+  .page-content {
+    padding: 0 var(--space-sm) !important;
+  }
+  
+  .checkin-section {
+    padding: 0 var(--space-sm) !important;
+  }
+
+  /* Reduce intro text size */
+  .versao-pro-intro,
+  .checkin-intro {
+    font-size: var(--font-size-base) !important;
+    margin-bottom: var(--space-md) !important;
+  }
+}
+
+/* Small phones (up to 380px) */
+@media (max-width: 23.75rem) {
+  :root {
+    --mobile-header-gap: 1.5rem;
+    --mobile-page-top-offset: calc(var(--header-height) + var(--mobile-header-gap));
+  }
+  
+  .page-wrapper { 
+    padding-top: var(--mobile-page-top-offset) !important; 
+  }
+  
+  .page-title { 
+    font-size: var(--font-size-lg) !important; 
+  }
+  
+  .btn,
+  .checkin-btn-primary,
+  .checkin-btn-secondary {
+    padding: var(--space-xs) var(--space-sm) !important;
+  }
+  
+  .page-content,
+  .checkin-section {
+    padding: 0 var(--space-xs) !important;
+  }
+}
+
+/* Tablet adjustments (768px to 1024px) */
+@media (min-width: 48rem) and (max-width: 64rem) {
+  :root {
+    --tablet-header-gap: 3rem;
+    --tablet-page-top-offset: calc(var(--header-height) + var(--tablet-header-gap));
+  }
+  
+  .page-wrapper { 
+    padding-top: var(--tablet-page-top-offset) !important; 
+  }
+  
+  .page-title { 
+    font-size: var(--font-size-2xl) !important; 
+  }
+  
+  .card,
+  .versao-pro-features,
+  .versao-pro-pricecard {
+    max-width: 48rem !important;
+    margin: 0 auto var(--space-lg) auto !important;
+  }
+  
+  .versao-pro-cards {
+    gap: var(--space-lg) !important;
+  }
+}
+
+/* ===== COMPATIBILIDADE CROSS-BROWSER ===== */
+/* Força cor de texto consistente em todos os navegadores */
+h1, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+  -webkit-text-stroke: none !important;
+}
+
+/* Força todos os h2 (títulos de seção) para usarem a variável de cor que muda com o tema */
+h2 {
+  color: var(--color-section-title) !important;
+  -webkit-text-stroke: none !important;
+}
+
+/* Normalização específica para Opera GX e navegadores Chromium */
+input, textarea, button, select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Força rendering consistente e fonte Roboto global */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: var(--font-family) !important;
+}
+
+/* Compatibilidade com navegadores antigos */
+@supports not (appearance: none) {
+  input, textarea, button, select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+}
+
+/* ===== DARK MODE - MODAL DE COMPATIBILIDADE ===== */
+
+.theme-dark .modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.theme-dark .compat-modal {
+  background: var(--bg-white);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+.theme-dark .app-compat-header {
+  border-bottom: 0.062rem solid var(--border-gray);
+  background: linear-gradient(90deg, var(--bg-gray-neutral), var(--bg-white));
+}
+
+.theme-dark .app-compat-title {
+  color: var(--color-primary-light);
+}
+
+.theme-dark .app-compat-close {
+  color: var(--text-secondary);
+}
+
+.theme-dark .app-compat-close:hover {
+  background: var(--bg-gray-100);
+  color: var(--text-primary);
+}
+
+.theme-dark .app-compat-body::after {
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.2));
+}
+
+/* ===== RESPONSIVE UTILITIES ===== */
+/* Touch target size - mínimo 44x44px para acessibilidade mobile */
+@media (max-width: 768px) {
+  button,
+  a.btn,
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation; /* Otimiza toque em dispositivos móveis */
+  }
+  
+  /* Espaçamento adequado em mobile */
+  .page-content {
+    padding: 1rem;
+  }
+  
+  /* Aumenta tap targets em formulários */
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px; /* Previne zoom automático no iOS */
+  }
+  
+  /* Grid responsivo com gap adequado */
+  .search-form-row {
+    gap: 1rem;
+  }
+}
+
+/* Breakpoints específicos */
+@media (max-width: 480px) {
+  /* Mobile pequeno - força elementos em coluna */
+  .search-form-row {
+    flex-direction: column;
+  }
+  
+  .search-form-field {
+    width: 100%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet - ajustes intermediários */
+  .page-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop - máxima usabilidade */
+  .page-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+

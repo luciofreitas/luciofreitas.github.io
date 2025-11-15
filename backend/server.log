@@ -1,0 +1,16 @@
+Loaded parts_db.json from: C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\backend\parts_db.json (30 parts)
+Serving static frontend from C:\Users\Lúcio\Desktop\Peças Automotivas Compativeis React\dist
+Connected to Postgres for backend API
+Detected users name column: nome password column: senha createdAt: created_at hasIsPro: true hasProSince: false
+ENV CHECK: DATABASE_URL_PRESENT=true
+ENV CHECK: DATABASE_URL_PREFIX=postgresql:/
+ENV CHECK: PGSSLMODE=true
+ENV CHECK: SUPABASE_SERVICE_ROLE_KEY_PRESENT=true
+ENV CHECK: NODE_TLS_REJECT_UNAUTHORIZED=0
+Supabase realtime initialized for guias (background subscribe started)
+[supabase][realtime] createAndSubscribe finished (attempt 1)
+Parts API listening on http://127.0.0.1:3001 (pg=true)
+[supabase][realtime] subscription status: SUBSCRIBED
+[supabase][realtime] subscribed successfully
+[req] 2025-10-22T00:30:16.855Z GET /api/debug/check-guia-db origin=-
+[req] 2025-10-22T00:30:56.795Z POST /api/guias/guia_test_local/ratings origin=-
