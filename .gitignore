@@ -16,3 +16,4 @@ backend/.env
 dist
 docs/assets
 backup/
+backup/
