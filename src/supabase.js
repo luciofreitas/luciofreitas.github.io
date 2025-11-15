@@ -5,13 +5,20 @@ import { createClient } from '@supabase/supabase-js';
 let viteEnv = null;
 try { viteEnv = (typeof import.meta !== 'undefined' && import.meta && import.meta.env) ? import.meta.env : null; } catch (e) { viteEnv = null; }
 
-const url = (viteEnv && (viteEnv.VITE_SUPABASE_URL))
+// Prefer runtime-provided configuration injected by server (/api/runtime-config)
+// which is exposed on `window.__RUNTIME_CONFIG__`. This allows builds to avoid
+// embedding secrets. Fall back to compile-time envs to keep backward compatibility.
+const runtimeCfg = (typeof window !== 'undefined' && window.__RUNTIME_CONFIG__) || {};
+
+const url = (runtimeCfg.SUPABASE_URL)
+  || (viteEnv && (viteEnv.VITE_SUPABASE_URL))
   || (typeof process !== 'undefined' && process.env && process.env.REACT_APP_SUPABASE_URL)
   || (typeof process !== 'undefined' && process.env && process.env.SUPABASE_URL)
   || (typeof window !== 'undefined' && window.__SUPABASE_URL)
   || '';
 
-const anonKey = (viteEnv && (viteEnv.VITE_SUPABASE_ANON_KEY))
+const anonKey = (runtimeCfg.SUPABASE_ANON_KEY)
+  || (viteEnv && (viteEnv.VITE_SUPABASE_ANON_KEY))
   || (typeof process !== 'undefined' && process.env && process.env.REACT_APP_SUPABASE_ANON_KEY)
   || (typeof process !== 'undefined' && process.env && process.env.SUPABASE_ANON_KEY)
   || (typeof window !== 'undefined' && window.__SUPABASE_ANON_KEY)

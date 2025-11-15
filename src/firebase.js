@@ -13,14 +13,18 @@ try {
 }
 const nodeEnv = (typeof process !== 'undefined' && process.env) || {};
 
+// Prefer runtime-config injected by server endpoint (window.__RUNTIME_CONFIG__)
+// so builds do not need to embed values. Fallback to compile-time envs.
+const runtimeCfg = (typeof window !== 'undefined' && window.__RUNTIME_CONFIG__) || {};
+
 const firebaseConfig = {
-  apiKey: (viteEnv && viteEnv.VITE_FIREBASE_API_KEY) || nodeEnv.REACT_APP_FIREBASE_API_KEY || nodeEnv.FIREBASE_API_KEY,
-  authDomain: (viteEnv && viteEnv.VITE_FIREBASE_AUTH_DOMAIN) || nodeEnv.REACT_APP_FIREBASE_AUTH_DOMAIN || nodeEnv.FIREBASE_AUTH_DOMAIN,
-  projectId: (viteEnv && viteEnv.VITE_FIREBASE_PROJECT_ID) || nodeEnv.REACT_APP_FIREBASE_PROJECT_ID || nodeEnv.FIREBASE_PROJECT_ID,
-  storageBucket: (viteEnv && viteEnv.VITE_FIREBASE_STORAGE_BUCKET) || nodeEnv.REACT_APP_FIREBASE_STORAGE_BUCKET || nodeEnv.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: (viteEnv && viteEnv.VITE_FIREBASE_MESSAGING_SENDER_ID) || nodeEnv.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || nodeEnv.FIREBASE_MESSAGING_SENDER_ID,
-  appId: (viteEnv && viteEnv.VITE_FIREBASE_APP_ID) || nodeEnv.REACT_APP_FIREBASE_APP_ID || nodeEnv.FIREBASE_APP_ID,
-  measurementId: (viteEnv && viteEnv.VITE_FIREBASE_MEASUREMENT_ID) || nodeEnv.REACT_APP_FIREBASE_MEASUREMENT_ID || nodeEnv.FIREBASE_MEASUREMENT_ID,
+  apiKey: runtimeCfg.FIREBASE_API_KEY || (viteEnv && viteEnv.VITE_FIREBASE_API_KEY) || nodeEnv.REACT_APP_FIREBASE_API_KEY || nodeEnv.FIREBASE_API_KEY,
+  authDomain: runtimeCfg.FIREBASE_AUTH_DOMAIN || (viteEnv && viteEnv.VITE_FIREBASE_AUTH_DOMAIN) || nodeEnv.REACT_APP_FIREBASE_AUTH_DOMAIN || nodeEnv.FIREBASE_AUTH_DOMAIN,
+  projectId: runtimeCfg.FIREBASE_PROJECT_ID || (viteEnv && viteEnv.VITE_FIREBASE_PROJECT_ID) || nodeEnv.REACT_APP_FIREBASE_PROJECT_ID || nodeEnv.FIREBASE_PROJECT_ID,
+  storageBucket: runtimeCfg.FIREBASE_STORAGE_BUCKET || (viteEnv && viteEnv.VITE_FIREBASE_STORAGE_BUCKET) || nodeEnv.REACT_APP_FIREBASE_STORAGE_BUCKET || nodeEnv.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: runtimeCfg.FIREBASE_MESSAGING_SENDER_ID || (viteEnv && viteEnv.VITE_FIREBASE_MESSAGING_SENDER_ID) || nodeEnv.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || nodeEnv.FIREBASE_MESSAGING_SENDER_ID,
+  appId: runtimeCfg.FIREBASE_APP_ID || (viteEnv && viteEnv.VITE_FIREBASE_APP_ID) || nodeEnv.REACT_APP_FIREBASE_APP_ID || nodeEnv.FIREBASE_APP_ID,
+  measurementId: runtimeCfg.FIREBASE_MEASUREMENT_ID || (viteEnv && viteEnv.VITE_FIREBASE_MEASUREMENT_ID) || nodeEnv.REACT_APP_FIREBASE_MEASUREMENT_ID || nodeEnv.FIREBASE_MEASUREMENT_ID,
 };
 
 // Debug: print which env source provided the vars (mask actual values)
