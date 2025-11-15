@@ -6,15 +6,31 @@ import './styles/reset.css' // Reset CSS primeiro para garantir que não haja ma
 import './styles/index.css'
 import './utils/add-region-roles';
 import App from './App.jsx'
+import { loadRuntimeConfig } from './runtimeConfig';
 
 // Lightweight startup instrumentation to measure dev/perceived load times.
 try { console.time('[app-timing] module-load'); } catch(e){}
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// Bootstrap the app only after fetching runtime configuration. This allows
+// the application to obtain dynamic values from `/api/runtime-config` and
+// avoids embedding secrets at build time. A fallback to compile-time
+// env values remains active inside `loadRuntimeConfig` for compatibility.
+;(async function bootstrap() {
+  try {
+    const cfg = await loadRuntimeConfig();
+    if (typeof window !== 'undefined') window.__RUNTIME_CONFIG__ = cfg;
+  } catch (e) {
+    // If runtime config fails, we still proceed — loadRuntimeConfig already
+    // provides safe fallbacks to import.meta.env.
+    console.warn('[runtime] failed to load runtime config, proceeding with fallbacks', e && e.message ? e.message : e);
+  }
+
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+})();
 
 try { console.timeEnd('[app-timing] module-load'); } catch(e){}
 
