@@ -15,3 +15,4 @@ backend/.env.local
 backend/.env
 dist
 docs/assets
+backup/
