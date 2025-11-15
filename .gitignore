@@ -4,16 +4,17 @@
 node_modules/
 dist/
 backend/node_modules/
+
+# Environment files (do not commit secrets)
 .env
 .env.local
 .env.*
 backend/.env
 backend/.env.local
+functions/.env
 
-.env
-.env.local
-backend/.env
-dist
+# Build artifacts / generated assets
 docs/assets
-backup/
+
+# Local backup folder
 backup/
