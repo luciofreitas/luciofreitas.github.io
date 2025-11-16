@@ -66,9 +66,10 @@ function ProtectedRoute({ children }) {
 }
 
 function HomeRedirect() {
-  const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
+  // Always redirect root to the Inicio page so the first page users see is /inicio
+  const { authLoaded } = useContext(AuthContext) || {};
   if (!authLoaded) return null;
-  return <Navigate to={usuarioLogado ? "/buscar-pecas" : "/inicio"} replace />;
+  return <Navigate to="/inicio" replace />;
 }
 
 export default function App() {
