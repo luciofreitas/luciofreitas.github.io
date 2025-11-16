@@ -36,6 +36,8 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  /* provide bottom space so icons don't stick to nearby edges */
+  margin-bottom: 1.5rem;
 }
 
 #contato-logado .contato-btn {
@@ -206,6 +208,7 @@
   
   #contato-logado .contato-buttons {
     gap: 1.5rem;
+    margin-bottom: 2rem;
   }
 }
 

@@ -57,6 +57,8 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  /* ensure the contact icons have breathing room from the bottom/other elements */
+  margin-bottom: 1.5rem;
 }
 
 .contato-btn {
@@ -133,6 +135,8 @@
   
   #contato .contato-buttons {
     gap: 1.5rem;
+    /* more bottom space on narrow screens to prevent icons from sticking to edges */
+    margin-bottom: 2rem;
   }
 }
 
