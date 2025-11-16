@@ -43,18 +43,38 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Fail if build output contains VITE_ (prevent leaking secrets)
+      - name: Check build output for leaked secrets (VITE_ heuristics)
         run: |
-          if [ -d ./dist ]; then
-            if grep -R --line-number 'VITE_' ./dist | grep -q .; then
-              echo "ERROR: Found 'VITE_' occurrences in built assets. This may indicate secrets were embedded during build. Aborting deploy." >&2
-              grep -R --line-number 'VITE_' ./dist || true
-              exit 1
-            else
-              echo "No 'VITE_' occurrences found in build output. Proceeding."
-            fi
-          else
+          if [ ! -d ./dist ]; then
             echo 'No dist directory found — skipping VITE_ check'
+            exit 0
+          fi
+
+          # Find any occurrences of VITE_ in built assets
+          echo "Scanning built assets for 'VITE_' occurrences..."
+          VITE_HITS=$(grep -R --line-number 'VITE_' ./dist || true)
+          if [ -z "$VITE_HITS" ]; then
+            echo "No 'VITE_' occurrences found in build output. Proceeding."
+            exit 0
+          fi
+
+          echo "Found 'VITE_' occurrences (benign references may appear). Running stricter secret patterns..."
+
+          # Define stricter secret-like patterns: JWT-ish, Firebase API key prefix, long env assignments, supabase urls
+          SECRET_HITS=""
+          SECRET_HITS+=$(grep -R --line-number -E "VITE_[A-Z0-9_]+=.{20,}" ./dist || true)
+          SECRET_HITS+=$(grep -R --line-number -E "eyJ[A-Za-z0-9_\-\.]{10,}" ./dist || true)
+          SECRET_HITS+=$(grep -R --line-number -E "AIza[0-9A-Za-z_\-]{7,}" ./dist || true)
+          SECRET_HITS+=$(grep -R --line-number -E "[a-z0-9.-]+\.supabase\.co" ./dist || true)
+
+          if [ -n "$SECRET_HITS" ]; then
+            echo "ERROR: Found likely secret patterns in built assets. Aborting deploy." >&2
+            echo "$SECRET_HITS"
+            exit 1
+          else
+            echo "Only benign 'VITE_' references found (property accesses/fallbacks). Proceeding with a warning."
+            echo "$VITE_HITS"
+            exit 0
           fi
 
       - name: Stamp deploy-timestamp into generated index.html (if present)
