@@ -34,6 +34,20 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Fail if build output contains VITE_ (prevent leaking secrets)
+        run: |
+          if [ -d ./dist ]; then
+            if grep -R --line-number 'VITE_' ./dist | grep -q .; then
+              echo "ERROR: Found 'VITE_' occurrences in built assets. This may indicate secrets were embedded during build. Aborting deploy." >&2
+              grep -R --line-number 'VITE_' ./dist || true
+              exit 1
+            else
+              echo "No 'VITE_' occurrences found in build output. Proceeding."
+            fi
+          else
+            echo 'No dist directory found — skipping VITE_ check'
+          fi
+
       - name: Stamp deploy-timestamp into generated index.html (if present)
         run: |
           if [ -f ./dist/index.html ]; then
