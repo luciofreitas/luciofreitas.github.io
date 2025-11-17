@@ -20,9 +20,9 @@ export const glossarioMockData = [
 
 // Dados iniciais das avaliações (valores aproximados para exibição)
 export const avaliacoesIniciais = {
-  'glossario-automotivo': { total: 847, soma: 3892, media: 4.6 },
-  'manutencaoPreventiva': { total: 234, soma: 1053, media: 4.5 },
-  'pecasOriginais': { total: 156, soma: 702, media: 4.5 }
+  'glossario-automotivo': { total: 0, soma: 0, media: 0 },
+  'manutencaoPreventiva': { total: 0, soma: 0, media: 0 },
+  'pecasOriginais': { total: 0, soma: 0, media: 0 }
 };
 
 // Lista dos outros guias fixos (serão exibidos na página de Guias)
