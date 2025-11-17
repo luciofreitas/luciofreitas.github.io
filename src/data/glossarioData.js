@@ -18,5 +18,31 @@ export const glossarioMockData = [
   { id: 16, nome: "Temperatura do Líquido de Arrefecimento", icone: "🔥", imagem: "/images/luzes-no-painel/16.png", cor: "vermelho", prioridade: "Alta", descricao: "Sinaliza problemas no circuito de arrefecimento que podem causar superaquecimento do motor. Deve ser tratado com prioridade.", causas: ["Nível baixo do líquido de arrefecimento", "Vazamento", "Ventoinha do radiador inoperante", "Termostato ou bomba com defeito"], acoes: ["Pare o veículo e desligue o motor", "Espere o motor esfriar antes de verificar o reservatório", "Procure socorro mecânico se necessário"] }
 ];
 
-export const avaliacoesIniciais = [];
-export const outrosGuias = [];
+// Dados iniciais das avaliações (valores aproximados para exibição)
+export const avaliacoesIniciais = {
+  'glossario-automotivo': { total: 847, soma: 3892, media: 4.6 },
+  'manutencaoPreventiva': { total: 234, soma: 1053, media: 4.5 },
+  'pecasOriginais': { total: 156, soma: 702, media: 4.5 }
+};
+
+// Lista dos outros guias fixos (serão exibidos na página de Guias)
+export const outrosGuias = [
+  {
+    id: 'manutencaoPreventiva',
+    titulo: 'Manutenção Preventiva',
+    subtitulo: 'Cuidados essenciais para seu veículo',
+    descricao: 'Guia completo sobre quando e como fazer a manutenção do seu carro.',
+    icone: '🔧',
+    categoria: 'Manutenção',
+    rota: '/manutencao-preventiva'
+  },
+  {
+    id: 'pecasOriginais',
+    titulo: 'Peças Originais vs Compatíveis',
+    subtitulo: 'Entenda as diferenças e quando usar cada uma',
+    descricao: 'Compare vantagens, desvantagens e quando optar por cada tipo de peça.',
+    icone: '⚙️',
+    categoria: 'Peças',
+    rota: '/pecas-originais-vs-compativeis'
+  }
+];
