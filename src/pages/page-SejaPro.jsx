@@ -23,7 +23,6 @@ export default function SejaPro() {
               <div className="seja-pro-card-body">
                 <ul className="seja-pro-features">
                   <li>Acesso ao buscador de peças.</li>
-                  <li className="seja-pro-feature-unavailable">Acesso ao endereço das lojas que vendem as peças.</li>
                   <li className="seja-pro-feature-unavailable">Acesso ao valores da Tabela FIPE.</li>
                   <li>Suporte via email.</li>
                   <li className="seja-pro-feature-unavailable">Suporte via whatsapp.</li>
@@ -38,7 +37,6 @@ export default function SejaPro() {
               <div className="seja-pro-card-body">
                 <ul className="seja-pro-features">
                   <li> Acesso ao buscador de peças.</li>
-                  <li> Acesso ao endereço das lojas que vendem as peças.</li>
                   <li> Acesso ao valores da Tabela FIPE.</li>
                   <li> Suporte via email.</li>
                   <li> Suporte via whatsapp.</li>
