@@ -190,6 +190,18 @@
 .luz-icone {
   font-size: 2.5rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Image used for panel light icons (fallback to emoji if missing) */
+.luz-icone-img {
+  width: clamp(2.5rem, 5vw, 3.5rem); /* ~40px to 56px */
+  height: clamp(2.5rem, 5vw, 3.5rem);
+  object-fit: contain;
+  display: block;
+}
 }
 
 .luz-info {
