@@ -5,31 +5,34 @@ export const glossarioMockData = [
     id: 1,
     nome: 'Motor',
     icone: '🔴',
+    imagem: '/images/luzes no painel/1.png',
     cor: 'vermelho',
     prioridade: 'Alta',
-    descricao: 'Indica problema crítico no motor. Pare imediatamente e procure assistência técnica.',
-    causas: ['Superaquecimento do motor', 'Baixa pressão do óleo', 'Falha no sistema de arrefecimento', 'Problema na bomba d\'água'],
-    acoes: ['Pare o veículo em local seguro imediatamente', 'Desligue o motor', 'Não tente continuar dirigindo', 'Chame o guincho ou mecânico']
+    descricao: 'Luz do motor (check engine) indica que o sistema detectou uma falha que precisa de verificação. Nem sempre é emergência, mas não deve ser ignorada.',
+    causas: ['Falha no sistema de ignição', 'Sensor com defeito (oxigênio, MAP, etc.)', 'Problema no catalisador', 'Mistura ar/combustível errada'],
+    acoes: ['Reduza a velocidade e dirija com cautela', 'Evite acelerações fortes', 'Procure diagnóstico eletrônico em oficina', 'Se houver fumaça ou perda de potência, pare em local seguro']
   },
   {
     id: 2,
     nome: 'Freios',
     icone: '🛑',
+    imagem: '/images/luzes no painel/2.png',
     cor: 'vermelho',
     prioridade: 'Alta',
-    descricao: 'Sistema de freios com falha crítica. Risco de acidente grave.',
-    causas: ['Pastilhas de freio gastas', 'Vazamento no sistema hidráulico', 'Freio de mão acionado', 'Baixo nível do fluido de freio'],
-    acoes: ['Pare em local seguro imediatamente', 'Verifique o freio de mão', 'Não dirija o veículo', 'Procure assistência urgente']
+    descricao: 'Indica falha no sistema de freios ou nível de fluido crítico. Exige parada imediata e verificação.',
+    causas: ['Nível baixo de fluido de freio', 'Vazamento no circuito hidráulico', 'Pastilhas muito gastas', 'Problema na assistência de frenagem'],
+    acoes: ['Pare o veículo em local seguro', 'Evite dirigir se os freios estiverem comprometidos', 'Verifique o nível de fluido', 'Chame assistência mecânica']
   },
   {
     id: 3,
     nome: 'Bateria',
     icone: '🔋',
+    imagem: '/images/luzes no painel/3.png',
     cor: 'vermelho',
     prioridade: 'Alta',
-    descricao: 'Sistema de carga da bateria com problema. Risco de pane elétrica.',
-    causas: ['Alternador com defeito', 'Bateria descarregada ou danificada', 'Correia do alternador rompida', 'Problema no regulador de voltagem'],
-    acoes: ['Desligue equipamentos não essenciais', 'Procure oficina rapidamente', 'Evite parar o motor', 'Verifique se há ruídos estranhos']
+    descricao: 'Indica problema no sistema de carga (alternador/bateria). Pode levar à perda de energia elétrica do veículo.',
+    causas: ['Alternador com defeito', 'Correia do alternador rompida', 'Bateria em fim de vida', 'Conexões soltas ou corroídas'],
+    acoes: ['Desligue acessórios não essenciais', 'Dirija até oficina mais próxima com cuidado', 'Evite longos deslocamentos até resolver', 'Faça teste da bateria/alternador']
   },
 
   // Luzes Amarelas (Média Prioridade)
@@ -37,31 +40,34 @@ export const glossarioMockData = [
     id: 4,
     nome: 'Óleo do Motor',
     icone: '🛢️',
+    imagem: '/images/luzes no painel/4.png',
     cor: 'amarelo',
     prioridade: 'Média',
-    descricao: 'Nível ou pressão do óleo abaixo do recomendado. Pode causar danos ao motor.',
-    causas: ['Nível baixo de óleo', 'Vazamento de óleo', 'Bomba de óleo com defeito', 'Filtro de óleo entupido'],
-    acoes: ['Verifique o nível de óleo com a vareta', 'Complete o óleo se necessário', 'Procure vazamentos embaixo do carro', 'Agende revisão']
+    descricao: 'Indica baixo nível ou pressão de óleo. Se ignorada, pode causar desgaste grave no motor.',
+    causas: ['Nível de óleo baixo', 'Vazamento no motor ou junta', 'Bomba de óleo defeituosa', 'Problema no sensor de pressão'],
+    acoes: ['Pare em local seguro e verifique o nível de óleo', 'Complete o óleo conforme especificação', 'Procure oficina em caso de vazamento', 'Não ignore por longos períodos']
   },
   {
     id: 5,
     nome: 'Injeção Eletrônica',
     icone: '⚡',
+    imagem: '/images/luzes no painel/5.png',
     cor: 'amarelo',
     prioridade: 'Média',
-    descricao: 'Problema detectado no sistema de injeção eletrônica do combustível.',
-    causas: ['Sensor com defeito', 'Bico injetor entupido', 'Problema na centralina', 'Combustível de má qualidade'],
-    acoes: ['Verifique se há perda de potência', 'Observe o consumo de combustível', 'Faça diagnóstico eletrônico', 'Use combustível de qualidade']
+    descricao: 'Indicação de falha no sistema de injeção/combustão. Pode afetar desempenho e consumo.',
+    causas: ['Sensor de fluxo/oxigênio com defeito', 'Bico injetor com problema', 'Falha na central eletrônica', 'Combustível contaminado'],
+    acoes: ['Evite acelerar bruscamente', 'Agende diagnóstico eletrônico', 'Verifique consumo e comportamento do motor']
   },
   {
     id: 6,
     nome: 'ABS',
     icone: '🚗',
+    imagem: '/images/luzes no painel/6.png',
     cor: 'amarelo',
     prioridade: 'Média',
-    descricao: 'Sistema de freios ABS desativado. Freios funcionam, mas sem assistência.',
-    causas: ['Sensor de velocidade com defeito', 'Problema na central ABS', 'Fusível queimado', 'Conexão elétrica solta'],
-    acoes: ['Dirija com cuidado redobrado', 'Evite frenagens bruscas', 'Procure oficina especializada', 'Teste os freios em velocidade baixa']
+    descricao: 'Luz do ABS indica que o sistema de freio antibloqueio está inativo. Os freios normais funcionam, porém sem assistência do ABS.',
+    causas: ['Sensor de roda com defeito', 'Problema na unidade hidráulica ABS', 'Fusível ou cabo com problema'],
+    acoes: ['Dirija com mais cuidado em piso escorregadio', 'Evite frenagens bruscas em alta velocidade', 'Leve para diagnóstico especializado']
   },
 
   // Luzes Verdes (Baixa Prioridade)
@@ -69,21 +75,23 @@ export const glossarioMockData = [
     id: 7,
     nome: 'Faróis Ligados',
     icone: '💡',
+    imagem: '/images/luzes no painel/7.png',
     cor: 'verde',
     prioridade: 'Baixa',
-    descricao: 'Indica que os faróis estão ligados e funcionando normalmente.',
-    causas: ['Faróis acionados pelo motorista', 'Sensor automático ativado', 'Sistema funcionando corretamente'],
-    acoes: ['Nenhuma ação necessária', 'Luz informativa normal', 'Verifique se os faróis estão funcionando']
+    descricao: 'Indicador informativo que mostra que os faróis estão ligados.',
+    causas: ['Faróis acionados manualmente', 'Sistema automático ativado'],
+    acoes: ['Nenhuma ação necessária'],
   },
   {
     id: 8,
     nome: 'Eco Mode',
     icone: '🌱',
+    imagem: '/images/luzes no painel/8.png',
     cor: 'verde',
     prioridade: 'Baixa',
-    descricao: 'Modo econômico ativado para reduzir consumo de combustível.',
-    causas: ['Modo eco selecionado pelo motorista', 'Sistema de economia ativo', 'Dirigindo de forma econômica'],
-    acoes: ['Continue dirigindo normalmente', 'Aproveite a economia de combustível', 'Mode pode ser desativado se precisar de mais potência']
+    descricao: 'Indica que o modo de condução econômica está ativado.',
+    causas: ['Motorista ativou o modo econômico', 'Sistema de condução adaptativa'],
+    acoes: ['Nenhuma ação necessária']
   },
 
   // Luzes Azuis (Informativas)
@@ -91,21 +99,23 @@ export const glossarioMockData = [
     id: 9,
     nome: 'Farol Alto',
     icone: '🔵',
+    imagem: '/images/luzes no painel/9.png',
     cor: 'azul',
     prioridade: 'Baixa',
-    descricao: 'Farol alto ligado. LembreSe de abaixar para não ofuscar outros motoristas.',
-    causas: ['Farol alto acionado pelo motorista', 'Alavanca puxada ou travada'],
-    acoes: ['Abaixe o farol ao cruzar com outros veículos', 'Verifique se não está incomodando outros motoristas', 'Use apenas quando necessário']
+    descricao: 'Indica que o farol alto está acionado. Use com cuidado para não ofuscar outros motoristas.',
+    causas: ['Acionamento do farol alto', 'Alavanca presa'],
+    acoes: ['Abaixe ao cruzar com outros veículos', 'Use apenas em vias escuras e sem veículos à frente']
   },
   {
     id: 10,
     nome: 'Temperatura Baixa',
     icone: '❄️',
+    imagem: '/images/luzes no painel/10.png',
     cor: 'azul',
     prioridade: 'Baixa',
-    descricao: 'Motor ainda frio, em processo de aquecimento.',
-    causas: ['Motor recém ligado', 'Temperatura ambiente baixa', 'Sistema de arrefecimento funcionando'],
-    acoes: ['Aguarde o motor aquecer', 'Evite acelerações bruscas', 'Dirija suavemente até a temperatura normalizar', 'Luz deve apagar em alguns minutos']
+    descricao: 'Indicador informativo que o motor está frio ou em aquecimento.',
+    causas: ['Motor recém ligado', 'Baixa temperatura ambiente'],
+    acoes: ['Aguarde o motor aquecer', 'Evite altas rotações até a temperatura normalizar']
   },
 
   // Luzes Laranjas (Atenção)
@@ -113,21 +123,23 @@ export const glossarioMockData = [
     id: 11,
     nome: 'Combustível Baixo',
     icone: '⛽',
+    imagem: '/images/luzes no painel/11.png',
     cor: 'laranja',
     prioridade: 'Média',
-    descricao: 'Nível de combustível baixo. Abasteça assim que possível.',
-    causas: ['Tanque com pouco combustível', 'Cerca de 50-60km de autonomia restante'],
-    acoes: ['Procure um posto de combustível', 'Evite rodar na reserva por muito tempo', 'Planeje o abastecimento', 'Verifique a autonomia no painel']
+    descricao: 'Indica que o nível de combustível está baixo e é hora de abastecer em breve.',
+    causas: ['Tanque em reserva', 'Métrica de autonomia atingida'],
+    acoes: ['Abasteça o quanto antes', 'Evite percorrer longas distâncias na reserva']
   },
   {
     id: 12,
     nome: 'Airbag',
     icone: '🎈',
+    imagem: '/images/luzes no painel/12.png',
     cor: 'laranja',
     prioridade: 'Alta',
-    descricao: 'Sistema de airbag com problema. Pode não funcionar em caso de acidente.',
-    causas: ['Sensor de airbag com defeito', 'Problema na centralina', 'Cinto de segurança mal colocado', 'Sistema desativado'],
-    acoes: ['Use sempre o cinto de segurança', 'Dirija com cuidado extra', 'Procure oficina especializada urgente', 'Não ignore esta luz']
+    descricao: 'Indica falha no sistema de airbag ou cintos. Pode comprometer a segurança em colisões.',
+    causas: ['Sensor de impacto com defeito', 'Conexões soltas', 'Falha na central de segurança'],
+    acoes: ['Verifique cintos e conexões', 'Procure assistência técnica especializada', 'Não ignore esta indicação']
   }
 ];
 
