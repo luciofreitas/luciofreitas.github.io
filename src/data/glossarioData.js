@@ -5,7 +5,7 @@ export const glossarioMockData = [
     id: 1,
     nome: 'Motor',
     icone: '🔴',
-    imagem: '/images/luzes no painel/1.svg',
+    imagem: '/images/luzes no painel/1_nobg.png',
     cor: 'vermelho',
     prioridade: 'Alta',
     descricao: 'Luz do motor (check engine) indica que o sistema detectou uma falha que precisa de verificação. Nem sempre é emergência, mas não deve ser ignorada.',
