@@ -415,6 +415,12 @@ export default function App() {
             <Route path="/parceiros" element={<Parceiros />} />
             <Route path="/recalls" element={<PageRecalls />} />
             <Route path="/guias" element={<PageGuias />} />
+            {/* Explicit routes for fixed guides so they render their dedicated pages */}
+            <Route path="/guias/luzes-do-painel" element={<LuzesDoPainel />} />
+            <Route path="/guias/manutencao-preventiva" element={<ManutencaoPreventiva />} />
+            <Route path="/guias/pecas-originais-vs-compativeis" element={<PecasOriginaisVsCompativeis />} />
+            {/* Route to view a specific guia using the `/guias/<slug>` path for compatibility */}
+            <Route path="/guias/:guiaId" element={<PageVisualizarGuia />} />
             {/* Rota para visualizar guia específico */}
             <Route path="/guia/:guiaId" element={<PageVisualizarGuia />} />
             {/* Redirecionamento da rota antiga glossario para guias */}

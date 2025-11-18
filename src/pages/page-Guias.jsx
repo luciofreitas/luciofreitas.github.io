@@ -46,7 +46,7 @@ function PageGuias() {
     descricao: 'Aprenda sobre as luzes de aviso do painel e o que fazer quando elas acendem.',
     icone: '⚠️',
     categoria: 'Diagnóstico',
-    rota: '/luzes-do-painel'
+    rota: '/guias/luzes-do-painel'
   };
 
   // Combinar todos os guias fixos
