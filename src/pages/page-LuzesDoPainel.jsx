@@ -175,11 +175,11 @@ function LuzesDoPainel() {
                   <div key={luz.id} className="luz-card">
                     <div className="luz-header">
                       <div className="luz-icone">
-                        {luz.imagem ? (
-                          <img src={luz.imagem} alt={luz.nome} className="luz-icone-img" />
-                        ) : (
-                          luz.icone
-                        )}
+                        {luz.icone ? (
+                            <img src={luz.icone} alt={luz.nome} className="luz-icone-img" />
+                          ) : (
+                            luz.icone
+                          )}
                       </div>
                       <div className="luz-info">
                         <h3 className="luz-nome">{luz.nome}</h3>
