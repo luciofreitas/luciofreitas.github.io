@@ -411,6 +411,21 @@
   -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
   filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
 }
+/* Strong overrides to prevent parent/background effects from changing the icon color */
+.luz-icone--red {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+.luz-icone--red img,
+.luz-icone--red .luz-icone-img {
+  filter: none !important; /* ensure no other filter persists */
+  -webkit-filter: none !important;
+  mix-blend-mode: normal !important;
+  isolation: isolate !important;
+  background: transparent !important;
+}
 @media (max-width: 768px) {
   .luzes-header .page-title {
     font-size: 2rem;
