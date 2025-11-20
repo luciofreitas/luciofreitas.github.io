@@ -282,7 +282,9 @@ function LuzesDoPainel() {
                             if (looksLikeImage) {
                               const redFilter = {
                                 WebkitFilter: "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)",
-                                filter: "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)"
+                                filter: "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)",
+                                border: '2px solid #dc2626',
+                                borderRadius: '6px'
                               };
                               return <img src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} style={isRed ? redFilter : undefined} />;
                             }
