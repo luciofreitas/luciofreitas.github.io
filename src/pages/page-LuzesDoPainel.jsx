@@ -280,7 +280,7 @@ function LuzesDoPainel() {
                               resolved.includes('/') || /\.(png|jpg|jpeg|svg|gif)$/.test(resolved)
                             );
                             if (looksLikeImage) {
-                              return <img src={resolved} alt={luz.nome} className="luz-icone-img" />;
+                              return <img src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} />;
                             }
                             // Otherwise render the resolved value as text (emoji or fallback)
                             return <div className="luz-icone-text">{resolved || '⚠️'}</div>;
