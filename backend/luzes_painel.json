@@ -101,7 +101,7 @@
   {
     "id": "falha-de-freio",
     "nome": "Falha de Freio",
-    "icone": "/images/luzes-no-painel/falha-de-freio.svg",
+    "icone": "/images/luzes-no-painel/falha-de-freio.png",
     "cor": "vermelho",
     "prioridade": "Alta",
     "descricao": "Problema crítico no sistema de freios.",
@@ -167,7 +167,7 @@
   {
     "id": "freio-de-mao",
     "nome": "Freio de Mão",
-    "icone": "/images/luzes-no-painel/freio-de-mao.png",
+    "icone": "/images/luzes-no-painel/falha-de-freio.png",
     "cor": "vermelho",
     "prioridade": "Média",
     "descricao": "Freio de estacionamento acionado ou problema no sistema.",
