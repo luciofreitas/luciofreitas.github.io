@@ -266,7 +266,12 @@ function LuzesDoPainel() {
                 {dadosFiltrados.map(luz => (
                   <div key={luz.id} className="luz-card">
                     <div className="luz-header">
-                      <div className="luz-icone">
+                      {
+                        // Determine if this is the "Falha de Freio" card (support both string ids from backend and numeric ids from fallback)
+                      }
+                      {(() => {
+                        const isFalhaDeFreio = (String(luz.id) === 'falha-de-freio') || (String(luz.id) === '10') || (String(luz.nome || '').toLowerCase().includes('falha de freio'));
+                        return <div className={`luz-icone ${isFalhaDeFreio ? 'luz-icone--red' : ''}`}>
                           {(() => {
                             const resolved = resolveIcon(luz.icone);
                             // If resolved looks like an image path or URL, render an <img>
@@ -279,7 +284,7 @@ function LuzesDoPainel() {
                             // Otherwise render the resolved value as text (emoji or fallback)
                             return <div className="luz-icone-text">{resolved || '⚠️'}</div>;
                           })()}
-                      </div>
+                        </div>})()}
                       <div className="luz-info">
                         <h3 className="luz-nome">{luz.nome}</h3>
                         <div className="luz-indicators">
