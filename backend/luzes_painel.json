@@ -326,7 +326,7 @@
     "prioridade": "Alta",
     "descricao": "Superaquecimento do motor.",
     "acoes": ["PARE e desligue o motor"],
-    "causas_comuns": ["Baixo nível de líquido de arrefecimento", "Falha no eletroventiulador do radiador"],
+    "causas_comuns": ["Baixo nível de líquido de arrefecimento", "Falha no eletroventilador do radiador"],
     "categoria": "motor"
   }
 ]
