@@ -434,6 +434,15 @@
   mix-blend-mode: normal !important;
   background: transparent !important;
 }
+/* If the source PNG was already raster-recolored to red, do not apply additional CSS filters
+   (more specific selector to override the .luz-icone--red rule above). */
+.luz-icone--red img[src$="/falha-de-freio.png"],
+.luz-icone-img[src$="/falha-de-freio.png"] {
+  -webkit-filter: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  background: transparent !important;
+}
 @media (max-width: 768px) {
   .luzes-header .page-title {
     font-size: 2rem;
