@@ -216,7 +216,7 @@
     "prioridade": "Alta",
     "descricao": "Pressão ou nível de óleo crítico.",
     "acoes": ["PARE e verificar nível de óleo"],
-    "causas_comuns": ["Nível de óleo baixo"],
+    "causas_comuns": ["Nível de óleo baixo", "Baixo nivel de óleo"],
     "categoria": "motor"
   },
   {
@@ -326,7 +326,7 @@
     "prioridade": "Alta",
     "descricao": "Superaquecimento do motor.",
     "acoes": ["PARE e desligue o motor"],
-    "causas_comuns": ["Baixo nível de líquido de arrefecimento"],
+    "causas_comuns": ["Baixo nível de líquido de arrefecimento", "Falha no eletroventiulador do radiador"],
     "categoria": "motor"
   }
 ]

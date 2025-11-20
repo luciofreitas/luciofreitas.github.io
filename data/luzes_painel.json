@@ -202,7 +202,7 @@
     "prioridade": "Alta",
     "descricao": "Indica pressão de óleo baixa ou nível crítico — risco de danos ao motor.",
     "acoes": ["PARE imediatamente e desligue o motor", "Verifique o nível de óleo", "Não continue dirigindo"],
-    "causas_comuns": ["Nível de óleo baixo", "Vazamento", "Bomba de óleo com defeito"]
+    "causas_comuns": ["Nível de óleo baixo", "Baixo nivel de óleo", "Vazamento", "Bomba de óleo com defeito"]
   },
   {
     "id": "piloto-automatico",
@@ -302,6 +302,6 @@
     "prioridade": "Alta",
     "descricao": "Indica superaquecimento do motor ou problema no circuito de arrefecimento.",
     "acoes": ["PARE em local seguro e desligue o motor", "Verifique nível do líquido de arrefecimento quando frio", "Chame assistência se necessário"],
-    "causas_comuns": ["Baixo nível de líquido de arrefecimento", "Vazamento no sistema", "Ventoinha inoperante"]
+    "causas_comuns": ["Baixo nível de líquido de arrefecimento", "Vazamento no sistema", "Ventoinha inoperante", "Falha no eletroventiulador do radiador"]
   }
 ]
