@@ -398,6 +398,19 @@
 }
 
 /* Responsividade */
+
+/* Recolor specific icon to red using CSS filter (targets filename) */
+.luz-icone-img[src$="/falha-de-freio.png"] {
+  -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
+  filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
+}
+
+/* Fallback: if the icon is used as background or different path, add class-based helper */
+.luz-icone--red img,
+.luz-icone--red .luz-icone-img {
+  -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
+  filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
+}
 @media (max-width: 768px) {
   .luzes-header .page-title {
     font-size: 2rem;
