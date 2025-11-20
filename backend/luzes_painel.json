@@ -167,7 +167,7 @@
   {
     "id": "freio-de-mao",
     "nome": "Freio de Mão",
-    "icone": "/images/luzes-no-painel/falha-de-freio.png",
+    "icone": "/images/luzes-no-painel/freio-de-mao.png",
     "cor": "vermelho",
     "prioridade": "Média",
     "descricao": "Freio de estacionamento acionado ou problema no sistema.",
