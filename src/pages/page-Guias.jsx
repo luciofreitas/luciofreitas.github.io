@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, ComponenteEstrelas, RatingStars } from '../components';
 import { useAvaliacoes } from '../hooks/useAvaliacoes';
-import { outrosGuias } from '../data/glossarioDataClean';
+import { outrosGuias } from '../data/glossarioData';
 import { guiasService } from '../services/guiasService';
 import { AuthContext } from '../App';
 import '../styles/pages/page-Guias.css';
