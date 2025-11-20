@@ -202,8 +202,6 @@
   object-fit: contain;
   display: block;
 }
-}
-
 .luz-info {
   flex: 1;
 }
@@ -418,12 +416,22 @@
   border: none !important;
   padding: 0 !important;
 }
+.luz-icone--red {
+  /* neutralize container decorations that could alter icon rendering */
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  filter: none !important; /* remove filters applied to container */
+  -webkit-filter: none !important;
+  isolation: isolate !important;
+}
 .luz-icone--red img,
 .luz-icone--red .luz-icone-img {
-  filter: none !important; /* ensure no other filter persists */
-  -webkit-filter: none !important;
+  /* enforce the red recolor on the image itself */
+  -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%) !important;
+  filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%) !important;
   mix-blend-mode: normal !important;
-  isolation: isolate !important;
   background: transparent !important;
 }
 @media (max-width: 768px) {

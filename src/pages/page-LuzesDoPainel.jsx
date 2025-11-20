@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, MenuLogin } from '../components';
 import { AuthContext } from '../App';
@@ -280,13 +280,27 @@ function LuzesDoPainel() {
                               resolved.includes('/') || /\.(png|jpg|jpeg|svg|gif)$/.test(resolved)
                             );
                             if (looksLikeImage) {
-                              const redFilter = {
-                                WebkitFilter: "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)",
-                                filter: "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)",
-                                border: '2px solid #dc2626',
-                                borderRadius: '6px'
+                              const filterValue = "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)";
+                              const imgRefCallback = (el) => {
+                                if (!el) return;
+                                try {
+                                  if (isRed) {
+                                    el.style.setProperty('filter', filterValue, 'important');
+                                    el.style.setProperty('-webkit-filter', filterValue, 'important');
+                                    el.style.setProperty('border', '2px solid #dc2626', 'important');
+                                    el.style.setProperty('border-radius', '6px', 'important');
+                                  } else {
+                                    // remove inline important properties if present
+                                    el.style.removeProperty('filter');
+                                    el.style.removeProperty('-webkit-filter');
+                                    el.style.removeProperty('border');
+                                    el.style.removeProperty('border-radius');
+                                  }
+                                } catch (e) {
+                                  // defensive: some browsers may throw when modifying style on detached nodes
+                                }
                               };
-                              return <img src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} style={isRed ? redFilter : undefined} />;
+                              return <img ref={imgRefCallback} src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} />;
                             }
                             // Otherwise render the resolved value as text (emoji or fallback)
                             return <div className="luz-icone-text">{resolved || '⚠️'}</div>;
