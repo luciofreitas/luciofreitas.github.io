@@ -1,383 +1,332 @@
 [
   {
-    "id": "check_engine",
-    "nome": "Check Engine (Motor)",
-    "icone": "⚠️",
-    "cor": "amarelo",
-    "prioridade": "Alto",
-    "descricao": "Indica problema no sistema de gerenciamento do motor ou emissões.",
-    "acoes": [
-      "Continue dirigindo com cuidado",
-      "Faça diagnóstico OBD-II",
-      "Leve à oficina em até 1 semana"
-    ],
-    "causas_comuns": [
-      "Sensor de oxigênio defeituoso",
-      "Problema no sistema de combustível",
-      "Falha no catalisador",
-      "Vela de ignição com defeito"
-    ],
-    "recall_relacionado": false,
-    "categoria": "motor",
-    "tempo_estimado": "30-120 min",
-    "dificuldade": "Médio-Alto"
-  },
-  {
-    "id": "oil_pressure",
-    "nome": "Pressão do Óleo",
-    "icone": "�",
-    "cor": "vermelho",
-    "prioridade": "Crítico",
-    "descricao": "Pressão do óleo do motor muito baixa - risco de dano severo ao motor.",
-    "acoes": [
-      "PARE IMEDIATAMENTE",
-      "Desligue o motor",
-      "Verifique nível de óleo",
-      "Não dirija - chame guincho"
-    ],
-    "causas_comuns": [
-      "Nível baixo de óleo",
-      "Bomba de óleo defeituosa",
-      "Vazamento de óleo",
-      "Sensor de pressão defeituoso"
-    ],
-    "recall_relacionado": false,
-    "categoria": "motor",
-    "tempo_estimado": "15-60 min",
-    "dificuldade": "Baixo-Alto"
-  },
-  {
-    "id": "battery",
-    "nome": "Bateria/Alternador",
-    "icone": "🪫",
-    "cor": "vermelho",
-    "prioridade": "Alto",
-    "descricao": "Sistema de carregamento da bateria com problema.",
-    "acoes": [
-      "Pare em local seguro",
-      "Desligue equipamentos não essenciais",
-      "Vá direto à oficina",
-      "Não desligue o motor desnecessariamente"
-    ],
-    "causas_comuns": [
-      "Alternador defeituoso",
-      "Bateria fraca/defeituosa",
-      "Correia do alternador solta/quebrada",
-      "Conexões soltas"
-    ],
-    "recall_relacionado": false,
-    "categoria": "eletrico",
-    "tempo_estimado": "30-90 min",
-    "dificuldade": "Médio"
-  },
-  {
-    "id": "temperature",
-    "nome": "Temperatura do Motor",
-    "icone": "🌡️",
-    "cor": "vermelho",
-    "prioridade": "Crítico",
-    "descricao": "Motor superaquecendo - risco de dano permanente.",
-    "acoes": [
-      "PARE IMEDIATAMENTE",
-      "Desligue o motor",
-      "Aguarde esfriar (30+ min)",
-      "Verifique nível do radiador",
-      "Chame guincho se necessário"
-    ],
-    "causas_comuns": [
-      "Baixo nível de líquido de arrefecimento",
-      "Vazamento no radiador",
-      "Termostato defeituoso",
-      "Bomba d'água com problema"
-    ],
-    "recall_relacionado": false,
-    "categoria": "arrefecimento",
-    "tempo_estimado": "30-120 min",
-    "dificuldade": "Médio-Alto"
-  },
-  {
     "id": "abs",
-    "nome": "ABS (Sistema de Freios)",
-    "icone": "🅰️",
+    "nome": "ABS",
+    "icone": "/images/luzes-no-painel/abs.png",
     "cor": "amarelo",
-    "prioridade": "Médio",
-    "descricao": "Sistema ABS desativado - freios funcionam normalmente.",
-    "acoes": [
-      "Continue dirigindo com cuidado",
-      "Evite frenadas bruscas",
-      "Agende manutenção",
-      "Teste os freios em velocidade baixa"
-    ],
-    "causas_comuns": [
-      "Sensor ABS defeituoso",
-      "Problema na central ABS",
-      "Conexão elétrica solta",
-      "Anel magnético danificado"
-    ],
-    "recall_relacionado": false,
-    "categoria": "freios",
-    "tempo_estimado": "45-90 min",
-    "dificuldade": "Alto"
+    "prioridade": "Média",
+    "descricao": "ABS inoperante ou falha no sistema.",
+    "acoes": ["Dirija com cuidado", "Procure oficina"],
+    "causas_comuns": ["Sensor de roda com defeito", "Unidade hidráulica com falha"],
+    "categoria": "freios"
   },
   {
     "id": "airbag",
-    "nome": "Airbag/SRS",
-    "icone": "🛡️",
-    "cor": "amarelo",
-    "prioridade": "Alto",
-    "descricao": "Sistema de airbag com falha - risco em caso de acidente.",
-    "acoes": [
-      "Continue dirigindo normalmente",
-      "Leve à oficina especializada",
-      "Não tente reparar sozinho",
-      "Use sempre cinto de segurança"
-    ],
-    "causas_comuns": [
-      "Sensor de impacto defeituoso",
-      "Problema na central do airbag",
-      "Conexão do assento solta",
-      "Airbag já acionado"
-    ],
-    "recall_relacionado": true,
-    "categoria": "seguranca",
-    "tempo_estimado": "60-180 min",
-    "dificuldade": "Alto"
+    "nome": "Airbag",
+    "icone": "/images/luzes-no-painel/airbag.png",
+    "cor": "laranja",
+    "prioridade": "Alta",
+    "descricao": "Falha no sistema de airbag/cintos.",
+    "acoes": ["Diagnóstico especializado"],
+    "causas_comuns": ["Sensor de impacto com defeito"],
+    "categoria": "seguranca"
   },
   {
-    "id": "brake",
-    "nome": "Sistema de Freio",
-    "icone": "�",
+    "id": "alerta-seguranca",
+    "nome": "Alerta de Segurança",
+    "icone": "/images/luzes-no-painel/alerta-seguranca.png",
+    "cor": "laranja",
+    "prioridade": "Alta",
+    "descricao": "Alerta geral de segurança; verifique outros avisos.",
+    "acoes": ["Consultar manual", "Procurar assistência"],
+    "causas_comuns": ["Falha em sensores"],
+    "categoria": "seguranca"
+  },
+  {
+    "id": "bateria",
+    "nome": "Bateria / Alternador",
+    "icone": "/images/luzes-no-painel/bateria.png",
     "cor": "vermelho",
-    "prioridade": "Crítico",
-    "descricao": "Problema no sistema de freios ou freio de mão acionado.",
-    "acoes": [
-      "Verifique se freio de mão está solto",
-      "Se luz continuar, PARE com segurança",
-      "Teste pedal do freio",
-      "Chame guincho se freio não funcionar"
-    ],
-    "causas_comuns": [
-      "Freio de mão acionado",
-      "Baixo nível de fluido de freio",
-      "Pastilhas gastas",
-      "Vazamento no sistema"
-    ],
-    "recall_relacionado": false,
-    "categoria": "freios",
-    "tempo_estimado": "30-120 min",
-    "dificuldade": "Médio-Alto"
+    "prioridade": "Alta",
+    "descricao": "Problema no carregamento ou bateria.",
+    "acoes": ["Desligue equipamentos", "Procure assistência"],
+    "causas_comuns": ["Alternador com defeito"],
+    "categoria": "eletrico"
   },
   {
-    "id": "tpms",
-    "nome": "TPMS (Pressão dos Pneus)",
-    "icone": "⚫",
-    "cor": "amarelo",
-    "prioridade": "Médio",
-    "descricao": "Pressão de um ou mais pneus fora do padrão.",
-    "acoes": [
-      "Verifique visualmente os pneus",
-      "Meça a pressão de todos os pneus",
-      "Calibre conforme especificação",
-      "Se luz persistir, verifique sensores"
-    ],
-    "causas_comuns": [
-      "Pneu com pressão baixa",
-      "Mudança brusca de temperatura",
-      "Sensor TPMS defeituoso",
-      "Pneu furado ou com vazamento"
-    ],
-    "recall_relacionado": false,
-    "categoria": "pneus",
-    "tempo_estimado": "15-30 min",
-    "dificuldade": "Baixo"
+    "id": "capo-aberto",
+    "nome": "Capô Aberto",
+    "icone": "/images/luzes-no-painel/capo-aberto.png",
+    "cor": "laranja",
+    "prioridade": "Baixa",
+    "descricao": "Capô aberto ou mal fechado.",
+    "acoes": ["Fechar corretamente"],
+    "causas_comuns": ["Capô não fechado"],
+    "categoria": "alerta"
   },
   {
-    "id": "esp_traction",
-    "nome": "ESP/Controle de Tração",
-    "icone": "�",
-    "cor": "amarelo",
-    "prioridade": "Médio",
-    "descricao": "Sistema de controle de estabilidade desativado ou ativo.",
-    "acoes": [
-      "Continue dirigindo com cuidado",
-      "Reduza velocidade em curvas",
-      "Evite acelerações bruscas",
-      "Se luz fixa, leve à oficina"
-    ],
-    "causas_comuns": [
-      "Sistema ativado (normal)",
-      "Sensor defeituoso",
-      "Problema no ABS",
-      "Sistema desligado manualmente"
-    ],
-    "recall_relacionado": false,
-    "categoria": "seguranca",
-    "tempo_estimado": "45-90 min",
-    "dificuldade": "Alto"
-  },
-  {
-    "id": "fuel",
-    "nome": "Combustível Baixo",
-    "icone": "⛽",
-    "cor": "amarelo",
-    "prioridade": "Baixo",
-    "descricao": "Nível de combustível baixo - abasteça em breve.",
-    "acoes": [
-      "Procure posto mais próximo",
-      "Evite andar com reserva por muito tempo",
-      "Abasteça o quanto antes",
-      "Não deixe acabar completamente"
-    ],
-    "causas_comuns": [
-      "Combustível realmente baixo",
-      "Sensor de nível defeituoso",
-      "Boia do tanque com problema"
-    ],
-    "recall_relacionado": false,
-    "categoria": "combustivel",
-    "tempo_estimado": "5-30 min",
-    "dificuldade": "Baixo"
-  },
-  {
-    "id": "glow_plug",
-    "nome": "Vela Aquecedora (Diesel)",
-    "icone": "🔥",
-    "cor": "amarelo",
-    "prioridade": "Baixo",
-    "descricao": "Sistema de preaquecimento para motor diesel.",
-    "acoes": [
-      "Aguarde luz apagar antes de dar partida",
-      "Normal em tempo frio",
-      "Se não apagar, verifique sistema",
-      "Mantenha rotina de manutenção"
-    ],
-    "causas_comuns": [
-      "Funcionamento normal",
-      "Vela aquecedora defeituosa",
-      "Problema no módulo de controle",
-      "Sensor de temperatura defeituoso"
-    ],
-    "recall_relacionado": false,
-    "categoria": "motor",
-    "tempo_estimado": "30-60 min",
-    "dificuldade": "Médio"
-  },
-  {
-    "id": "dpf",
-    "nome": "DPF/Filtro de Partículas",
-    "icone": "💨",
-    "cor": "amarelo",
-    "prioridade": "Médio",
-    "descricao": "Filtro de partículas diesel precisa regeneração.",
-    "acoes": [
-      "Faça viagem em estrada (20+ min)",
-      "Mantenha RPM entre 2000-3000",
-      "Não desligue durante regeneração",
-      "Se persistir, leve à oficina"
-    ],
-    "causas_comuns": [
-      "Filtro entupido por uso urbano",
-      "Regeneração incompleta",
-      "Sensor defeituoso",
-      "Combustível de má qualidade"
-    ],
-    "recall_relacionado": false,
-    "categoria": "emissoes",
-    "tempo_estimado": "20-60 min (regeneração)",
-    "dificuldade": "Baixo-Médio"
-  },
-  {
-    "id": "seatbelt",
+    "id": "cinto-de-seguranca",
     "nome": "Cinto de Segurança",
-    "icone": "🔗",
+    "icone": "/images/luzes-no-painel/cinto-de-seguranca.png",
     "cor": "vermelho",
-    "prioridade": "Alto",
-    "descricao": "Lembrete para colocar o cinto de segurança.",
-    "acoes": [
-      "Coloque o cinto de segurança",
-      "Verifique se está bem travado",
-      "Ajuste a posição corretamente"
-    ],
-    "causas_comuns": [
-      "Cinto não colocado",
-      "Cinto não travado corretamente",
-      "Sensor do assento ativado",
-      "Fivela solta"
-    ],
-    "recall_relacionado": false,
-    "categoria": "seguranca",
-    "tempo_estimado": "1 min",
-    "dificuldade": "Baixo"
+    "prioridade": "Alta",
+    "descricao": "Aviso de cinto não afivelado ou problema no sistema.",
+    "acoes": ["Afivelar cinto"],
+    "causas_comuns": ["Cinto não afivelado"],
+    "categoria": "seguranca"
   },
   {
-    "id": "door_open",
-    "nome": "Porta Aberta",
-    "icone": "🚪",
-    "cor": "amarelo",
-    "prioridade": "Baixo",
-    "descricao": "Uma ou mais portas estão abertas ou mal fechadas.",
-    "acoes": [
-      "Verifique todas as portas",
-      "Feche completamente",
-      "Verifique malas e capô",
-      "Teste novamente"
-    ],
-    "causas_comuns": [
-      "Porta mal fechada",
-      "Sensor de porta defeituoso",
-      "Malas/capô abertos",
-      "Problema elétrico"
-    ],
-    "recall_relacionado": false,
-    "categoria": "seguranca",
-    "tempo_estimado": "2-5 min",
-    "dificuldade": "Baixo"
-  },
-  {
-    "id": "turn_signal",
-    "nome": "Pisca-Pisca",
-    "icone": "⬅️",
+    "id": "desembacador",
+    "nome": "Desembaçador",
+    "icone": "/images/luzes-no-painel/desembacador-dianteiro-traseiro.png",
     "cor": "verde",
-    "prioridade": "Baixo",
-    "descricao": "Indicador de direção ativado (seta).",
-    "acoes": [
-      "Desligue a seta se não estiver virando",
-      "Complete a manobra",
-      "Verifique se desligou automaticamente"
-    ],
-    "causas_comuns": [
-      "Esquecimento do motorista",
-      "Curva incompleta",
-      "Relé defeituoso",
-      "Interruptor travado"
-    ],
-    "recall_relacionado": false,
-    "categoria": "eletrico",
-    "tempo_estimado": "1 min",
-    "dificuldade": "Baixo"
+    "prioridade": "Baixa",
+    "descricao": "Sistema de desembaçamento ativo.",
+    "acoes": ["Nenhuma ação necessária"],
+    "causas_comuns": ["Ativado pelo motorista"],
+    "categoria": "conforto"
   },
   {
-    "id": "parking_brake",
-    "nome": "Freio de Mão",
-    "icone": "🅿️",
+    "id": "direcao-eletrica",
+    "nome": "Direção Elétrica",
+    "icone": "/images/luzes-no-painel/direcao-eletrica.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Perda de assistência da direção elétrica.",
+    "acoes": ["Dirija com cuidado", "Procure oficina"],
+    "causas_comuns": ["Falha elétrica"],
+    "categoria": "eletrico"
+  },
+  {
+    "id": "epc",
+    "nome": "EPC",
+    "icone": "/images/luzes-no-painel/epc.png",
+    "cor": "amarelo",
+    "prioridade": "Alta",
+    "descricao": "Falha no controle eletrônico do motor.",
+    "acoes": ["Diagnóstico OBD-II"],
+    "causas_comuns": ["Sensor defeituoso"],
+    "categoria": "motor"
+  },
+  {
+    "id": "falha-de-freio",
+    "nome": "Falha de Freio",
+    "icone": "/images/luzes-no-painel/falha-de-freio.png",
     "cor": "vermelho",
-    "prioridade": "Médio",
-    "descricao": "Freio de estacionamento acionado.",
-    "acoes": [
-      "Solte o freio de mão",
-      "Verifique se luz apagou",
-      "Se persistir, verifique nível do fluido",
-      "Teste funcionamento"
-    ],
-    "causas_comuns": [
-      "Freio de mão acionado",
-      "Cabo esticado",
-      "Baixo nível de fluido",
-      "Ajuste necessário"
-    ],
-    "recall_relacionado": false,
-    "categoria": "freios",
-    "tempo_estimado": "1-30 min",
-    "dificuldade": "Baixo-Médio"
+    "prioridade": "Alta",
+    "descricao": "Problema crítico no sistema de freios.",
+    "acoes": ["PARE com segurança", "Chame assistência"],
+    "causas_comuns": ["Vazamento no circuito"],
+    "categoria": "freios"
+  },
+  {
+    "id": "falha-luzes",
+    "nome": "Falha de Iluminação",
+    "icone": "/images/luzes-no-painel/falha-luzes.png",
+    "cor": "laranja",
+    "prioridade": "Média",
+    "descricao": "Problema em luzes externas.",
+    "acoes": ["Verificar e substituir lâmpadas"],
+    "causas_comuns": ["Lâmpadas queimadas"],
+    "categoria": "iluminacao"
+  },
+  {
+    "id": "farol-alto",
+    "nome": "Farol Alto",
+    "icone": "/images/luzes-no-painel/farol-alto.png",
+    "cor": "azul",
+    "prioridade": "Baixa",
+    "descricao": "Farol alto acionado.",
+    "acoes": ["Abaixe ao cruzar com veículos"],
+    "causas_comuns": ["Alavanca acionada"],
+    "categoria": "iluminacao"
+  },
+  {
+    "id": "farol-baixo",
+    "nome": "Farol Baixo",
+    "icone": "/images/luzes-no-painel/farol-baixo.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Farol baixo ligado.",
+    "acoes": [],
+    "causas_comuns": [],
+    "categoria": "iluminacao"
+  },
+  {
+    "id": "farol-de-neblina",
+    "nome": "Farol de Neblina",
+    "icone": "/images/luzes-no-painel/farol-de-neblina.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Farol de neblina ativo.",
+    "acoes": ["Usar quando necessário"],
+    "causas_comuns": ["Ativado pelo motorista"],
+    "categoria": "iluminacao"
+  },
+  {
+    "id": "filtros-particulas",
+    "nome": "Filtro de Partículas",
+    "icone": "/images/luzes-no-painel/filtros-particulas.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Regeneração do DPF necessária.",
+    "acoes": ["Fazer viagem em estrada para regeneração"],
+    "causas_comuns": ["Uso urbano frequente"],
+    "categoria": "emissoes"
+  },
+  {
+    "id": "freio-de-mao",
+    "nome": "Freio de Mão",
+    "icone": "/images/luzes-no-painel/freio-de-mao.png",
+    "cor": "vermelho",
+    "prioridade": "Média",
+    "descricao": "Freio de estacionamento acionado ou problema no sistema.",
+    "acoes": ["Soltar freio de mão", "Verificar nível de fluido"],
+    "causas_comuns": ["Freio de mão acionado"],
+    "categoria": "freios"
+  },
+  {
+    "id": "indicador-de-direcao",
+    "nome": "Indicador de Direção",
+    "icone": "/images/luzes-no-painel/indicador-de-direcao.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Seta de direção ativa.",
+    "acoes": ["Desligar após manobra"],
+    "causas_comuns": ["Acionado pelo motorista"],
+    "categoria": "sinalizacao"
+  },
+  {
+    "id": "injecao_eletronica",
+    "nome": "Injeção / Check Engine",
+    "icone": "/images/luzes-no-painel/injecao_eletronica.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Falha detectada no sistema de injeção/emissão.",
+    "acoes": ["Diagnóstico OBD-II"],
+    "causas_comuns": ["Sensor com defeito"],
+    "categoria": "motor"
+  },
+  {
+    "id": "lanterna",
+    "nome": "Lanterna",
+    "icone": "/images/luzes-no-painel/lanterna.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Lanterna / luz de posição ligada.",
+    "acoes": [],
+    "causas_comuns": [],
+    "categoria": "iluminacao"
+  },
+  {
+    "id": "oleo-do-motor",
+    "nome": "Óleo do Motor",
+    "icone": "/images/luzes-no-painel/oleo-do-motor.png",
+    "cor": "vermelho",
+    "prioridade": "Alta",
+    "descricao": "Pressão ou nível de óleo crítico.",
+    "acoes": ["PARE e verificar nível de óleo"],
+    "causas_comuns": ["Nível de óleo baixo"],
+    "categoria": "motor"
+  },
+  {
+    "id": "piloto-automatico",
+    "nome": "Piloto Automático",
+    "icone": "/images/luzes-no-painel/piloto-automatico.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Cruise control ativo.",
+    "acoes": ["Desativar se desejar"],
+    "causas_comuns": ["Ativado pelo motorista"],
+    "categoria": "conforto"
+  },
+  {
+    "id": "pisca-alerta",
+    "nome": "Pisca Alerta",
+    "icone": "/images/luzes-no-painel/pisca-alerta.png",
+    "cor": "laranja",
+    "prioridade": "Baixa",
+    "descricao": "Pisca-alerta ativado.",
+    "acoes": ["Usar em emergência"],
+    "causas_comuns": ["Ativado pelo motorista"],
+    "categoria": "sinalizacao"
+  },
+  {
+    "id": "porta-aberta",
+    "nome": "Porta Aberta",
+    "icone": "/images/luzes-no-painel/porta-aberta.png",
+    "cor": "amarelo",
+    "prioridade": "Baixa",
+    "descricao": "Porta aberta ou mal fechada.",
+    "acoes": ["Fechar a porta"],
+    "causas_comuns": ["Porta não fechada"],
+    "categoria": "seguranca"
+  },
+  {
+    "id": "porta-malas-aberto",
+    "nome": "Porta-malas Aberto",
+    "icone": "/images/luzes-no-painel/porta-malas-aberto.png",
+    "cor": "amarelo",
+    "prioridade": "Baixa",
+    "descricao": "Porta-malas aberto.",
+    "acoes": ["Fechar compartimento"],
+    "causas_comuns": ["Travamento não encaixado"],
+    "categoria": "alerta"
+  },
+  {
+    "id": "pre-aquecimento-das-velas",
+    "nome": "Pré-aquecimento das Velas",
+    "icone": "/images/luzes-no-painel/pre-aquecimento-das-velas.png",
+    "cor": "amarelo",
+    "prioridade": "Baixa",
+    "descricao": "Pré-aquecimento em motores diesel.",
+    "acoes": ["Aguardar apagar antes de ligar"],
+    "causas_comuns": ["Temperatura baixa"],
+    "categoria": "motor"
+  },
+  {
+    "id": "pressao-dos-pneus",
+    "nome": "Pressão dos Pneus",
+    "icone": "/images/luzes-no-painel/pressao-dos-pneus.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Pressão baixa em um ou mais pneus.",
+    "acoes": ["Verificar e calibrar pneus"],
+    "causas_comuns": ["Pneu com pressão baixa"],
+    "categoria": "pneus"
+  },
+  {
+    "id": "reserva-de-combustivel",
+    "nome": "Reserva de Combustível",
+    "icone": "/images/luzes-no-painel/reserva-de-combustivel.png",
+    "cor": "laranja",
+    "prioridade": "Média",
+    "descricao": "Nível de combustível baixo.",
+    "acoes": ["Abastecer o quanto antes"],
+    "causas_comuns": ["Tanque em reserva"],
+    "categoria": "combustivel"
+  },
+  {
+    "id": "sistema-de-tracao-estabilidade",
+    "nome": "Sistema de Tração",
+    "icone": "/images/luzes-no-painel/sistema-de-tracao-estabilidade.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Tração/estabilidade ativada ou falha.",
+    "acoes": ["Reduza velocidade", "Procurar diagnóstico"],
+    "causas_comuns": ["Sensor de roda defeituoso"],
+    "categoria": "seguranca"
+  },
+  {
+    "id": "start-stop",
+    "nome": "Start-Stop",
+    "icone": "/images/luzes-no-painel/start-stop.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Sistema Start-Stop pronto/ativo.",
+    "acoes": [],
+    "causas_comuns": [],
+    "categoria": "conforto"
+  },
+  {
+    "id": "temperatura-do-motor",
+    "nome": "Temperatura do Motor",
+    "icone": "/images/luzes-no-painel/temperatura-do-motor.png",
+    "cor": "vermelho",
+    "prioridade": "Alta",
+    "descricao": "Superaquecimento do motor.",
+    "acoes": ["PARE e desligue o motor"],
+    "causas_comuns": ["Baixo nível de líquido de arrefecimento"],
+    "categoria": "motor"
   }
 ]
