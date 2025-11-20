@@ -280,7 +280,11 @@ function LuzesDoPainel() {
                               resolved.includes('/') || /\.(png|jpg|jpeg|svg|gif)$/.test(resolved)
                             );
                             if (looksLikeImage) {
-                              return <img src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} />;
+                              const redFilter = {
+                                WebkitFilter: "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)",
+                                filter: "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)"
+                              };
+                              return <img src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} style={isRed ? redFilter : undefined} />;
                             }
                             // Otherwise render the resolved value as text (emoji or fallback)
                             return <div className="luz-icone-text">{resolved || '⚠️'}</div>;
