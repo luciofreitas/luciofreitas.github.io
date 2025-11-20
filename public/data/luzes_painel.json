@@ -1,0 +1,227 @@
+[
+  {
+    "id": "abs",
+    "nome": "ABS",
+    "icone": "/images/luzes-no-painel/abs.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Indica que o sistema de freios ABS está inoperante ou ocorreu uma falha no sistema.",
+    "acoes": [
+      "Reduza velocidade e dirija com cuidado",
+      "Evite frenagens bruscas",
+      "Agende verificação na oficina",
+      "Teste os freios em baixa velocidade"
+    ],
+    "causas_comuns": ["Sensor de roda com defeito", "Problema na unidade hidráulica ABS", "Fusível queimado", "Conexões soltas"]
+  },
+  {
+    "id": "airbag",
+    "nome": "Airbag",
+    "icone": "/images/luzes-no-painel/airbag.png",
+    "cor": "laranja",
+    "prioridade": "Alta",
+    "descricao": "Sinaliza falha no sistema de airbags ou cintos de segurança; pode comprometer a proteção em colisões.",
+    "acoes": ["Leve o veículo para diagnóstico especializado", "Não tente reparar por conta própria", "Verifique conexões e sensores relacionados"],
+    "causas_comuns": ["Sensor de impacto com defeito", "Conexões soltas", "Falha na central SRS"]
+  },
+  {
+    "id": "alerta-seguranca",
+    "nome": "Alerta de Segurança",
+    "icone": "/images/luzes-no-painel/alerta-seguranca.png",
+    "cor": "laranja",
+    "prioridade": "Alta",
+    "descricao": "Indicador geral de segurança que pode apontar para diferentes sistemas com prioridade de atenção.",
+    "acoes": ["Consulte o manual do veículo para identificar a causa específica", "Verifique outros avisos no painel", "Procure assistência se necessário"],
+    "causas_comuns": ["Falha em sensores de segurança", "Comunicação com a central", "Problema em sistemas auxiliares"]
+  },
+  {
+    "id": "bateria",
+    "nome": "Bateria / Alternador",
+    "icone": "/images/luzes-no-painel/bateria.png",
+    "cor": "vermelho",
+    "prioridade": "Alta",
+    "descricao": "Indica problema no sistema de carregamento (alternador) ou na bateria.",
+    "acoes": ["Pare em local seguro", "Desligue itens elétricos não essenciais", "Procure assistência para verificar alternador e bateria"],
+    "causas_comuns": ["Alternador com defeito", "Correia do alternador rompida", "Bateria com problema"]
+  },
+  {
+    "id": "capo-aberto",
+    "nome": "Capô Aberto",
+    "icone": "/images/luzes-no-painel/capo-aberto.png",
+    "cor": "laranja",
+    "prioridade": "Baixa",
+    "descricao": "Indica que o capô do veículo está aberto ou mal travado.",
+    "acoes": ["Pare em local seguro e feche o capô corretamente", "Verifique se o mecanismo de travamento está funcionando"],
+    "causas_comuns": ["Capô não completamente fechado", "Sensor de trava com mau contato"]
+  },
+  {
+    "id": "cinto-de-seguranca",
+    "nome": "Cinto de Segurança",
+    "icone": "/images/luzes-no-painel/cinto-de-seguranca.png",
+    "cor": "vermelho",
+    "prioridade": "Alta",
+    "descricao": "Lembrete para colocar o cinto ou indicar problema no sistema do cinto.",
+    "acoes": ["Coloque o cinto imediatamente", "Verifique travamento e ajuste do cinto"],
+    "causas_comuns": ["Cinto não colocado", "Sensor do assento ativado", "Fivela com mau contato"]
+  },
+  {
+    "id": "desembacador",
+    "nome": "Desembaçador (Dianteiro / Traseiro)",
+    "icone": "/images/luzes-no-painel/desembacador-dianteiro-traseiro.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Indica que o sistema de desembaçamento do para-brisa/traseiro está ativo.",
+    "acoes": ["Nenhuma ação necessária além de usar o sistema quando preciso"],
+    "causas_comuns": ["Sistema ativado pelo motorista", "Automático por sensores de condensa"]
+  },
+  {
+    "id": "direcao-eletrica",
+    "nome": "Direção Elétrica",
+    "icone": "/images/luzes-no-painel/direcao-eletrica.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Sinaliza falha ou perda de assistência da direção elétrica.",
+    "acoes": ["Reduza velocidade e dirija com cuidado", "Procure oficina para diagnóstico da assistência"],
+    "causas_comuns": ["Bomba/assistência elétrica com defeito", "Problema elétrico", "Fusível queimado"]
+  },
+  {
+    "id": "epc",
+    "nome": "EPC (Controle Eletrônico)",
+    "icone": "/images/luzes-no-painel/epc.png",
+    "cor": "amarelo",
+    "prioridade": "Alta",
+    "descricao": "Indica uma falha no sistema eletrônico de controle do motor (potência, aceleração).",
+    "acoes": ["Evite acelerar forte", "Leve para diagnóstico o mais breve possível"],
+    "causas_comuns": ["Falha em sensores de motor", "Problema na unidade de controle", "Circuito elétrico com falha"]
+  },
+  {
+    "id": "falha-de-freio",
+    "nome": "Falha de Freio",
+    "icone": "/images/luzes-no-painel/falha-de-freio.png",
+    "cor": "vermelho",
+    "prioridade": "Alta",
+    "descricao": "Alerta de problema no sistema de freios; risco à segurança ao dirigir.",
+    "acoes": ["PARE com segurança", "Não continue dirigindo se os freios estiverem comprometidos", "Chame socorro ou guincho"],
+    "causas_comuns": ["Nível de fluido baixo", "Vazamento no circuito", "Falha na assistência de frenagem"]
+  },
+  {
+    "id": "falha-luzes",
+    "nome": "Falha no Sistema de Iluminação",
+    "icone": "/images/luzes-no-painel/falha-luzes.png",
+    "cor": "laranja",
+    "prioridade": "Média",
+    "descricao": "Indica problema em luzes externas (faróis, lanternas, etc.).",
+    "acoes": ["Verifique funcionamento de faróis e lanternas", "Substitua lâmpadas queimadas", "Procure assistência elétrica se persistir"],
+    "causas_comuns": ["Lâmpadas queimadas", "Fiação com mau contato", "Relé/interruptor com problema"]
+  },
+  {
+    "id": "farol-alto",
+    "nome": "Farol Alto",
+    "icone": "/images/luzes-no-painel/farol-alto.png",
+    "cor": "azul",
+    "prioridade": "Baixa",
+    "descricao": "Indica que o farol alto está acionado.",
+    "acoes": ["Abaixe ao cruzar com outros veículos", "Use apenas em vias escuras e sem veículos à frente"],
+    "causas_comuns": ["Alavanca acionada", "Alavanca presa"]
+  },
+  {
+    "id": "farol-baixo",
+    "nome": "Farol Baixo",
+    "icone": "/images/luzes-no-painel/farol-baixo.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Indica que os faróis baixos estão ligados.",
+    "acoes": ["Nenhuma ação necessária"],
+    "causas_comuns": ["Faróis acionados manualmente"]
+  },
+  {
+    "id": "farol-de-neblina",
+    "nome": "Farol de Neblina",
+    "icone": "/images/luzes-no-painel/farol-de-neblina.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Indica que o farol de neblina está ativo.",
+    "acoes": ["Use apenas em condições de baixa visibilidade (neblina, chuva forte)"],
+    "causas_comuns": ["Motorista acionou o farol de neblina"]
+  },
+  {
+    "id": "filtros-particulas",
+    "nome": "Filtro de Partículas (DPF)",
+    "icone": "/images/luzes-no-painel/filtros-particulas.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Indica necessidade de regeneração do filtro de partículas (veículos diesel).",
+    "acoes": ["Faça viagem em estrada por 20+ minutos", "Mantenha RPM adequado durante regeneração", "Se persistir, leve à oficina"],
+    "causas_comuns": ["Uso urbano frequente", "Regeneração incompleta", "Sensor defeituoso"]
+  },
+  {
+    "id": "freio-de-mao",
+    "nome": "Freio de Mão",
+    "icone": "/images/luzes-no-painel/freio-de-mao.png",
+    "cor": "vermelho",
+    "prioridade": "Média",
+    "descricao": "Indica que o freio de estacionamento está acionado ou há problema no sistema.",
+    "acoes": ["Verifique se o freio de mão está totalmente solto", "Se a luz permanecer, verifique nível do fluido"],
+    "causas_comuns": ["Freio de mão acionado", "Cabo esticado", "Nível de fluido baixo"]
+  },
+  {
+    "id": "indicador-de-direcao",
+    "nome": "Indicador de Direção (Seta)",
+    "icone": "/images/luzes-no-painel/indicador-de-direcao.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Mostra que a seta/indicador de direção está ativado.",
+    "acoes": ["Desligue após completar a manobra", "Verifique se o relé está funcionando corretamente"],
+    "causas_comuns": ["Esquecimento do motorista", "Relé defeituoso"]
+  },
+  {
+    "id": "injecao-eletronica",
+    "nome": "Injeção Eletrônica / Check Engine",
+    "icone": "/images/luzes-no-painel/injecao-eletronica.png",
+    "cor": "amarelo",
+    "prioridade": "Média",
+    "descricao": "Indica que a central detectou falha no sistema de injeção/combustão; requer diagnóstico.",
+    "acoes": ["Agende diagnóstico OBD-II", "Evite rodar longas distâncias sem avaliação"],
+    "causas_comuns": ["Sensor com defeito", "Problema em bicos injetores", "Mistura ar/combustível incorreta"]
+  },
+  {
+    "id": "lanterna",
+    "nome": "Lanterna / Luz de Posição",
+    "icone": "/images/luzes-no-painel/lanterna.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Indica que as luzes de posição/lanternas estão ligadas.",
+    "acoes": ["Nenhuma ação necessária"],
+    "causas_comuns": ["Sistema de iluminação acionado"]
+  },
+  {
+    "id": "oleo-do-motor",
+    "nome": "Óleo do Motor / Pressão de Óleo",
+    "icone": "/images/luzes-no-painel/oleo-do-motor.png",
+    "cor": "vermelho",
+    "prioridade": "Alta",
+    "descricao": "Indica pressão de óleo baixa ou nível crítico — risco de danos ao motor.",
+    "acoes": ["PARE imediatamente e desligue o motor", "Verifique o nível de óleo", "Não continue dirigindo"],
+    "causas_comuns": ["Nível de óleo baixo", "Baixo nivel de óleo", "Vazamento", "Bomba de óleo com defeito"]
+  },
+  {
+    "id": "piloto-automatico",
+    "nome": "Piloto Automático (Cruise Control)",
+    "icone": "/images/luzes-no-painel/piloto-automatico.png",
+    "cor": "verde",
+    "prioridade": "Baixa",
+    "descricao": "Indica que o controle de velocidade (piloto automático) está ativo.",
+    "acoes": ["Nenhuma ação necessária; desative se preferir"],
+    "causas_comuns": ["Sistema ativado pelo motorista"]
+  },
+  {
+    "id": "pisca-alerta",
+    "nome": "Pisca Alerta",
+    "icone": "/images/luzes-no-painel/pisca-alerta.png",
+    "cor": "laranja",
+    "prioridade": "Baixa",
+    "descricao": "Indica que o pisca-alerta (sinalização de emergência) está ativado.",
+    "acoes": ["Use em situação de emergência ou quando o veículo estiver parado na via"],
+    "causas_comuns": ["Motorista acionou o pisca-alerta", "Falha no interruptor"]
+  }],
+*** End Patch
