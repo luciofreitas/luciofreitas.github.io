@@ -97,7 +97,7 @@
   {
     "id": "falha-de-freio",
     "nome": "Falha de Freio",
-    "icone": "/images/luzes-no-painel/falha-de-freio.svg",
+    "icone": "/images/luzes-no-painel/falha-de-freio.png",
     "cor": "vermelho",
     "prioridade": "Alta",
     "descricao": "Alerta de problema no sistema de freios; risco à segurança ao dirigir.",
