@@ -291,14 +291,12 @@ function LuzesDoPainel() {
                                     if (typeof resolved === 'string' && resolved.includes('falha-de-freio')) {
                                       el.style.setProperty('filter', 'none', 'important');
                                       el.style.setProperty('-webkit-filter', 'none', 'important');
-                                      el.style.setProperty('border', '2px solid #dc2626', 'important');
-                                      el.style.setProperty('border-radius', '6px', 'important');
+                                      // no border for recolored raster
                                     } else {
                                       // apply recolor filter for vector or non-recolored raster icons
                                       el.style.setProperty('filter', filterValue, 'important');
                                       el.style.setProperty('-webkit-filter', filterValue, 'important');
-                                      el.style.setProperty('border', '2px solid #dc2626', 'important');
-                                      el.style.setProperty('border-radius', '6px', 'important');
+                                      // no border for recolored raster
                                     }
                                   } else {
                                     // remove inline important properties if present
