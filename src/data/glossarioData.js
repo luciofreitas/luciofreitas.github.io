@@ -29,7 +29,7 @@ export const glossarioMockData = [
   { id: 27, nome: "Reserva de Combustível", icone: "/images/luzes-no-painel/reserva-de-combustivel.png", cor: "laranja", prioridade: "Média", descricao: "Nível de combustível baixo.", causas: ["Nível de combustivel na reserva"], acoes: ["Abastecer o quanto antes"] },
   { id: 28, nome: "Sistema de Tração", icone: "/images/luzes-no-painel/sistema-de-tracao-estabilidade.png", cor: "amarelo", prioridade: "Média", descricao: "Tração/estabilidade ativada ou falha.", causas: ["Sensor de roda defeituoso"], acoes: ["Reduza velocidade", "Procurar diagnóstico"] },
   { id: 29, nome: "Start-Stop", icone: "/images/luzes-no-painel/start-stop.png", cor: "verde", prioridade: "Baixa", descricao: "Sistema Start-Stop pronto/ativo.", causas: ["Condições de parada"], acoes: ["Nenhuma ação necessária"] },
-  { id: 30, nome: "Temperatura do Motor", icone: "/images/luzes-no-painel/temperatura-do-motor.png", cor: "vermelho", prioridade: "Alta", descricao: "Superaquecimento do motor.", causas: ["Baixo nível de líquido de arrefecimento"], acoes: ["PARE e desligue o motor"] }
+  { id: 30, nome: "Temperatura do Motor", icone: "/images/luzes-no-painel/temperatura-do-motor.png", cor: "vermelho", prioridade: "Alta", descricao: "Superaquecimento do motor.", causas: ["Baixo nível de líquido de arrefecimento", "Falha no eletroventiulador do radiador"], acoes: ["PARE e desligue o motor"] }
 ];
 
 export const avaliacoesIniciais = {
