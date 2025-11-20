@@ -272,7 +272,7 @@ function LuzesDoPainel() {
                         {(() => {
                         const isFalhaDeFreio = (String(luz.id) === 'falha-de-freio') || (String(luz.id) === '10') || (String(luz.nome || '').toLowerCase().includes('falha de freio'));
                         const isRed = isFalhaDeFreio || (String(luz.cor || '').toLowerCase() === 'vermelho');
-                        return <div className={`luz-icone ${isRed ? 'luz-icone--red' : ''}`}>
+                        return <div className={`luz-icone ${isRed ? 'luz-icone--red' : ''}`} style={isRed ? { filter: 'none' } : undefined}>
                           {(() => {
                             const resolved = resolveIcon(luz.icone);
                             // If resolved looks like an image path or URL, render an <img>
