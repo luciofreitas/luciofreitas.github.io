@@ -108,13 +108,11 @@
   text-align: center;
   color: #4a5568;
   margin-bottom: 2rem;
-  max-width: clamp(48rem, 85vw, 70rem); /* ~768px a 1120px - largura aumentada para texto em uma linha */
+  max-width: clamp(60rem, 85vw, 80rem);
   margin-left: auto;
   margin-right: auto;
   line-height: 1.6;
-  white-space: nowrap; /* Mantém texto em uma linha */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Adiciona ... se texto for muito longo */
+  white-space: normal; /* permitir quebra de linhas */
 }
 
 .cronograma-grid {

@@ -244,38 +244,19 @@ const ManutencaoPreventiva = () => {
         {/* Cronograma de Manutenção */}
         <section className="manutencao-cronograma">
           <h2>Cronograma de Manutenção por Quilometragem</h2>
-          <p className="section-description">
-            Siga este cronograma baseado na quilometragem do seu veículo. Os itens variam conforme o fabricante,
-            sempre consulte o manual do proprietário do seu carro.
-          </p>
-          
-          <div className="cronograma-grid">
-            {manualData.quilometragens.map((etapa, index) => (
-              <div key={index} className="cronograma-card">
-                <div className="cronograma-header">
-                  <h3>{etapa.km}</h3>
-                  <span className="itens-count">{etapa.itens.length} itens</span>
-                </div>
-                <ul className="cronograma-lista">
-                  {etapa.itens.map((item, idx) => (
-                    <li key={idx} className={`prioridade-${item.prioridade}`}>
-                      <span className="prioridade-badge">{item.prioridade}</span>
-                      {item.item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div className="section-description">
+            <p>Siga este cronograma baseado na quilometragem do seu veículo.</p>
+            <p>Os itens variam conforme o fabricante — sempre consulte o manual do proprietário do seu carro.</p>
           </div>
-
+          
           <div className="legenda-prioridades">
             <h4>Legenda de Prioridades:</h4>
             <div className="legenda-items">
               <span className="legenda-item alta">
-                <span className="legenda-badge">alta</span> Essencial - não pode ser adiado
+                <span className="legenda-badge">ALTA</span> Essencial - não pode ser adiado
               </span>
               <span className="legenda-item media">
-                <span className="legenda-badge">média</span> Importante - agende em breve
+                <span className="legenda-badge">MÉDIA</span> Importante - agende em breve
               </span>
             </div>
             <div className="disclaimer">
@@ -284,6 +265,36 @@ const ManutencaoPreventiva = () => {
               </p>
             </div>
           </div>
+
+          <div className="cronograma-grid">
+            {manualData.quilometragens.map((etapa, index) => (
+              <div key={index} className="cronograma-card">
+                <div className="cronograma-header">
+                  <h3>{etapa.km}</h3>
+                  <span className="itens-count">{etapa.itens.length} itens</span>
+                </div>
+                <ul className="cronograma-lista">
+                  {etapa.itens.map((item, idx) => {
+                    const prioridadeRaw = String(item.prioridade || '').trim();
+                    const prioridadeSlug = prioridadeRaw
+                      .normalize('NFKD')
+                      .replace(/\p{Diacritic}/gu, '')
+                      .replace(/[^a-zA-Z0-9]+/g, '-')
+                      .replace(/(^-|-$)/g, '')
+                      .toLowerCase();
+                    return (
+                      <li key={idx} className={`prioridade-${prioridadeSlug}`}>
+                        <span className="prioridade-badge">{prioridadeRaw}</span>
+                        {item.item}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          
         </section>
 
         {/* Dicas Práticas */}
