@@ -18,23 +18,20 @@ const ManutencaoPreventiva = () => {
       {
         km: '5.000 km',
         itens: [
-          { item: 'Troca de óleo do motor', prioridade: 'alta' },
-          { item: 'Troca do filtro de óleo', prioridade: 'alta' },
-          { item: 'Verificação de níveis (freio, arrefecimento, direção)', prioridade: 'alta' },
-          { item: 'Calibragem dos pneus', prioridade: 'média' },
-          { item: 'Inspeção visual de vazamentos', prioridade: 'média' }
+          { item: 'Checagem do nível e condição do óleo (verificar cor/nível)', prioridade: 'alta' },
+          { item: 'Inspeção de vazamentos e verificação de níveis (freio, arrefecimento, direção)', prioridade: 'alta' },
+          { item: 'Verificação rápida dos pneus (pressão/visual)', prioridade: 'média' }
         ]
       },
       {
         km: '10.000 km',
         itens: [
-          { item: 'Troca de óleo do motor', prioridade: 'alta' },
-          { item: 'Troca do filtro de óleo', prioridade: 'alta' },
-          { item: 'Troca do filtro de ar', prioridade: 'alta' },
+          { item: 'Troca de óleo do motor + filtro — A cada 10.000 km OU 6 meses (o que ocorrer primeiro). Ajuste conforme tipo de óleo / manual.', prioridade: 'alta' },
+          { item: 'Troca do filtro de ar (exceto uso severo)', prioridade: 'alta' },
           { item: 'Troca do filtro de ar condicionado', prioridade: 'média' },
           { item: 'Rodízio de pneus', prioridade: 'média' },
           { item: 'Verificação do sistema de freios', prioridade: 'alta' },
-          { item: 'Limpeza dos bicos injetores', prioridade: 'média' }
+          { item: 'Limpeza dos bicos injetores (se aplicável)', prioridade: 'média' }
         ]
       },
       {
@@ -52,13 +49,10 @@ const ManutencaoPreventiva = () => {
       {
         km: '30.000 km',
         itens: [
-          { item: 'Troca de óleo do motor', prioridade: 'alta' },
-          { item: 'Troca do filtro de óleo', prioridade: 'alta' },
-          { item: 'Troca do filtro de ar', prioridade: 'alta' },
-          { item: 'Troca das velas de ignição', prioridade: 'alta' },
+          { item: 'Inspeção de sistemas (verificar necessidade de troca de óleo conforme indicador)', prioridade: 'alta' },
+          { item: 'Troca das velas de ignição (nota: vida útil varia — 15.000–100.000 km dependendo do material)', prioridade: 'alta' },
           { item: 'Limpeza do corpo de borboleta', prioridade: 'média' },
-          { item: 'Verificação da correia dentada', prioridade: 'alta' },
-          { item: 'Troca do fluido de freio', prioridade: 'alta' }
+          { item: 'Troca do fluido de freio — A cada 2 anos OU 30.000 km (o que ocorrer primeiro)', prioridade: 'alta' }
         ]
       },
       {
@@ -74,15 +68,13 @@ const ManutencaoPreventiva = () => {
         ]
       },
       {
-        km: '50.000 km',
+        km: '60.000 km',
         itens: [
-          { item: 'Troca de óleo do motor', prioridade: 'alta' },
-          { item: 'Troca do filtro de óleo', prioridade: 'alta' },
-          { item: 'Troca do filtro de ar', prioridade: 'alta' },
-          { item: 'Troca da correia dentada', prioridade: 'alta' },
-          { item: 'Troca da correia do alternador', prioridade: 'média' },
-          { item: 'Substituição das pastilhas de freio', prioridade: 'alta' },
-          { item: 'Verificação do sistema de direção', prioridade: 'média' }
+          { item: 'Troca da correia dentada (ou conforme manual do fabricante) — muitos fabricantes indicam ~60.000 km', prioridade: 'alta' },
+          { item: 'Troca de óleo do motor + filtro (conforme indicador)', prioridade: 'alta' },
+          { item: 'Troca do filtro de ar (se necessário)', prioridade: 'alta' },
+          { item: 'Substituição das pastilhas de freio (se necessário)', prioridade: 'alta' },
+          { item: 'Revisão completa da suspensão / verificação dos discos', prioridade: 'alta' }
         ]
       },
       {
@@ -157,12 +149,12 @@ const ManutencaoPreventiva = () => {
       {
         servico: 'Troca de óleo + filtro',
         faixa: 'R$ 150 - R$ 350',
-        periodicidade: 'A cada 5.000 - 10.000 km'
+        periodicidade: 'A cada 10.000 km OU 6 meses (o que ocorrer primeiro); ajustar conforme tipo de óleo / manual do fabricante'
       },
       {
         servico: 'Troca de filtro de ar',
         faixa: 'R$ 50 - R$ 150',
-        periodicidade: 'A cada 10.000 km'
+        periodicidade: 'A cada 10.000 km (reduzir em uso severo: poeira/estradas de terra)'
       },
       {
         servico: 'Troca de pastilhas de freio',
@@ -170,9 +162,9 @@ const ManutencaoPreventiva = () => {
         periodicidade: 'A cada 20.000 - 40.000 km'
       },
       {
-        servico: 'Troca de correia dentada',
+        servico: 'Troca da correia dentada',
         faixa: 'R$ 600 - R$ 1.500',
-        periodicidade: 'A cada 40.000 - 60.000 km'
+        periodicidade: 'A cada 60.000 km (ou conforme manual do fabricante)'
       },
       {
         servico: 'Alinhamento e balanceamento',
@@ -182,7 +174,7 @@ const ManutencaoPreventiva = () => {
       {
         servico: 'Troca de velas de ignição',
         faixa: 'R$ 150 - R$ 400',
-        periodicidade: 'A cada 30.000 km'
+        periodicidade: '30.000 km (varia: 15.000–100.000 km dependendo do material — cobre/platina/irídio)'
       },
       {
         servico: 'Troca do fluido de freio',
