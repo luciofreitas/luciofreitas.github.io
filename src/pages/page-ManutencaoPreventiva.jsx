@@ -278,6 +278,11 @@ const ManutencaoPreventiva = () => {
                 <span className="legenda-badge">média</span> Importante - agende em breve
               </span>
             </div>
+            <div className="disclaimer">
+              <p>
+                ⚠️ <strong>Aviso:</strong> As prioridades são orientativas. Sempre consulte um profissional para avaliar a urgência real dos serviços.
+              </p>
+            </div>
           </div>
         </section>
 

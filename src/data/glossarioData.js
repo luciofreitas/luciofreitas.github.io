@@ -37,6 +37,22 @@ export const avaliacoesIniciais = {
 };
 
 export const outrosGuias = [
-  { id: 'manutencaoPreventiva', titulo: 'Manutenção Preventiva', rota: '/manutencao-preventiva' },
-  { id: 'pecasOriginais', titulo: 'Peças Originais vs Compatíveis', rota: '/pecas-originais-vs-compativeis' }
+  {
+    id: 'manutencaoPreventiva',
+    titulo: 'Manutenção Preventiva',
+    subtitulo: 'Dicas e cronogramas para manter seu veículo em dia',
+    descricao: 'Rotinas de manutenção que ajudam a prolongar a vida útil do seu veículo.',
+    icone: '🛠️',
+    categoria: 'Diagnóstico',
+    rota: '/manutencao-preventiva'
+  },
+  {
+    id: 'pecasOriginais',
+    titulo: 'Peças Originais vs Compatíveis',
+    subtitulo: 'Como escolher peças com segurança',
+    descricao: 'Comparativo entre peças originais e compatíveis para ajudar sua decisão.',
+    icone: '🔩',
+    categoria: 'Diagnóstico',
+    rota: '/pecas-originais-vs-compativeis'
+  }
 ];

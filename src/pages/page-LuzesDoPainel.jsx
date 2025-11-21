@@ -183,10 +183,10 @@ function LuzesDoPainel() {
           <div className="luzes-header">
             <div className="header-icon">⚠️</div>
             <h2 className="page-title">Luzes do Painel</h2>
-            <p className="header-subtitle">
-              Entenda os avisos do seu veículo e saiba como agir quando as luzes do painel acenderem.
-              Mantenha-se seguro e evite problemas maiores.
-            </p>
+            <div className="header-subtitle">
+              <p>Entenda os avisos do seu veículo e saiba como agir quando as luzes do painel acenderem.</p>
+              <p>Mantenha-se seguro e evite problemas maiores.</p>
+            </div>
           </div>
 
         {/* Conteúdo do Glossário */}
@@ -216,10 +216,7 @@ function LuzesDoPainel() {
                   />
                 </div>
                 
-                <div className="filtro-group">
-                  <label>Prioridade:</label>
-                  {/* Prioridade filter removed */}
-                </div>
+                {/* Prioridade filter removed - placeholder removed to reclaim layout space */}
                 
                 <div className="filtro-group">
                   <label>Cor:</label>
@@ -241,9 +238,46 @@ function LuzesDoPainel() {
                 </button>
               </div>
               
-              <div className="resultados-info">
-                {dadosFiltrados.length} luz(es) encontrada(s)
+            </div>
+
+            {/* Legenda: mover para cima dos cards, logo abaixo do buscador */}
+            <div className="glossario-footer-section">
+              <div className="info-section">
+                <h3>🎨 Legenda das Cores</h3>
+                <div className="cores-legend">
+                  <div className="cor-item">
+                    <div className="cor-dot" style={{ backgroundColor: '#dc2626' }}></div>
+                    <span><strong>Vermelho:</strong> Pare imediatamente</span>
+                  </div>
+                  <div className="cor-item">
+                    <div className="cor-dot" style={{ backgroundColor: '#f59e0b' }}></div>
+                    <span><strong>Amarelo:</strong> Atenção necessária</span>
+                  </div>
+                  <div className="cor-item">
+                    <div className="cor-dot" style={{ backgroundColor: '#16a34a' }}></div>
+                    <span><strong>Verde:</strong> Sistema funcionando</span>
+                  </div>
+                  <div className="cor-item">
+                    <div className="cor-dot" style={{ backgroundColor: '#2563eb' }}></div>
+                    <span><strong>Azul:</strong> Informativo</span>
+                  </div>
+                  <div className="cor-item">
+                    <div className="cor-dot" style={{ backgroundColor: '#ea580c' }}></div>
+                    <span><strong>Laranja:</strong> Atenção</span>
+                  </div>
+                </div>
               </div>
+              
+              <div className="disclaimer">
+                <p>
+                  ⚠️ <strong>Aviso:</strong> Este glossário é apenas informativo. 
+                  Sempre consulte um mecânico qualificado para diagnósticos precisos.
+                </p>
+              </div>
+            </div>
+
+            <div className="resultados-info resultados-info--below-legend">
+              {dadosFiltrados.length} luz(es) encontrada(s)
             </div>
 
             {/* Grid de Luzes */}
@@ -348,41 +382,7 @@ function LuzesDoPainel() {
               </div>
             )}
 
-            {/* Footer do glossário */}
-            <div className="glossario-footer-section">
-              <div className="info-section">
-                <h3>🎨 Legenda das Cores</h3>
-                <div className="cores-legend">
-                  <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#dc2626' }}></div>
-                    <span><strong>Vermelho:</strong> Pare imediatamente</span>
-                  </div>
-                  <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#f59e0b' }}></div>
-                    <span><strong>Amarelo:</strong> Atenção necessária</span>
-                  </div>
-                  <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#16a34a' }}></div>
-                    <span><strong>Verde:</strong> Sistema funcionando</span>
-                  </div>
-                  <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#2563eb' }}></div>
-                    <span><strong>Azul:</strong> Informativo</span>
-                  </div>
-                  <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#ea580c' }}></div>
-                    <span><strong>Laranja:</strong> Atenção</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="disclaimer">
-                <p>
-                  ⚠️ <strong>Aviso:</strong> Este glossário é apenas informativo. 
-                  Sempre consulte um mecânico qualificado para diagnósticos precisos.
-                </p>
-              </div>
-            </div>
+            
           </>
         )}
 

@@ -202,49 +202,74 @@
 }
 
 /* Legenda */
+/* Padroniza a legenda de prioridades para o mesmo estilo do glossário */
 .legenda-prioridades {
   background: white;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  border-radius: clamp(0.7rem, 1.4vw, 0.75rem);
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .legenda-prioridades h4 {
-  font-size: 1rem;
-  color: #2d3748;
+  font-size: 1.125rem;
+  color: #1e293b;
   margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .legenda-items {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, clamp(12rem, 25vw, 15.625rem)), 1fr));
+  gap: clamp(0.75rem, 1.5vw, 1rem);
+  margin-bottom: clamp(1rem, 2vw, 1.25rem);
 }
 
 .legenda-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.938rem;
-  color: #4a5568;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem);
+  border: 1px solid #e2e8f0;
+  color: #475569;
 }
 
 .legenda-badge {
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.5rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .legenda-item.alta .legenda-badge {
-  background: #fed7d7;
-  color: #c53030;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .legenda-item.media .legenda-badge {
-  background: #feebc8;
-  color: #c05621;
+  background: #fff7ed;
+  color: #92400e;
+}
+
+/* Aviso abaixo da legenda (mesmo estilo do glossário) */
+.legenda-prioridades .disclaimer {
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  padding: 1rem 1.5rem;
+  border-radius: clamp(0.45rem, 0.9vw, 0.5rem);
+}
+
+.legenda-prioridades .disclaimer p {
+  color: #78350f;
+  margin: 0;
+  line-height: 1.6;
 }
 
 /* Dicas Práticas */
