@@ -21,3 +21,4 @@ backup/
 
 # Ignore image backup files created during local edits
 *.bak
+data/parts_db.json
