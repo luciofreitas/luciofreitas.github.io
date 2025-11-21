@@ -367,6 +367,13 @@
   gap: 1rem;
 }
 
+/* Ensure specific column classes inside the header use white text (override later rules) */
+.tabela-header .col-servico,
+.tabela-header .col-faixa,
+.tabela-header .col-periodicidade {
+  color: #ffffff;
+}
+
 .tabela-row {
   display: grid;
   grid-template-columns: 2fr 1.5fr 2fr;
