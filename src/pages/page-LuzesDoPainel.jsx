@@ -25,7 +25,6 @@ function LuzesDoPainel() {
   // Estados para filtros
   const [filtros, setFiltros] = useState({
     busca: '',
-    prioridade: '',
     cor: ''
   });
 
@@ -93,7 +92,7 @@ function LuzesDoPainel() {
 
   // Funções auxiliares
   const limparFiltros = () => {
-    setFiltros({ busca: '', prioridade: '', cor: '' });
+    setFiltros({ busca: '', cor: '' });
   };
 
   const getPrioridadeColor = (prioridade) => {
@@ -168,12 +167,10 @@ function LuzesDoPainel() {
   const dadosFiltrados = glossarioData.filter(luz => {
     const matchBusca = !filtros.busca || 
       luz.nome.toLowerCase().includes(filtros.busca.toLowerCase());
-    const matchPrioridade = !filtros.prioridade || 
-      luz.prioridade === filtros.prioridade;
     const matchCor = !filtros.cor || 
       luz.cor.toLowerCase() === filtros.cor.toLowerCase();
-    
-    return matchBusca && matchPrioridade && matchCor;
+
+    return matchBusca && matchCor;
   });
 
   return (
@@ -221,15 +218,7 @@ function LuzesDoPainel() {
                 
                 <div className="filtro-group">
                   <label>Prioridade:</label>
-                  <select
-                    value={filtros.prioridade}
-                    onChange={(e) => setFiltros({...filtros, prioridade: e.target.value})}
-                  >
-                    <option value="">Todas</option>
-                    <option value="Alta">Alta</option>
-                    <option value="Média">Média</option>
-                    <option value="Baixa">Baixa</option>
-                  </select>
+                  {/* Prioridade filter removed */}
                 </div>
                 
                 <div className="filtro-group">
