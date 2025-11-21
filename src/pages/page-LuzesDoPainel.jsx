@@ -107,11 +107,12 @@ function LuzesDoPainel() {
 
   const getCorHex = (cor) => {
     const cores = {
-      'vermelho': '#dc2626',
-      'amarelo': '#f59e0b',
+      // Use visually distinct accessible tones
+      'vermelho': '#b91c1c', // darker red
+      'amarelo': '#facc15',  // vivid yellow
       'verde': '#16a34a',
       'azul': '#2563eb',
-      'laranja': '#ea580c'
+      'laranja': '#f97316'   // vivid orange
     };
     return cores[cor.toLowerCase()] || '#6b7280';
   };
