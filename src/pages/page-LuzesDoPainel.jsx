@@ -318,12 +318,6 @@ function LuzesDoPainel() {
                       <div className="luz-info">
                         <h3 className="luz-nome">{luz.nome}</h3>
                         <div className="luz-indicators">
-                          <span 
-                            className="prioridade-badge"
-                            style={{ backgroundColor: getPrioridadeColor(luz.prioridade) }}
-                          >
-                            {luz.prioridade}
-                          </span>
                           <div 
                             className="cor-indicator"
                             style={{ backgroundColor: getCorHex(luz.cor) }}

@@ -188,7 +188,7 @@
 }
 
 .luz-icone {
-  font-size: 2.5rem;
+  font-size: 3rem; /* increased for accessibility */
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -197,13 +197,17 @@
 
 /* Image used for panel light icons (fallback to emoji if missing) */
 .luz-icone-img {
-  width: clamp(2.5rem, 5vw, 3.5rem); /* ~40px to 56px */
-  height: clamp(2.5rem, 5vw, 3.5rem);
+  width: clamp(3rem, 6vw, 4.5rem); /* increased: ~48px to 72px for accessibility */
+  height: clamp(3rem, 6vw, 4.5rem);
   object-fit: contain;
   display: block;
 }
 .luz-info {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* name left, dot right */
+  gap: 1rem;
 }
 
 .luz-nome {
@@ -211,7 +215,7 @@
   font-weight: 700;
   color: #1e293b !important;
   -webkit-text-fill-color: #1e293b !important;
-  margin-bottom: 0.5rem;
+  margin: 0; /* remove bottom margin since layout is horizontal */
 }
 
 .luz-indicators {
@@ -220,20 +224,34 @@
   gap: 0.75rem;
 }
 
-.prioridade-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+@media (max-width: 520px) {
+  .luz-header {
+    align-items: flex-start;
+  }
+  .luz-info {
+    display: block;
+  }
+  .luz-nome {
+    margin-bottom: 0.5rem;
+  }
+  .luz-indicators {
+    margin-top: 0.25rem;
+  }
+  /* increase icon size on small screens for easier tapping/readability */
+  .luz-icone-img {
+    width: clamp(3.25rem, 10vw, 5rem);
+    height: clamp(3.25rem, 10vw, 5rem);
+  }
+  .luz-icone {
+    font-size: 3.25rem;
+  }
 }
 
+/* prioridade-badge removed from layout (handled in other pages) */
+
 .cor-indicator {
-  width: clamp(1rem, 2vw, 1.25rem); /* ~16px a 20px */
-  height: clamp(1rem, 2vw, 1.25rem);
+  width: clamp(1.25rem, 2.5vw, 1.75rem); /* slightly larger dot for visibility */
+  height: clamp(1.25rem, 2.5vw, 1.75rem);
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
