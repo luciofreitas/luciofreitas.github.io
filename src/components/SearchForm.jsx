@@ -154,7 +154,7 @@ function SearchForm({
         <div className="search-form-field">
           <label htmlFor="fabricante">Fabricante</label>
           <CustomDropdown
-            options={[{ value: '', label: '' }, ...fabricantes.map(f => ({ value: f, label: f }))]}
+            options={[{ value: '', label: 'Todos' }, ...fabricantes.map(f => ({ value: f, label: f }))]}
             value={selectedFabricante}
             onChange={setSelectedFabricante}
             placeholder=""
