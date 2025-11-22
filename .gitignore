@@ -27,3 +27,10 @@ data/parts_db.json
 backend/parts_db.json
 docs/data/parts_db.json
 src/data/parts_db.json
+# Debug and generated scripts
+backend/debug-*.js
+backend/scripts/
+docs/*-debug.html
+*/oauth-callback-debug.html
+scripts/create-parts-table.sql
+scripts/import-parts-to-supabase.js
