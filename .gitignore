@@ -22,3 +22,8 @@ backup/
 # Ignore image backup files created during local edits
 *.bak
 data/parts_db.json
+
+# Local parts DB copies (keep locally, do not track)
+backend/parts_db.json
+docs/data/parts_db.json
+src/data/parts_db.json
