@@ -82,27 +82,79 @@ class ApiService {
   }
 
   async getPecasMeta() {
-    // Load parts_db.json as fallback
-      try {
+    // Try Supabase first (runtime-config or env must provide credentials)
+    try {
+      const mod = await import('../supabase');
+      const _supabase = mod.default || mod.supabase;
+      const isConfigured = mod.isConfigured;
+
+      if (_supabase && isConfigured && !_supabase._notConfigured) {
+        try {
+          const { data: partsData, error } = await _supabase.from('parts').select('*');
+          if (!error && partsData && Array.isArray(partsData)) {
+            const grupos = [...new Set(partsData.map(p => p.category).filter(Boolean))].sort();
+            const fabricantes = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
+
+            const modelos = new Set();
+            const anos = new Set();
+            const todasMarcasVeiculos = new Set();
+
+            partsData.forEach(part => {
+              if (part.applications && Array.isArray(part.applications)) {
+                part.applications.forEach(app => {
+                  if (typeof app === 'string') {
+                    const parts = app.trim().split(/\s+/);
+                    if (parts.length >= 2) {
+                      const marca = parts[0];
+                      const modelo = parts[1];
+                      todasMarcasVeiculos.add(marca);
+                      modelos.add(`${marca} ${modelo}`);
+                      const yearsMatch = app.match(/\b(19|20)\d{2}\b/g);
+                      if (yearsMatch) yearsMatch.forEach(year => anos.add(year));
+                    }
+                  } else if (typeof app === 'object') {
+                    if (app.model) modelos.add(app.model);
+                    if (app.year) anos.add(app.year);
+                    if (app.make) todasMarcasVeiculos.add(app.make);
+                  }
+                });
+              }
+            });
+
+            return {
+              grupos,
+              pecas: partsData,
+              marcas: [...todasMarcasVeiculos].sort(),
+              modelos: [...modelos].sort(),
+              anos: [...anos].sort(),
+              fabricantes
+            };
+          }
+          if (error) console.warn('Supabase returned error for parts:', error);
+        } catch (err) {
+          console.warn('Error querying Supabase for parts:', err);
+        }
+      }
+    } catch (err) {
+      console.debug('Supabase client not available or failed to import:', err && err.message ? err.message : err);
+    }
+
+    // Fallback: try local JSON or backend API
+    try {
       const response = await fetch('/data/parts_db.json');
       if (response.ok) {
         const partsData = await response.json();
 
-        // Process data to match API format - map English fields to Portuguese
         const grupos = [...new Set(partsData.map(p => p.category).filter(Boolean))].sort();
         const fabricantes = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
 
-        // Extract years and models from applications (they are strings like "Fiat Uno 2010-2011-2012-2013-2014-2015")
         const modelos = new Set();
         const anos = new Set();
         const todasMarcasVeiculos = new Set();
 
-        let appCount = 0;
-
         partsData.forEach(part => {
           if (part.applications && Array.isArray(part.applications)) {
             part.applications.forEach(app => {
-              appCount++;
               if (typeof app === 'string') {
                 const parts = app.trim().split(/\s+/);
                 if (parts.length >= 2) {
@@ -122,20 +174,19 @@ class ApiService {
           }
         });
 
-        const result = {
-          grupos: grupos,
+        return {
+          grupos,
           pecas: partsData,
           marcas: [...todasMarcasVeiculos].sort(),
           modelos: [...modelos].sort(),
           anos: [...anos].sort(),
-          fabricantes: fabricantes
+          fabricantes
         };
-
-        return result;
       }
     } catch (error) {
       console.warn('Error loading parts_db.json:', error);
     }
+
     return this.fetchWithFallback('/api/pecas/meta');
   }
 
