@@ -172,7 +172,7 @@
 .luz-card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid transparent; /* per-card accent will be applied via color class */
   border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
@@ -263,6 +263,13 @@
 .cor-indicator.amarelo  { background-color: #ffd400 !important; }
 .cor-indicator.verde    { background-color: #16a34a !important; }
 .cor-indicator.azul     { background-color: #2563eb !important; }
+
+/* Card accent per color */
+.luz-card.vermelho { border-left-color: #b91c1c !important; }
+.luz-card.laranja  { border-left-color: #ff7a00 !important; }
+.luz-card.amarelo  { border-left-color: #ffd400 !important; }
+.luz-card.verde    { border-left-color: #16a34a !important; }
+.luz-card.azul     { border-left-color: #2563eb !important; }
 
 /* Conteúdo da Luz */
 .luz-content {
