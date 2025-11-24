@@ -121,7 +121,7 @@ function LuzesDoPainel() {
     const k = String(cor).trim().toLowerCase();
     const known = ['vermelho','amarelo','verde','azul','laranja'];
     if (known.includes(k)) return k;
-    return k.replace(/[^a-z0-9]+/g,'-');
+    return k.replace(/[^a-z0-9]+/g, '-');
   };
 
   const resolveIcon = (icone, item) => {
@@ -296,7 +296,7 @@ function LuzesDoPainel() {
             ) : (
               <div className="luzes-grid">
                 {dadosFiltrados.map(luz => (
-                  <div key={luz.id} className={`luz-card ${getCorClass(luz.cor)}`}>
+                  <div key={luz.id} className="luz-card">
                     <div className="luz-header">
                       {
                         // Determine if this is the "Falha de Freio" card (support both string ids from backend and numeric ids from fallback)
