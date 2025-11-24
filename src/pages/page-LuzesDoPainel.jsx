@@ -106,12 +106,12 @@ function LuzesDoPainel() {
 
   const getCorHex = (cor) => {
     const cores = {
-      // Use visually distinct accessible tones
+      // Use visually distinct accessible tones (adjusted to increase contrast between amarelo/laranja/vermelho)
       'vermelho': '#b91c1c', // darker red
-      'amarelo': '#facc15',  // vivid yellow
+      'laranja': '#ff7a00',  // brighter / more orange
+      'amarelo': '#ffd400',  // vivid yellow, distinct from orange
       'verde': '#16a34a',
-      'azul': '#2563eb',
-      'laranja': '#f97316'   // vivid orange
+      'azul': '#2563eb'
     };
     return cores[cor.toLowerCase()] || '#6b7280';
   };
@@ -250,7 +250,7 @@ function LuzesDoPainel() {
                     <span><strong>Vermelho:</strong> Pare imediatamente</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#f59e0b' }}></div>
+                    <div className="cor-dot" style={{ backgroundColor: '#ffd400' }}></div>
                     <span><strong>Amarelo:</strong> Atenção necessária</span>
                   </div>
                   <div className="cor-item">
@@ -262,7 +262,7 @@ function LuzesDoPainel() {
                     <span><strong>Azul:</strong> Informativo</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#ea580c' }}></div>
+                    <div className="cor-dot" style={{ backgroundColor: '#ff7a00' }}></div>
                     <span><strong>Laranja:</strong> Atenção</span>
                   </div>
                 </div>
