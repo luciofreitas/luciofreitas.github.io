@@ -73,7 +73,17 @@ class ApiService {
   async getLuzesPainel() {
     // Prefer runtime API, but fall back to the statically imported mock data
     // (do not read /data/luzes_painel.json to avoid conflicting static JSON files)
-    return this.fetchWithFallback('/api/luzes-painel', glossarioMockData);
+    const result = await this.fetchWithFallback('/api/luzes-painel', glossarioMockData);
+    try {
+      if (result === glossarioMockData) {
+        console.info('[apiService] getLuzesPainel -> using glossarioMockData fallback');
+      } else {
+        console.info('[apiService] getLuzesPainel -> data returned by API/backend or JSON file', Array.isArray(result) ? `items=${result.length}` : typeof result);
+      }
+    } catch (e) {
+      // no-op
+    }
+    return result;
   }
 
   async getPecasMeta() {
