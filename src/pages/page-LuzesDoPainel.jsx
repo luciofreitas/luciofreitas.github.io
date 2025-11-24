@@ -328,8 +328,16 @@ function LuzesDoPainel() {
               </div>
             ) : (
               <div className="luzes-grid">
-                {dadosFiltrados.map(luz => (
-                  <div key={luz.id} className={`luz-card ${toColorClass(luz.cor)}`}>
+                {dadosFiltrados.map(luz => {
+                  if (import.meta.env && import.meta.env.DEV) {
+                    try {
+                      console.debug('[LuzesDoPainel] item:', { nome: luz.nome, cor: luz.cor, class: toColorClass(luz.cor) });
+                    } catch (e) {
+                      // ignore
+                    }
+                  }
+                  return (
+                    <div key={luz.id} className={`luz-card ${toColorClass(luz.cor)}`}>
                     <div className="luz-header">
                       {
                         // Determine if this is the "Falha de Freio" card (support both string ids from backend and numeric ids from fallback)
@@ -410,7 +418,8 @@ function LuzesDoPainel() {
                       )}
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
             )}
 
