@@ -257,6 +257,13 @@
   box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
 }
 
+/* Color variants for indicators (use classes instead of inline styles) */
+.cor-indicator.vermelho { background-color: #b91c1c; }
+.cor-indicator.laranja  { background-color: #ff7a00; }
+.cor-indicator.amarelo  { background-color: #ffd400; }
+.cor-indicator.verde    { background-color: #16a34a; }
+.cor-indicator.azul     { background-color: #2563eb; }
+
 /* Conteúdo da Luz */
 .luz-content {
   padding: 1.5rem;
@@ -363,6 +370,13 @@
   box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
 }
 
+/* Color variants for legend dots */
+.cor-dot.vermelho { background-color: #b91c1c; }
+.cor-dot.laranja  { background-color: #ff7a00; }
+.cor-dot.amarelo  { background-color: #ffd400; }
+.cor-dot.verde    { background-color: #16a34a; }
+.cor-dot.azul     { background-color: #2563eb; }
+
 .cor-item span {
   color: #475569;
   font-size: 0.875rem;
@@ -426,6 +440,16 @@
 .luz-icone--red .luz-icone-img {
   -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
   filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
+}
+
+/* Class-based helpers for toggling icon recolor without inline styles */
+.luz-icone-img.luz-icone--red-img {
+  -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%) !important;
+  filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%) !important;
+}
+.luz-icone-img.luz-icone--red-raw {
+  -webkit-filter: none !important;
+  filter: none !important;
 }
 /* Strong overrides to prevent parent/background effects from changing the icon color */
 .luz-icone--red {
