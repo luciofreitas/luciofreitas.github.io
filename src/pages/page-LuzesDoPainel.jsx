@@ -80,6 +80,8 @@ function LuzesDoPainel() {
         }));
 
         setGlossarioData(arrayData);
+        // generate CSS rules based on the data tokens so the mock data controls colors
+        generateColorRules(arrayData);
       } catch (error) {
         console.error('Erro ao carregar glossário:', error);
         setGlossarioData(Array.isArray(glossarioMockData) ? glossarioMockData : []);
@@ -116,6 +118,36 @@ function LuzesDoPainel() {
       'azul': '#2563eb'
     };
     return cores[cor.toLowerCase()] || '#6b7280';
+  };
+
+  // Generate CSS rules for color tokens found in the data so the data
+  // (glossarioMockData) is the single source of truth for colors.
+  const generateColorRules = (items) => {
+    if (typeof document === 'undefined') return;
+    try {
+      const styleId = 'luzes-colors-generated';
+      let styleEl = document.getElementById(styleId);
+      if (styleEl) styleEl.remove();
+      const tokens = new Set();
+      (items || []).forEach(i => {
+        const t = toColorClass(i && i.cor);
+        if (t) tokens.add(t);
+      });
+      if (tokens.size === 0) return;
+      const rules = [];
+      tokens.forEach(t => {
+        const hex = getCorHex(t);
+        // create rules for indicator and card accent
+        rules.push(`.cor-indicator.${t} { background-color: ${hex}; }`);
+        rules.push(`.luz-card.${t} { border-left-color: ${hex}; }`);
+      });
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      styleEl.appendChild(document.createTextNode(rules.join('\n')));
+      document.head.appendChild(styleEl);
+    } catch (e) {
+      // ignore
+    }
   };
 
   // Normaliza tokens de cor e garante uma classe CSS para valores dinâmicos (hex / rgb)

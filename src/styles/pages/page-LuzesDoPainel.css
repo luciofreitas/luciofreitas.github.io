@@ -257,19 +257,8 @@
   box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
 }
 
-/* Color variants for indicators (use classes instead of inline styles) */
-.cor-indicator.vermelho { background-color: #b91c1c; }
-.cor-indicator.laranja  { background-color: #ff7a00; }
-.cor-indicator.amarelo  { background-color: #ffd400; }
-.cor-indicator.verde    { background-color: #16a34a; }
-.cor-indicator.azul     { background-color: #2563eb; }
-
-/* Card accent per color */
-.luz-card.vermelho { border-left-color: #b91c1c; }
-.luz-card.laranja  { border-left-color: #ff7a00; }
-.luz-card.amarelo  { border-left-color: #ffd400; }
-.luz-card.verde    { border-left-color: #16a34a; }
-.luz-card.azul     { border-left-color: #2563eb; }
+/* Color variants for indicators and card accents are generated at runtime
+  from the glossario mock data so the data is the source of truth. */
 
 /* Conteúdo da Luz */
 .luz-content {
