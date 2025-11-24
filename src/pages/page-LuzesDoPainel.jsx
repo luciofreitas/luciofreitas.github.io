@@ -116,6 +116,14 @@ function LuzesDoPainel() {
     return cores[cor.toLowerCase()] || '#6b7280';
   };
 
+  const getCorClass = (cor) => {
+    if (!cor) return '';
+    const k = String(cor).trim().toLowerCase();
+    const known = ['vermelho','amarelo','verde','azul','laranja'];
+    if (known.includes(k)) return k;
+    return k.replace(/[^a-z0-9]+/g,'-');
+  };
+
   const resolveIcon = (icone, item) => {
     if (!icone && !item) return '';
     // If icone is not a string (could be a React node), return as-is
@@ -246,23 +254,23 @@ function LuzesDoPainel() {
                 <h3>🎨 Legenda das Cores</h3>
                 <div className="cores-legend">
                   <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#dc2626' }}></div>
+                    <div className={`cor-dot ${getCorClass('vermelho')}`}></div>
                     <span><strong>Vermelho:</strong> Pare imediatamente</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#ffd400' }}></div>
+                    <div className={`cor-dot ${getCorClass('amarelo')}`}></div>
                     <span><strong>Amarelo:</strong> Atenção necessária</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#16a34a' }}></div>
+                    <div className={`cor-dot ${getCorClass('verde')}`}></div>
                     <span><strong>Verde:</strong> Sistema funcionando</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#2563eb' }}></div>
+                    <div className={`cor-dot ${getCorClass('azul')}`}></div>
                     <span><strong>Azul:</strong> Informativo</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot" style={{ backgroundColor: '#ff7a00' }}></div>
+                    <div className={`cor-dot ${getCorClass('laranja')}`}></div>
                     <span><strong>Laranja:</strong> Atenção</span>
                   </div>
                 </div>
@@ -296,7 +304,7 @@ function LuzesDoPainel() {
                         {(() => {
                         const isFalhaDeFreio = (String(luz.id) === 'falha-de-freio') || (String(luz.id) === '10') || (String(luz.nome || '').toLowerCase().includes('falha de freio'));
                         const isRed = isFalhaDeFreio || (String(luz.cor || '').toLowerCase() === 'vermelho');
-                        return <div className={`luz-icone ${isRed ? 'luz-icone--red' : ''}`} style={isRed ? { filter: 'none' } : undefined}>
+                        return <div className={`luz-icone ${isRed ? 'luz-icone--red' : ''}`}>
                           {(() => {
                             const resolved = resolveIcon(luz.icone);
                             // If resolved looks like an image path or URL, render an <img>
@@ -309,28 +317,19 @@ function LuzesDoPainel() {
                                 if (!el) return;
                                 try {
                                   if (isRed) {
-                                    // If this image file is already the recolored raster (filename contains 'falha-de-freio')
-                                    // avoid applying the CSS filter again (which would change its color). Instead, neutralize
-                                    // any filters and optionally add a red border for visual debug.
                                     if (typeof resolved === 'string' && resolved.includes('falha-de-freio')) {
-                                      el.style.setProperty('filter', 'none', 'important');
-                                      el.style.setProperty('-webkit-filter', 'none', 'important');
-                                      // no border for recolored raster
+                                      el.classList.remove('luz-icone--red-img');
+                                      el.classList.add('luz-icone--red-raw');
                                     } else {
-                                      // apply recolor filter for vector or non-recolored raster icons
-                                      el.style.setProperty('filter', filterValue, 'important');
-                                      el.style.setProperty('-webkit-filter', filterValue, 'important');
-                                      // no border for recolored raster
+                                      el.classList.remove('luz-icone--red-raw');
+                                      el.classList.add('luz-icone--red-img');
                                     }
                                   } else {
-                                    // remove inline important properties if present
-                                    el.style.removeProperty('filter');
-                                    el.style.removeProperty('-webkit-filter');
-                                    el.style.removeProperty('border');
-                                    el.style.removeProperty('border-radius');
+                                    el.classList.remove('luz-icone--red-img');
+                                    el.classList.remove('luz-icone--red-raw');
                                   }
                                 } catch (e) {
-                                  // defensive: some browsers may throw when modifying style on detached nodes
+                                  // defensive
                                 }
                               };
                               return <img ref={imgRefCallback} src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} />;
@@ -343,8 +342,7 @@ function LuzesDoPainel() {
                         <h3 className="luz-nome">{luz.nome}</h3>
                         <div className="luz-indicators">
                           <div 
-                            className="cor-indicator"
-                            style={{ backgroundColor: getCorHex(luz.cor) }}
+                            className={`cor-indicator ${getCorClass(luz.cor)}`}
                           ></div>
                         </div>
                       </div>
