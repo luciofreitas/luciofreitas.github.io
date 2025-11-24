@@ -258,11 +258,11 @@
 }
 
 /* Color variants for indicators (use classes instead of inline styles) */
-.cor-indicator.vermelho { background-color: #b91c1c; }
-.cor-indicator.laranja  { background-color: #ff7a00; }
-.cor-indicator.amarelo  { background-color: #ffd400; }
-.cor-indicator.verde    { background-color: #16a34a; }
-.cor-indicator.azul     { background-color: #2563eb; }
+.cor-indicator.vermelho { background-color: #b91c1c !important; }
+.cor-indicator.laranja  { background-color: #ff7a00 !important; }
+.cor-indicator.amarelo  { background-color: #ffd400 !important; }
+.cor-indicator.verde    { background-color: #16a34a !important; }
+.cor-indicator.azul     { background-color: #2563eb !important; }
 
 /* Conteúdo da Luz */
 .luz-content {
@@ -371,11 +371,11 @@
 }
 
 /* Color variants for legend dots */
-.cor-dot.vermelho { background-color: #b91c1c; }
-.cor-dot.laranja  { background-color: #ff7a00; }
-.cor-dot.amarelo  { background-color: #ffd400; }
-.cor-dot.verde    { background-color: #16a34a; }
-.cor-dot.azul     { background-color: #2563eb; }
+.cor-dot.vermelho { background-color: #b91c1c !important; }
+.cor-dot.laranja  { background-color: #ff7a00 !important; }
+.cor-dot.amarelo  { background-color: #ffd400 !important; }
+.cor-dot.verde    { background-color: #16a34a !important; }
+.cor-dot.azul     { background-color: #2563eb !important; }
 
 .cor-item span {
   color: #475569;
