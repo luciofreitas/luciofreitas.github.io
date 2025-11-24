@@ -258,18 +258,18 @@
 }
 
 /* Color variants for indicators (use classes instead of inline styles) */
-.cor-indicator.vermelho { background-color: #b91c1c !important; }
-.cor-indicator.laranja  { background-color: #ff7a00 !important; }
-.cor-indicator.amarelo  { background-color: #ffd400 !important; }
-.cor-indicator.verde    { background-color: #16a34a !important; }
-.cor-indicator.azul     { background-color: #2563eb !important; }
+.cor-indicator.vermelho { background-color: #b91c1c; }
+.cor-indicator.laranja  { background-color: #ff7a00; }
+.cor-indicator.amarelo  { background-color: #ffd400; }
+.cor-indicator.verde    { background-color: #16a34a; }
+.cor-indicator.azul     { background-color: #2563eb; }
 
 /* Card accent per color */
-.luz-card.vermelho { border-left-color: #b91c1c !important; }
-.luz-card.laranja  { border-left-color: #ff7a00 !important; }
-.luz-card.amarelo  { border-left-color: #ffd400 !important; }
-.luz-card.verde    { border-left-color: #16a34a !important; }
-.luz-card.azul     { border-left-color: #2563eb !important; }
+.luz-card.vermelho { border-left-color: #b91c1c; }
+.luz-card.laranja  { border-left-color: #ff7a00; }
+.luz-card.amarelo  { border-left-color: #ffd400; }
+.luz-card.verde    { border-left-color: #16a34a; }
+.luz-card.azul     { border-left-color: #2563eb; }
 
 /* Conteúdo da Luz */
 .luz-content {
