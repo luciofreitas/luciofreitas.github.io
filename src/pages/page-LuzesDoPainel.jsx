@@ -21,6 +21,8 @@ function LuzesDoPainel() {
   const [error, setError] = useState(null);
   // mapa das imagens carregadas dinamicamente
   const [imagensLuzesMap, setImagensLuzesMap] = useState({});
+  // set para classes dinâmicas geradas em runtime (para cores hex/rgb vindas dos dados)
+  const dynamicColorsRef = useRef(new Set());
   
   // Estados para filtros
   const [filtros, setFiltros] = useState({
@@ -114,6 +116,45 @@ function LuzesDoPainel() {
       'azul': '#2563eb'
     };
     return cores[cor.toLowerCase()] || '#6b7280';
+  };
+
+  // Normaliza tokens de cor e garante uma classe CSS para valores dinâmicos (hex / rgb)
+  const toColorClass = (colorToken) => {
+    if (!colorToken) return '';
+    const raw = String(colorToken).trim();
+    const lower = raw.toLowerCase();
+
+    // Mapear nomes em inglês para os tokens em português (caso os dados venham assim)
+    const mapEnToPt = { red: 'vermelho', yellow: 'amarelo', orange: 'laranja', green: 'verde', blue: 'azul' };
+    if (mapEnToPt[lower]) return mapEnToPt[lower];
+
+    // Se já for um token conhecido, retorne normalizado
+    const known = ['vermelho','laranja','amarelo','verde','azul'];
+    if (known.includes(lower)) return lower;
+
+    // Se for um hex ou rgb, gera uma classe segura e adiciona uma regra CSS dinâmica
+    if (lower.startsWith('#') || lower.startsWith('rgb')) {
+      const safeKey = lower.replace(/[^a-z0-9]/g, '');
+      const cls = `data-color-${safeKey}`;
+      // cria regra CSS apenas uma vez
+      if (typeof document !== 'undefined' && !dynamicColorsRef.current.has(cls)) {
+        try {
+          const rule = `.${cls} { background-color: ${raw} !important; } .cor-dot.${cls} { background-color: ${raw} !important; }`;
+          const style = document.createElement('style');
+          style.setAttribute('data-generated', 'luzes-colors');
+          style.appendChild(document.createTextNode(rule));
+          document.head.appendChild(style);
+          dynamicColorsRef.current.add(cls);
+        } catch (e) {
+          // fail silently
+        }
+      }
+      return cls;
+    }
+
+    // Caso seja um texto diferente, normalize removendo acentos e caracteres especiais
+    const slug = lower.normalize('NFKD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return slug || lower;
   };
 
   const resolveIcon = (icone, item) => {
@@ -335,7 +376,7 @@ function LuzesDoPainel() {
                         <h3 className="luz-nome">{luz.nome}</h3>
                         <div className="luz-indicators">
                           <div 
-                            className={`cor-indicator ${(luz.cor || '').toLowerCase()}`}
+                            className={`cor-indicator ${toColorClass(luz.cor)}`}
                           ></div>
                         </div>
                       </div>
