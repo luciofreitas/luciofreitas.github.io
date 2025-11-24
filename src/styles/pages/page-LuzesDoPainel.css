@@ -373,6 +373,19 @@
 .cor-dot.verde    { background-color: #16a34a !important; }
 .cor-dot.azul     { background-color: #2563eb !important; }
 
+/* Color variants for indicators and card accents (sourced from glossarioData 'cor' tokens) */
+.cor-indicator.vermelho { background-color: #b91c1c; }
+.cor-indicator.laranja  { background-color: #ff7a00; }
+.cor-indicator.amarelo  { background-color: #ffd400; }
+.cor-indicator.verde    { background-color: #16a34a; }
+.cor-indicator.azul     { background-color: #2563eb; }
+
+.luz-card.vermelho { border-left-color: #b91c1c; }
+.luz-card.laranja  { border-left-color: #ff7a00; }
+.luz-card.amarelo  { border-left-color: #ffd400; }
+.luz-card.verde    { border-left-color: #16a34a; }
+.luz-card.azul     { border-left-color: #2563eb; }
+
 .cor-item span {
   color: #475569;
   font-size: 0.875rem;

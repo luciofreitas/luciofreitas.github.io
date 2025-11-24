@@ -296,7 +296,7 @@ function LuzesDoPainel() {
             ) : (
               <div className="luzes-grid">
                 {dadosFiltrados.map(luz => (
-                  <div key={luz.id} className="luz-card">
+                  <div key={luz.id} className={`luz-card ${getCorClass(luz.cor)}`}>
                     <div className="luz-header">
                       {
                         // Determine if this is the "Falha de Freio" card (support both string ids from backend and numeric ids from fallback)
