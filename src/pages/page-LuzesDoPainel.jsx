@@ -6,6 +6,7 @@ import { ComponenteEstrelas } from '../components';
 import { useAvaliacoes } from '../hooks/useAvaliacoes';
 import { apiService } from '../utils/apiService';
 import { glossarioMockData } from '../data/glossarioData';
+import { ensureGlossarioColors } from '../utils/glossarioColors';
 import '../styles/pages/page-LuzesDoPainel.css';
 
 // Use import.meta.glob to lazily import images (globEager may not be available in some runtimes)
@@ -33,6 +34,8 @@ function LuzesDoPainel() {
 
   // Carregar dados do glossário (luzes do painel)
   useEffect(() => {
+    // Ensure the generated CSS from the glossário color map is present in the document.
+    try { ensureGlossarioColors(); } catch (e) { /* ignore on SSR */ }
         // carregar as imagens do diretório dinamicamente (lazy import)
         let mounted = true;
         (async () => {

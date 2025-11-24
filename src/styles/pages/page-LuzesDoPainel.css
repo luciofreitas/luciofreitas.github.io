@@ -367,25 +367,25 @@
 }
 
 /* Color variants for legend dots */
-.cor-dot.vermelho { background-color: #b91c1c !important; }
-.cor-dot.laranja  { background-color: #ff7a00 !important; }
-.cor-dot.amarelo  { background-color: #ffd400 !important; }
-.cor-dot.verde    { background-color: #16a34a !important; }
-.cor-dot.azul     { background-color: #2563eb !important; }
+.cor-dot.vermelho { background-color: transparent; }
+.cor-dot.laranja  { background-color: transparent; }
+.cor-dot.amarelo  { background-color: transparent; }
+.cor-dot.verde    { background-color: transparent; }
+.cor-dot.azul     { background-color: transparent; }
 
 /* Color variants for indicators (dots inside cards) */
-.cor-indicator.vermelho { background-color: #b91c1c; }
-.cor-indicator.laranja  { background-color: #ff7a00; }
-.cor-indicator.amarelo  { background-color: #ffd400; }
-.cor-indicator.verde    { background-color: #16a34a; }
-.cor-indicator.azul     { background-color: #2563eb; }
+.cor-indicator.vermelho { background-color: transparent; }
+.cor-indicator.laranja  { background-color: transparent; }
+.cor-indicator.amarelo  { background-color: transparent; }
+.cor-indicator.verde    { background-color: transparent; }
+.cor-indicator.azul     { background-color: transparent; }
 
-/* Per-card left accent matching the color token */
-.luz-card.vermelho { border-left-color: #b91c1c; }
-.luz-card.laranja  { border-left-color: #ff7a00; }
-.luz-card.amarelo  { border-left-color: #ffd400; }
-.luz-card.verde    { border-left-color: #16a34a; }
-.luz-card.azul     { border-left-color: #2563eb; }
+/* Per-card left accent matching the color token (generated at runtime). Fallback transparent. */
+.luz-card.vermelho { border-left-color: transparent; }
+.luz-card.laranja  { border-left-color: transparent; }
+.luz-card.amarelo  { border-left-color: transparent; }
+.luz-card.verde    { border-left-color: transparent; }
+.luz-card.azul     { border-left-color: transparent; }
 
 .cor-item span {
   color: #475569;
