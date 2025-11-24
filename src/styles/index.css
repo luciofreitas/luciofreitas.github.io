@@ -191,3 +191,13 @@ html body .site-header .menu-login-root .menu-nav .menu-list a.menu-login-item {
 
 /* Firefox inner focus patch */
 .car-toggle::-moz-focus-inner { border: 0 !important; }
+
+/* Global prioridade badge variants (used across pages) */
+.prioridade-badge.prioridade-alta { background: #dc2626; color: #fff; }
+.prioridade-badge.prioridade-media { background: #f59e0b; color: #000; }
+.prioridade-badge.prioridade-baixa { background: #16a34a; color: #fff; }
+
+/* If a parent element carries the prioridade-* class, ensure badge inherits styling */
+.prioridade-alta .prioridade-badge { background: #dc2626; color: #fff; }
+.prioridade-media .prioridade-badge { background: #f59e0b; color: #000; }
+.prioridade-baixa .prioridade-badge { background: #16a34a; color: #fff; }

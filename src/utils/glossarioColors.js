@@ -12,14 +12,17 @@ export function ensureGlossarioColors() {
     // legend dot
     lines.push(`.cor-dot.${token} { background-color: ${hex} !important; }`);
     // small indicator inside card
-    lines.push(`.cor-indicator.${token} { background-color: ${hex}; }`);
+    lines.push(`.cor-indicator.${token} { background-color: ${hex} !important; }`);
     // card accent
-    lines.push(`.luz-card.${token} { border-left-color: ${hex}; }`);
+    lines.push(`.luz-card.${token} { border-left-color: ${hex} !important; }`);
   });
+
+  const cssText = lines.join('\n');
+  // generated stylesheet (colors mapping) is injected below
 
   const el = document.createElement('style');
   el.id = STYLE_ID;
-  el.appendChild(document.createTextNode(lines.join('\n')));
+  el.appendChild(document.createTextNode(cssText));
   document.head.appendChild(el);
 }
 

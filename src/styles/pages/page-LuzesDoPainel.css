@@ -257,6 +257,8 @@
   box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
 }
 
+/* debug label removed in production */
+
 /* Color variants for indicators and card accents are generated at runtime
   from the glossario mock data so the data is the source of truth. */
 
@@ -366,26 +368,7 @@
   box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
 }
 
-/* Color variants for legend dots */
-.cor-dot.vermelho { background-color: transparent; }
-.cor-dot.laranja  { background-color: transparent; }
-.cor-dot.amarelo  { background-color: transparent; }
-.cor-dot.verde    { background-color: transparent; }
-.cor-dot.azul     { background-color: transparent; }
-
-/* Color variants for indicators (dots inside cards) */
-.cor-indicator.vermelho { background-color: transparent; }
-.cor-indicator.laranja  { background-color: transparent; }
-.cor-indicator.amarelo  { background-color: transparent; }
-.cor-indicator.verde    { background-color: transparent; }
-.cor-indicator.azul     { background-color: transparent; }
-
-/* Per-card left accent matching the color token (generated at runtime). Fallback transparent. */
-.luz-card.vermelho { border-left-color: transparent; }
-.luz-card.laranja  { border-left-color: transparent; }
-.luz-card.amarelo  { border-left-color: transparent; }
-.luz-card.verde    { border-left-color: transparent; }
-.luz-card.azul     { border-left-color: transparent; }
+/* Color variants are generated at runtime from `glossarioColors`. */
 
 .cor-item span {
   color: #475569;

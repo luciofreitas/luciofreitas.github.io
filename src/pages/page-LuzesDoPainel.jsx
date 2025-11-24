@@ -6,7 +6,7 @@ import { ComponenteEstrelas } from '../components';
 import { useAvaliacoes } from '../hooks/useAvaliacoes';
 import { apiService } from '../utils/apiService';
 import { glossarioMockData } from '../data/glossarioData';
-import { ensureGlossarioColors } from '../utils/glossarioColors';
+import { getCorClass } from '../utils/colorUtils';
 import '../styles/pages/page-LuzesDoPainel.css';
 
 // Use import.meta.glob to lazily import images (globEager may not be available in some runtimes)
@@ -34,8 +34,7 @@ function LuzesDoPainel() {
 
   // Carregar dados do glossário (luzes do painel)
   useEffect(() => {
-    // Ensure the generated CSS from the glossário color map is present in the document.
-    try { ensureGlossarioColors(); } catch (e) { /* ignore on SSR */ }
+    // runtime stylesheet is injected globally in `main.jsx`
         // carregar as imagens do diretório dinamicamente (lazy import)
         let mounted = true;
         (async () => {
@@ -73,7 +72,17 @@ function LuzesDoPainel() {
           id: item.id || item.nome || item.name,
           nome: item.nome || item.title || item.name || '',
           icone: item.icone || item.icon || '',
-          cor: item.cor || item.color || 'amarelo',
+          // Force color token to come from glossarioMockData when available
+          cor: (function() {
+            try {
+              const lookup = (item.nome || item.title || item.name || item.id || '').toString().trim().toLowerCase();
+              // build a quick map from mock data (nome -> cor)
+              const mockMap = new Map((Array.isArray(glossarioMockData) ? glossarioMockData : []).map(m => [String(m.nome || m.id || '').trim().toLowerCase(), m.cor]));
+              return mockMap.get(lookup) || item.cor || item.color || 'amarelo';
+            } catch (e) {
+              return item.cor || item.color || 'amarelo';
+            }
+          })(),
           prioridade: normalizePrioridade(item.prioridade || item.priority),
           descricao: item.descricao || item.description || '',
           acoes: item.acoes || item.actions || [],
@@ -107,25 +116,7 @@ function LuzesDoPainel() {
     return cores[prioridade] || '#6b7280';
   };
 
-  const getCorHex = (cor) => {
-    const cores = {
-      // Use visually distinct accessible tones (adjusted to increase contrast between amarelo/laranja/vermelho)
-      'vermelho': '#b91c1c', // darker red
-      'laranja': '#ff7a00',  // brighter / more orange
-      'amarelo': '#ffd400',  // vivid yellow, distinct from orange
-      'verde': '#16a34a',
-      'azul': '#2563eb'
-    };
-    return cores[cor.toLowerCase()] || '#6b7280';
-  };
-
-  const getCorClass = (cor) => {
-    if (!cor) return '';
-    const k = String(cor).trim().toLowerCase();
-    const known = ['vermelho','amarelo','verde','azul','laranja'];
-    if (known.includes(k)) return k;
-    return k.replace(/[^a-z0-9]+/g, '-');
-  };
+  // Use shared getCorClass from utils
 
   const resolveIcon = (icone, item) => {
     if (!icone && !item) return '';
@@ -299,7 +290,7 @@ function LuzesDoPainel() {
             ) : (
               <div className="luzes-grid">
                 {dadosFiltrados.map(luz => (
-                  <div key={luz.id} className="luz-card">
+                  <div key={luz.id} className={`luz-card ${getCorClass(luz.cor)}`}>
                     <div className="luz-header">
                       {
                         // Determine if this is the "Falha de Freio" card (support both string ids from backend and numeric ids from fallback)
@@ -344,9 +335,7 @@ function LuzesDoPainel() {
                       <div className="luz-info">
                         <h3 className="luz-nome">{luz.nome}</h3>
                         <div className="luz-indicators">
-                          <div 
-                            className={`cor-indicator ${getCorClass(luz.cor)}`}
-                          ></div>
+                              <div className={`cor-indicator ${getCorClass(luz.cor)}`}></div>
                         </div>
                       </div>
                     </div>

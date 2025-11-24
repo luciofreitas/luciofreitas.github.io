@@ -1,4 +1,5 @@
 import React from 'react';
+import { getCorClass, getPrioridadeClass } from '../utils/colorUtils';
 
 const GlossarioExpandido = ({ 
   loading, 
@@ -7,7 +8,6 @@ const GlossarioExpandido = ({
   setFiltros, 
   dadosFiltrados, 
   getPrioridadeColor, 
-  getCorHex,
   limparFiltros 
 }) => {
   if (loading) {
@@ -89,8 +89,8 @@ const GlossarioExpandido = ({
         </div>
       ) : (
         <div className="luzes-grid">
-          {dadosFiltrados.map(luz => (
-            <div key={luz.id} className="luz-card">
+            {dadosFiltrados.map(luz => (
+            <div key={luz.id} className={`luz-card ${getCorClass(luz.cor)}`}>
               <div className="luz-header">
                 <div className="luz-icone">
                   {luz.icone ? (
@@ -101,16 +101,14 @@ const GlossarioExpandido = ({
                 </div>
                 <div className="luz-info">
                   <h3 className="luz-nome">{luz.nome}</h3>
-                  <div className="luz-indicators">
-                    <span 
-                      className="prioridade-badge"
-                      style={{ backgroundColor: getPrioridadeColor(luz.prioridade) }}
+                    <div className={`luz-indicators ${getPrioridadeClass(luz.prioridade)}`}>
+                          <span 
+                      className={`prioridade-badge ${getPrioridadeClass(luz.prioridade)}`}
                     >
                       {luz.prioridade}
                     </span>
                     <div 
-                      className="cor-indicator"
-                      style={{ backgroundColor: getCorHex(luz.cor) }}
+                      className={`cor-indicator ${getCorClass(luz.cor)}`}
                     ></div>
                   </div>
                 </div>
@@ -154,23 +152,23 @@ const GlossarioExpandido = ({
           <h3>🎨 Legenda das Cores</h3>
           <div className="cores-legend">
             <div className="cor-item">
-              <div className="cor-dot" style={{ backgroundColor: '#dc2626' }}></div>
+              <div className={`cor-dot ${getCorClass('vermelho')}`}></div>
               <span><strong>Vermelho:</strong> Pare imediatamente</span>
             </div>
             <div className="cor-item">
-              <div className="cor-dot" style={{ backgroundColor: '#f59e0b' }}></div>
+              <div className={`cor-dot ${getCorClass('amarelo')}`}></div>
               <span><strong>Amarelo:</strong> Atenção necessária</span>
             </div>
             <div className="cor-item">
-              <div className="cor-dot" style={{ backgroundColor: '#16a34a' }}></div>
+              <div className={`cor-dot ${getCorClass('verde')}`}></div>
               <span><strong>Verde:</strong> Sistema funcionando</span>
             </div>
             <div className="cor-item">
-              <div className="cor-dot" style={{ backgroundColor: '#2563eb' }}></div>
+              <div className={`cor-dot ${getCorClass('azul')}`}></div>
               <span><strong>Azul:</strong> Informativo</span>
             </div>
             <div className="cor-item">
-              <div className="cor-dot" style={{ backgroundColor: '#ea580c' }}></div>
+              <div className={`cor-dot ${getCorClass('laranja')}`}></div>
               <span><strong>Laranja:</strong> Atenção</span>
             </div>
           </div>

@@ -7,6 +7,7 @@ import './styles/index.css'
 import './utils/add-region-roles';
 import App from './App.jsx'
 import { loadRuntimeConfig } from './runtimeConfig';
+import { ensureGlossarioColors } from './utils/glossarioColors';
 
 // Lightweight startup instrumentation to measure dev/perceived load times.
 try { console.time('[app-timing] module-load'); } catch(e){}
@@ -19,6 +20,7 @@ try { console.time('[app-timing] module-load'); } catch(e){}
   try {
     const cfg = await loadRuntimeConfig();
     if (typeof window !== 'undefined') window.__RUNTIME_CONFIG__ = cfg;
+    try { ensureGlossarioColors(); } catch (e) { /* ignore on non-browser env */ }
   } catch (e) {
     // If runtime config fails, we still proceed — loadRuntimeConfig already
     // provides safe fallbacks to import.meta.env.

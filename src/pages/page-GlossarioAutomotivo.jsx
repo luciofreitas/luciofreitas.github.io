@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu } from '../components';
 import { apiService } from '../utils/apiService';
+import { getCorClass, getPrioridadeClass } from '../utils/colorUtils';
 import '../styles/pages/page-GlossarioAutomotivo.css';
 
 function PageGlossarioAutomotivo() {
@@ -131,16 +132,6 @@ function PageGlossarioAutomotivo() {
     }
   };
 
-  const getCorIndicator = (cor) => {
-    switch (cor) {
-      case 'vermelho': return '#dc2626';
-      case 'amarelo': return '#eab308';
-      case 'verde': return '#16a34a';
-      case 'azul': return '#2563eb';
-      default: return '#6b7280';
-    }
-  };
-
   if (loading) {
     return (
       <>
@@ -250,9 +241,9 @@ function PageGlossarioAutomotivo() {
           </div>
 
           {/* Grid de Luzes */}
-          <div className="luzes-grid">
+              <div className="luzes-grid">
             {luzesFiltered.map(luz => (
-              <div key={luz.id} className="luz-card">
+              <div key={luz.id} className={`luz-card ${getCorClass(luz.cor)}`}>
                 <div className="luz-header">
                     <div className="luz-icone">
                       {luz.icone ? (
@@ -265,14 +256,12 @@ function PageGlossarioAutomotivo() {
                     <h3 className="luz-nome">{luz.nome}</h3>
                     <div className="luz-indicators">
                       <span 
-                        className="prioridade-badge"
-                        style={{ backgroundColor: getPrioridadeColor(luz.prioridade) }}
+                        className={`prioridade-badge ${getPrioridadeClass(luz.prioridade)}`}
                       >
                         {luz.prioridade}
                       </span>
                       <span 
-                        className="cor-indicator"
-                        style={{ backgroundColor: getCorIndicator(luz.cor) }}
+                        className={`cor-indicator ${getCorClass(luz.cor)}`}
                         title={`Cor: ${luz.cor}`}
                       ></span>
                     </div>
@@ -327,24 +316,24 @@ function PageGlossarioAutomotivo() {
           )}
 
           {/* Informações adicionais */}
-          <div className="glossario-footer">
+                <div className="glossario-footer">
             <div className="info-section">
               <h3>Como interpretar as cores das luzes:</h3>
               <div className="cores-legend">
                 <div className="cor-item">
-                  <span className="cor-dot" style={{backgroundColor: '#dc2626'}}></span>
+                  <span className={`cor-dot ${getCorClass('vermelho')}`}></span>
                   <span><strong>Vermelho:</strong> Pare imediatamente - problema crítico</span>
                 </div>
                 <div className="cor-item">
-                  <span className="cor-dot" style={{backgroundColor: '#eab308'}}></span>
+                  <span className={`cor-dot ${getCorClass('amarelo')}`}></span>
                   <span><strong>Amarelo:</strong> Atenção - manutenção necessária</span>
                 </div>
                 <div className="cor-item">
-                  <span className="cor-dot" style={{backgroundColor: '#16a34a'}}></span>
+                  <span className={`cor-dot ${getCorClass('verde')}`}></span>
                   <span><strong>Verde:</strong> Sistema funcionando/ativado</span>
                 </div>
                 <div className="cor-item">
-                  <span className="cor-dot" style={{backgroundColor: '#2563eb'}}></span>
+                  <span className={`cor-dot ${getCorClass('azul')}`}></span>
                   <span><strong>Azul:</strong> Informativo (farol alto, etc.)</span>
                 </div>
               </div>
