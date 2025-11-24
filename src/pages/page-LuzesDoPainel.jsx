@@ -21,8 +21,6 @@ function LuzesDoPainel() {
   const [error, setError] = useState(null);
   // mapa das imagens carregadas dinamicamente
   const [imagensLuzesMap, setImagensLuzesMap] = useState({});
-  // set para classes dinâmicas geradas em runtime (para cores hex/rgb vindas dos dados)
-  const dynamicColorsRef = useRef(new Set());
   
   // Estados para filtros
   const [filtros, setFiltros] = useState({
@@ -80,8 +78,6 @@ function LuzesDoPainel() {
         }));
 
         setGlossarioData(arrayData);
-        // generate CSS rules based on the data tokens so the mock data controls colors
-        generateColorRules(arrayData);
       } catch (error) {
         console.error('Erro ao carregar glossário:', error);
         setGlossarioData(Array.isArray(glossarioMockData) ? glossarioMockData : []);
@@ -118,75 +114,6 @@ function LuzesDoPainel() {
       'azul': '#2563eb'
     };
     return cores[cor.toLowerCase()] || '#6b7280';
-  };
-
-  // Generate CSS rules for color tokens found in the data so the data
-  // (glossarioMockData) is the single source of truth for colors.
-  const generateColorRules = (items) => {
-    if (typeof document === 'undefined') return;
-    try {
-      const styleId = 'luzes-colors-generated';
-      let styleEl = document.getElementById(styleId);
-      if (styleEl) styleEl.remove();
-      const tokens = new Set();
-      (items || []).forEach(i => {
-        const t = toColorClass(i && i.cor);
-        if (t) tokens.add(t);
-      });
-      if (tokens.size === 0) return;
-      const rules = [];
-      tokens.forEach(t => {
-        const hex = getCorHex(t);
-        // create rules for indicator and card accent
-        rules.push(`.cor-indicator.${t} { background-color: ${hex}; }`);
-        rules.push(`.luz-card.${t} { border-left-color: ${hex}; }`);
-      });
-      styleEl = document.createElement('style');
-      styleEl.id = styleId;
-      styleEl.appendChild(document.createTextNode(rules.join('\n')));
-      document.head.appendChild(styleEl);
-    } catch (e) {
-      // ignore
-    }
-  };
-
-  // Normaliza tokens de cor e garante uma classe CSS para valores dinâmicos (hex / rgb)
-  const toColorClass = (colorToken) => {
-    if (!colorToken) return '';
-    const raw = String(colorToken).trim();
-    const lower = raw.toLowerCase();
-
-    // Mapear nomes em inglês para os tokens em português (caso os dados venham assim)
-    const mapEnToPt = { red: 'vermelho', yellow: 'amarelo', orange: 'laranja', green: 'verde', blue: 'azul' };
-    if (mapEnToPt[lower]) return mapEnToPt[lower];
-
-    // Se já for um token conhecido, retorne normalizado
-    const known = ['vermelho','laranja','amarelo','verde','azul'];
-    if (known.includes(lower)) return lower;
-
-    // Se for um hex ou rgb, gera uma classe segura e adiciona uma regra CSS dinâmica
-    if (lower.startsWith('#') || lower.startsWith('rgb')) {
-      const safeKey = lower.replace(/[^a-z0-9]/g, '');
-      const cls = `data-color-${safeKey}`;
-      // cria regra CSS apenas uma vez
-      if (typeof document !== 'undefined' && !dynamicColorsRef.current.has(cls)) {
-        try {
-          const rule = `.${cls} { background-color: ${raw} !important; } .cor-dot.${cls} { background-color: ${raw} !important; }`;
-          const style = document.createElement('style');
-          style.setAttribute('data-generated', 'luzes-colors');
-          style.appendChild(document.createTextNode(rule));
-          document.head.appendChild(style);
-          dynamicColorsRef.current.add(cls);
-        } catch (e) {
-          // fail silently
-        }
-      }
-      return cls;
-    }
-
-    // Caso seja um texto diferente, normalize removendo acentos e caracteres especiais
-    const slug = lower.normalize('NFKD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    return slug || lower;
   };
 
   const resolveIcon = (icone, item) => {
@@ -319,23 +246,23 @@ function LuzesDoPainel() {
                 <h3>🎨 Legenda das Cores</h3>
                 <div className="cores-legend">
                   <div className="cor-item">
-                    <div className="cor-dot vermelho"></div>
+                    <div className="cor-dot" style={{ backgroundColor: '#dc2626' }}></div>
                     <span><strong>Vermelho:</strong> Pare imediatamente</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot amarelo"></div>
+                    <div className="cor-dot" style={{ backgroundColor: '#ffd400' }}></div>
                     <span><strong>Amarelo:</strong> Atenção necessária</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot verde"></div>
+                    <div className="cor-dot" style={{ backgroundColor: '#16a34a' }}></div>
                     <span><strong>Verde:</strong> Sistema funcionando</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot azul"></div>
+                    <div className="cor-dot" style={{ backgroundColor: '#2563eb' }}></div>
                     <span><strong>Azul:</strong> Informativo</span>
                   </div>
                   <div className="cor-item">
-                    <div className="cor-dot laranja"></div>
+                    <div className="cor-dot" style={{ backgroundColor: '#ff7a00' }}></div>
                     <span><strong>Laranja:</strong> Atenção</span>
                   </div>
                 </div>
@@ -360,16 +287,8 @@ function LuzesDoPainel() {
               </div>
             ) : (
               <div className="luzes-grid">
-                {dadosFiltrados.map(luz => {
-                  if (import.meta.env && import.meta.env.DEV) {
-                    try {
-                      console.debug('[LuzesDoPainel] item:', { nome: luz.nome, cor: luz.cor, class: toColorClass(luz.cor) });
-                    } catch (e) {
-                      // ignore
-                    }
-                  }
-                  return (
-                    <div key={luz.id} className={`luz-card ${toColorClass(luz.cor)}`}>
+                {dadosFiltrados.map(luz => (
+                  <div key={luz.id} className="luz-card">
                     <div className="luz-header">
                       {
                         // Determine if this is the "Falha de Freio" card (support both string ids from backend and numeric ids from fallback)
@@ -377,7 +296,7 @@ function LuzesDoPainel() {
                         {(() => {
                         const isFalhaDeFreio = (String(luz.id) === 'falha-de-freio') || (String(luz.id) === '10') || (String(luz.nome || '').toLowerCase().includes('falha de freio'));
                         const isRed = isFalhaDeFreio || (String(luz.cor || '').toLowerCase() === 'vermelho');
-                        return <div className={`luz-icone ${isRed ? 'luz-icone--red' : ''}`}>
+                        return <div className={`luz-icone ${isRed ? 'luz-icone--red' : ''}`} style={isRed ? { filter: 'none' } : undefined}>
                           {(() => {
                             const resolved = resolveIcon(luz.icone);
                             // If resolved looks like an image path or URL, render an <img>
@@ -389,21 +308,29 @@ function LuzesDoPainel() {
                               const imgRefCallback = (el) => {
                                 if (!el) return;
                                 try {
-                                  // prefer toggling classes instead of inline styles
                                   if (isRed) {
+                                    // If this image file is already the recolored raster (filename contains 'falha-de-freio')
+                                    // avoid applying the CSS filter again (which would change its color). Instead, neutralize
+                                    // any filters and optionally add a red border for visual debug.
                                     if (typeof resolved === 'string' && resolved.includes('falha-de-freio')) {
-                                      el.classList.remove('luz-icone--red-img');
-                                      el.classList.add('luz-icone--red-raw');
+                                      el.style.setProperty('filter', 'none', 'important');
+                                      el.style.setProperty('-webkit-filter', 'none', 'important');
+                                      // no border for recolored raster
                                     } else {
-                                      el.classList.remove('luz-icone--red-raw');
-                                      el.classList.add('luz-icone--red-img');
+                                      // apply recolor filter for vector or non-recolored raster icons
+                                      el.style.setProperty('filter', filterValue, 'important');
+                                      el.style.setProperty('-webkit-filter', filterValue, 'important');
+                                      // no border for recolored raster
                                     }
                                   } else {
-                                    el.classList.remove('luz-icone--red-img');
-                                    el.classList.remove('luz-icone--red-raw');
+                                    // remove inline important properties if present
+                                    el.style.removeProperty('filter');
+                                    el.style.removeProperty('-webkit-filter');
+                                    el.style.removeProperty('border');
+                                    el.style.removeProperty('border-radius');
                                   }
                                 } catch (e) {
-                                  // defensive
+                                  // defensive: some browsers may throw when modifying style on detached nodes
                                 }
                               };
                               return <img ref={imgRefCallback} src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} />;
@@ -416,7 +343,8 @@ function LuzesDoPainel() {
                         <h3 className="luz-nome">{luz.nome}</h3>
                         <div className="luz-indicators">
                           <div 
-                            className={`cor-indicator ${toColorClass(luz.cor)}`}
+                            className="cor-indicator"
+                            style={{ backgroundColor: getCorHex(luz.cor) }}
                           ></div>
                         </div>
                       </div>
@@ -450,8 +378,7 @@ function LuzesDoPainel() {
                       )}
                     </div>
                   </div>
-                );
-                })}
+                ))}
               </div>
             )}
 
