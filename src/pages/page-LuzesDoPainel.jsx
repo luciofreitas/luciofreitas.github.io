@@ -5,12 +5,13 @@ import { AuthContext } from '../App';
 import { ComponenteEstrelas } from '../components';
 import { useAvaliacoes } from '../hooks/useAvaliacoes';
 import { apiService } from '../utils/apiService';
-import { glossarioMockData } from '../data/glossarioData';
+import { glossarioMockData, glossarioColors } from '../data/glossarioData';
 import { getCorClass } from '../utils/colorUtils';
 import '../styles/pages/page-LuzesDoPainel.css';
 
 // Use import.meta.glob to lazily import images (globEager may not be available in some runtimes)
-const imagensLuzesModules = import.meta.glob('../../images/luzes-no-painel/*.png');
+// Load both PNG and SVG files and prefer SVG when available to allow tintable icons.
+const imagensLuzesModules = import.meta.glob('../../images/luzes-no-painel/*.{png,svg}');
 
 function LuzesDoPainel() {
   const { usuarioLogado } = useContext(AuthContext) || {};
@@ -71,7 +72,16 @@ function LuzesDoPainel() {
         const arrayData = raw.map(item => ({
           id: item.id || item.nome || item.name,
           nome: item.nome || item.title || item.name || '',
-          icone: item.icone || item.icon || '',
+          // Prefer icon path from our local mock data when available (so tests using SVGs succeed)
+          icone: (function() {
+            try {
+              const lookup = (item.nome || item.title || item.name || item.id || '').toString().trim().toLowerCase();
+              const mockIconMap = new Map((Array.isArray(glossarioMockData) ? glossarioMockData : []).map(m => [String(m.nome || m.id || '').trim().toLowerCase(), m.icone || m.icon || m.icone || '']));
+              const fromMock = mockIconMap.get(lookup);
+              if (fromMock) return fromMock;
+            } catch (e) {}
+            return item.icone || item.icon || '';
+          })(),
           // Force color token to come from glossarioMockData when available
           cor: (function() {
             try {
@@ -102,6 +112,151 @@ function LuzesDoPainel() {
     carregarGlossario();
   }, []);
 
+    // Cache for fetched SVG contents to avoid repeated network requests
+    const svgCacheRef = useRef({});
+
+    // InlineSvg: fetches an external SVG, normalizes fills/strokes to currentColor and injects it inline
+    function InlineSvg({ src, className, alt, colorHex }) {
+      const [svgContent, setSvgContent] = useState(null);
+      useEffect(() => {
+        let mounted = true;
+        if (!src) return;
+        if (svgCacheRef.current[src]) {
+          setSvgContent(svgCacheRef.current[src]);
+          return;
+        }
+        (async () => {
+          try {
+            const res = await fetch(src);
+            if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+            let text = await res.text();
+
+            // Try to parse the SVG and normalize attributes for reliable sizing and coloring
+            try {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(text, 'image/svg+xml');
+              const svgEl = doc.querySelector('svg');
+              if (svgEl) {
+                // Remove any internal <style> rules to avoid conflicts
+                svgEl.querySelectorAll('style').forEach(s => s.remove());
+
+                // Remove inline style fill/stroke declarations on elements
+                svgEl.querySelectorAll('[style]').forEach(el => {
+                  const s = el.getAttribute('style') || '';
+                  const cleaned = s.replace(/(fill|stroke)\s*:\s*[^;]+;?/gi, '');
+                  if (cleaned.trim()) el.setAttribute('style', cleaned);
+                  else el.removeAttribute('style');
+                });
+
+                // Insert an internal style to force all fills/strokes to currentColor
+                try {
+                  const ns = 'http://www.w3.org/2000/svg';
+                  const styleEl = doc.createElementNS(ns, 'style');
+                  styleEl.textContent = '* { fill: currentColor !important; stroke: currentColor !important; }';
+                  svgEl.insertBefore(styleEl, svgEl.firstChild);
+                } catch (inner) {
+                  // ignore if createElementNS fails in some envs
+                }
+
+                // As a stronger fallback, set presentation attributes on elements
+                // that currently have explicit fill/stroke values so they use the provided colorHex.
+                svgEl.querySelectorAll('*').forEach(el => {
+                  try {
+                    if (el.hasAttribute('fill')) {
+                      const v = el.getAttribute('fill');
+                      if (v && v.toLowerCase() !== 'none') el.setAttribute('fill', (colorHex || 'currentColor'));
+                    }
+                    if (el.hasAttribute('stroke')) {
+                      const v2 = el.getAttribute('stroke');
+                      if (v2 && v2.toLowerCase() !== 'none') el.setAttribute('stroke', (colorHex || 'currentColor'));
+                    }
+                  } catch (e) {
+                    // ignore per-element errors
+                  }
+                });
+
+                // Remove explicit width/height so CSS can size the SVG
+                const widthAttr = svgEl.getAttribute('width');
+                const heightAttr = svgEl.getAttribute('height');
+                if (widthAttr) svgEl.removeAttribute('width');
+                if (heightAttr) svgEl.removeAttribute('height');
+
+                // If viewBox missing and numeric width/height were present, create a viewBox
+                if (!svgEl.hasAttribute('viewBox')) {
+                  const w = parseFloat(widthAttr || '0');
+                  const h = parseFloat(heightAttr || '0');
+                  if (w > 0 && h > 0) svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+                }
+
+                // Ensure consistent scaling
+                if (!svgEl.hasAttribute('preserveAspectRatio')) svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+                // Merge className onto root <svg>
+                const cls = (className || '').trim();
+                if (cls) {
+                  const existing = svgEl.getAttribute('class') || '';
+                  const merged = (existing + ' ' + cls).trim();
+                  svgEl.setAttribute('class', merged);
+                }
+
+                // Serialize only the inner <svg> markup (root) to keep things tidy
+                const serializer = new XMLSerializer();
+                text = serializer.serializeToString(svgEl);
+              }
+            } catch (e) {
+              // fallback: simple regex replacement when parsing fails
+              text = text.replace(/(fill|stroke)=(["'])(?!none)(#[^"']+|[^"']+?)\2/gi, '$1="currentColor"');
+              // also try to strip style:fill/... occurrences
+              text = text.replace(/style=(["'])(.*?)\1/gi, (m, q, content) => {
+                const cleaned = content.replace(/(fill|stroke)\s*:\s*[^;]+;?/gi, '');
+                return `style=${q}${cleaned}${q}`;
+              });
+            }
+
+            // Cache and set
+            svgCacheRef.current[src] = text;
+            if (mounted) {
+              try { console.debug('[InlineSvg] loaded', src, 'len=', text && text.length); } catch (e) {}
+              setSvgContent(text);
+            }
+          } catch (e) {
+            if (mounted) {
+              try { console.warn('[InlineSvg] failed to load', src, e && e.message); } catch (er) {}
+              setSvgContent(null);
+            }
+          }
+        })();
+        return () => { mounted = false; };
+      }, [src]);
+
+      if (!svgContent) return <img src={src} alt={alt} className={className} />;
+      return <span className={className} role={alt ? 'img' : undefined} aria-label={alt || undefined} dangerouslySetInnerHTML={{ __html: svgContent }} />;
+    }
+
+    // SvgMask: render the SVG as a mask/background so the element's background-color/currentColor
+    // paints the icon regardless of internal SVG fills. This is robust against inline styles
+    // or presentation attributes inside the SVG file.
+    function SvgMask({ src, className, alt, colorHex }) {
+      const style = {};
+      if (src) {
+        // apply both mask and background for compatibility
+        style.backgroundImage = `url(${src})`;
+        style.WebkitMaskImage = `url(${src})`;
+        style.maskImage = `url(${src})`;
+        style.WebkitMaskSize = 'contain';
+        style.maskSize = 'contain';
+        style.WebkitMaskRepeat = 'no-repeat';
+        style.maskRepeat = 'no-repeat';
+        style.WebkitMaskPosition = 'center';
+        style.maskPosition = 'center';
+        style.backgroundRepeat = 'no-repeat';
+        style.backgroundPosition = 'center';
+        style.backgroundSize = 'contain';
+        if (colorHex) style.backgroundColor = colorHex;
+      }
+      return <span className={className} role={alt ? 'img' : undefined} aria-label={alt || undefined} style={style} />;
+    }
+
   // Funções auxiliares
   const limparFiltros = () => {
     setFiltros({ busca: '', cor: '' });
@@ -126,13 +281,27 @@ function LuzesDoPainel() {
     // If icone is a string and looks like a path (contains '/'), try to resolve filename
     const tryResolveFilename = (filename) => {
       if (!filename) return null;
+      // direct match
       if (imagensLuzesMap[filename]) return imagensLuzesMap[filename];
+      // try alternative extensions (prefer .svg over .png)
+      const m = filename.match(/^(.*)\.([a-z0-9]+)$/i);
+      if (m) {
+        const base = m[1];
+        const altSvg = `${base}.svg`;
+        const altPng = `${base}.png`;
+        if (imagensLuzesMap[altSvg]) return imagensLuzesMap[altSvg];
+        if (imagensLuzesMap[altPng]) return imagensLuzesMap[altPng];
+      } else {
+        const alt = `${filename}.svg`;
+        if (imagensLuzesMap[alt]) return imagensLuzesMap[alt];
+      }
       return null;
     };
 
     if (typeof icone === 'string' && icone.includes('/')) {
       const filename = icone.split('/').pop();
       const found = tryResolveFilename(filename);
+      try { console.debug('[resolveIcon] ', item && item.nome ? item.nome : item.id, '->', found || icone); } catch (e) {}
       if (found) return found;
       if (icone.startsWith('/')) return `${import.meta.env.BASE_URL}${icone.slice(1)}`;
       return icone;
@@ -252,8 +421,12 @@ function LuzesDoPainel() {
                     <span><strong>Vermelho:</strong> Pare imediatamente</span>
                   </div>
                   <div className="cor-item">
+                    <div className={`cor-dot ${getCorClass('laranja')}`}></div>
+                    <span><strong>Laranja:</strong> Mais Atenção</span>
+                  </div>
+                  <div className="cor-item">
                     <div className={`cor-dot ${getCorClass('amarelo')}`}></div>
-                    <span><strong>Amarelo:</strong> Atenção necessária</span>
+                    <span><strong>Amarelo:</strong> Atenção</span>
                   </div>
                   <div className="cor-item">
                     <div className={`cor-dot ${getCorClass('verde')}`}></div>
@@ -262,10 +435,6 @@ function LuzesDoPainel() {
                   <div className="cor-item">
                     <div className={`cor-dot ${getCorClass('azul')}`}></div>
                     <span><strong>Azul:</strong> Informativo</span>
-                  </div>
-                  <div className="cor-item">
-                    <div className={`cor-dot ${getCorClass('laranja')}`}></div>
-                    <span><strong>Laranja:</strong> Atenção</span>
                   </div>
                 </div>
               </div>
@@ -292,13 +461,10 @@ function LuzesDoPainel() {
                 {dadosFiltrados.map(luz => (
                   <div key={luz.id} className={`luz-card ${getCorClass(luz.cor)}`}>
                     <div className="luz-header">
-                      {
-                        // Determine if this is the "Falha de Freio" card (support both string ids from backend and numeric ids from fallback)
-                      }
                         {(() => {
-                        const isFalhaDeFreio = (String(luz.id) === 'falha-de-freio') || (String(luz.id) === '10') || (String(luz.nome || '').toLowerCase().includes('falha de freio'));
-                        const isRed = isFalhaDeFreio || (String(luz.cor || '').toLowerCase() === 'vermelho');
-                        return <div className={`luz-icone ${isRed ? 'luz-icone--red' : ''}`}>
+                        // Color decisions come solely from the `luz.cor` token now.
+                        const isRed = (String(luz.cor || '').toLowerCase() === 'vermelho');
+                        return <div className={`luz-icone`}>
                           {(() => {
                             const resolved = resolveIcon(luz.icone);
                             // If resolved looks like an image path or URL, render an <img>
@@ -306,27 +472,34 @@ function LuzesDoPainel() {
                               resolved.includes('/') || /\.(png|jpg|jpeg|svg|gif)$/.test(resolved)
                             );
                             if (looksLikeImage) {
+                              const isSvg = (function(r) {
+                                if (typeof r !== 'string') return false;
+                                if (/\.svg(\?|$)/i.test(r)) return true;
+                                if (r.startsWith('data:image/svg+xml')) return true;
+                                if (r.includes('%3Csvg') || r.includes('%3csvg')) return true;
+                                if (r.indexOf('<svg') !== -1) return true;
+                                return false;
+                              })(resolved);
+                              if (isSvg) {
+                                // Compute explicit color hex for the token so we can force it on the SVG
+                                const colorHex = (glossarioColors && glossarioColors[luz.cor]) ? glossarioColors[luz.cor] : undefined;
+                                // Inline the SVG so we can rewrite fills/strokes reliably
+                                return (
+                                  <InlineSvg src={resolved} colorHex={colorHex} className={`cor-icon ${getCorClass(luz.cor)} luz-icone-img`} alt={luz.nome} />
+                                );
+                              }
                               const filterValue = "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)";
-                              const imgRefCallback = (el) => {
-                                if (!el) return;
-                                try {
-                                  if (isRed) {
-                                    if (typeof resolved === 'string' && resolved.includes('falha-de-freio')) {
-                                      el.classList.remove('luz-icone--red-img');
-                                      el.classList.add('luz-icone--red-raw');
-                                    } else {
-                                      el.classList.remove('luz-icone--red-raw');
-                                      el.classList.add('luz-icone--red-img');
-                                    }
-                                  } else {
-                                    el.classList.remove('luz-icone--red-img');
-                                    el.classList.remove('luz-icone--red-raw');
-                                  }
-                                } catch (e) {
-                                  // defensive
-                                }
-                              };
-                              return <img ref={imgRefCallback} src={resolved} alt={luz.nome} className={`luz-icone-img ${isRed ? 'luz-icone--red' : ''}`} />;
+                              const isSvgLikeImg = (function(r){
+                                if (typeof r !== 'string') return false;
+                                if (/\.svg(\?|$)/i.test(r)) return true;
+                                if (r.startsWith('data:image/svg+xml')) return true;
+                                if (r.includes('%3Csvg') || r.includes('%3csvg')) return true;
+                                if (r.indexOf('<svg') !== -1) return true;
+                                return false;
+                              })(resolved);
+                              const imgRefCallback = (el) => { /* no-op; no per-file recolor handling */ };
+                              const imgClassName = `luz-icone-img ${isSvgLikeImg ? `cor-icon ${getCorClass(luz.cor)}` : ''}`.trim();
+                              return <img ref={imgRefCallback} src={resolved} alt={luz.nome} className={imgClassName} />;
                             }
                             // Otherwise render the resolved value as text (emoji or fallback)
                             return <div className="luz-icone-text">{resolved || '⚠️'}</div>;

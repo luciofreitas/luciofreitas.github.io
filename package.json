@@ -6,7 +6,6 @@
   "description": "Web UI (React + Vite) para catálogo de peças automotivas; use `npm run dev:chrome` para abrir o site automaticamente no Google Chrome sem alterar o navegador padrão do sistema.",
   "scripts": {
     "dev": "vite --host --port 5174",
-    "recolor:falha": "node scripts/recolor-falha-de-freio.js",
     "dev:chrome": "concurrently \"npm run dev\" \"wait-on http://localhost:5174 && .\\open-chrome.bat\"",
     "build": "vite build",
     "ci-build": "NPM_CONFIG_PRODUCTION=false npm ci && npm run build",

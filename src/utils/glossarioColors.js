@@ -15,6 +15,8 @@ export function ensureGlossarioColors() {
     lines.push(`.cor-indicator.${token} { background-color: ${hex} !important; }`);
     // card accent
     lines.push(`.luz-card.${token} { border-left-color: ${hex} !important; }`);
+    // icon tinting for SVGs using currentColor when inlined
+    lines.push(`.cor-icon.${token} { color: ${hex} !important; }`);
   });
 
   const cssText = lines.join('\n');

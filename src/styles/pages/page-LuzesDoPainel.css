@@ -193,6 +193,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden; /* contain any SVG drawing that could overflow */
 }
 
 /* Image used for panel light icons (fallback to emoji if missing) */
@@ -201,6 +202,41 @@
   height: clamp(3rem, 6vw, 4.5rem);
   object-fit: contain;
   display: block;
+}
+/* Ensure inline SVGs inside the .luz-icone-img container are sized correctly */
+.luz-icone-img svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+/* If the icon element is an inlined SVG using the `.cor-icon` class (currentColor),
+   disable the PNG recolor filters so the SVG's `currentColor` renders accurately. */
+.luz-icone-img.cor-icon,
+.luz-icone-img.cor-icon svg,
+.cor-icon.luz-icone-img,
+.cor-icon.luz-icone-img svg {
+  -webkit-filter: none !important;
+  filter: none !important;
+}
+
+/* SvgMask helper: paint SVG via mask/background so currentColor applies regardless of SVG internals */
+.luz-icone-img.luz-icone-mask,
+.luz-icone-mask {
+  width: clamp(3rem, 6vw, 4.5rem);
+  height: clamp(3rem, 6vw, 4.5rem);
+  display: inline-block;
+  background-color: currentColor !important;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  background-size: contain;
+  background-position: center;
 }
 .luz-info {
   flex: 1;
@@ -422,62 +458,8 @@
 
 /* Responsividade */
 
-/* Recolor specific icon to red using CSS filter (targets filename) */
-.luz-icone-img[src$="/falha-de-freio.png"] {
-  -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
-  filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
-}
-
-/* Fallback: if the icon is used as background or different path, add class-based helper */
-.luz-icone--red img,
-.luz-icone--red .luz-icone-img {
-  -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
-  filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%);
-}
-
-/* Class-based helpers for toggling icon recolor without inline styles */
-.luz-icone-img.luz-icone--red-img {
-  -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%) !important;
-  filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%) !important;
-}
-.luz-icone-img.luz-icone--red-raw {
-  -webkit-filter: none !important;
-  filter: none !important;
-}
-/* Strong overrides to prevent parent/background effects from changing the icon color */
-.luz-icone--red {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 !important;
-}
-.luz-icone--red {
-  /* neutralize container decorations that could alter icon rendering */
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 !important;
-  filter: none !important; /* remove filters applied to container */
-  -webkit-filter: none !important;
-  isolation: isolate !important;
-}
-.luz-icone--red img,
-.luz-icone--red .luz-icone-img {
-  /* enforce the red recolor on the image itself */
-  -webkit-filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%) !important;
-  filter: invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%) !important;
-  mix-blend-mode: normal !important;
-  background: transparent !important;
-}
-/* If the source PNG was already raster-recolored to red, do not apply additional CSS filters
-   (more specific selector to override the .luz-icone--red rule above). */
-.luz-icone--red img[src$="/falha-de-freio.png"],
-.luz-icone-img[src$="/falha-de-freio.png"] {
-  -webkit-filter: none !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-  background: transparent !important;
-}
+/* The per-file recolor rules for falha-de-freio were removed to avoid special-case styling.
+   Coloring is now handled globally via generated token classes and SVG inlining/masking. */
 @media (max-width: 768px) {
   .luzes-header .page-title {
     font-size: 2rem;
@@ -529,6 +511,28 @@
   .glossario-footer-section {
     padding: 1.5rem;
   }
+}
+
+/* Ensure mask-based icons keep their background color even when parent/container
+   rules (like .luz-icone--red) attempt to neutralize backgrounds. Placed at the
+   end so it overrides earlier !important transparent rules. */
+.luz-icone-mask,
+.luz-icone-img.luz-icone-mask,
+.cor-icon.luz-icone-mask,
+.cor-icon.luz-icone-img.luz-icone-mask {
+  background-color: currentColor !important;
+  display: inline-block !important;
+  width: clamp(3rem, 6vw, 4.5rem) !important;
+  height: clamp(3rem, 6vw, 4.5rem) !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+  -webkit-mask-size: contain !important;
+  mask-size: contain !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
 }
 
 /* ===== DARK MODE ===== */
