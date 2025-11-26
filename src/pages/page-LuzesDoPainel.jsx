@@ -418,7 +418,7 @@ function LuzesDoPainel() {
                 <div className="cores-legend">
                   <div className="cor-item">
                     <div className={`cor-dot ${getCorClass('vermelho')}`}></div>
-                    <span><strong>Vermelho:</strong> Pare imediatamente</span>
+                    <span><strong>Vermelho:</strong> Pare</span>
                   </div>
                   <div className="cor-item">
                     <div className={`cor-dot ${getCorClass('laranja')}`}></div>
