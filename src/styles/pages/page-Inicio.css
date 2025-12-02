@@ -1,25 +1,29 @@
-/* page-Inicio.css - estilos básicos para a página inicial */
+/* page-Inicio.css - Estilos modernos alinhados com Nosso Projeto */
 
 .page-inicio {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-white);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .inicio-main {
   flex: 1;
   width: 100%;
-  max-width: 68.75rem;
+  max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
+  padding: 2rem 1rem;
 }
 
 .inicio-hero {
-  padding: 0 0 2.5rem 0; /* keep bottom spacing for hero content */
+  padding: 0 0 2.5rem 0;
   text-align: center;
-  /* Ensure the hero title aligns with other pages using the same page-title spacing */
-  --homepage-title-top-padding: 0.85rem; /* matches global .page-title */
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .inicio-subtitle {
@@ -27,27 +31,28 @@
   margin: 0 0 1rem 0;
 }
 
-/* Subtitle container that replicates the screenshot: centered, rounded, light background */
+/* Subtitle container */
 .inicio-intro {
-  background: var(--bg-gray-neutral);
-  border: 1px solid var(--border-gray);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   padding: 1.5rem;
   margin: 0 auto 2rem auto;
   text-align: center;
-  max-width: 50rem; /* Match quem-somos content width */
+  max-width: 700px;
 }
+
 .inicio-intro .inicio-subtitle {
-  color: var(--text-secondary);
+  color: #64748b;
   margin: 0;
   font-size: 1.1rem;
   line-height: 1.6;
 }
 
-/* Specific override to defeat global reset in App.css which sets
-   `.page-wrapper.page-inicio * { background-color: initial !important; }` */
+/* Override global reset */
 .page-wrapper.page-inicio .inicio-intro {
-  background: var(--bg-gray-neutral) !important;
+  background: #f8fafc !important;
+}
   background-color: var(--bg-gray-neutral) !important;
 }
 
@@ -592,6 +597,19 @@ h1.page-title {
 }
 
 /* ===== DARK MODE ===== */
+.theme-dark .page-inicio {
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+}
+
+.theme-dark .inicio-intro {
+  background: #1e293b !important;
+  border-color: #334155;
+}
+
+.theme-dark .inicio-intro .inicio-subtitle {
+  color: #ffffff;
+}
+
 .theme-dark .stat-label {
   color: #ffffff;
 }
