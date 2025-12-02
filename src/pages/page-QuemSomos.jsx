@@ -16,8 +16,8 @@ export default function QuemSomos() {
             </p>
           </div>
 
-          <div className="quem-somos-content">
-            <p className="quem-somos-body">
+          <div className="quem-somos-descricao">
+            <p>
                Somos uma empresa fundada por três amigos que, cansados de depender de terceiros, decidiram transformar iniciativa em soluções concretas.
               Com recursos iniciais modestos, unimos curiosidade técnica, colaboração e disciplina para resolver problemas reais do setor automotivo.
               Atuamos com foco em eficiência, acessibilidade e resultados mensuráveis. Nosso compromisso é entregar produtos úteis e confiáveis,
