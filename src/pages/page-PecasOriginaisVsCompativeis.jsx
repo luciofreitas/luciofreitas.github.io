@@ -8,6 +8,13 @@ const PecasOriginaisVsCompativeis = () => {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('todas');
+  
+  // Track which cards are expanded (show content) vs collapsed (header only)
+  const [expandedCards, setExpandedCards] = useState({});
+
+  const toggleCard = (cardKey) => {
+    setExpandedCards(prev => ({ ...prev, [cardKey]: !prev[cardKey] }));
+  };
 
   const comparacaoData = {
     definicoes: {
@@ -318,9 +325,20 @@ const PecasOriginaisVsCompativeis = () => {
           </p>
           
           <div className="comparacao-grid">
-            {comparacaoData.comparacoes.map((comp, index) => (
-              <div key={index} className="comparacao-card">
-                <h3 className="comparacao-categoria">{comp.categoria}</h3>
+            {comparacaoData.comparacoes.map((comp, index) => {
+              const cardKey = `comp-${index}`;
+              const isExpanded = expandedCards[cardKey];
+              
+              return (
+              <div 
+                key={index} 
+                className={`comparacao-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+              >
+                <h3 
+                  className="comparacao-categoria"
+                  onClick={() => toggleCard(cardKey)}
+                  style={{ cursor: 'pointer' }}
+                >{comp.categoria}</h3>
                 
                 <div className="comparacao-sides">
                   <div className="side original">
@@ -350,7 +368,8 @@ const PecasOriginaisVsCompativeis = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </section>
 
@@ -359,9 +378,20 @@ const PecasOriginaisVsCompativeis = () => {
           <h2>Quando Usar Cada Tipo?</h2>
           
           <div className="quando-grid">
-            {comparacaoData.quandoUsar.map((guia, index) => (
-              <div key={index} className="quando-card">
-                <div className="quando-header">
+            {comparacaoData.quandoUsar.map((guia, index) => {
+              const cardKey = `quando-${index}`;
+              const isExpanded = expandedCards[cardKey];
+              
+              return (
+              <div 
+                key={index} 
+                className={`quando-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+              >
+                <div 
+                  className="quando-header"
+                  onClick={() => toggleCard(cardKey)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <span className="quando-icon">{guia.icone}</span>
                   <h3>{guia.titulo}</h3>
                 </div>
@@ -374,7 +404,8 @@ const PecasOriginaisVsCompativeis = () => {
                   ))}
                 </ul>
               </div>
-            ))}
+            );
+            })}
           </div>
         </section>
 
@@ -386,9 +417,20 @@ const PecasOriginaisVsCompativeis = () => {
           </p>
           
           <div className="marcas-grid">
-            {comparacaoData.marcasRenomadas.map((marca, index) => (
-              <div key={index} className="marca-card">
-                <div className="marca-header">
+            {comparacaoData.marcasRenomadas.map((marca, index) => {
+              const cardKey = `marca-${index}`;
+              const isExpanded = expandedCards[cardKey];
+              
+              return (
+              <div 
+                key={index} 
+                className={`marca-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+              >
+                <div 
+                  className="marca-header"
+                  onClick={() => toggleCard(cardKey)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <h3>{marca.nome}</h3>
                   <span className={`qualidade-badge ${marca.qualidade.toLowerCase()}`}>
                     {marca.qualidade}
@@ -399,7 +441,8 @@ const PecasOriginaisVsCompativeis = () => {
                 </p>
                 <p className="marca-descricao">{marca.descricao}</p>
               </div>
-            ))}
+            );
+            })}
           </div>
         </section>
 
@@ -408,13 +451,27 @@ const PecasOriginaisVsCompativeis = () => {
           <h2>Dicas para Economizar</h2>
           
           <div className="dicas-economia-grid">
-            {comparacaoData.dicasEconomia.map((dica, index) => (
-              <div key={index} className="dica-economia-card">
-                <div className="dica-icon">{dica.icone}</div>
-                <h3>{dica.titulo}</h3>
-                <p>{dica.descricao}</p>
+            {comparacaoData.dicasEconomia.map((dica, index) => {
+              const cardKey = `economia-${index}`;
+              const isExpanded = expandedCards[cardKey];
+              
+              return (
+              <div 
+                key={index} 
+                className={`dica-economia-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+              >
+                <div 
+                  className="dica-economia-header"
+                  onClick={() => toggleCard(cardKey)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="dica-icon">{dica.icone}</div>
+                  <h3>{dica.titulo}</h3>
+                </div>
+                <p className="dica-economia-content">{dica.descricao}</p>
               </div>
-            ))}
+            );
+            })}
           </div>
         </section>
 
@@ -423,16 +480,27 @@ const PecasOriginaisVsCompativeis = () => {
           <h2>Alertas Importantes</h2>
           
           <div className="alertas-grid">
-            {comparacaoData.alertas.map((alerta, index) => (
-              <div key={index} className="alerta-card">
-                <h3>{alerta.titulo}</h3>
+            {comparacaoData.alertas.map((alerta, index) => {
+              const cardKey = `alerta-${index}`;
+              const isExpanded = expandedCards[cardKey];
+              
+              return (
+              <div 
+                key={index} 
+                className={`alerta-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+              >
+                <h3 
+                  onClick={() => toggleCard(cardKey)}
+                  style={{ cursor: 'pointer' }}
+                >{alerta.titulo}</h3>
                 <ul>
                   {alerta.conteudo.map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}
                 </ul>
               </div>
-            ))}
+            );
+            })}
           </div>
         </section>
 

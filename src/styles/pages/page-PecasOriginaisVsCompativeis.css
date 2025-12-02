@@ -155,6 +155,8 @@
 .comparacao-grid {
   display: grid;
   gap: 2rem;
+  /* Align to start so only the clicked card expands without affecting siblings */
+  align-items: start;
 }
 
 .comparacao-card {
@@ -162,6 +164,19 @@
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Make cards flex containers so header stays at top */
+  display: flex;
+  flex-direction: column;
+}
+
+/* When collapsed, card height is just the header */
+.comparacao-card.collapsed {
+  min-height: auto;
+}
+
+/* When expanded, allow card to grow */
+.comparacao-card.expanded {
+  min-height: auto;
 }
 
 .comparacao-categoria {
@@ -173,10 +188,32 @@
   border-bottom: 2px solid #e2e8f0;
 }
 
+/* Remove margin bottom when card is collapsed */
+.comparacao-card.collapsed .comparacao-categoria {
+  margin-bottom: 0;
+}
+
 .comparacao-sides {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
+  /* Smooth transition for expand/collapse */
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+/* Hide sides when card is collapsed */
+.comparacao-card.collapsed .comparacao-sides {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* Show sides when card is expanded */
+.comparacao-card.expanded .comparacao-sides {
+  max-height: 100vh;
+  opacity: 1;
 }
 
 .side {
@@ -305,6 +342,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
+  /* Align to start so only the clicked card expands without affecting siblings */
+  align-items: start;
 }
 
 .quando-card {
@@ -313,6 +352,19 @@
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
+  /* Make cards flex containers so header stays at top */
+  display: flex;
+  flex-direction: column;
+}
+
+/* When collapsed, card height is just the header */
+.quando-card.collapsed {
+  min-height: auto;
+}
+
+/* When expanded, allow card to grow */
+.quando-card.expanded {
+  min-height: auto;
 }
 
 .quando-card:hover {
@@ -329,6 +381,13 @@
   border-bottom: 2px solid #e2e8f0;
 }
 
+/* Remove margin and border when card is collapsed */
+.quando-card.collapsed .quando-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 .quando-icon {
   font-size: 2rem;
 }
@@ -341,6 +400,24 @@
 .quando-lista {
   list-style: none;
   padding: 0;
+  margin: 0;
+  /* Smooth transition for expand/collapse */
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+/* Hide list when card is collapsed */
+.quando-card.collapsed .quando-lista {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Show list when card is expanded */
+.quando-card.expanded .quando-lista {
+  max-height: 100vh;
+  opacity: 1;
+}
   margin: 0;
 }
 
@@ -382,6 +459,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
+  align-items: start;
 }
 
 .marca-card {
@@ -390,7 +468,12 @@
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
 }
+
+.marca-card.collapsed { min-height: auto; }
+.marca-card.expanded { min-height: auto; }
 
 .marca-card:hover {
   transform: translateY(-4px);
@@ -402,12 +485,39 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.marca-card.collapsed .marca-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .marca-header h3 {
   font-size: 1.25rem;
   color: #2d3748;
   font-weight: 700;
+}
+
+.marca-especialidade, .marca-descricao {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.marca-card.collapsed .marca-especialidade,
+.marca-card.collapsed .marca-descricao {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.marca-card.expanded .marca-especialidade,
+.marca-card.expanded .marca-descricao {
+  max-height: 100vh;
+  opacity: 1;
 }
 
 .qualidade-badge {
@@ -884,4 +994,86 @@
   .alerta-card {
     padding: 1.25rem;
   }
+}
+
+/* Collapse/Expand styles for all cards */
+.dicas-economia-grid { align-items: start; }
+.alertas-grid { align-items: start; }
+
+.dica-economia-card,
+.alerta-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.dica-economia-card.collapsed,
+.alerta-card.collapsed { min-height: auto; }
+
+.dica-economia-card.expanded,
+.alerta-card.expanded { min-height: auto; }
+
+/* Dica economia header wrapper */
+.dica-economia-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.dica-economia-card.collapsed .dica-economia-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.dica-economia-card h3 {
+  margin-bottom: 0;
+}
+
+/* Dica economia content */
+.dica-economia-content {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.dica-economia-card.collapsed .dica-economia-content {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.dica-economia-card.expanded .dica-economia-content {
+  max-height: 100vh;
+  opacity: 1;
+  margin-top: 1rem;
+}
+
+/* Alerta card styles */
+.alerta-card h3 {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.alerta-card.collapsed h3 {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.alerta-card ul {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.alerta-card.collapsed ul {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.alerta-card.expanded ul {
+  max-height: 100vh;
+  opacity: 1;
 }
