@@ -8,6 +8,11 @@
   margin: 0 auto;
 }
 
+/* Adiciona padding-top extra para compensar quando menu-page remove padding do título */
+.menu-page .buscarpeca-section {
+  padding-top: 2rem;
+}
+
 .buscarpeca-intro {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
