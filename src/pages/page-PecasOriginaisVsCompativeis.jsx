@@ -129,29 +129,31 @@ const PecasOriginaisVsCompativeis = () => {
       {
         titulo: 'Use Peças Originais Quando:',
         icone: '✅',
+        tipo: 'original',
         situacoes: [
-          'Veículo ainda está na garantia de fábrica',
-          'Peças de segurança críticas (freios, suspensão, airbag)',
-          'Veículo de alto valor que você pretende revender',
-          'Histórico completo de manutenção é importante',
-          'Peça apresentou defeito recorrente com compatíveis',
-          'Modelo muito específico ou raro',
-          'Sistema eletrônico complexo (injeção, ABS, etc.)',
-          'Você busca máxima durabilidade sem preocupações'
+          { icone: '🛡️', texto: 'Veículo ainda está na ', destaque: 'garantia de fábrica' },
+          { icone: '🚨', texto: 'Peças de ', destaque: 'segurança críticas', complemento: ' (freios, suspensão, airbag)' },
+          { icone: '💎', texto: 'Veículo de ', destaque: 'alto valor', complemento: ' que você pretende revender' },
+          { icone: '📋', texto: 'Histórico completo de manutenção é ', destaque: 'importante' },
+          { icone: '⚠️', texto: 'Peça apresentou ', destaque: 'defeito recorrente', complemento: ' com compatíveis' },
+          { icone: '🎯', texto: 'Modelo muito ', destaque: 'específico ou raro' },
+          { icone: '🔌', texto: 'Sistema eletrônico ', destaque: 'complexo', complemento: ' (injeção, ABS, etc.)' },
+          { icone: '⭐', texto: 'Você busca ', destaque: 'máxima durabilidade', complemento: ' sem preocupações' }
         ]
       },
       {
         titulo: 'Use Peças Compatíveis Quando:',
         icone: '✅',
+        tipo: 'compativel',
         situacoes: [
-          'Veículo já saiu da garantia de fábrica',
-          'Orçamento limitado para a manutenção',
-          'Peça de desgaste natural (filtros, velas, lâmpadas)',
-          'Veículo mais antigo ou de menor valor',
-          'Marca compatível de reconhecida qualidade',
-          'Peça estética ou de acabamento interno',
-          'Urgência e peça original indisponível',
-          'Relação custo-benefício é prioridade'
+          { icone: '📅', texto: 'Veículo já saiu da ', destaque: 'garantia de fábrica' },
+          { icone: '💰', texto: 'Orçamento ', destaque: 'limitado', complemento: ' para a manutenção' },
+          { icone: '🔧', texto: 'Peça de ', destaque: 'desgaste natural', complemento: ' (filtros, velas, lâmpadas)' },
+          { icone: '🚗', texto: 'Veículo mais ', destaque: 'antigo', complemento: ' ou de menor valor' },
+          { icone: '⭐', texto: 'Marca compatível de ', destaque: 'reconhecida qualidade' },
+          { icone: '🎨', texto: 'Peça ', destaque: 'estética', complemento: ' ou de acabamento interno' },
+          { icone: '⏰', texto: 'Urgência e peça original ', destaque: 'indisponível' },
+          { icone: '⚖️', texto: 'Relação ', destaque: 'custo-benefício', complemento: ' é prioridade' }
         ]
       }
     ],
@@ -385,7 +387,7 @@ const PecasOriginaisVsCompativeis = () => {
               return (
               <div 
                 key={index} 
-                className={`quando-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+                className={`quando-card quando-card-${guia.tipo} ${isExpanded ? 'expanded' : 'collapsed'}`}
               >
                 <div 
                   className="quando-header"
@@ -398,8 +400,12 @@ const PecasOriginaisVsCompativeis = () => {
                 <ul className="quando-lista">
                   {guia.situacoes.map((situacao, idx) => (
                     <li key={idx}>
-                      <span className="bullet">•</span>
-                      {situacao}
+                      <span className="situacao-icone">{situacao.icone}</span>
+                      <span className="situacao-texto">
+                        {situacao.texto}
+                        <strong>{situacao.destaque}</strong>
+                        {situacao.complemento}
+                      </span>
                     </li>
                   ))}
                 </ul>
