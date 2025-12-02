@@ -1,6 +1,6 @@
 /* page-SejaPro.css - Estilos modernos alinhados com Nosso Projeto */
 
-#seja-pro {
+.seja-pro-content {
   padding: 2rem 1rem;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: calc(100vh - 4rem);
@@ -26,7 +26,7 @@
 }
 
 /* Dark mode */
-.theme-dark #seja-pro {
+.theme-dark .seja-pro-content {
   background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
 }
 

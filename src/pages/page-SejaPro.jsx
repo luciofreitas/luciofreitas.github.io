@@ -7,7 +7,7 @@ export default function SejaPro() {
     <>
   <MenuLogin />
   <div className="page-wrapper">
-  <div className="page-content" id="seja-pro">
+    <div className="page-content seja-pro-content">
           <h2 className="page-title">Seja Pro</h2>
           
           <div className="sejapro-intro">
