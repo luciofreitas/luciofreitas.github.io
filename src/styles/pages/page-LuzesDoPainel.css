@@ -156,6 +156,8 @@
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
+  /* Align to start so only the clicked card expands without affecting siblings */
+  align-items: start;
 }
 
 .no-results {
@@ -176,6 +178,23 @@
   border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
+}
+
+/* Make cards a column flex container so header stays at top and content can scroll
+   when it overflows. Collapsed cards show only the header; expanded cards can grow. */
+.luz-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* When collapsed, card height is just the header */
+.luz-card.collapsed {
+  min-height: auto;
+}
+
+/* When expanded, allow card to grow and enforce min-height for consistency */
+.luz-card.expanded {
+  min-height: 22.5rem;
 }
 
 .luz-header {
@@ -293,6 +312,40 @@
   box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
 }
 
+/* Clickable state styling for multi-state indicators */
+.cor-indicator.clickable-state {
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.cor-indicator.clickable-state:active {
+  transform: scale(0.94);
+}
+.cor-indicator.clickable-state:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.06), 0 0 0 6px rgba(59,130,246,0.12);
+}
+
+/* Reset default button appearance for .cor-indicator when rendered as <button> */
+.cor-indicator {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.cor-indicator:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* Hint shown under the legend to explain multi-state interaction */
+.multi-state-hint {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
 /* debug label removed in production */
 
 /* Color variants for indicators and card accents are generated at runtime
@@ -300,6 +353,26 @@
 
 /* Conteúdo da Luz */
 .luz-content {
+  padding: 1.5rem;
+  /* Let the content area grow to fill the card and scroll internally if needed */
+  flex: 1 1 auto;
+  overflow: auto;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+
+/* Hide content when card is collapsed (default state) */
+.luz-card.collapsed .luz-content {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 1.5rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Show content when card is expanded */
+.luz-card.expanded .luz-content {
+  max-height: 100vh;
+  opacity: 1;
   padding: 1.5rem;
 }
 

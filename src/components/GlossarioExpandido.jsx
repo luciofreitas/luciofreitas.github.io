@@ -107,9 +107,12 @@ const GlossarioExpandido = ({
                     >
                       {luz.prioridade}
                     </span>
-                    <div 
+                    <button
+                      type="button"
                       className={`cor-indicator ${getCorClass(luz.cor)}`}
-                    ></div>
+                      aria-label={`Cor: ${luz.cor}`}
+                      onClick={() => {}}
+                    />
                   </div>
                 </div>
               </div>

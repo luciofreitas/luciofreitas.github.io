@@ -30,6 +30,12 @@ function LuzesDoPainel() {
     cor: ''
   });
 
+  // Selected state per multi-state item (keyed by luz.id)
+  const [selectedStateMap, setSelectedStateMap] = useState({});
+  
+  // Track which cards are expanded (show content) vs collapsed (header only)
+  const [expandedMap, setExpandedMap] = useState({});
+
   // Hook customizado para avaliações (namespace por email do usuário)
   const { avaliacoes, votosUsuario, avaliarGuia } = useAvaliacoes(usuarioLogado?.email);
 
@@ -96,10 +102,30 @@ function LuzesDoPainel() {
           prioridade: normalizePrioridade(item.prioridade || item.priority),
           descricao: item.descricao || item.description || '',
           acoes: item.acoes || item.actions || [],
-          causas: item.causas || item.causas_comuns || item.causes || []
+          causas: item.causas || item.causas_comuns || item.causes || [],
+          // preserve multi-state metadata when present so UI can toggle per-state
+          estados: item.estados || item.states || []
         }));
 
-        setGlossarioData(arrayData);
+        // If the backend omitted `estados` for some items (e.g., production API),
+        // merge `estados` from our local mock by matching on name/id so multi-state
+        // items like Start-Stop remain interactive in the UI.
+        const merged = arrayData.map(item => {
+          try {
+            if ((!item.estados || item.estados.length === 0) && Array.isArray(glossarioMockData)) {
+              const lookup = String(item.nome || item.id || '').trim().toLowerCase();
+              const fromMock = (glossarioMockData || []).find(m => String(m.nome || m.id || '').trim().toLowerCase() === lookup);
+              if (fromMock && Array.isArray(fromMock.estados) && fromMock.estados.length > 0) {
+                // copy states from mock when missing
+                item = { ...item, estados: fromMock.estados };
+                try { console.log('[glossario] merged estados from mock for', lookup); } catch(e){}
+              }
+            }
+          } catch(e) {}
+          return item;
+        });
+
+        setGlossarioData(merged);
       } catch (error) {
         console.error('Erro ao carregar glossário:', error);
         setGlossarioData(Array.isArray(glossarioMockData) ? glossarioMockData : []);
@@ -113,6 +139,7 @@ function LuzesDoPainel() {
   }, []);
 
     // Cache for fetched SVG contents to avoid repeated network requests
+    // Cache key includes colorHex so we don't reuse a colored SVG for a different token
     const svgCacheRef = useRef({});
 
     // InlineSvg: fetches an external SVG, normalizes fills/strokes to currentColor and injects it inline
@@ -121,8 +148,9 @@ function LuzesDoPainel() {
       useEffect(() => {
         let mounted = true;
         if (!src) return;
-        if (svgCacheRef.current[src]) {
-          setSvgContent(svgCacheRef.current[src]);
+        const cacheKey = `${src}::${colorHex || ''}`;
+        if (svgCacheRef.current[cacheKey]) {
+          setSvgContent(svgCacheRef.current[cacheKey]);
           return;
         }
         (async () => {
@@ -159,16 +187,18 @@ function LuzesDoPainel() {
                 }
 
                 // As a stronger fallback, set presentation attributes on elements
-                // that currently have explicit fill/stroke values so they use the provided colorHex.
+                // that currently have explicit fill/stroke values so they use currentColor
+                // (we avoid embedding a concrete hex here so CSS `.cor-icon.<token> { color: ... }`
+                // can recolor the inlined SVG when the token changes).
                 svgEl.querySelectorAll('*').forEach(el => {
                   try {
                     if (el.hasAttribute('fill')) {
                       const v = el.getAttribute('fill');
-                      if (v && v.toLowerCase() !== 'none') el.setAttribute('fill', (colorHex || 'currentColor'));
+                      if (v && v.toLowerCase() !== 'none') el.setAttribute('fill', 'currentColor');
                     }
                     if (el.hasAttribute('stroke')) {
                       const v2 = el.getAttribute('stroke');
-                      if (v2 && v2.toLowerCase() !== 'none') el.setAttribute('stroke', (colorHex || 'currentColor'));
+                      if (v2 && v2.toLowerCase() !== 'none') el.setAttribute('stroke', 'currentColor');
                     }
                   } catch (e) {
                     // ignore per-element errors
@@ -213,8 +243,8 @@ function LuzesDoPainel() {
               });
             }
 
-            // Cache and set
-            svgCacheRef.current[src] = text;
+                // Cache and set (cache keyed by src+color so recolor updates produce fresh markup)
+                svgCacheRef.current[cacheKey] = text;
             if (mounted) {
               try { console.debug('[InlineSvg] loaded', src, 'len=', text && text.length); } catch (e) {}
               setSvgContent(text);
@@ -227,7 +257,7 @@ function LuzesDoPainel() {
           }
         })();
         return () => { mounted = false; };
-      }, [src]);
+      }, [src, colorHex]);
 
       if (!svgContent) return <img src={src} alt={alt} className={className} />;
       return <span className={className} role={alt ? 'img' : undefined} aria-label={alt || undefined} dangerouslySetInnerHTML={{ __html: svgContent }} />;
@@ -441,8 +471,12 @@ function LuzesDoPainel() {
               
               <div className="disclaimer">
                 <p>
-                  ⚠️ <strong>Aviso:</strong> Este glossário é apenas informativo. 
+                  ⚠️ <strong>Aviso 1:</strong> Este glossário é apenas informativo. 
                   Sempre consulte um mecânico qualificado para diagnósticos precisos.
+                </p>
+                <p>
+                  ⚠️ <strong>Aviso 2:</strong> Alguns itens possuem mais de uma cor. 
+                  Clique na bolinha para ver o que cada cor significa.
                 </p>
               </div>
             </div>
@@ -450,7 +484,6 @@ function LuzesDoPainel() {
             <div className="resultados-info resultados-info--below-legend">
               {dadosFiltrados.length} luz(es) encontrada(s)
             </div>
-
             {/* Grid de Luzes */}
             {dadosFiltrados.length === 0 ? (
               <div className="no-results">
@@ -458,9 +491,32 @@ function LuzesDoPainel() {
               </div>
             ) : (
               <div className="luzes-grid">
-                {dadosFiltrados.map(luz => (
-                  <div key={luz.id} className={`luz-card ${getCorClass(luz.cor)}`}>
-                    <div className="luz-header">
+                {dadosFiltrados.map((luz, index) => {
+                  const hasStates = Array.isArray(luz.estados) && luz.estados.length > 0;
+                  const defaultKey = hasStates ? (luz.estados[0] && luz.estados[0].key) : luz.cor;
+                  const mapKey = `${luz.id}-${index}`; // unique key per card using id + index
+                  const selectedKey = selectedStateMap[mapKey] || defaultKey;
+                  const selectedState = hasStates ? (luz.estados.find(s => s.key === selectedKey) || luz.estados[0]) : null;
+                  const selectedColorToken = selectedState ? (selectedState.cor || luz.cor) : (luz.cor || defaultKey);
+
+                  const descricaoAtiva = selectedState ? (selectedState.descricao || selectedState.titulo || luz.descricao) : luz.descricao;
+                  const acoesAtivas = selectedState ? (selectedState.acoes || luz.acoes || []) : (luz.acoes || []);
+                  const causasAtivas = selectedState ? (selectedState.causas || luz.causas || []) : (luz.causas || []);
+
+                  const isExpanded = expandedMap[mapKey];
+                  
+                  const handleCardClick = (e) => {
+                    // Don't toggle if clicking the indicator button
+                    if (e.target.closest('.cor-indicator')) return;
+                    setExpandedMap(prev => ({ ...prev, [mapKey]: !prev[mapKey] }));
+                  };
+
+                  return (
+                  <div 
+                    key={mapKey} 
+                    className={`luz-card ${getCorClass(selectedColorToken)} ${isExpanded ? 'expanded' : 'collapsed'}`}
+                  >
+                    <div className="luz-header" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
                         {(() => {
                         // Color decisions come solely from the `luz.cor` token now.
                         const isRed = (String(luz.cor || '').toLowerCase() === 'vermelho');
@@ -482,10 +538,10 @@ function LuzesDoPainel() {
                               })(resolved);
                               if (isSvg) {
                                 // Compute explicit color hex for the token so we can force it on the SVG
-                                const colorHex = (glossarioColors && glossarioColors[luz.cor]) ? glossarioColors[luz.cor] : undefined;
+                                const colorHex = (glossarioColors && glossarioColors[selectedColorToken]) ? glossarioColors[selectedColorToken] : undefined;
                                 // Inline the SVG so we can rewrite fills/strokes reliably
                                 return (
-                                  <InlineSvg src={resolved} colorHex={colorHex} className={`cor-icon ${getCorClass(luz.cor)} luz-icone-img`} alt={luz.nome} />
+                                  <InlineSvg src={resolved} colorHex={colorHex} className={`cor-icon ${getCorClass(selectedColorToken)} luz-icone-img`} alt={luz.nome} />
                                 );
                               }
                               const filterValue = "invert(29%) sepia(81%) saturate(600%) hue-rotate(-10deg) brightness(95%) contrast(90%)";
@@ -498,50 +554,98 @@ function LuzesDoPainel() {
                                 return false;
                               })(resolved);
                               const imgRefCallback = (el) => { /* no-op; no per-file recolor handling */ };
-                              const imgClassName = `luz-icone-img ${isSvgLikeImg ? `cor-icon ${getCorClass(luz.cor)}` : ''}`.trim();
+                              const imgClassName = `luz-icone-img ${isSvgLikeImg ? `cor-icon ${getCorClass(selectedColorToken)}` : ''}`.trim();
                               return <img ref={imgRefCallback} src={resolved} alt={luz.nome} className={imgClassName} />;
                             }
                             // Otherwise render the resolved value as text (emoji or fallback)
                             return <div className="luz-icone-text">{resolved || '⚠️'}</div>;
                           })()}
                         </div>})()}
-                      <div className="luz-info">
+                        <div className="luz-info">
                         <h3 className="luz-nome">{luz.nome}</h3>
                         <div className="luz-indicators">
-                              <div className={`cor-indicator ${getCorClass(luz.cor)}`}></div>
+                              {(() => {
+                                const hasStates = Array.isArray(luz.estados) && luz.estados.length > 0;
+                                const defaultKey = hasStates ? (luz.estados[0] && luz.estados[0].key) : luz.cor;
+                                // Use mapKey from parent scope
+                                const selectedKey = selectedStateMap[mapKey] || defaultKey;
+                                const selectedState = hasStates ? (luz.estados.find(s => s.key === selectedKey) || luz.estados[0]) : null;
+                                const indicatorToken = selectedState ? selectedState.cor : (luz.cor || 'amarelo');
+
+                                const handleToggle = (e) => {
+                                  e.stopPropagation(); // prevent card click
+                                  if (!hasStates) return;
+                                  const idx = luz.estados.findIndex(s => s.key === selectedKey);
+                                  const next = luz.estados[(idx + 1) % luz.estados.length];
+                                  try { console.log('[StartStop] toggle', mapKey, 'from', selectedKey, 'to', next && next.key); } catch(e) {}
+                                  setSelectedStateMap(prev => ({ ...prev, [mapKey]: next.key }));
+                                };
+
+                                const onKeyDown = (e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleToggle();
+                                  }
+                                };
+
+                                return (
+                                  <button
+                                    type="button"
+                                    className={`cor-indicator ${getCorClass(indicatorToken)} ${hasStates ? 'clickable-state' : ''}`}
+                                    aria-pressed={hasStates ? (selectedKey !== undefined) : undefined}
+                                    aria-label={hasStates ? `${luz.nome} — estado: ${selectedState ? selectedState.nome : selectedKey}` : undefined}
+                                    onClick={hasStates ? handleToggle : undefined}
+                                    onKeyDown={hasStates ? onKeyDown : undefined}
+                                  />
+                                );
+                              })()}
                         </div>
                       </div>
                     </div>
 
                     <div className="luz-content">
-                      <div className="luz-descricao">
-                        {luz.descricao}
-                      </div>
+                      {(() => {
+                        const hasStates = Array.isArray(luz.estados) && luz.estados.length > 0;
+                        const defaultKey = hasStates ? (luz.estados[0] && luz.estados[0].key) : luz.cor;
+                        // Use the same mapKey as defined above
+                        const selectedKey = selectedStateMap[mapKey] || defaultKey;
+                        const selectedState = hasStates ? (luz.estados.find(s => s.key === selectedKey) || luz.estados[0]) : null;
+                        const descricaoAtiva = selectedState ? (selectedState.descricao || selectedState.titulo || luz.descricao) : luz.descricao;
+                        const acoesAtivas = selectedState ? (selectedState.acoes || luz.acoes || []) : (luz.acoes || []);
+                        const causasAtivas = selectedState ? (selectedState.causas || luz.causas || []) : (luz.causas || []);
 
-                      {luz.acoes && luz.acoes.length > 0 && (
-                        <div className="luz-section">
-                          <h4>⚡ O que fazer:</h4>
-                          <ul className="acoes-list">
-                            {luz.acoes.map((acao, index) => (
-                              <li key={index}>{acao}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                        return (
+                          <>
+                            <div className="luz-descricao">{descricaoAtiva}</div>
 
-                      {luz.causas && luz.causas.length > 0 && (
-                        <div className="luz-section">
-                          <h4>🔍 Possíveis causas:</h4>
-                          <ul className="causas-list">
-                            {luz.causas.map((causa, index) => (
-                              <li key={index}>{causa}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                            {acoesAtivas && acoesAtivas.length > 0 && (
+                              <div className="luz-section">
+                                <h4>⚡ O que fazer:</h4>
+                                <ul className="acoes-list">
+                                  {acoesAtivas.map((acao, index) => (
+                                    <li key={index}>{acao}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {causasAtivas && causasAtivas.length > 0 && (
+                              <div className="luz-section">
+                                <h4>🔍 Possíveis causas:</h4>
+                                <ul className="causas-list">
+                                  {causasAtivas.map((causa, index) => (
+                                    <li key={index}>{causa}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
             )}
 

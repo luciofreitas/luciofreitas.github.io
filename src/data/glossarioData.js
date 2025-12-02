@@ -24,7 +24,7 @@ export const glossarioMockData = [
 
   { id: 12, nome: "Farol Alto", icone: "/images/luzes-no-painel/farol-alto.svg", cor: "azul", descricao: "Farol alto acionado.", causas: ["Alavanca acionada"], acoes: ["Abaixe ao cruzar com veículos"] },
 
-  { id: 13, nome: "Farol Baixo", icone: "/images/luzes-no-painel/farol-baixo.svg", cor: "verde", descricao: "Farol baixo ligado.", causas: ["Farol acionado"], acoes: ["Nenhuma ação necessária"] },
+  { id: 13, nome: "Farol Baixo", icone: "/images/luzes-no-painel/farol-baixo.svg", cor: "verde", descricao: "Farol baixo ligado.", causas: ["Alavanca de farol acionada", "Sensor de luminosidade (se automático)"], acoes: ["Nenhuma ação necessária", "Desligar quando não necessário"] },
 
   { id: 14, nome: "Farol de Neblina", icone: "/images/luzes-no-painel/farol-de-neblina.svg", cor: "verde", descricao: "Farol de neblina ativo.", causas: ["Ativado pelo motorista"], acoes: ["Usar quando necessário"] },
 
@@ -36,7 +36,7 @@ export const glossarioMockData = [
 
   { id: 18, nome: "Injeção / Check Engine", icone: "/images/luzes-no-painel/injecao-eletronica.svg", cor: "amarelo", descricao: "Falha detectada no sistema de injeção/emissão.", causas: ["Mau funcionamento relacionado ao motor"], acoes: ["Diagnóstico OBD-II"] },
 
-  { id: 19, nome: "Luz de Posição", icone: "/images/luzes-no-painel/lanterna.svg", cor: "verde", descricao: "Lanterna / luz de posição ligada.", causas: ["Sistema acionado"], acoes: ["Nenhuma ação necessária"] },
+  { id: 19, nome: "Luz de Posição", icone: "/images/luzes-no-painel/lanterna.svg", cor: "verde", descricao: "Lanterna / luz de posição ligada.", causas: ["Alavanca de luz acionada", "Luzes automáticas ativadas"], acoes: ["Nenhuma ação necessária", "Manter ligado em condições de baixa visibilidade"] },
 
   { id: 20, nome: "Óleo do Motor", icone: "/images/luzes-no-painel/oleo-do-motor.svg", cor: "vermelho", descricao: "Pressão ou nível de óleo crítico.", causas: ["Nível de óleo baixo"], acoes: ["PARE e verificar nível de óleo"] },
 
@@ -56,7 +56,28 @@ export const glossarioMockData = [
 
   { id: 28, nome: "Sistema de Tração", icone: "/images/luzes-no-painel/sistema-de-tracao-estabilidade.svg", cor: "amarelo", descricao: "Tração/estabilidade ativada ou falha.", causas: ["Sensor de roda defeituoso"], acoes: ["Reduza velocidade", "Procurar diagnóstico"] },
   
-  { id: 29, nome: "Start-Stop", icone: "/images/luzes-no-painel/start-stop.svg", cor: "verde", descricao: "Sistema Start-Stop pronto/ativo.", causas: ["Condições de parada"], acoes: ["Nenhuma ação necessária"] },
+  { id: 29, nome: "Start-Stop", icone: "/images/luzes-no-painel/start-stop.svg", cor: "verde", descricao: "Sistema Start-Stop pronto/ativo.", causas: ["Condições de parada"], acoes: ["Nenhuma ação necessária"],
+    estados: [
+      {
+        key: 'ativo',
+        nome: 'Ativo',
+        cor: 'verde',
+        titulo: 'Ativo',
+        descricao: 'O sistema está funcionando corretamente e o motor será desligado automaticamente quando o carro parar.',
+        acoes: ['Nenhuma ação necessária'],
+        causas: ['Sistema funcionando normalmente']
+      },
+      {
+        key: 'restrito',
+        nome: 'Desativado/Restrito',
+        cor: 'laranja',
+        titulo: 'Desativado/Restrito',
+        descricao: 'Indica que o sistema está desativado ou com restrições.',
+        acoes: ['Verificar bateria', 'Verificar climatização', 'Consultar manual'],
+        causas: ['Bateria fraca', 'Ar-condicionado ligado', 'Subida/condições de condução', 'Botão Start-Stop desativado']
+      }
+    ]
+  },
 
   { id: 30, nome: "Temperatura do Motor", icone: "/images/luzes-no-painel/temperatura-do-motor.svg", cor: "vermelho", descricao: "Superaquecimento do motor.", causas: ["Baixo nível de líquido de arrefecimento", "Falha no eletroventilador"], acoes: ["PARE e desligue o motor"] }
 ];

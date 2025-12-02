@@ -260,10 +260,13 @@ function PageGlossarioAutomotivo() {
                       >
                         {luz.prioridade}
                       </span>
-                      <span 
+                      <button
+                        type="button"
                         className={`cor-indicator ${getCorClass(luz.cor)}`}
                         title={`Cor: ${luz.cor}`}
-                      ></span>
+                        aria-label={`Cor: ${luz.cor}`}
+                        onClick={() => {}}
+                      />
                     </div>
                   </div>
                 </div>

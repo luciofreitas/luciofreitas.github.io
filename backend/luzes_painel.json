@@ -138,8 +138,8 @@
     "cor": "verde",
     "prioridade": "Baixa",
     "descricao": "Farol baixo ligado.",
-    "acoes": [],
-    "causas_comuns": [],
+    "acoes": ["Nenhuma ação necessária", "Desligar quando não necessário"],
+    "causas_comuns": ["Alavanca de farol acionada", "Sensor de luminosidade (se automático)"],
     "categoria": "iluminacao"
   },
   {
@@ -204,8 +204,8 @@
     "cor": "verde",
     "prioridade": "Baixa",
     "descricao": "Lanterna / luz de posição ligada.",
-    "acoes": [],
-    "causas_comuns": [],
+    "acoes": ["Nenhuma ação necessária", "Manter ligado em condições de baixa visibilidade"],
+    "causas_comuns": ["Alavanca de luz acionada", "Luzes automáticas ativadas"],
     "categoria": "iluminacao"
   },
   {
