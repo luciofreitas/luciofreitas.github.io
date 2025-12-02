@@ -67,6 +67,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
+  align-items: start;
 }
 
 .definicao-card {
@@ -74,7 +75,17 @@
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+
+.definicao-card.collapsed {
+  min-height: auto;
+}
+
+.definicao-card.expanded {
+  min-height: auto;
 }
 
 .definicao-card:hover {
@@ -90,17 +101,50 @@
   border-top: 4px solid #38a169;
 }
 
+.definicao-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.definicao-card.collapsed .definicao-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 .definicao-icon {
   font-size: 3rem;
   text-align: center;
   margin-bottom: 1rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-.definicao-card h3 {
+.definicao-header h3 {
   font-size: 1.5rem;
   color: #2d3748;
   text-align: center;
-  margin-bottom: 1rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.definicao-content {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.definicao-card.collapsed .definicao-content {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.definicao-card.expanded .definicao-content {
+  max-height: 100vh;
+  opacity: 1;
 }
 
 .definicao-texto {
@@ -110,20 +154,20 @@
   text-align: justify;
 }
 
-.definicao-card h4 {
+.definicao-content h4 {
   font-size: 1rem;
   color: #2d3748;
   margin-bottom: 0.75rem;
   font-weight: 600;
 }
 
-.definicao-card ul {
+.definicao-content ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.definicao-card ul li {
+.definicao-content ul li {
   padding: 0.5rem 0;
   padding-left: 1.5rem;
   position: relative;
@@ -132,7 +176,7 @@
   line-height: 1.5;
 }
 
-.definicao-card ul li::before {
+.definicao-content ul li::before {
   content: "✓";
   position: absolute;
   left: 0;

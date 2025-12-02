@@ -293,28 +293,48 @@ const PecasOriginaisVsCompativeis = () => {
         <section className="pecas-definicoes">
           <h2>O que são?</h2>
           <div className="definicoes-grid">
-            <div className="definicao-card original">
-              <div className="definicao-icon">{comparacaoData.definicoes.originais.icone}</div>
-              <h3>{comparacaoData.definicoes.originais.titulo}</h3>
-              <p className="definicao-texto">{comparacaoData.definicoes.originais.definicao}</p>
-              <h4>Características:</h4>
-              <ul>
-                {comparacaoData.definicoes.originais.caracteristicas.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                ))}
-              </ul>
+            <div 
+              className={`definicao-card original ${expandedCards['def-original'] ? 'expanded' : 'collapsed'}`}
+            >
+              <div 
+                className="definicao-header"
+                onClick={() => toggleCard('def-original')}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="definicao-icon">{comparacaoData.definicoes.originais.icone}</div>
+                <h3>{comparacaoData.definicoes.originais.titulo}</h3>
+              </div>
+              <div className="definicao-content">
+                <p className="definicao-texto">{comparacaoData.definicoes.originais.definicao}</p>
+                <h4>Características:</h4>
+                <ul>
+                  {comparacaoData.definicoes.originais.caracteristicas.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
-            <div className="definicao-card compativel">
-              <div className="definicao-icon">{comparacaoData.definicoes.compativeis.icone}</div>
-              <h3>{comparacaoData.definicoes.compativeis.titulo}</h3>
-              <p className="definicao-texto">{comparacaoData.definicoes.compativeis.definicao}</p>
-              <h4>Características:</h4>
-              <ul>
-                {comparacaoData.definicoes.compativeis.caracteristicas.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                ))}
-              </ul>
+            <div 
+              className={`definicao-card compativel ${expandedCards['def-compativel'] ? 'expanded' : 'collapsed'}`}
+            >
+              <div 
+                className="definicao-header"
+                onClick={() => toggleCard('def-compativel')}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="definicao-icon">{comparacaoData.definicoes.compativeis.icone}</div>
+                <h3>{comparacaoData.definicoes.compativeis.titulo}</h3>
+              </div>
+              <div className="definicao-content">
+                <p className="definicao-texto">{comparacaoData.definicoes.compativeis.definicao}</p>
+                <h4>Características:</h4>
+                <ul>
+                  {comparacaoData.definicoes.compativeis.caracteristicas.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </section>
