@@ -323,6 +323,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
+  /* Align to start so only the clicked card expands without affecting siblings */
+  align-items: start;
 }
 
 .dica-card {
@@ -331,11 +333,38 @@
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
+  /* Make cards flex containers so header stays at top */
+  display: flex;
+  flex-direction: column;
+}
+
+/* When collapsed, card height is just the header */
+.dica-card.collapsed {
+  min-height: auto;
+}
+
+/* When expanded, allow card to grow */
+.dica-card.expanded {
+  min-height: auto;
 }
 
 .dica-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Dica header - wrapper for title and description */
+.dica-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+/* Remove margin bottom and border when card is collapsed */
+.dica-card.collapsed .dica-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .dica-card h3 {
@@ -346,7 +375,7 @@
 
 .dica-descricao {
   color: #4a5568;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   font-size: 0.938rem;
   line-height: 1.5;
 }
@@ -355,6 +384,24 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  /* Smooth transition for expand/collapse */
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+  overflow: hidden;
+}
+
+/* Hide list when card is collapsed */
+.dica-card.collapsed .dica-lista {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* Show list when card is expanded */
+.dica-card.expanded .dica-lista {
+  max-height: 100vh;
+  opacity: 1;
+  margin-top: 0;
 }
 
 .dica-lista li {

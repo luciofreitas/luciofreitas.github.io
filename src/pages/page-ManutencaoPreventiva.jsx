@@ -313,10 +313,23 @@ const ManutencaoPreventiva = () => {
           <h2>Dicas Práticas de Manutenção</h2>
           
           <div className="dicas-grid">
-            {manualData.dicasPraticas.map((dica, index) => (
-              <div key={index} className="dica-card">
-                <h3>{dica.titulo}</h3>
-                <p className="dica-descricao">{dica.descricao}</p>
+            {manualData.dicasPraticas.map((dica, index) => {
+              const dicaKey = `dica-${index}`;
+              const isExpanded = expandedCards[dicaKey];
+              
+              return (
+              <div 
+                key={index} 
+                className={`dica-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+              >
+                <div 
+                  className="dica-header"
+                  onClick={() => toggleCard(dicaKey)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <h3>{dica.titulo}</h3>
+                  <p className="dica-descricao">{dica.descricao}</p>
+                </div>
                 <ul className="dica-lista">
                   {dica.lista.map((item, idx) => (
                     <li key={idx}>
@@ -326,7 +339,8 @@ const ManutencaoPreventiva = () => {
                   ))}
                 </ul>
               </div>
-            ))}
+            );
+            })}
           </div>
         </section>
 
