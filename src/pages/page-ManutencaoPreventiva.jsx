@@ -8,9 +8,16 @@ const ManutencaoPreventiva = () => {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
   const [expandedSection, setExpandedSection] = useState(null);
+  
+  // Track which cards are expanded (show content) vs collapsed (header only)
+  const [expandedCards, setExpandedCards] = useState({});
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
+  };
+
+  const toggleCard = (cardKey) => {
+    setExpandedCards(prev => ({ ...prev, [cardKey]: !prev[cardKey] }));
   };
 
   const manualData = {
@@ -259,9 +266,20 @@ const ManutencaoPreventiva = () => {
           </div>
 
           <div className="cronograma-grid">
-            {manualData.quilometragens.map((etapa, index) => (
-              <div key={index} className="cronograma-card">
-                <div className="cronograma-header">
+            {manualData.quilometragens.map((etapa, index) => {
+              const cardKey = `card-${index}`;
+              const isExpanded = expandedCards[cardKey];
+              
+              return (
+              <div 
+                key={index} 
+                className={`cronograma-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+              >
+                <div 
+                  className="cronograma-header"
+                  onClick={() => toggleCard(cardKey)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <h3>{etapa.km}</h3>
                   <span className="itens-count">{etapa.itens.length} itens</span>
                 </div>
@@ -283,7 +301,8 @@ const ManutencaoPreventiva = () => {
                   })}
                 </ul>
               </div>
-            ))}
+            );
+            })}
           </div>
 
           

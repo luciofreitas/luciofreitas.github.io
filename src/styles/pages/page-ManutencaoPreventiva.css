@@ -120,6 +120,8 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
+  /* Align to start so only the clicked card expands without affecting siblings */
+  align-items: start;
 }
 
 .cronograma-card {
@@ -128,6 +130,19 @@
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  /* Make cards flex containers so header stays at top */
+  display: flex;
+  flex-direction: column;
+}
+
+/* When collapsed, card height is just the header */
+.cronograma-card.collapsed {
+  min-height: auto;
+}
+
+/* When expanded, allow card to grow */
+.cronograma-card.expanded {
+  min-height: auto;
 }
 
 .cronograma-card:hover {
@@ -142,6 +157,11 @@
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 2px solid #e2e8f0;
+}
+
+/* Remove margin bottom when card is collapsed */
+.cronograma-card.collapsed .cronograma-header {
+  margin-bottom: 0;
 }
 
 .cronograma-header h3 {
@@ -163,6 +183,23 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  /* Smooth transition for expand/collapse */
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  overflow: hidden;
+}
+
+/* Hide list when card is collapsed */
+.cronograma-card.collapsed .cronograma-lista {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* Show list when card is expanded */
+.cronograma-card.expanded .cronograma-lista {
+  max-height: 100vh;
+  opacity: 1;
 }
 
 .cronograma-lista li {
