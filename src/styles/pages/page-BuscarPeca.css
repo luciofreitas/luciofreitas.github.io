@@ -8,9 +8,9 @@
   margin: 0 auto;
 }
 
-/* Adiciona padding-top extra para compensar quando menu-page remove padding do título */
+/* Remove padding-top quando menu-page já adiciona espaçamento */
 .menu-page .buscarpeca-section {
-  padding-top: 2rem;
+  padding-top: 0;
 }
 
 .buscarpeca-intro {
