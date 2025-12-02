@@ -56,15 +56,15 @@ export default function NossoProjeto() {
       <MenuLogin />
       <div className="page-wrapper">
         <div className="page-content" id="nosso-projeto">
-          <div className="projeto-header">
-            <div className="header-icon">🚗</div>
-            <h2 className="page-title">Nosso Projeto</h2>
-            <p className="header-subtitle">
+          <h2 className="page-title">Nosso Projeto</h2>
+          
+          <div className="projeto-intro">
+            <p>
               Conheça o Garagem Smart - nossa solução completa para o seu problema automotivo.
             </p>
           </div>
 
-          <div className="projeto-intro">
+          <div className="projeto-descricao">
             <p>
               O Garagem Smart é uma plataforma completa e intuitiva desenvolvida para transformar a forma como você cuida do seu veículo. 
               Nascemos da necessidade de simplificar o complexo universo automotivo, oferecendo ferramentas práticas que colocam o 

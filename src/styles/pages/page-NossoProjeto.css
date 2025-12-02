@@ -4,43 +4,35 @@
   padding: 2rem 1rem;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: calc(100vh - 4rem);
-}
-
-/* Header da página */
-.projeto-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  background: white;
-  padding: 3rem 2rem;
-  border-radius: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  max-width: 900px;
-  margin: 0 auto 3rem auto;
-}
-
-.projeto-header .header-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-}
-
-.projeto-header .page-title {
-  font-size: 2.5rem;
-  color: #1a365d;
-  margin-bottom: 1rem;
-  font-weight: 700;
-}
-
-.projeto-header .header-subtitle {
-  font-size: 1.125rem;
-  color: #4a5568;
-  line-height: 1.6;
-  max-width: 600px;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 /* Introdução */
 .projeto-intro {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+  max-width: 700px;
+}
+
+.projeto-intro p {
+  color: #64748b;
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Descrição */
+.projeto-descricao {
   background: white;
   border-radius: 1rem;
   padding: 2rem;
@@ -53,7 +45,7 @@
   border-left: 5px solid #3182ce;
 }
 
-.projeto-intro p {
+.projeto-descricao p {
   color: #2d3748;
   font-size: 1.0625rem;
   line-height: 1.8;
@@ -241,22 +233,28 @@
   background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
 }
 
-.theme-dark .projeto-header,
-.theme-dark .projeto-intro,
+.theme-dark .projeto-intro {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .projeto-intro p {
+  color: #ffffff;
+}
+
+.theme-dark .projeto-descricao,
 .theme-dark .projeto-conclusao,
 .theme-dark .funcionalidade-card {
   background: #2d3748;
   color: #e2e8f0;
 }
 
-.theme-dark .projeto-header .page-title,
 .theme-dark .section-title,
 .theme-dark .funcionalidade-header h4 {
   color: #e2e8f0;
 }
 
-.theme-dark .projeto-header .header-subtitle,
-.theme-dark .projeto-intro p,
+.theme-dark .projeto-descricao p,
 .theme-dark .projeto-conclusao p,
 .theme-dark .funcionalidade-content p {
   color: #cbd5e0;
@@ -272,25 +270,13 @@
     padding: 1rem 0.5rem;
   }
 
-  .projeto-header {
-    padding: 2rem 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .projeto-header .page-title {
-    font-size: 2rem;
-  }
-
-  .projeto-header .header-icon {
-    font-size: 3rem;
-  }
-
   .funcionalidades-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
 
   .projeto-intro,
+  .projeto-descricao,
   .projeto-conclusao {
     padding: 1.5rem;
   }
