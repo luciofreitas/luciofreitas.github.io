@@ -178,6 +178,8 @@
   border-radius: clamp(0.7rem, 1.4vw, 0.75rem); /* ~11.2px a 12px - fluido */
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   overflow: hidden;
+  /* Smooth transition for border color changes to prevent visual flicker */
+  transition: border-left-color 0.2s ease;
 }
 
 /* Make cards a column flex container so header stays at top and content can scroll
@@ -239,6 +241,8 @@
 .cor-icon.luz-icone-img svg {
   -webkit-filter: none !important;
   filter: none !important;
+  /* Smooth transition for color changes in SVG icons */
+  transition: color 0.2s ease;
 }
 
 /* SvgMask helper: paint SVG via mask/background so currentColor applies regardless of SVG internals */
@@ -310,12 +314,14 @@
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 clamp(0.1rem, 0.2vw, 0.125rem) clamp(0.2rem, 0.4vw, 0.25rem) rgba(0, 0, 0, 0.2);
+  /* Smooth transition for background color changes */
+  transition: background-color 0.2s ease;
 }
 
 /* Clickable state styling for multi-state indicators */
 .cor-indicator.clickable-state {
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease;
 }
 .cor-indicator.clickable-state:active {
   transform: scale(0.94);
