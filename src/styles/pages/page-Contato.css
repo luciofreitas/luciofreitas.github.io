@@ -8,11 +8,6 @@
   margin: 0 auto;
 }
 
-.page-title {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
 .contato-intro {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -35,17 +30,14 @@
   margin: 0 auto;
   text-align: center;
 }
-}
 
-#contato .contato-buttons {
+.contato-buttons {
   margin-top: 3rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  /* ensure the contact icons have breathing room from the bottom/other elements */
-  margin-bottom: 1.5rem;
+  gap: 2rem;
+  margin-bottom: 2rem;
 }
 
 .contato-btn {
