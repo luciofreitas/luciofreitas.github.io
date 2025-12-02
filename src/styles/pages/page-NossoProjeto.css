@@ -1,103 +1,300 @@
-/* page-NossoProjeto.css - Estilos específicos da página Nosso Projeto */
+/* page-NossoProjeto.css - Estilos modernos com cards */
 
 #nosso-projeto {
-  padding: 0 1rem 2rem 1rem;
-  background: #FFFFFF;
-  max-width: 50rem;
-  margin: 0 auto;
-  text-align: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: calc(100vh - 4rem);
 }
 
-.nossoprojeto-intro {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin: 0 auto 2rem auto;
+/* Header da página */
+.projeto-header {
   text-align: center;
-  display: table; /* shrink-to-fit the width to content and allow margin: auto centering */
-  max-width: 100%;
+  margin-bottom: 3rem;
+  background: white;
+  padding: 3rem 2rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin: 0 auto 3rem auto;
 }
 
-.nossoprojeto-intro p {
-  color: #64748b;
-  margin: 0;
-  font-size: 1.1rem;
+.projeto-header .header-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.projeto-header .page-title {
+  font-size: 2.5rem;
+  color: #1a365d;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.projeto-header .header-subtitle {
+  font-size: 1.125rem;
+  color: #4a5568;
   line-height: 1.6;
-}
-
-/* Dark mode styles */
-.theme-dark .nossoprojeto-intro {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-.theme-dark .nossoprojeto-intro p {
-  color: #ffffff;
-}
-
-.theme-dark .nosso-projeto-body {
-  color: #ffffff;
-}
-
-/* Title now uses .page-title class from App.css - keeping this for reference
-.nosso-projeto__title {
-  color: #0052CC;
-  text-align: center;
-  margin-bottom: 1.5rem;
-  margin-top: 0;
-  font-weight: 600;
-  font-size: 2rem;
-  display: block;
-  padding: 0;
-}
-*/
-
-.nosso-projeto-content {
-  /* Match QuemSomos content container and text flow */
-  max-width: 50rem;
+  max-width: 600px;
   margin: 0 auto;
-  line-height: 1.8;
-  color: #172B4D;
-  text-align: justify;
-  text-justify: inter-word;
 }
 
-.nosso-projeto-body {
+/* Introdução */
+.projeto-intro {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 3rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid #3182ce;
+}
+
+.projeto-intro p {
+  color: #2d3748;
+  font-size: 1.0625rem;
   line-height: 1.8;
+  margin: 0;
   text-align: justify;
+}
+
+/* Seção de Funcionalidades */
+.funcionalidades-section {
+  max-width: 1200px;
+  margin: 0 auto 3rem auto;
+}
+
+.section-title {
+  font-size: 2rem;
+  color: #1a365d;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  font-weight: 700;
+}
+
+.funcionalidades-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Cards de Funcionalidades */
+.funcionalidade-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.funcionalidade-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  transition: height 0.3s;
+}
+
+.funcionalidade-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.funcionalidade-card:hover::before {
+  height: 8px;
+}
+
+/* Cores dos cards */
+.card-azul::before {
+  background: linear-gradient(90deg, #3182ce 0%, #63b3ed 100%);
+}
+
+.card-verde::before {
+  background: linear-gradient(90deg, #38a169 0%, #68d391 100%);
+}
+
+.card-vermelho::before {
+  background: linear-gradient(90deg, #e53e3e 0%, #fc8181 100%);
+}
+
+.card-roxo::before {
+  background: linear-gradient(90deg, #805ad5 0%, #b794f4 100%);
+}
+
+.card-laranja::before {
+  background: linear-gradient(90deg, #dd6b20 0%, #f6ad55 100%);
+}
+
+.card-dourado::before {
+  background: linear-gradient(90deg, #d69e2e 0%, #f6e05e 100%);
+}
+
+.funcionalidade-card.collapsed {
+  min-height: auto;
+}
+
+.funcionalidade-card.expanded {
+  min-height: auto;
+}
+
+.funcionalidade-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.funcionalidade-card.collapsed .funcionalidade-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.funcionalidade-icone {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.funcionalidade-header h4 {
+  font-size: 1.375rem;
+  color: #2d3748;
+  margin: 0;
+  font-weight: 700;
+  flex: 1;
+}
+
+.funcionalidade-content {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.funcionalidade-card.collapsed .funcionalidade-content {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.funcionalidade-card.expanded .funcionalidade-content {
+  max-height: 100vh;
+  opacity: 1;
+}
+
+.funcionalidade-content p {
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 0;
+  text-align: justify;
+}
+
+/* Conclusão */
+.projeto-conclusao {
+  background: white;
+  border-radius: 1rem;
+  padding: 2.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid #38a169;
+}
+
+.projeto-conclusao p {
+  color: #2d3748;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  text-align: justify;
+}
+
+.projeto-conclusao p:last-child {
+  margin-bottom: 0;
+}
+
+.projeto-conclusao strong {
+  color: #1a365d;
+  font-weight: 700;
+}
+
+.projeto-welcome {
+  text-align: center !important;
+  font-size: 1.25rem !important;
+  font-weight: 600;
+  color: #38a169 !important;
+  margin-top: 2rem !important;
+}
+
+/* Dark mode */
+.theme-dark #nosso-projeto {
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+}
+
+.theme-dark .projeto-header,
+.theme-dark .projeto-intro,
+.theme-dark .projeto-conclusao,
+.theme-dark .funcionalidade-card {
+  background: #2d3748;
+  color: #e2e8f0;
+}
+
+.theme-dark .projeto-header .page-title,
+.theme-dark .section-title,
+.theme-dark .funcionalidade-header h4 {
+  color: #e2e8f0;
+}
+
+.theme-dark .projeto-header .header-subtitle,
+.theme-dark .projeto-intro p,
+.theme-dark .projeto-conclusao p,
+.theme-dark .funcionalidade-content p {
+  color: #cbd5e0;
+}
+
+.theme-dark .projeto-conclusao strong {
+  color: #90cdf4;
 }
 
 /* Responsividade */
-@media (max-width: 48rem) {
+@media (max-width: 768px) {
   #nosso-projeto {
-    padding: 1rem 0.5rem 2rem 0.5rem;
+    padding: 1rem 0.5rem;
+  }
+
+  .projeto-header {
+    padding: 2rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .projeto-header .page-title {
+    font-size: 2rem;
+  }
+
+  .projeto-header .header-icon {
+    font-size: 3rem;
+  }
+
+  .funcionalidades-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .projeto-intro,
+  .projeto-conclusao {
+    padding: 1.5rem;
   }
 }
-
-/* Full HD - 1920x1080 */
-@media (min-width: 118.75rem) and (max-width: 121.25rem) {
-  /* NossoProjeto spacing */
-  #nosso-projeto { padding: 0 1rem 2rem 1rem; background: #FFFFFF; max-width: 50rem; margin: 0 auto; text-align: center; }
-  .nosso-projeto-content { max-width: 50rem; margin: 0 auto; line-height: 1.8; color: #172B4D; text-align: justify; text-justify: inter-word; }
-}
-
-/* HD - 1366x768 */
-@media (min-width: 85.312rem) and (max-width: 85.375rem) {
-  /* Title styles now handled by .page-title class */
-}
-
-/* --- Test forced parity: aplicar apenas para diagnóstico --- */
-.quem-somos-body,
-.nosso-projeto-body,
-.quem-somos-content,
-.nosso-projeto-content {
-  font-size: clamp(0.875rem, 1.8vw, 1rem) !important; /* ~14px a 16px */
-  line-height: 1.8 !important;
-  font-weight: 400 !important;
-  max-width: 50rem !important;
-  margin: 0 auto !important;
-  padding: 0 !important;
   text-align: justify !important;
   text-justify: inter-word !important;
   hyphens: auto !important;
