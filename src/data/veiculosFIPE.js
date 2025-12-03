@@ -4,113 +4,110 @@
 export const veiculosFIPE = [
   // CHEVROLET
   { id: 1, marca: 'Chevrolet', modelo: 'Onix 1.0 Turbo Automático', ano: 2025, preco: 'R$ 95.900,00', codigo: '001234-1', combustivel: 'Gasolina' },
-  { id: 2, marca: 'Chevrolet', modelo: 'Onix 1.0 Turbo Automático', ano: 2024, preco: 'R$ 89.500,00', codigo: '001234-2', combustivel: 'Gasolina' },
-  { id: 3, marca: 'Chevrolet', modelo: 'Onix Plus 1.0 Turbo', ano: 2025, preco: 'R$ 101.900,00', codigo: '001235-1', combustivel: 'Gasolina' },
-  { id: 4, marca: 'Chevrolet', modelo: 'Onix Plus 1.0 Turbo', ano: 2024, preco: 'R$ 95.200,00', codigo: '001235-2', combustivel: 'Gasolina' },
-  { id: 5, marca: 'Chevrolet', modelo: 'Tracker 1.0 Turbo', ano: 2025, preco: 'R$ 145.900,00', codigo: '001236-1', combustivel: 'Gasolina' },
-  { id: 6, marca: 'Chevrolet', modelo: 'Tracker 1.0 Turbo', ano: 2024, preco: 'R$ 135.900,00', codigo: '001236-2', combustivel: 'Gasolina' },
-  { id: 7, marca: 'Chevrolet', modelo: 'S10 2.8 Diesel LTZ', ano: 2025, preco: 'R$ 259.900,00', codigo: '001238-1', combustivel: 'Diesel' },
-  { id: 8, marca: 'Chevrolet', modelo: 'S10 2.8 Diesel LTZ', ano: 2024, preco: 'R$ 245.900,00', codigo: '001238-2', combustivel: 'Diesel' },
+  { id: 2, marca: 'Chevrolet', modelo: 'Onix Plus 1.0 Turbo', ano: 2025, preco: 'R$ 101.900,00', codigo: '001235-1', combustivel: 'Gasolina' },
+  { id: 3, marca: 'Chevrolet', modelo: 'Tracker 1.0 Turbo', ano: 2025, preco: 'R$ 145.900,00', codigo: '001236-1', combustivel: 'Gasolina' },
+  { id: 4, marca: 'Chevrolet', modelo: 'Tracker 1.2 Turbo Premier', ano: 2025, preco: 'R$ 172.900,00', codigo: '001237-1', combustivel: 'Gasolina' },
+  { id: 5, marca: 'Chevrolet', modelo: 'S10 2.8 Diesel LTZ', ano: 2025, preco: 'R$ 259.900,00', codigo: '001238-1', combustivel: 'Diesel' },
+  { id: 6, marca: 'Chevrolet', modelo: 'Montana 1.2 Turbo', ano: 2025, preco: 'R$ 129.900,00', codigo: '001239-1', combustivel: 'Gasolina' },
+  { id: 7, marca: 'Chevrolet', modelo: 'Spin 1.8 Activ', ano: 2025, preco: 'R$ 119.900,00', codigo: '001240-1', combustivel: 'Gasolina' },
 
   // FIAT
-  { id: 9, marca: 'Fiat', modelo: 'Argo 1.0', ano: 2025, preco: 'R$ 73.900,00', codigo: '002345-1', combustivel: 'Flex' },
-  { id: 10, marca: 'Fiat', modelo: 'Argo 1.0', ano: 2024, preco: 'R$ 68.900,00', codigo: '002345-2', combustivel: 'Flex' },
+  { id: 8, marca: 'Fiat', modelo: 'Argo 1.0', ano: 2025, preco: 'R$ 73.900,00', codigo: '002345-1', combustivel: 'Flex' },
+  { id: 9, marca: 'Fiat', modelo: 'Argo 1.3 Turbo', ano: 2025, preco: 'R$ 92.900,00', codigo: '002346-1', combustivel: 'Flex' },
+  { id: 10, marca: 'Fiat', modelo: 'Cronos 1.3 GSR', ano: 2025, preco: 'R$ 96.900,00', codigo: '002347-1', combustivel: 'Flex' },
   { id: 11, marca: 'Fiat', modelo: 'Pulse 1.3 Turbo', ano: 2025, preco: 'R$ 117.900,00', codigo: '002348-1', combustivel: 'Flex' },
-  { id: 12, marca: 'Fiat', modelo: 'Pulse 1.3 Turbo', ano: 2024, preco: 'R$ 109.900,00', codigo: '002348-2', combustivel: 'Flex' },
-  { id: 13, marca: 'Fiat', modelo: 'Fastback 1.3 Turbo', ano: 2025, preco: 'R$ 128.900,00', codigo: '002349-1', combustivel: 'Flex' },
-  { id: 14, marca: 'Fiat', modelo: 'Fastback 1.3 Turbo', ano: 2024, preco: 'R$ 119.900,00', codigo: '002349-2', combustivel: 'Flex' },
-  { id: 15, marca: 'Fiat', modelo: 'Toro 2.0 Diesel Ranch', ano: 2025, preco: 'R$ 199.900,00', codigo: '002351-1', combustivel: 'Diesel' },
-  { id: 16, marca: 'Fiat', modelo: 'Toro 2.0 Diesel Ranch', ano: 2024, preco: 'R$ 189.900,00', codigo: '002351-2', combustivel: 'Diesel' },
+  { id: 12, marca: 'Fiat', modelo: 'Fastback 1.3 Turbo', ano: 2025, preco: 'R$ 128.900,00', codigo: '002349-1', combustivel: 'Flex' },
+  { id: 13, marca: 'Fiat', modelo: 'Toro 1.3 Turbo', ano: 2025, preco: 'R$ 149.900,00', codigo: '002350-1', combustivel: 'Flex' },
+  { id: 14, marca: 'Fiat', modelo: 'Toro 2.0 Diesel Ranch', ano: 2025, preco: 'R$ 199.900,00', codigo: '002351-1', combustivel: 'Diesel' },
+  { id: 15, marca: 'Fiat', modelo: 'Strada 1.3 Endurance', ano: 2025, preco: 'R$ 102.900,00', codigo: '002352-1', combustivel: 'Flex' },
 
   // VOLKSWAGEN
+  { id: 16, marca: 'Volkswagen', modelo: 'Gol 1.0', ano: 2025, preco: 'R$ 73.900,00', codigo: '003456-1', combustivel: 'Flex' },
   { id: 17, marca: 'Volkswagen', modelo: 'Polo 1.0 TSI', ano: 2025, preco: 'R$ 102.900,00', codigo: '003457-1', combustivel: 'Gasolina' },
-  { id: 18, marca: 'Volkswagen', modelo: 'Polo 1.0 TSI', ano: 2024, preco: 'R$ 95.900,00', codigo: '003457-2', combustivel: 'Gasolina' },
+  { id: 18, marca: 'Volkswagen', modelo: 'Virtus 1.0 TSI', ano: 2025, preco: 'R$ 107.900,00', codigo: '003458-1', combustivel: 'Gasolina' },
   { id: 19, marca: 'Volkswagen', modelo: 'T-Cross 1.0 TSI', ano: 2025, preco: 'R$ 139.900,00', codigo: '003459-1', combustivel: 'Gasolina' },
-  { id: 20, marca: 'Volkswagen', modelo: 'T-Cross 1.0 TSI', ano: 2024, preco: 'R$ 129.900,00', codigo: '003459-2', combustivel: 'Gasolina' },
-  { id: 21, marca: 'Volkswagen', modelo: 'Nivus 1.0 TSI', ano: 2025, preco: 'R$ 128.900,00', codigo: '003460-1', combustivel: 'Gasolina' },
-  { id: 22, marca: 'Volkswagen', modelo: 'Nivus 1.0 TSI', ano: 2024, preco: 'R$ 119.900,00', codigo: '003460-2', combustivel: 'Gasolina' },
-  { id: 23, marca: 'Volkswagen', modelo: 'Amarok 2.0 TDI Highline', ano: 2025, preco: 'R$ 309.900,00', codigo: '003462-1', combustivel: 'Diesel' },
-  { id: 24, marca: 'Volkswagen', modelo: 'Amarok 2.0 TDI Highline', ano: 2024, preco: 'R$ 289.900,00', codigo: '003462-2', combustivel: 'Diesel' },
+  { id: 20, marca: 'Volkswagen', modelo: 'Nivus 1.0 TSI', ano: 2025, preco: 'R$ 128.900,00', codigo: '003460-1', combustivel: 'Gasolina' },
+  { id: 21, marca: 'Volkswagen', modelo: 'Taos 1.4 TSI', ano: 2025, preco: 'R$ 181.900,00', codigo: '003461-1', combustivel: 'Gasolina' },
+  { id: 22, marca: 'Volkswagen', modelo: 'Amarok 2.0 TDI Highline', ano: 2025, preco: 'R$ 309.900,00', codigo: '003462-1', combustivel: 'Diesel' },
 
   // TOYOTA
-  { id: 25, marca: 'Toyota', modelo: 'Corolla 2.0 XEi', ano: 2025, preco: 'R$ 155.900,00', codigo: '004567-1', combustivel: 'Flex' },
-  { id: 26, marca: 'Toyota', modelo: 'Corolla 2.0 XEi', ano: 2024, preco: 'R$ 145.900,00', codigo: '004567-2', combustivel: 'Flex' },
-  { id: 27, marca: 'Toyota', modelo: 'Corolla Cross 2.0 XRE', ano: 2025, preco: 'R$ 191.900,00', codigo: '004568-1', combustivel: 'Flex' },
-  { id: 28, marca: 'Toyota', modelo: 'Corolla Cross 2.0 XRE', ano: 2024, preco: 'R$ 179.900,00', codigo: '004568-2', combustivel: 'Flex' },
-  { id: 29, marca: 'Toyota', modelo: 'Hilux 2.8 SRX', ano: 2025, preco: 'R$ 305.900,00', codigo: '004569-1', combustivel: 'Diesel' },
-  { id: 30, marca: 'Toyota', modelo: 'Hilux 2.8 SRX', ano: 2024, preco: 'R$ 285.900,00', codigo: '004569-2', combustivel: 'Diesel' },
+  { id: 23, marca: 'Toyota', modelo: 'Corolla 2.0 XEi', ano: 2025, preco: 'R$ 155.900,00', codigo: '004567-1', combustivel: 'Flex' },
+  { id: 24, marca: 'Toyota', modelo: 'Corolla Cross 2.0 XRE', ano: 2025, preco: 'R$ 191.900,00', codigo: '004568-1', combustivel: 'Flex' },
+  { id: 25, marca: 'Toyota', modelo: 'Hilux 2.8 SRX', ano: 2025, preco: 'R$ 305.900,00', codigo: '004569-1', combustivel: 'Diesel' },
+  { id: 26, marca: 'Toyota', modelo: 'SW4 2.8 SRX', ano: 2025, preco: 'R$ 415.900,00', codigo: '004570-1', combustivel: 'Diesel' },
+  { id: 27, marca: 'Toyota', modelo: 'Yaris Sedan XLS', ano: 2025, preco: 'R$ 117.900,00', codigo: '004571-1', combustivel: 'Flex' },
 
   // HONDA
-  { id: 31, marca: 'Honda', modelo: 'Civic 2.0 EXL', ano: 2025, preco: 'R$ 179.900,00', codigo: '005678-1', combustivel: 'Flex' },
-  { id: 32, marca: 'Honda', modelo: 'Civic 2.0 EXL', ano: 2024, preco: 'R$ 168.900,00', codigo: '005678-2', combustivel: 'Flex' },
-  { id: 33, marca: 'Honda', modelo: 'HR-V 1.5 Turbo Touring', ano: 2025, preco: 'R$ 191.900,00', codigo: '005680-1', combustivel: 'Gasolina' },
-  { id: 34, marca: 'Honda', modelo: 'HR-V 1.5 Turbo Touring', ano: 2024, preco: 'R$ 179.900,00', codigo: '005680-2', combustivel: 'Gasolina' },
-  { id: 35, marca: 'Honda', modelo: 'WR-V 1.5 EXL', ano: 2025, preco: 'R$ 128.900,00', codigo: '005681-1', combustivel: 'Flex' },
-  { id: 36, marca: 'Honda', modelo: 'WR-V 1.5 EXL', ano: 2024, preco: 'R$ 119.900,00', codigo: '005681-2', combustivel: 'Flex' },
+  { id: 28, marca: 'Honda', modelo: 'Civic 2.0 EXL', ano: 2025, preco: 'R$ 179.900,00', codigo: '005678-1', combustivel: 'Flex' },
+  { id: 29, marca: 'Honda', modelo: 'City Sedan EXL', ano: 2025, preco: 'R$ 138.900,00', codigo: '005679-1', combustivel: 'Flex' },
+  { id: 30, marca: 'Honda', modelo: 'HR-V 1.5 Turbo Touring', ano: 2025, preco: 'R$ 191.900,00', codigo: '005680-1', combustivel: 'Gasolina' },
+  { id: 31, marca: 'Honda', modelo: 'WR-V 1.5 EXL', ano: 2025, preco: 'R$ 128.900,00', codigo: '005681-1', combustivel: 'Flex' },
 
   // HYUNDAI
-  { id: 37, marca: 'Hyundai', modelo: 'HB20 1.0 Turbo', ano: 2025, preco: 'R$ 88.900,00', codigo: '006789-1', combustivel: 'Flex' },
-  { id: 38, marca: 'Hyundai', modelo: 'HB20 1.0 Turbo', ano: 2024, preco: 'R$ 82.900,00', codigo: '006789-2', combustivel: 'Flex' },
-  { id: 39, marca: 'Hyundai', modelo: 'Creta 1.0 Turbo', ano: 2025, preco: 'R$ 139.900,00', codigo: '006791-1', combustivel: 'Gasolina' },
-  { id: 40, marca: 'Hyundai', modelo: 'Creta 1.0 Turbo', ano: 2024, preco: 'R$ 129.900,00', codigo: '006791-2', combustivel: 'Gasolina' },
-  { id: 41, marca: 'Hyundai', modelo: 'Tucson 1.6 Turbo', ano: 2025, preco: 'R$ 212.900,00', codigo: '006793-1', combustivel: 'Gasolina' },
-  { id: 42, marca: 'Hyundai', modelo: 'Tucson 1.6 Turbo', ano: 2024, preco: 'R$ 199.900,00', codigo: '006793-2', combustivel: 'Gasolina' },
+  { id: 32, marca: 'Hyundai', modelo: 'HB20 1.0 Turbo', ano: 2025, preco: 'R$ 88.900,00', codigo: '006789-1', combustivel: 'Flex' },
+  { id: 33, marca: 'Hyundai', modelo: 'HB20S 1.0 Turbo', ano: 2025, preco: 'R$ 96.900,00', codigo: '006790-1', combustivel: 'Flex' },
+  { id: 34, marca: 'Hyundai', modelo: 'Creta 1.0 Turbo', ano: 2025, preco: 'R$ 139.900,00', codigo: '006791-1', combustivel: 'Gasolina' },
+  { id: 35, marca: 'Hyundai', modelo: 'Creta 2.0 Ultimate', ano: 2025, preco: 'R$ 181.900,00', codigo: '006792-1', combustivel: 'Flex' },
+  { id: 36, marca: 'Hyundai', modelo: 'Tucson 1.6 Turbo', ano: 2025, preco: 'R$ 212.900,00', codigo: '006793-1', combustivel: 'Gasolina' },
+  { id: 37, marca: 'Hyundai', modelo: 'Santa Fe 2.5 Turbo', ano: 2025, preco: 'R$ 372.900,00', codigo: '006794-1', combustivel: 'Gasolina' },
 
   // JEEP
-  { id: 43, marca: 'Jeep', modelo: 'Renegade 1.3 Turbo Longitude', ano: 2025, preco: 'R$ 159.900,00', codigo: '007891-1', combustivel: 'Flex' },
-  { id: 44, marca: 'Jeep', modelo: 'Renegade 1.3 Turbo Longitude', ano: 2024, preco: 'R$ 149.900,00', codigo: '007891-2', combustivel: 'Flex' },
-  { id: 45, marca: 'Jeep', modelo: 'Compass 1.3 Turbo', ano: 2025, preco: 'R$ 191.900,00', codigo: '007892-1', combustivel: 'Flex' },
-  { id: 46, marca: 'Jeep', modelo: 'Compass 1.3 Turbo', ano: 2024, preco: 'R$ 179.900,00', codigo: '007892-2', combustivel: 'Flex' },
-  { id: 47, marca: 'Jeep', modelo: 'Commander 1.3 Turbo', ano: 2025, preco: 'R$ 245.900,00', codigo: '007894-1', combustivel: 'Flex' },
-  { id: 48, marca: 'Jeep', modelo: 'Commander 1.3 Turbo', ano: 2024, preco: 'R$ 229.900,00', codigo: '007894-2', combustivel: 'Flex' },
+  { id: 38, marca: 'Jeep', modelo: 'Renegade 1.8 Sport', ano: 2025, preco: 'R$ 139.900,00', codigo: '007890-1', combustivel: 'Flex' },
+  { id: 39, marca: 'Jeep', modelo: 'Renegade 1.3 Turbo Longitude', ano: 2025, preco: 'R$ 159.900,00', codigo: '007891-1', combustivel: 'Flex' },
+  { id: 40, marca: 'Jeep', modelo: 'Compass 1.3 Turbo', ano: 2025, preco: 'R$ 191.900,00', codigo: '007892-1', combustivel: 'Flex' },
+  { id: 41, marca: 'Jeep', modelo: 'Compass 2.0 Diesel', ano: 2025, preco: 'R$ 234.900,00', codigo: '007893-1', combustivel: 'Diesel' },
+  { id: 42, marca: 'Jeep', modelo: 'Commander 1.3 Turbo', ano: 2025, preco: 'R$ 245.900,00', codigo: '007894-1', combustivel: 'Flex' },
 
   // NISSAN
-  { id: 49, marca: 'Nissan', modelo: 'Kicks 1.6', ano: 2025, preco: 'R$ 127.900,00', codigo: '008901-1', combustivel: 'Flex' },
-  { id: 50, marca: 'Nissan', modelo: 'Kicks 1.6', ano: 2024, preco: 'R$ 119.900,00', codigo: '008901-2', combustivel: 'Flex' },
-  { id: 51, marca: 'Nissan', modelo: 'Versa 1.6 Sense', ano: 2025, preco: 'R$ 106.900,00', codigo: '008902-1', combustivel: 'Flex' },
-  { id: 52, marca: 'Nissan', modelo: 'Versa 1.6 Sense', ano: 2024, preco: 'R$ 99.900,00', codigo: '008902-2', combustivel: 'Flex' },
+  { id: 43, marca: 'Nissan', modelo: 'Kicks 1.6', ano: 2025, preco: 'R$ 127.900,00', codigo: '008901-1', combustivel: 'Flex' },
+  { id: 44, marca: 'Nissan', modelo: 'Versa 1.6 Sense', ano: 2025, preco: 'R$ 106.900,00', codigo: '008902-1', combustivel: 'Flex' },
+  { id: 45, marca: 'Nissan', modelo: 'Frontier 2.3 XE', ano: 2025, preco: 'R$ 245.900,00', codigo: '008903-1', combustivel: 'Diesel' },
 
   // RENAULT
-  { id: 53, marca: 'Renault', modelo: 'Kwid 1.0', ano: 2025, preco: 'R$ 69.900,00', codigo: '009012-1', combustivel: 'Flex' },
-  { id: 54, marca: 'Renault', modelo: 'Kwid 1.0', ano: 2024, preco: 'R$ 64.900,00', codigo: '009012-2', combustivel: 'Flex' },
-  { id: 55, marca: 'Renault', modelo: 'Kardian 1.0 Turbo', ano: 2025, preco: 'R$ 117.900,00', codigo: '009015-1', combustivel: 'Flex' },
-  { id: 56, marca: 'Renault', modelo: 'Kardian 1.0 Turbo', ano: 2024, preco: 'R$ 109.900,00', codigo: '009015-2', combustivel: 'Flex' },
-  { id: 57, marca: 'Renault', modelo: 'Duster 1.6', ano: 2025, preco: 'R$ 128.900,00', codigo: '009016-1', combustivel: 'Flex' },
-  { id: 58, marca: 'Renault', modelo: 'Duster 1.6', ano: 2024, preco: 'R$ 119.900,00', codigo: '009016-2', combustivel: 'Flex' },
+  { id: 46, marca: 'Renault', modelo: 'Kwid 1.0', ano: 2025, preco: 'R$ 69.900,00', codigo: '009012-1', combustivel: 'Flex' },
+  { id: 47, marca: 'Renault', modelo: 'Sandero 1.0', ano: 2025, preco: 'R$ 79.900,00', codigo: '009013-1', combustivel: 'Flex' },
+  { id: 48, marca: 'Renault', modelo: 'Logan 1.0', ano: 2025, preco: 'R$ 84.900,00', codigo: '009014-1', combustivel: 'Flex' },
+  { id: 49, marca: 'Renault', modelo: 'Kardian 1.0 Turbo', ano: 2025, preco: 'R$ 117.900,00', codigo: '009015-1', combustivel: 'Flex' },
+  { id: 50, marca: 'Renault', modelo: 'Duster 1.6', ano: 2025, preco: 'R$ 128.900,00', codigo: '009016-1', combustivel: 'Flex' },
 
   // CAOA CHERY
-  { id: 59, marca: 'Caoa Chery', modelo: 'Tiggo 5X 1.5 Turbo', ano: 2025, preco: 'R$ 159.900,00', codigo: '011234-1', combustivel: 'Gasolina' },
-  { id: 60, marca: 'Caoa Chery', modelo: 'Tiggo 5X 1.5 Turbo', ano: 2024, preco: 'R$ 149.900,00', codigo: '011234-2', combustivel: 'Gasolina' },
-  { id: 61, marca: 'Caoa Chery', modelo: 'Tiggo 7 Sport 1.5 Turbo', ano: 2025, preco: 'R$ 191.900,00', codigo: '011235-1', combustivel: 'Gasolina' },
-  { id: 62, marca: 'Caoa Chery', modelo: 'Tiggo 7 Sport 1.5 Turbo', ano: 2024, preco: 'R$ 179.900,00', codigo: '011235-2', combustivel: 'Gasolina' },
+  { id: 51, marca: 'Caoa Chery', modelo: 'Tiggo 5X 1.5 Turbo', ano: 2025, preco: 'R$ 159.900,00', codigo: '011234-1', combustivel: 'Gasolina' },
+  { id: 52, marca: 'Caoa Chery', modelo: 'Tiggo 7 Sport 1.5 Turbo', ano: 2025, preco: 'R$ 191.900,00', codigo: '011235-1', combustivel: 'Gasolina' },
+  { id: 53, marca: 'Caoa Chery', modelo: 'Tiggo 8 2.0 Turbo', ano: 2025, preco: 'R$ 245.900,00', codigo: '011236-1', combustivel: 'Gasolina' },
 
   // PEUGEOT
-  { id: 63, marca: 'Peugeot', modelo: '208 1.6 Griffe', ano: 2025, preco: 'R$ 106.900,00', codigo: '012345-1', combustivel: 'Flex' },
-  { id: 64, marca: 'Peugeot', modelo: '208 1.6 Griffe', ano: 2024, preco: 'R$ 99.900,00', codigo: '012345-2', combustivel: 'Flex' },
-  { id: 65, marca: 'Peugeot', modelo: '2008 1.6 Griffe', ano: 2025, preco: 'R$ 139.900,00', codigo: '012346-1', combustivel: 'Flex' },
-  { id: 66, marca: 'Peugeot', modelo: '2008 1.6 Griffe', ano: 2024, preco: 'R$ 129.900,00', codigo: '012346-2', combustivel: 'Flex' },
+  { id: 54, marca: 'Peugeot', modelo: '208 1.6 Griffe', ano: 2025, preco: 'R$ 106.900,00', codigo: '012345-1', combustivel: 'Flex' },
+  { id: 55, marca: 'Peugeot', modelo: '2008 1.6 Griffe', ano: 2025, preco: 'R$ 139.900,00', codigo: '012346-1', combustivel: 'Flex' },
+  { id: 56, marca: 'Peugeot', modelo: '3008 1.6 Turbo', ano: 2025, preco: 'R$ 245.900,00', codigo: '012347-1', combustivel: 'Gasolina' },
 
   // CITROËN
-  { id: 67, marca: 'Citroën', modelo: 'C3 1.0', ano: 2025, preco: 'R$ 79.900,00', codigo: '013456-1', combustivel: 'Flex' },
-  { id: 68, marca: 'Citroën', modelo: 'C3 1.0', ano: 2024, preco: 'R$ 74.900,00', codigo: '013456-2', combustivel: 'Flex' },
+  { id: 57, marca: 'Citroën', modelo: 'C3 1.0', ano: 2025, preco: 'R$ 79.900,00', codigo: '013456-1', combustivel: 'Flex' },
+  { id: 58, marca: 'Citroën', modelo: 'C4 Cactus 1.6', ano: 2025, preco: 'R$ 106.900,00', codigo: '013457-1', combustivel: 'Flex' },
+
+  // MITSUBISHI
+  { id: 59, marca: 'Mitsubishi', modelo: 'L200 Triton Sport 2.4', ano: 2025, preco: 'R$ 276.900,00', codigo: '014567-1', combustivel: 'Diesel' },
+  { id: 60, marca: 'Mitsubishi', modelo: 'Eclipse Cross 1.5 Turbo', ano: 2025, preco: 'R$ 202.900,00', codigo: '014568-1', combustivel: 'Gasolina' },
 
   // BYD
-  { id: 69, marca: 'BYD', modelo: 'Dolphin Mini Elétrico', ano: 2025, preco: 'R$ 159.900,00', codigo: '015678-1', combustivel: 'Elétrico' },
-  { id: 70, marca: 'BYD', modelo: 'Dolphin Mini Elétrico', ano: 2024, preco: 'R$ 149.900,00', codigo: '015678-2', combustivel: 'Elétrico' },
-  { id: 71, marca: 'BYD', modelo: 'Yuan Plus Elétrico', ano: 2025, preco: 'R$ 245.900,00', codigo: '015679-1', combustivel: 'Elétrico' },
-  { id: 72, marca: 'BYD', modelo: 'Yuan Plus Elétrico', ano: 2024, preco: 'R$ 229.900,00', codigo: '015679-2', combustivel: 'Elétrico' },
+  { id: 61, marca: 'BYD', modelo: 'Dolphin Mini Elétrico', ano: 2025, preco: 'R$ 159.900,00', codigo: '015678-1', combustivel: 'Elétrico' },
+  { id: 62, marca: 'BYD', modelo: 'Yuan Plus Elétrico', ano: 2025, preco: 'R$ 245.900,00', codigo: '015679-1', combustivel: 'Elétrico' },
+  { id: 63, marca: 'BYD', modelo: 'Tan Híbrido Plug-in', ano: 2025, preco: 'R$ 351.900,00', codigo: '015680-1', combustivel: 'Híbrido' },
 
   // GWM
-  { id: 73, marca: 'GWM', modelo: 'Haval H6 2.0 Turbo', ano: 2025, preco: 'R$ 202.900,00', codigo: '016789-1', combustivel: 'Gasolina' },
-  { id: 74, marca: 'GWM', modelo: 'Haval H6 2.0 Turbo', ano: 2024, preco: 'R$ 189.900,00', codigo: '016789-2', combustivel: 'Gasolina' },
+  { id: 64, marca: 'GWM', modelo: 'Haval H6 2.0 Turbo', ano: 2025, preco: 'R$ 202.900,00', codigo: '016789-1', combustivel: 'Gasolina' },
+  { id: 65, marca: 'GWM', modelo: 'Poer 2.0 Diesel', ano: 2025, preco: 'R$ 266.900,00', codigo: '016790-1', combustivel: 'Diesel' },
 
   // BMW
-  { id: 75, marca: 'BMW', modelo: '320i 2.0 Turbo', ano: 2025, preco: 'R$ 349.900,00', codigo: '017890-1', combustivel: 'Gasolina' },
-  { id: 76, marca: 'BMW', modelo: '320i 2.0 Turbo', ano: 2024, preco: 'R$ 329.900,00', codigo: '017890-2', combustivel: 'Gasolina' },
+  { id: 66, marca: 'BMW', modelo: '320i 2.0 Turbo', ano: 2025, preco: 'R$ 349.900,00', codigo: '017890-1', combustivel: 'Gasolina' },
+  { id: 67, marca: 'BMW', modelo: 'X1 2.0 sDrive', ano: 2025, preco: 'R$ 308.900,00', codigo: '017891-1', combustivel: 'Gasolina' },
 
   // MERCEDES-BENZ
-  { id: 77, marca: 'Mercedes-Benz', modelo: 'Classe A 200', ano: 2025, preco: 'R$ 297.900,00', codigo: '018901-1', combustivel: 'Gasolina' },
-  { id: 78, marca: 'Mercedes-Benz', modelo: 'Classe A 200', ano: 2024, preco: 'R$ 279.900,00', codigo: '018901-2', combustivel: 'Gasolina' },
+  { id: 68, marca: 'Mercedes-Benz', modelo: 'Classe A 200', ano: 2025, preco: 'R$ 297.900,00', codigo: '018901-1', combustivel: 'Gasolina' },
+  { id: 69, marca: 'Mercedes-Benz', modelo: 'GLA 200', ano: 2025, preco: 'R$ 340.900,00', codigo: '018902-1', combustivel: 'Gasolina' },
+
+  // AUDI
+  { id: 70, marca: 'Audi', modelo: 'A3 Sedan 1.4 TFSI', ano: 2025, preco: 'R$ 266.900,00', codigo: '019012-1', combustivel: 'Gasolina' },
+  { id: 71, marca: 'Audi', modelo: 'Q3 1.4 TFSI', ano: 2025, preco: 'R$ 308.900,00', codigo: '019013-1', combustivel: 'Gasolina' },
 ];
 
 export const mesReferencia = 'Dezembro de 2025';
