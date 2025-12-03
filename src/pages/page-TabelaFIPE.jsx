@@ -20,6 +20,7 @@ export default function TabelaFIPE() {
   const [loading, setLoading] = useState(false);
   const [loadingModelos, setLoadingModelos] = useState(false);
   const [mesReferencia, setMesReferencia] = useState('');
+  const [progresso, setProgresso] = useState({ atual: 0, total: 0 });
   
   // Verifica se o usuário é Pro
   const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
@@ -223,6 +224,19 @@ export default function TabelaFIPE() {
               <div className="fipe-loading-container">
                 <div className="fipe-spinner"></div>
                 <p>Carregando dados da Tabela FIPE...</p>
+                {progresso.total > 0 && (
+                  <div className="fipe-progresso">
+                    <div className="fipe-progresso-bar">
+                      <div 
+                        className="fipe-progresso-fill" 
+                        style={{ width: `${(progresso.atual / progresso.total) * 100}%` }}
+                      ></div>
+                    </div>
+                    <p className="fipe-progresso-texto">
+                      {progresso.atual} de {progresso.total} veículos carregados
+                    </p>
+                  </div>
+                )}
               </div>
             ) : dadosFiltrados.length > 0 ? (
               <table className="fipe-tabela">

@@ -85,6 +85,36 @@
   font-weight: 600;
 }
 
+/* Barra de Progresso */
+.fipe-progresso {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 1rem;
+}
+
+.fipe-progresso-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.fipe-progresso-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0052CC 0%, #3b82f6 100%);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.fipe-progresso-texto {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  text-align: center;
+}
+
 
 /* Filtros de Busca */
 .fipe-filtros {
@@ -619,4 +649,17 @@
 
 .theme-dark .filtro-select:disabled {
   background: var(--bg-gray-300);
+}
+
+/* Dark Mode - Barra de Progresso */
+.theme-dark .fipe-progresso-bar {
+  background: var(--bg-gray-300);
+}
+
+.theme-dark .fipe-progresso-fill {
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+}
+
+.theme-dark .fipe-progresso-texto {
+  color: var(--text-primary);
 }

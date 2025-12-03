@@ -85,43 +85,51 @@ export async function buscarVeiculosPopulares() {
       { codigo: '28', nome: 'Jeep' },
       { codigo: '38', nome: 'Nissan' },
       { codigo: '48', nome: 'Renault' },
-      { codigo: '22', nome: 'Ford' }
+      { codigo: '23', nome: 'Ford' },
+      { codigo: '6', nome: 'BMW' },
+      { codigo: '1', nome: 'Acura' },
+      { codigo: '2', nome: 'Agrale' },
+      { codigo: '3', nome: 'Alfa Romeo' },
+      { codigo: '37', nome: 'Mitsubishi' }
     ];
 
     const veiculos = [];
     
-    // Buscar alguns modelos de cada marca
-    for (const marca of marcasPopulares.slice(0, 5)) { // Limita a 5 marcas para não sobrecarregar
+    // Buscar modelos de todas as marcas populares (aumentado de 5 para 15 marcas)
+    for (const marca of marcasPopulares) {
       const modelos = await buscarModelos(marca.codigo);
       
-      // Pega os 3 primeiros modelos de cada marca
-      for (const modelo of modelos.slice(0, 3)) {
+      // Pega os 8 primeiros modelos de cada marca (aumentado de 3 para 8)
+      for (const modelo of modelos.slice(0, 8)) {
         const anos = await buscarAnos(marca.codigo, modelo.codigo);
         
         if (anos.length > 0) {
-          // Pega o ano mais recente
-          const anoRecente = anos[0];
-          const valor = await buscarValor(marca.codigo, modelo.codigo, anoRecente.codigo);
+          // Pega o ano mais recente e o anterior (se houver)
+          const anosParaBuscar = anos.slice(0, 2);
           
-          if (valor) {
-            veiculos.push({
-              id: `${marca.codigo}-${modelo.codigo}-${anoRecente.codigo}`,
-              marca: marca.nome,
-              modelo: valor.Modelo,
-              ano: parseInt(anoRecente.nome),
-              preco: valor.Valor,
-              codigo: valor.CodigoFipe,
-              combustivel: valor.Combustivel,
-              referencia: valor.MesReferencia,
-              codigoMarca: marca.codigo,
-              codigoModelo: modelo.codigo,
-              codigoAno: anoRecente.codigo
-            });
+          for (const ano of anosParaBuscar) {
+            const valor = await buscarValor(marca.codigo, modelo.codigo, ano.codigo);
+            
+            if (valor) {
+              veiculos.push({
+                id: `${marca.codigo}-${modelo.codigo}-${ano.codigo}`,
+                marca: marca.nome,
+                modelo: valor.Modelo,
+                ano: parseInt(ano.nome),
+                preco: valor.Valor,
+                codigo: valor.CodigoFipe,
+                combustivel: valor.Combustivel,
+                referencia: valor.MesReferencia,
+                codigoMarca: marca.codigo,
+                codigoModelo: modelo.codigo,
+                codigoAno: ano.codigo
+              });
+            }
+            
+            // Delay reduzido para 50ms
+            await new Promise(resolve => setTimeout(resolve, 50));
           }
         }
-        
-        // Pequeno delay para não sobrecarregar a API
-        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
     
@@ -149,32 +157,36 @@ export async function buscarVeiculosComFiltros(filtros = {}) {
     if (filtros.codigoMarca && !filtros.codigoModelo) {
       const modelos = await buscarModelos(filtros.codigoMarca);
       
-      // Busca valor para os primeiros 20 modelos
-      for (const modelo of modelos.slice(0, 20)) {
+      // Busca valor para os primeiros 50 modelos (aumentado de 20 para 50)
+      for (const modelo of modelos.slice(0, 50)) {
         const anos = await buscarAnos(filtros.codigoMarca, modelo.codigo);
         
         if (anos.length > 0) {
-          const anoRecente = anos[0];
-          const valor = await buscarValor(filtros.codigoMarca, modelo.codigo, anoRecente.codigo);
+          // Busca os 2 anos mais recentes de cada modelo
+          const anosParaBuscar = anos.slice(0, 2);
           
-          if (valor) {
-            veiculos.push({
-              id: `${filtros.codigoMarca}-${modelo.codigo}-${anoRecente.codigo}`,
-              marca: filtros.nomeMarca,
-              modelo: valor.Modelo,
-              ano: parseInt(anoRecente.nome),
-              preco: valor.Valor,
-              codigo: valor.CodigoFipe,
-              combustivel: valor.Combustivel,
-              referencia: valor.MesReferencia,
-              codigoMarca: filtros.codigoMarca,
-              codigoModelo: modelo.codigo,
-              codigoAno: anoRecente.codigo
-            });
+          for (const ano of anosParaBuscar) {
+            const valor = await buscarValor(filtros.codigoMarca, modelo.codigo, ano.codigo);
+            
+            if (valor) {
+              veiculos.push({
+                id: `${filtros.codigoMarca}-${modelo.codigo}-${ano.codigo}`,
+                marca: filtros.nomeMarca,
+                modelo: valor.Modelo,
+                ano: parseInt(ano.nome),
+                preco: valor.Valor,
+                codigo: valor.CodigoFipe,
+                combustivel: valor.Combustivel,
+                referencia: valor.MesReferencia,
+                codigoMarca: filtros.codigoMarca,
+                codigoModelo: modelo.codigo,
+                codigoAno: ano.codigo
+              });
+            }
           }
         }
         
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
     }
     
@@ -182,6 +194,7 @@ export async function buscarVeiculosComFiltros(filtros = {}) {
     if (filtros.codigoMarca && filtros.codigoModelo) {
       const anos = await buscarAnos(filtros.codigoMarca, filtros.codigoModelo);
       
+      // Busca todos os anos disponíveis (removido limite)
       for (const ano of anos) {
         const valor = await buscarValor(filtros.codigoMarca, filtros.codigoModelo, ano.codigo);
         
@@ -201,7 +214,7 @@ export async function buscarVeiculosComFiltros(filtros = {}) {
           });
         }
         
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
     }
     
