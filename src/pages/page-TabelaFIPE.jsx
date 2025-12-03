@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
-import { marcasFIPE, getModelosPorMarca, getAnosPorModelo, getVeiculo, mesReferencia } from '../data/veiculosFIPE';
+import { marcasFIPE, getModelosPorMarca, getVeiculo, mesReferencia } from '../data/veiculosFIPE';
 import '../styles/pages/page-TabelaFIPE.css';
 
 export default function TabelaFIPE() {
@@ -12,11 +12,9 @@ export default function TabelaFIPE() {
   // Estados para filtros
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [modeloSelecionado, setModeloSelecionado] = useState('');
-  const [anoSelecionado, setAnoSelecionado] = useState('');
   
   // Estados para dados
   const [modelos, setModelos] = useState([]);
-  const [anos, setAnos] = useState([]);
   const [veiculo, setVeiculo] = useState(null);
   
   // Verifica se o usuário é Pro
@@ -26,56 +24,34 @@ export default function TabelaFIPE() {
   const handleMarcaChange = (codigoMarca) => {
     setMarcaSelecionada(codigoMarca);
     setModeloSelecionado('');
-    setAnoSelecionado('');
     setVeiculo(null);
     
     if (codigoMarca) {
       const marca = marcasFIPE.find(m => m.codigo.toString() === codigoMarca);
       const modelosDisponiveis = getModelosPorMarca(marca.nome);
       setModelos(modelosDisponiveis);
-      setAnos([]);
     } else {
       setModelos([]);
-      setAnos([]);
     }
   };
 
-  // Quando modelo é selecionado
+  // Quando modelo é selecionado (busca veículo direto com ano 2025)
   const handleModeloChange = (codigoModelo) => {
     setModeloSelecionado(codigoModelo);
-    setAnoSelecionado('');
     setVeiculo(null);
     
     if (codigoModelo) {
       const marca = marcasFIPE.find(m => m.codigo.toString() === marcaSelecionada);
       const modelo = modelos.find(m => m.codigo.toString() === codigoModelo);
-      const anosDisponiveis = getAnosPorModelo(marca.nome, modelo.nome);
-      setAnos(anosDisponiveis);
-    } else {
-      setAnos([]);
-    }
-  };
-
-  // Quando ano é selecionado
-  const handleAnoChange = (ano) => {
-    setAnoSelecionado(ano);
-    
-    if (ano) {
-      const marca = marcasFIPE.find(m => m.codigo.toString() === marcaSelecionada);
-      const modelo = modelos.find(m => m.codigo.toString() === modeloSelecionado);
-      const veiculoEncontrado = getVeiculo(marca.nome, modelo.nome, ano);
+      const veiculoEncontrado = getVeiculo(marca.nome, modelo.nome, 2025);
       setVeiculo(veiculoEncontrado);
-    } else {
-      setVeiculo(null);
     }
   };
 
   const limparFiltros = () => {
     setMarcaSelecionada('');
     setModeloSelecionado('');
-    setAnoSelecionado('');
     setModelos([]);
-    setAnos([]);
     setVeiculo(null);
   };
 
@@ -93,7 +69,7 @@ export default function TabelaFIPE() {
               {mesReferencia && <span className="fipe-mes-ref"> Mês de referência: <strong>{mesReferencia}</strong></span>}
             </p>
             <p className="fipe-instrucoes">
-              💡 Selecione a marca, modelo e ano do veículo para consultar o valor na Tabela FIPE.
+              💡 Selecione a marca e modelo do veículo para consultar o valor na Tabela FIPE (ano 2025).
             </p>
           </div>
 
@@ -136,27 +112,7 @@ export default function TabelaFIPE() {
               </select>
             </div>
 
-            <div className="filtro-group">
-              <label htmlFor="ano" className="filtro-label">
-                3. Ano: <span className="filtro-obrigatorio">*</span>
-              </label>
-              <select
-                id="ano"
-                className="filtro-select"
-                value={anoSelecionado}
-                onChange={(e) => handleAnoChange(e.target.value)}
-                disabled={!modeloSelecionado}
-              >
-                <option value="">
-                  {!modeloSelecionado ? 'Selecione um modelo primeiro' : 'Selecione o ano'}
-                </option>
-                {anos.map(ano => (
-                  <option key={ano.codigo} value={ano.codigo}>{ano.nome}</option>
-                ))}
-              </select>
-            </div>
-
-            {(marcaSelecionada || modeloSelecionado || anoSelecionado) && (
+            {(marcaSelecionada || modeloSelecionado) && (
               <button className="filtro-btn-limpar" onClick={limparFiltros}>
                 Limpar Seleção
               </button>
@@ -205,8 +161,8 @@ export default function TabelaFIPE() {
                 <div className="fipe-vazio-icone">🔍</div>
                 <h3>Nenhum veículo selecionado</h3>
                 <p>
-                  Utilize os filtros acima para selecionar a marca, modelo e ano do veículo 
-                  que deseja consultar na Tabela FIPE.
+                  Utilize os filtros acima para selecionar a marca e modelo do veículo 
+                  que deseja consultar na Tabela FIPE (ano 2025).
                 </p>
                 <div className="fipe-vazio-passos">
                   <div className="passo">
@@ -217,17 +173,13 @@ export default function TabelaFIPE() {
                     <span className="passo-numero">2</span>
                     <span>Selecione o modelo</span>
                   </div>
-                  <div className="passo">
-                    <span className="passo-numero">3</span>
-                    <span>Escolha o ano</span>
-                  </div>
                 </div>
               </div>
             )}
           </div>
 
           {/* CTA para usuários não-Pro */}
-          {!isPro && dadosFiltrados.length > 0 && (
+          {!isPro && veiculo && (
             <div className="fipe-cta-pro">
               <div className="fipe-cta-content">
                 <h3>🔓 Desbloqueie os Preços da Tabela FIPE</h3>
@@ -258,7 +210,7 @@ export default function TabelaFIPE() {
               </p>
             )}
             <p className="fipe-fonte">
-              Fonte: API oficial da Tabela FIPE - Dados atualizados em tempo real
+              Fonte: Base de dados interna - Veículos ano 2025
             </p>
           </div>
         </div>
