@@ -18,18 +18,27 @@ export async function buscarMarcas() {
   try {
     // Retorna do cache se disponível
     if (cache.marcas) {
+      console.log('Marcas do cache:', cache.marcas.length);
       return cache.marcas;
     }
     
+    console.log('Buscando marcas da API...');
     const response = await fetch(`${FIPE_API_BASE}/carros/marcas`);
-    if (!response.ok) throw new Error('Erro ao buscar marcas');
+    
+    if (!response.ok) {
+      console.error('Resposta da API:', response.status, response.statusText);
+      throw new Error('Erro ao buscar marcas');
+    }
+    
     const data = await response.json();
+    console.log('Marcas recebidas:', data.length);
     
     // Salva no cache
     cache.marcas = data;
     return data;
   } catch (error) {
     console.error('Erro ao buscar marcas:', error);
+    // Retorna array vazio em caso de erro
     return [];
   }
 }
