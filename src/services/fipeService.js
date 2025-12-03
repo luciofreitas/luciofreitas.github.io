@@ -3,14 +3,31 @@
 
 const FIPE_API_BASE = 'https://parallelum.com.br/fipe/api/v1';
 
+// Cache para evitar requisições repetidas
+const cache = {
+  marcas: null,
+  modelos: {},
+  anos: {},
+  valores: {}
+};
+
 /**
  * Busca todas as marcas de carros
  */
 export async function buscarMarcas() {
   try {
+    // Retorna do cache se disponível
+    if (cache.marcas) {
+      return cache.marcas;
+    }
+    
     const response = await fetch(`${FIPE_API_BASE}/carros/marcas`);
     if (!response.ok) throw new Error('Erro ao buscar marcas');
-    return await response.json();
+    const data = await response.json();
+    
+    // Salva no cache
+    cache.marcas = data;
+    return data;
   } catch (error) {
     console.error('Erro ao buscar marcas:', error);
     return [];
@@ -23,10 +40,18 @@ export async function buscarMarcas() {
  */
 export async function buscarModelos(codigoMarca) {
   try {
+    // Retorna do cache se disponível
+    if (cache.modelos[codigoMarca]) {
+      return cache.modelos[codigoMarca];
+    }
+    
     const response = await fetch(`${FIPE_API_BASE}/carros/marcas/${codigoMarca}/modelos`);
     if (!response.ok) throw new Error('Erro ao buscar modelos');
     const data = await response.json();
-    return data.modelos || [];
+    
+    // Salva no cache
+    cache.modelos[codigoMarca] = data.modelos || [];
+    return cache.modelos[codigoMarca];
   } catch (error) {
     console.error('Erro ao buscar modelos:', error);
     return [];
@@ -40,9 +65,20 @@ export async function buscarModelos(codigoMarca) {
  */
 export async function buscarAnos(codigoMarca, codigoModelo) {
   try {
+    const chaveCache = `${codigoMarca}-${codigoModelo}`;
+    
+    // Retorna do cache se disponível
+    if (cache.anos[chaveCache]) {
+      return cache.anos[chaveCache];
+    }
+    
     const response = await fetch(`${FIPE_API_BASE}/carros/marcas/${codigoMarca}/modelos/${codigoModelo}/anos`);
     if (!response.ok) throw new Error('Erro ao buscar anos');
-    return await response.json();
+    const data = await response.json();
+    
+    // Salva no cache
+    cache.anos[chaveCache] = data;
+    return data;
   } catch (error) {
     console.error('Erro ao buscar anos:', error);
     return [];
@@ -57,11 +93,22 @@ export async function buscarAnos(codigoMarca, codigoModelo) {
  */
 export async function buscarValor(codigoMarca, codigoModelo, codigoAno) {
   try {
+    const chaveCache = `${codigoMarca}-${codigoModelo}-${codigoAno}`;
+    
+    // Retorna do cache se disponível
+    if (cache.valores[chaveCache]) {
+      return cache.valores[chaveCache];
+    }
+    
     const response = await fetch(
       `${FIPE_API_BASE}/carros/marcas/${codigoMarca}/modelos/${codigoModelo}/anos/${codigoAno}`
     );
     if (!response.ok) throw new Error('Erro ao buscar valor');
-    return await response.json();
+    const data = await response.json();
+    
+    // Salva no cache
+    cache.valores[chaveCache] = data;
+    return data;
   } catch (error) {
     console.error('Erro ao buscar valor:', error);
     return null;
@@ -74,61 +121,48 @@ export async function buscarValor(codigoMarca, codigoModelo, codigoAno) {
  */
 export async function buscarVeiculosPopulares() {
   try {
-    // Códigos de marcas populares no Brasil
+    // Códigos de marcas mais populares no Brasil (reduzido para evitar erro 429)
     const marcasPopulares = [
       { codigo: '22', nome: 'Chevrolet' },
       { codigo: '21', nome: 'Fiat' },
       { codigo: '59', nome: 'Volkswagen' },
       { codigo: '56', nome: 'Toyota' },
-      { codigo: '26', nome: 'Honda' },
-      { codigo: '27', nome: 'Hyundai' },
-      { codigo: '28', nome: 'Jeep' },
-      { codigo: '38', nome: 'Nissan' },
-      { codigo: '48', nome: 'Renault' },
-      { codigo: '23', nome: 'Ford' },
-      { codigo: '6', nome: 'BMW' },
-      { codigo: '1', nome: 'Acura' },
-      { codigo: '2', nome: 'Agrale' },
-      { codigo: '3', nome: 'Alfa Romeo' },
-      { codigo: '37', nome: 'Mitsubishi' }
+      { codigo: '26', nome: 'Honda' }
     ];
 
     const veiculos = [];
     
-    // Buscar modelos de todas as marcas populares (aumentado de 5 para 15 marcas)
+    // Buscar modelos de cada marca (reduzido para 5 marcas)
     for (const marca of marcasPopulares) {
       const modelos = await buscarModelos(marca.codigo);
       
-      // Pega os 8 primeiros modelos de cada marca (aumentado de 3 para 8)
-      for (const modelo of modelos.slice(0, 8)) {
+      // Pega apenas os 5 primeiros modelos de cada marca (reduzido de 8 para 5)
+      for (const modelo of modelos.slice(0, 5)) {
         const anos = await buscarAnos(marca.codigo, modelo.codigo);
         
         if (anos.length > 0) {
-          // Pega o ano mais recente e o anterior (se houver)
-          const anosParaBuscar = anos.slice(0, 2);
+          // Pega apenas o ano mais recente
+          const anoRecente = anos[0];
+          const valor = await buscarValor(marca.codigo, modelo.codigo, anoRecente.codigo);
           
-          for (const ano of anosParaBuscar) {
-            const valor = await buscarValor(marca.codigo, modelo.codigo, ano.codigo);
-            
-            if (valor) {
-              veiculos.push({
-                id: `${marca.codigo}-${modelo.codigo}-${ano.codigo}`,
-                marca: marca.nome,
-                modelo: valor.Modelo,
-                ano: parseInt(ano.nome),
-                preco: valor.Valor,
-                codigo: valor.CodigoFipe,
-                combustivel: valor.Combustivel,
-                referencia: valor.MesReferencia,
-                codigoMarca: marca.codigo,
-                codigoModelo: modelo.codigo,
-                codigoAno: ano.codigo
-              });
-            }
-            
-            // Delay reduzido para 50ms
-            await new Promise(resolve => setTimeout(resolve, 50));
+          if (valor) {
+            veiculos.push({
+              id: `${marca.codigo}-${modelo.codigo}-${anoRecente.codigo}`,
+              marca: marca.nome,
+              modelo: valor.Modelo,
+              ano: parseInt(anoRecente.nome),
+              preco: valor.Valor,
+              codigo: valor.CodigoFipe,
+              combustivel: valor.Combustivel,
+              referencia: valor.MesReferencia,
+              codigoMarca: marca.codigo,
+              codigoModelo: modelo.codigo,
+              codigoAno: anoRecente.codigo
+            });
           }
+          
+          // Delay aumentado para evitar erro 429
+          await new Promise(resolve => setTimeout(resolve, 150));
         }
       }
     }
@@ -157,36 +191,33 @@ export async function buscarVeiculosComFiltros(filtros = {}) {
     if (filtros.codigoMarca && !filtros.codigoModelo) {
       const modelos = await buscarModelos(filtros.codigoMarca);
       
-      // Busca valor para os primeiros 50 modelos (aumentado de 20 para 50)
-      for (const modelo of modelos.slice(0, 50)) {
+      // Busca valor para os primeiros 20 modelos (reduzido de 50 para 20)
+      for (const modelo of modelos.slice(0, 20)) {
         const anos = await buscarAnos(filtros.codigoMarca, modelo.codigo);
         
         if (anos.length > 0) {
-          // Busca os 2 anos mais recentes de cada modelo
-          const anosParaBuscar = anos.slice(0, 2);
+          // Busca apenas o ano mais recente
+          const anoRecente = anos[0];
+          const valor = await buscarValor(filtros.codigoMarca, modelo.codigo, anoRecente.codigo);
           
-          for (const ano of anosParaBuscar) {
-            const valor = await buscarValor(filtros.codigoMarca, modelo.codigo, ano.codigo);
-            
-            if (valor) {
-              veiculos.push({
-                id: `${filtros.codigoMarca}-${modelo.codigo}-${ano.codigo}`,
-                marca: filtros.nomeMarca,
-                modelo: valor.Modelo,
-                ano: parseInt(ano.nome),
-                preco: valor.Valor,
-                codigo: valor.CodigoFipe,
-                combustivel: valor.Combustivel,
-                referencia: valor.MesReferencia,
-                codigoMarca: filtros.codigoMarca,
-                codigoModelo: modelo.codigo,
-                codigoAno: ano.codigo
-              });
-            }
+          if (valor) {
+            veiculos.push({
+              id: `${filtros.codigoMarca}-${modelo.codigo}-${anoRecente.codigo}`,
+              marca: filtros.nomeMarca,
+              modelo: valor.Modelo,
+              ano: parseInt(anoRecente.nome),
+              preco: valor.Valor,
+              codigo: valor.CodigoFipe,
+              combustivel: valor.Combustivel,
+              referencia: valor.MesReferencia,
+              codigoMarca: filtros.codigoMarca,
+              codigoModelo: modelo.codigo,
+              codigoAno: anoRecente.codigo
+            });
           }
         }
         
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, 150));
       }
     }
     
@@ -194,7 +225,7 @@ export async function buscarVeiculosComFiltros(filtros = {}) {
     if (filtros.codigoMarca && filtros.codigoModelo) {
       const anos = await buscarAnos(filtros.codigoMarca, filtros.codigoModelo);
       
-      // Busca todos os anos disponíveis (removido limite)
+      // Busca todos os anos disponíveis
       for (const ano of anos) {
         const valor = await buscarValor(filtros.codigoMarca, filtros.codigoModelo, ano.codigo);
         
@@ -214,7 +245,7 @@ export async function buscarVeiculosComFiltros(filtros = {}) {
           });
         }
         
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, 150));
       }
     }
     
