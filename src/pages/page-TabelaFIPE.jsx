@@ -2,59 +2,126 @@ import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
-import { veiculosFIPE, mesReferencia } from '../data/veiculosFIPE';
+import { buscarMarcas, buscarModelos, buscarAnos, buscarValor } from '../services/fipeService';
 import '../styles/pages/page-TabelaFIPE.css';
 
 export default function TabelaFIPE() {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterMarca, setFilterMarca] = useState('');
-  const [filterAno, setFilterAno] = useState('');
-  const [filterCombustivel, setFilterCombustivel] = useState('');
+  
+  // Estados para filtros
+  const [marcaSelecionada, setMarcaSelecionada] = useState('');
+  const [modeloSelecionado, setModeloSelecionado] = useState('');
+  const [anoSelecionado, setAnoSelecionado] = useState('');
+  
+  // Estados para dados da API
+  const [marcas, setMarcas] = useState([]);
+  const [modelos, setModelos] = useState([]);
+  const [anos, setAnos] = useState([]);
+  const [veiculos, setVeiculos] = useState([]);
+  
+  // Estados de loading
+  const [loadingMarcas, setLoadingMarcas] = useState(true);
+  const [loadingModelos, setLoadingModelos] = useState(false);
+  const [loadingAnos, setLoadingAnos] = useState(false);
+  const [loadingVeiculo, setLoadingVeiculo] = useState(false);
+  
+  const [mesReferencia, setMesReferencia] = useState('');
   
   // Verifica se o usuário é Pro
   const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
 
-  // Extrair marcas únicas para o filtro
-  const marcasUnicas = useMemo(() => {
-    const marcas = [...new Set(veiculosFIPE.map(item => item.marca))];
-    return marcas.sort();
+  // Carrega marcas ao montar o componente
+  useEffect(() => {
+    async function carregarMarcas() {
+      setLoadingMarcas(true);
+      const marcasData = await buscarMarcas();
+      setMarcas(marcasData);
+      setLoadingMarcas(false);
+    }
+    carregarMarcas();
   }, []);
 
-  // Extrair anos únicos para o filtro
-  const anosUnicos = useMemo(() => {
-    const anos = [...new Set(veiculosFIPE.map(item => item.ano))];
-    return anos.sort((a, b) => b - a);
-  }, []);
+  // Carrega modelos quando marca é selecionada
+  useEffect(() => {
+    async function carregarModelos() {
+      if (marcaSelecionada) {
+        setLoadingModelos(true);
+        setModelos([]);
+        setAnos([]);
+        setModeloSelecionado('');
+        setAnoSelecionado('');
+        
+        const modelosData = await buscarModelos(marcaSelecionada);
+        setModelos(modelosData);
+        setLoadingModelos(false);
+      } else {
+        setModelos([]);
+        setAnos([]);
+        setModeloSelecionado('');
+        setAnoSelecionado('');
+      }
+    }
+    carregarModelos();
+  }, [marcaSelecionada]);
 
-  // Extrair combustíveis únicos para o filtro
-  const combustiveisUnicos = useMemo(() => {
-    const combustiveis = [...new Set(veiculosFIPE.map(item => item.combustivel))];
-    return combustiveis.sort();
-  }, []);
+  // Carrega anos quando modelo é selecionado
+  useEffect(() => {
+    async function carregarAnos() {
+      if (marcaSelecionada && modeloSelecionado) {
+        setLoadingAnos(true);
+        setAnos([]);
+        setAnoSelecionado('');
+        
+        const anosData = await buscarAnos(marcaSelecionada, modeloSelecionado);
+        setAnos(anosData);
+        setLoadingAnos(false);
+      } else {
+        setAnos([]);
+        setAnoSelecionado('');
+      }
+    }
+    carregarAnos();
+  }, [marcaSelecionada, modeloSelecionado]);
 
-  // Filtrar dados com base nos filtros ativos
-  const dadosFiltrados = useMemo(() => {
-    return veiculosFIPE.filter(item => {
-      const matchSearch = searchTerm === '' || 
-        item.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.codigo && item.codigo.includes(searchTerm));
-      
-      const matchMarca = filterMarca === '' || item.marca === filterMarca;
-      const matchAno = filterAno === '' || item.ano.toString() === filterAno;
-      const matchCombustivel = filterCombustivel === '' || item.combustivel === filterCombustivel;
-
-      return matchSearch && matchMarca && matchAno && matchCombustivel;
-    });
-  }, [searchTerm, filterMarca, filterAno, filterCombustivel]);
+  // Busca veículo quando ano é selecionado
+  useEffect(() => {
+    async function buscarVeiculo() {
+      if (marcaSelecionada && modeloSelecionado && anoSelecionado) {
+        setLoadingVeiculo(true);
+        
+        const valor = await buscarValor(marcaSelecionada, modeloSelecionado, anoSelecionado);
+        
+        if (valor) {
+          const marcaNome = marcas.find(m => m.codigo === marcaSelecionada)?.nome || '';
+          const anoNome = anos.find(a => a.codigo === anoSelecionado)?.nome || '';
+          
+          const veiculo = {
+            id: `${marcaSelecionada}-${modeloSelecionado}-${anoSelecionado}`,
+            marca: marcaNome,
+            modelo: valor.Modelo,
+            ano: parseInt(anoNome),
+            preco: valor.Valor,
+            codigo: valor.CodigoFipe,
+            combustivel: valor.Combustivel,
+            referencia: valor.MesReferencia
+          };
+          
+          setVeiculos([veiculo]);
+          setMesReferencia(valor.MesReferencia);
+        }
+        
+        setLoadingVeiculo(false);
+      }
+    }
+    buscarVeiculo();
+  }, [marcaSelecionada, modeloSelecionado, anoSelecionado, marcas, anos]);
 
   const limparFiltros = () => {
-    setSearchTerm('');
-    setFilterMarca('');
-    setFilterAno('');
-    setFilterCombustivel('');
+    setMarcaSelecionada('');
+    setModeloSelecionado('');
+    setAnoSelecionado('');
+    setVeiculos([]);
   };
 
   return (
@@ -68,84 +135,98 @@ export default function TabelaFIPE() {
           <div className="fipe-intro">
             <p>
               Consulte os preços de referência de veículos atualizados pela Tabela FIPE.
-              <span className="fipe-mes-ref"> Mês de referência: <strong>{mesReferencia}</strong></span>
+              {mesReferencia && <span className="fipe-mes-ref"> Mês de referência: <strong>{mesReferencia}</strong></span>}
+            </p>
+            <p className="fipe-instrucoes">
+              💡 Selecione a marca, modelo e ano do veículo para consultar o valor na Tabela FIPE.
             </p>
           </div>
 
           {/* Filtros de Busca */}
           <div className="fipe-filtros">
             <div className="filtro-group">
-              <label htmlFor="search" className="filtro-label">Buscar por modelo ou código:</label>
-              <input
-                type="text"
-                id="search"
-                className="filtro-input"
-                placeholder="Digite o modelo ou código FIPE..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <div className="filtro-group">
-              <label htmlFor="marca" className="filtro-label">Marca:</label>
+              <label htmlFor="marca" className="filtro-label">
+                1. Marca: <span className="filtro-obrigatorio">*</span>
+              </label>
               <select
                 id="marca"
                 className="filtro-select"
-                value={filterMarca}
-                onChange={(e) => setFilterMarca(e.target.value)}
+                value={marcaSelecionada}
+                onChange={(e) => setMarcaSelecionada(e.target.value)}
+                disabled={loadingMarcas}
               >
-                <option value="">Todas as marcas</option>
-                {marcasUnicas.map(marca => (
-                  <option key={marca} value={marca}>{marca}</option>
+                <option value="">
+                  {loadingMarcas ? 'Carregando marcas...' : 'Selecione a marca'}
+                </option>
+                {marcas.map(marca => (
+                  <option key={marca.codigo} value={marca.codigo}>{marca.nome}</option>
                 ))}
               </select>
             </div>
 
             <div className="filtro-group">
-              <label htmlFor="ano" className="filtro-label">Ano:</label>
+              <label htmlFor="modelo" className="filtro-label">
+                2. Modelo: <span className="filtro-obrigatorio">*</span>
+              </label>
+              <select
+                id="modelo"
+                className="filtro-select"
+                value={modeloSelecionado}
+                onChange={(e) => setModeloSelecionado(e.target.value)}
+                disabled={!marcaSelecionada || loadingModelos}
+              >
+                <option value="">
+                  {!marcaSelecionada 
+                    ? 'Selecione uma marca primeiro' 
+                    : loadingModelos 
+                    ? 'Carregando modelos...' 
+                    : 'Selecione o modelo'}
+                </option>
+                {modelos.map(modelo => (
+                  <option key={modelo.codigo} value={modelo.codigo}>{modelo.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filtro-group">
+              <label htmlFor="ano" className="filtro-label">
+                3. Ano: <span className="filtro-obrigatorio">*</span>
+              </label>
               <select
                 id="ano"
                 className="filtro-select"
-                value={filterAno}
-                onChange={(e) => setFilterAno(e.target.value)}
+                value={anoSelecionado}
+                onChange={(e) => setAnoSelecionado(e.target.value)}
+                disabled={!modeloSelecionado || loadingAnos}
               >
-                <option value="">Todos os anos</option>
-                {anosUnicos.map(ano => (
-                  <option key={ano} value={ano}>{ano}</option>
+                <option value="">
+                  {!modeloSelecionado 
+                    ? 'Selecione um modelo primeiro' 
+                    : loadingAnos 
+                    ? 'Carregando anos...' 
+                    : 'Selecione o ano'}
+                </option>
+                {anos.map(ano => (
+                  <option key={ano.codigo} value={ano.codigo}>{ano.nome}</option>
                 ))}
               </select>
             </div>
 
-            <div className="filtro-group">
-              <label htmlFor="combustivel" className="filtro-label">Combustível:</label>
-              <select
-                id="combustivel"
-                className="filtro-select"
-                value={filterCombustivel}
-                onChange={(e) => setFilterCombustivel(e.target.value)}
-              >
-                <option value="">Todos</option>
-                {combustiveisUnicos.map(combustivel => (
-                  <option key={combustivel} value={combustivel}>{combustivel}</option>
-                ))}
-              </select>
-            </div>
-
-            <button className="filtro-btn-limpar" onClick={limparFiltros}>
-              Limpar Filtros
-            </button>
-          </div>
-
-          {/* Contador de Resultados */}
-          <div className="fipe-resultados-info">
-            <p>
-              Exibindo <strong>{dadosFiltrados.length}</strong> de <strong>{veiculosFIPE.length}</strong> veículos
-            </p>
+            {(marcaSelecionada || modeloSelecionado || anoSelecionado) && (
+              <button className="filtro-btn-limpar" onClick={limparFiltros}>
+                Limpar Seleção
+              </button>
+            )}
           </div>
 
           {/* Tabela FIPE */}
           <div className="fipe-tabela-container">
-            {dadosFiltrados.length > 0 ? (
+            {loadingVeiculo ? (
+              <div className="fipe-loading-container">
+                <div className="fipe-spinner"></div>
+                <p>Buscando informações do veículo na Tabela FIPE...</p>
+              </div>
+            ) : veiculos.length > 0 ? (
               <table className="fipe-tabela">
                 <thead>
                   <tr>
@@ -158,7 +239,7 @@ export default function TabelaFIPE() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dadosFiltrados.map(item => (
+                  {veiculos.map(item => (
                     <tr key={item.id}>
                       <td data-label="Código FIPE">{item.codigo || 'N/A'}</td>
                       <td data-label="Marca">{item.marca}</td>
@@ -183,11 +264,27 @@ export default function TabelaFIPE() {
                 </tbody>
               </table>
             ) : (
-              <div className="fipe-sem-resultados">
-                <p>Nenhum veículo encontrado com os filtros aplicados.</p>
-                <button className="filtro-btn-limpar" onClick={limparFiltros}>
-                  Limpar Filtros
-                </button>
+              <div className="fipe-vazio">
+                <div className="fipe-vazio-icone">🔍</div>
+                <h3>Nenhum veículo selecionado</h3>
+                <p>
+                  Utilize os filtros acima para selecionar a marca, modelo e ano do veículo 
+                  que deseja consultar na Tabela FIPE.
+                </p>
+                <div className="fipe-vazio-passos">
+                  <div className="passo">
+                    <span className="passo-numero">1</span>
+                    <span>Escolha a marca</span>
+                  </div>
+                  <div className="passo">
+                    <span className="passo-numero">2</span>
+                    <span>Selecione o modelo</span>
+                  </div>
+                  <div className="passo">
+                    <span className="passo-numero">3</span>
+                    <span>Escolha o ano</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -218,11 +315,13 @@ export default function TabelaFIPE() {
               coletados pela Tabela FIPE e servem apenas como referência. Os preços reais 
               podem variar conforme o estado de conservação, quilometragem, opcionais e região.
             </p>
-            <p className="fipe-atualizacao">
-              Última atualização: {mesReferencia}
-            </p>
+            {mesReferencia && (
+              <p className="fipe-atualizacao">
+                Última atualização: {mesReferencia}
+              </p>
+            )}
             <p className="fipe-fonte">
-              Base de dados com {veiculosFIPE.length} veículos das marcas mais populares do mercado brasileiro
+              Fonte: API oficial da Tabela FIPE - Dados atualizados em tempo real
             </p>
           </div>
         </div>

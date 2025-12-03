@@ -26,6 +26,21 @@
   line-height: 1.6;
 }
 
+.fipe-instrucoes {
+  margin-top: 1rem !important;
+  padding: 1rem;
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+  border-left: 4px solid #0052CC;
+  border-radius: 0.5rem;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.filtro-obrigatorio {
+  color: #dc2626;
+  font-weight: 700;
+}
+
 .fipe-mes-ref {
   display: block;
   margin-top: 0.5rem;
@@ -83,6 +98,70 @@
   font-size: 0.9rem;
   color: #0052CC;
   font-weight: 600;
+}
+
+/* Estado Vazio */
+.fipe-vazio {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #f9fafb;
+  border-radius: 1rem;
+  border: 2px dashed #cbd5e1;
+}
+
+.fipe-vazio-icone {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.fipe-vazio h3 {
+  color: #172B4D;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.fipe-vazio p {
+  color: #64748b;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+}
+
+.fipe-vazio-passos {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.passo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.passo-numero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #0052CC 0%, #3b82f6 100%);
+  color: #FFFFFF;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+}
+
+.passo span:last-child {
+  color: #172B4D;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 /* Barra de Progresso */
@@ -649,6 +728,35 @@
 
 .theme-dark .filtro-select:disabled {
   background: var(--bg-gray-300);
+}
+
+/* Dark Mode - Instruções e Estado Vazio */
+.theme-dark .fipe-instrucoes {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.25) 100%);
+  border-left-color: var(--color-primary-light);
+  color: var(--color-primary-light);
+}
+
+.theme-dark .fipe-vazio {
+  background: var(--bg-gray-200);
+  border-color: var(--bg-gray-300);
+}
+
+.theme-dark .fipe-vazio h3 {
+  color: var(--text-primary);
+}
+
+.theme-dark .fipe-vazio p {
+  color: var(--text-primary);
+  opacity: 0.8;
+}
+
+.theme-dark .passo-numero {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+}
+
+.theme-dark .passo span:last-child {
+  color: var(--text-primary);
 }
 
 /* Dark Mode - Barra de Progresso */
