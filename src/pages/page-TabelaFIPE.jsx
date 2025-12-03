@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
+import { buscarMarcas, buscarModelos, buscarVeiculosComFiltros } from '../services/fipeService';
 import '../styles/pages/page-TabelaFIPE.css';
 
 export default function TabelaFIPE() {
@@ -9,65 +10,117 @@ export default function TabelaFIPE() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMarca, setFilterMarca] = useState('');
+  const [filterModelo, setFilterModelo] = useState('');
   const [filterAno, setFilterAno] = useState('');
+  
+  // Estados para dados da API
+  const [marcas, setMarcas] = useState([]);
+  const [modelos, setModelos] = useState([]);
+  const [veiculos, setVeiculos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingModelos, setLoadingModelos] = useState(false);
+  const [mesReferencia, setMesReferencia] = useState('');
   
   // Verifica se o usuário é Pro
   const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
 
-  // Dados fictícios da Tabela FIPE - em produção viriam de uma API
-  const dadosFIPE = [
-    { id: 1, marca: 'Chevrolet', modelo: 'Onix 1.0 Turbo', ano: 2024, preco: 'R$ 89.500', codigo: '001234-1' },
-    { id: 2, marca: 'Volkswagen', modelo: 'Gol 1.0', ano: 2024, preco: 'R$ 68.900', codigo: '002345-2' },
-    { id: 3, marca: 'Fiat', modelo: 'Argo 1.3', ano: 2024, preco: 'R$ 75.800', codigo: '003456-3' },
-    { id: 4, marca: 'Toyota', modelo: 'Corolla 2.0 XEi', ano: 2024, preco: 'R$ 145.900', codigo: '004567-4' },
-    { id: 5, marca: 'Honda', modelo: 'Civic 2.0 EXL', ano: 2024, preco: 'R$ 168.900', codigo: '005678-5' },
-    { id: 6, marca: 'Hyundai', modelo: 'HB20 1.0', ano: 2024, preco: 'R$ 72.900', codigo: '006789-6' },
-    { id: 7, marca: 'Jeep', modelo: 'Compass 1.3 Turbo', ano: 2024, preco: 'R$ 189.900', codigo: '007890-7' },
-    { id: 8, marca: 'Chevrolet', modelo: 'Tracker 1.0 Turbo', ano: 2023, preco: 'R$ 125.900', codigo: '008901-8' },
-    { id: 9, marca: 'Volkswagen', modelo: 'T-Cross 1.0 TSI', ano: 2023, preco: 'R$ 119.900', codigo: '009012-9' },
-    { id: 10, marca: 'Fiat', modelo: 'Toro 1.8 Freedom', ano: 2023, preco: 'R$ 139.900', codigo: '010123-0' },
-    { id: 11, marca: 'Toyota', modelo: 'Hilux 2.8 SRX', ano: 2024, preco: 'R$ 285.900', codigo: '011234-1' },
-    { id: 12, marca: 'Honda', modelo: 'HR-V 1.5 Turbo', ano: 2023, preco: 'R$ 149.900', codigo: '012345-2' },
-    { id: 13, marca: 'Hyundai', modelo: 'Creta 1.0 Turbo', ano: 2024, preco: 'R$ 129.900', codigo: '013456-3' },
-    { id: 14, marca: 'Nissan', modelo: 'Kicks 1.6', ano: 2023, preco: 'R$ 109.900', codigo: '014567-4' },
-    { id: 15, marca: 'Renault', modelo: 'Kwid 1.0', ano: 2024, preco: 'R$ 64.900', codigo: '015678-5' },
-    { id: 16, marca: 'Ford', modelo: 'Ranger 3.2 XLT', ano: 2023, preco: 'R$ 259.900', codigo: '016789-6' },
-    { id: 17, marca: 'Chevrolet', modelo: 'S10 2.8 LTZ', ano: 2023, preco: 'R$ 245.900', codigo: '017890-7' },
-    { id: 18, marca: 'Volkswagen', modelo: 'Amarok 2.0 Highline', ano: 2024, preco: 'R$ 279.900', codigo: '018901-8' },
-    { id: 19, marca: 'Fiat', modelo: 'Pulse 1.3 Turbo', ano: 2024, preco: 'R$ 99.900', codigo: '019012-9' },
-    { id: 20, marca: 'Jeep', modelo: 'Renegade 1.8', ano: 2023, preco: 'R$ 129.900', codigo: '020123-0' },
-  ];
-
-  // Extrair marcas únicas para o filtro
-  const marcasUnicas = useMemo(() => {
-    const marcas = [...new Set(dadosFIPE.map(item => item.marca))];
-    return marcas.sort();
+  // Carrega marcas ao montar o componente
+  useEffect(() => {
+    async function carregarMarcas() {
+      const marcasData = await buscarMarcas();
+      setMarcas(marcasData);
+    }
+    carregarMarcas();
   }, []);
+
+  // Carrega veículos iniciais (populares)
+  useEffect(() => {
+    async function carregarVeiculosIniciais() {
+      setLoading(true);
+      const veiculosData = await buscarVeiculosComFiltros({});
+      setVeiculos(veiculosData);
+      if (veiculosData.length > 0 && veiculosData[0].referencia) {
+        setMesReferencia(veiculosData[0].referencia);
+      }
+      setLoading(false);
+    }
+    carregarVeiculosIniciais();
+  }, []);
+
+  // Carrega modelos quando marca é selecionada
+  useEffect(() => {
+    async function carregarModelos() {
+      if (filterMarca) {
+        setLoadingModelos(true);
+        const marcaSelecionada = marcas.find(m => m.codigo === filterMarca);
+        const modelosData = await buscarModelos(filterMarca);
+        setModelos(modelosData);
+        setLoadingModelos(false);
+        
+        // Busca veículos da marca selecionada
+        setLoading(true);
+        const veiculosData = await buscarVeiculosComFiltros({
+          codigoMarca: filterMarca,
+          nomeMarca: marcaSelecionada?.nome
+        });
+        setVeiculos(veiculosData);
+        if (veiculosData.length > 0 && veiculosData[0].referencia) {
+          setMesReferencia(veiculosData[0].referencia);
+        }
+        setLoading(false);
+      } else {
+        setModelos([]);
+        setFilterModelo('');
+      }
+    }
+    carregarModelos();
+  }, [filterMarca, marcas]);
+
+  // Busca veículos quando modelo é selecionado
+  useEffect(() => {
+    async function buscarPorModelo() {
+      if (filterMarca && filterModelo) {
+        setLoading(true);
+        const marcaSelecionada = marcas.find(m => m.codigo === filterMarca);
+        const veiculosData = await buscarVeiculosComFiltros({
+          codigoMarca: filterMarca,
+          codigoModelo: filterModelo,
+          nomeMarca: marcaSelecionada?.nome
+        });
+        setVeiculos(veiculosData);
+        if (veiculosData.length > 0 && veiculosData[0].referencia) {
+          setMesReferencia(veiculosData[0].referencia);
+        }
+        setLoading(false);
+      }
+    }
+    buscarPorModelo();
+  }, [filterModelo, filterMarca, marcas]);
 
   // Extrair anos únicos para o filtro
   const anosUnicos = useMemo(() => {
-    const anos = [...new Set(dadosFIPE.map(item => item.ano))];
+    const anos = [...new Set(veiculos.map(item => item.ano))];
     return anos.sort((a, b) => b - a);
-  }, []);
+  }, [veiculos]);
 
   // Filtrar dados com base nos filtros ativos
   const dadosFiltrados = useMemo(() => {
-    return dadosFIPE.filter(item => {
+    return veiculos.filter(item => {
       const matchSearch = searchTerm === '' || 
         item.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.codigo.includes(searchTerm);
+        (item.codigo && item.codigo.includes(searchTerm));
       
-      const matchMarca = filterMarca === '' || item.marca === filterMarca;
       const matchAno = filterAno === '' || item.ano.toString() === filterAno;
 
-      return matchSearch && matchMarca && matchAno;
+      return matchSearch && matchAno;
     });
-  }, [searchTerm, filterMarca, filterAno]);
+  }, [searchTerm, filterAno, veiculos]);
 
   const limparFiltros = () => {
     setSearchTerm('');
     setFilterMarca('');
+    setFilterModelo('');
     setFilterAno('');
   };
 
@@ -82,6 +135,7 @@ export default function TabelaFIPE() {
           <div className="fipe-intro">
             <p>
               Consulte os preços de referência de veículos atualizados pela Tabela FIPE.
+              {mesReferencia && <span className="fipe-mes-ref"> Mês de referência: <strong>{mesReferencia}</strong></span>}
             </p>
           </div>
 
@@ -105,11 +159,32 @@ export default function TabelaFIPE() {
                 id="marca"
                 className="filtro-select"
                 value={filterMarca}
-                onChange={(e) => setFilterMarca(e.target.value)}
+                onChange={(e) => {
+                  setFilterMarca(e.target.value);
+                  setFilterModelo('');
+                }}
               >
                 <option value="">Todas as marcas</option>
-                {marcasUnicas.map(marca => (
-                  <option key={marca} value={marca}>{marca}</option>
+                {marcas.map(marca => (
+                  <option key={marca.codigo} value={marca.codigo}>{marca.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filtro-group">
+              <label htmlFor="modelo" className="filtro-label">Modelo:</label>
+              <select
+                id="modelo"
+                className="filtro-select"
+                value={filterModelo}
+                onChange={(e) => setFilterModelo(e.target.value)}
+                disabled={!filterMarca || loadingModelos}
+              >
+                <option value="">
+                  {!filterMarca ? 'Selecione uma marca primeiro' : loadingModelos ? 'Carregando...' : 'Todos os modelos'}
+                </option>
+                {modelos.map(modelo => (
+                  <option key={modelo.codigo} value={modelo.codigo}>{modelo.nome}</option>
                 ))}
               </select>
             </div>
@@ -137,13 +212,19 @@ export default function TabelaFIPE() {
           {/* Contador de Resultados */}
           <div className="fipe-resultados-info">
             <p>
-              Exibindo <strong>{dadosFiltrados.length}</strong> de <strong>{dadosFIPE.length}</strong> veículos
+              Exibindo <strong>{dadosFiltrados.length}</strong> veículo{dadosFiltrados.length !== 1 ? 's' : ''}
+              {loading && <span className="fipe-loading"> (Carregando...)</span>}
             </p>
           </div>
 
           {/* Tabela FIPE */}
           <div className="fipe-tabela-container">
-            {dadosFiltrados.length > 0 ? (
+            {loading && veiculos.length === 0 ? (
+              <div className="fipe-loading-container">
+                <div className="fipe-spinner"></div>
+                <p>Carregando dados da Tabela FIPE...</p>
+              </div>
+            ) : dadosFiltrados.length > 0 ? (
               <table className="fipe-tabela">
                 <thead>
                   <tr>
@@ -151,16 +232,18 @@ export default function TabelaFIPE() {
                     <th>Marca</th>
                     <th>Modelo</th>
                     <th>Ano</th>
+                    <th>Combustível</th>
                     <th>Preço Médio</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dadosFiltrados.map(item => (
                     <tr key={item.id}>
-                      <td data-label="Código FIPE">{item.codigo}</td>
+                      <td data-label="Código FIPE">{item.codigo || 'N/A'}</td>
                       <td data-label="Marca">{item.marca}</td>
                       <td data-label="Modelo">{item.modelo}</td>
                       <td data-label="Ano">{item.ano}</td>
+                      <td data-label="Combustível">{item.combustivel || 'N/A'}</td>
                       <td data-label="Preço Médio" className="fipe-preco">
                         <div className="fipe-preco-wrapper">
                           <span className={isPro ? '' : 'fipe-preco-blur'}>{item.preco}</span>
@@ -214,8 +297,13 @@ export default function TabelaFIPE() {
               coletados pela Tabela FIPE e servem apenas como referência. Os preços reais 
               podem variar conforme o estado de conservação, quilometragem, opcionais e região.
             </p>
-            <p className="fipe-atualizacao">
-              Última atualização: Janeiro/2025
+            {mesReferencia && (
+              <p className="fipe-atualizacao">
+                Última atualização: {mesReferencia}
+              </p>
+            )}
+            <p className="fipe-fonte">
+              Fonte: API Tabela FIPE - Dados oficiais
             </p>
           </div>
         </div>
