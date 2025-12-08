@@ -46,9 +46,7 @@
 
 /* Override global reset */
 .page-wrapper.page-inicio .inicio-intro {
-  background: #f8fafc !important;
-}
-  background-color: var(--bg-gray-neutral) !important;
+  background: #1e293b !important;
 }
 
 /* Specific title sizing for the homepage main title */
