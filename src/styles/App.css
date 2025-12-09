@@ -229,7 +229,7 @@ html, body {
   display: block; /* Ensure block-level behavior */
   width: 100%; /* Full width */
   height: 4.5rem; /* Match header height */
-  margin-bottom: 5rem; /* Add the visual gap we want below header */
+  margin-bottom: 2rem; /* Reduced spacing to match non-logged pages */
   flex-shrink: 0; /* Prevent shrinking in flexbox layouts */
   background: transparent; /* Invisible spacer element */
 }

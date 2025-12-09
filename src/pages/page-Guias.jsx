@@ -129,7 +129,6 @@ function PageGuias() {
   return (
     <>
       <Menu />
-      <div className="site-header-spacer"></div>
       <div className="page-wrapper menu-page">
         <div className="page-content">
           <h2 className="page-title">Guias</h2>

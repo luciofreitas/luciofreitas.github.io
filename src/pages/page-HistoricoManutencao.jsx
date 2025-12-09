@@ -13,6 +13,12 @@ import '../styles/pages/page-HistoricoManutencao.css';
 
 export default function HistoricoManutencao() {
   const { usuarioLogado } = useContext(AuthContext) || {};
+  
+  // Debug: verificar estado do usuário
+  useEffect(() => {
+    console.log('[HistoricoManutencao] usuarioLogado:', usuarioLogado);
+  }, [usuarioLogado]);
+  
   const [manutencoes, setManutencoes] = useState([]);
   const [carros, setCarros] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -264,7 +270,6 @@ export default function HistoricoManutencao() {
   return (
     <>
       <Menu />
-      <div className="site-header-spacer"></div>
   <div className="page-wrapper menu-page historico-page">
         <div className="page-content historico-section">
           <h2 className="page-title">Histórico de Manutenção</h2>

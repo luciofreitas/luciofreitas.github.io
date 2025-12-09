@@ -599,6 +599,7 @@ export default function BuscarPeca() {
     <>
       {/* Menu dinâmico: MenuLogin para visitantes, Menu para usuários logados */}
       {usuarioLogado ? <Menu /> : <MenuLogin />}
+      {usuarioLogado && <div className="site-header-spacer"></div>}
       <div className="page-wrapper menu-page">
   <div className="page-content buscarpeca-section">
               <h2 className="page-title">Catálogo de Peças</h2>

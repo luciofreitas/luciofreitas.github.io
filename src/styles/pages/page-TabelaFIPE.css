@@ -1,7 +1,7 @@
 /* page-TabelaFIPE.css - Estilos específicos da página Tabela FIPE */
 
 #tabela-fipe {
-  padding: 0 1rem 2rem 1rem;
+  padding: 2rem 1rem 2rem 1rem;
   background: #FFFFFF;
   max-width: 75rem;
   margin: 0 auto;
@@ -9,14 +9,15 @@
 }
 
 .fipe-intro {
-  background: #f8fafc;
+  background: #FFFFFF;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   padding: 1.5rem;
   margin: 0 auto 2rem auto;
   text-align: center;
   display: table;
-  max-width: 100%;
+  max-width: fit-content;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
 }
 
 .fipe-intro p {
@@ -24,11 +25,12 @@
   margin: 0;
   font-size: 1.1rem;
   line-height: 1.6;
+  white-space: nowrap;
 }
 
 .fipe-instrucoes {
   margin-top: 1rem !important;
-  padding: 1rem;
+  padding: 0.85rem 1.75rem;
   background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
   border-left: 4px solid #0052CC;
   border-radius: 0.5rem;
@@ -205,7 +207,10 @@
   padding: 2rem;
   border-radius: 1rem;
   margin-bottom: 2rem;
+  margin-top: 2rem;
   border: 1px solid #e5e7eb;
+  /* Ensure enough space for dropdown to open downwards */
+  min-height: 8rem;
 }
 
 .filtro-group {
@@ -231,6 +236,14 @@
   font-family: 'Roboto', sans-serif;
   transition: all 0.2s ease;
   background: #FFFFFF;
+  /* Force dropdown direction */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
 }
 
 .filtro-input:focus,

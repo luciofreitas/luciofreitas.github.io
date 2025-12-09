@@ -58,7 +58,6 @@ export default function TabelaFIPE() {
   return (
     <>
       <Menu />
-      <div className="site-header-spacer"></div>
       <div className="page-wrapper">
         <div className="page-content" id="tabela-fipe">
           <h2 className="page-title">Tabela FIPE</h2>
@@ -66,12 +65,18 @@ export default function TabelaFIPE() {
           <div className="fipe-intro">
             <p>
               Consulte os preços de referência de veículos atualizados pela Tabela FIPE.
-              {mesReferencia && <span className="fipe-mes-ref"> Mês de referência: <strong>{mesReferencia}</strong></span>}
-            </p>
-            <p className="fipe-instrucoes">
-              💡 Selecione a marca e modelo do veículo para consultar o valor na Tabela FIPE (ano 2025).
             </p>
           </div>
+          
+          {mesReferencia && (
+            <p className="fipe-mes-ref">
+              Mês de referência: <strong>{mesReferencia}</strong>
+            </p>
+          )}
+          
+          <p className="fipe-instrucoes">
+            💡 Selecione a marca e modelo do veículo para consultar o valor na Tabela FIPE (ano 2025).
+          </p>
 
           {/* Filtros de Busca */}
           <div className="fipe-filtros">

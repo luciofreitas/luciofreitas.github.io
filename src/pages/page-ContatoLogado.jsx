@@ -15,7 +15,6 @@ export default function ContatoLogado() {
   return (
     <>
       <Menu />
-      <div className="site-header-spacer"></div>
       <div className="page-wrapper menu-page">
   <div className="page-content" id="contato-logado">
             <h2 className="page-title">Contato</h2>
