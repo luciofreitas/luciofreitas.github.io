@@ -46,7 +46,7 @@
 
 /* Override global reset */
 .page-wrapper.page-inicio .inicio-intro {
-  background: #1e293b !important;
+  background: #f8fafc !important;
 }
 
 /* Specific title sizing for the homepage main title */
@@ -597,6 +597,10 @@ h1.page-title {
 .theme-dark .inicio-intro {
   background: #1e293b !important;
   border-color: #334155;
+}
+
+.theme-dark .page-wrapper.page-inicio .inicio-intro {
+  background: #1e293b !important;
 }
 
 .theme-dark .inicio-intro .inicio-subtitle {
