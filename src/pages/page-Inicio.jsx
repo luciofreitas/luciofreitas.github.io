@@ -162,6 +162,101 @@ export default function PageInicio() {
               </div>
             </div>
 
+            {/* Seção Seja Pro */}
+            <div className="inicio-pro-section">
+              <div className="inicio-pro-container">
+                <h2 className="inicio-pro-title">Evolua sua experiência automotiva</h2>
+                <p className="inicio-pro-subtitle">
+                  Escolha o plano que melhor se adapta às suas necessidades e tenha acesso a benefícios exclusivos
+                </p>
+                
+                <div className="inicio-pro-cards">
+                  {/* Card Básico */}
+                  <div className="inicio-pro-card">
+                    <div className="pro-card-header">
+                      <div className="pro-card-icon">🚙</div>
+                      <h3 className="pro-card-title">Básico</h3>
+                      <p className="pro-card-price">Grátis</p>
+                      <p className="pro-card-period">para sempre</p>
+                    </div>
+                    <div className="pro-card-body">
+                      <ul className="pro-card-features">
+                        <li className="feature-enabled">
+                          <span className="feature-icon">✓</span>
+                          <span>Acesso ao buscador de peças</span>
+                        </li>
+                        <li className="feature-disabled">
+                          <span className="feature-icon">✗</span>
+                          <span>Valores da Tabela FIPE</span>
+                        </li>
+                        <li className="feature-enabled">
+                          <span className="feature-icon">✓</span>
+                          <span>Suporte via email</span>
+                        </li>
+                        <li className="feature-disabled">
+                          <span className="feature-icon">✗</span>
+                          <span>Suporte via WhatsApp</span>
+                        </li>
+                        <li className="feature-disabled">
+                          <span className="feature-icon">✗</span>
+                          <span>Comunidade no Discord</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="pro-card-footer">
+                      <button className="pro-card-button" onClick={() => navigate('/cadastro')}>
+                        Começar Grátis
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Card Pro - Destacado */}
+                  <div className="inicio-pro-card inicio-pro-card-featured">
+                    <div className="pro-card-badge">MAIS POPULAR</div>
+                    <div className="pro-card-header">
+                      <div className="pro-card-icon pro-icon-gold">⭐</div>
+                      <h3 className="pro-card-title">Pro</h3>
+                      <p className="pro-card-price">R$ 29,90</p>
+                      <p className="pro-card-period">por mês</p>
+                    </div>
+                    <div className="pro-card-body">
+                      <ul className="pro-card-features">
+                        <li className="feature-enabled">
+                          <span className="feature-icon">✓</span>
+                          <span>Acesso ao buscador de peças</span>
+                        </li>
+                        <li className="feature-enabled">
+                          <span className="feature-icon">✓</span>
+                          <span>Valores da Tabela FIPE</span>
+                        </li>
+                        <li className="feature-enabled">
+                          <span className="feature-icon">✓</span>
+                          <span>Suporte via email</span>
+                        </li>
+                        <li className="feature-enabled">
+                          <span className="feature-icon">✓</span>
+                          <span>Suporte via WhatsApp</span>
+                        </li>
+                        <li className="feature-enabled">
+                          <span className="feature-icon">✓</span>
+                          <span>Comunidade no Discord</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="pro-card-footer">
+                      <button className="pro-card-button pro-button-primary" onClick={() => navigate('/seja-pro')}>
+                        Assinar Agora
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="inicio-pro-guarantee">
+                  <p>🛡️ <strong>Garantia de 7 dias</strong> - Cancele quando quiser, sem compromisso</p>
+                </div>
+              </div>
+            </div>
+
         </div>
       </div>
       {/* modal removed: replaced by direct band below carousel; detailed modal was unused after cards → carousel refactor */}
