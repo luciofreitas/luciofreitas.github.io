@@ -12,7 +12,6 @@ import PageInicio from './pages/page-Inicio';
 // Non-critical routes: lazy load to reduce initial bundle size
 const QuemSomos = lazy(() => import('./pages/page-QuemSomos'));
 const NossoProjeto = lazy(() => import('./pages/page-NossoProjeto'));
-const SejaPro = lazy(() => import('./pages/page-SejaPro'));
 const VersaoPro = lazy(() => import('./pages/page-VersaoPro'));
 const Checkin = lazy(() => import('./pages/page-Checkin'));
 const VersaoPro_Assinado = lazy(() => import('./pages/page-VersaoPro_Assinado'));
@@ -406,7 +405,6 @@ export default function App() {
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/inicio" element={<PageInicio />} />
             <Route path="/quem-somos" element={<QuemSomos />} />
-            <Route path="/seja-pro" element={<SejaPro />} />
             <Route path="/versao-pro" element={<VersaoPro />} />
             <Route path="/checkin" element={<Checkin />} />
             <Route path="/versao-pro-assinado" element={<VersaoPro_Assinado />} />
