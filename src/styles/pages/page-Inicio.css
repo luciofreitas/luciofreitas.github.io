@@ -301,7 +301,7 @@ h1.page-title {
 .inicio-band {
   background: var(--color-primary); /* same blue as MenuLogin header */
   min-height: clamp(12.9rem, 25.8vw, 13.75rem); /* ~206.4px a 220px - altura fluida */
-  margin: 1.25rem auto; /* center the band and give top spacing */
+  margin: 4rem auto; /* espaçamento padronizado entre seções */
   box-shadow: inset 0 6px 18px rgba(2,6,23,0.06);
   padding: clamp(1.4rem, 2.8vw, 1.5rem) clamp(1.875rem, 3.75vw, 2rem); /* ~22.4px a 24px, ~30px a 32px - padding fluido */
   box-sizing: border-box;
@@ -451,7 +451,7 @@ h1.page-title {
   background: #FFFFFF;
   width: 100%;
   padding: 4rem 1rem;
-  margin-top: 2rem;
+  margin-top: 0;
   box-sizing: border-box;
 }
 
@@ -637,7 +637,7 @@ h1.page-title {
 /* ===== SEÇÃO SEJA PRO ===== */
 .inicio-pro-section {
   padding: 4rem 1rem;
-  margin: 3rem 0 2rem 0;
+  margin: 0;
 }
 
 .inicio-pro-container {

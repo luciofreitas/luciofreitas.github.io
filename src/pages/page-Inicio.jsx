@@ -111,57 +111,6 @@ export default function PageInicio() {
               </div>
             </div>
 
-            {/* Nova seção: Impacto e Credibilidade */}
-            <div className="inicio-stats-section">
-              <div className="inicio-stats-container">
-                <h2 className="inicio-stats-title">Impacto e Credibilidade: O Garagem Smart em Números</h2>
-                
-                <div className="inicio-stats-grid">
-                  <div className="inicio-stat-card">
-                    <div className="stat-icon">🔧</div>
-                    <div className="stat-number">50.000+</div>
-                    <div className="stat-label">Peças Catalogadas</div>
-                    <div className="stat-description">Base de dados completa e atualizada</div>
-                  </div>
-
-                  <div className="inicio-stat-card">
-                    <div className="stat-icon">🚗</div>
-                    <div className="stat-number">500+</div>
-                    <div className="stat-label">Modelos de Veículos</div>
-                    <div className="stat-description">Compatibilidade verificada e testada</div>
-                  </div>
-
-                  <div className="inicio-stat-card">
-                    <div className="stat-icon">👥</div>
-                    <div className="stat-number">10.000+</div>
-                    <div className="stat-label">Usuários Ativos</div>
-                    <div className="stat-description">Comunidade crescente de entusiastas</div>
-                  </div>
-
-                  <div className="inicio-stat-card">
-                    <div className="stat-icon">⭐</div>
-                    <div className="stat-number">98%</div>
-                    <div className="stat-label">Satisfação</div>
-                    <div className="stat-description">Avaliação positiva dos usuários</div>
-                  </div>
-
-                  <div className="inicio-stat-card">
-                    <div className="stat-icon">💰</div>
-                    <div className="stat-number">R$ 5.000</div>
-                    <div className="stat-label">Economia Média/Ano</div>
-                    <div className="stat-description">Por usuário em compras certeiras</div>
-                  </div>
-
-                  <div className="inicio-stat-card">
-                    <div className="stat-icon">⚡</div>
-                    <div className="stat-number">70%</div>
-                    <div className="stat-label">Redução de Tempo</div>
-                    <div className="stat-description">Na busca e compra de peças</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Seção Seja Pro */}
             <div className="inicio-pro-section">
               <div className="inicio-pro-container">
@@ -216,7 +165,7 @@ export default function PageInicio() {
                     <div className="pro-card-header">
                       <div className="pro-card-icon pro-icon-gold">⭐</div>
                       <h3 className="pro-card-title">Pro</h3>
-                      <p className="pro-card-price">R$ 29,90</p>
+                      <p className="pro-card-price">R$ 10,00</p>
                       <p className="pro-card-period">por mês</p>
                     </div>
                     <div className="pro-card-body">
@@ -253,6 +202,57 @@ export default function PageInicio() {
 
                 <div className="inicio-pro-guarantee">
                   <p>🛡️ <strong>Garantia de 7 dias</strong> - Cancele quando quiser, sem compromisso</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Seção: Impacto e Credibilidade */}
+            <div className="inicio-stats-section">
+              <div className="inicio-stats-container">
+                <h2 className="inicio-stats-title">Impacto e Credibilidade: O Garagem Smart em Números</h2>
+                
+                <div className="inicio-stats-grid">
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">🔧</div>
+                    <div className="stat-number">50.000+</div>
+                    <div className="stat-label">Peças Catalogadas</div>
+                    <div className="stat-description">Base de dados completa e atualizada</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">🚗</div>
+                    <div className="stat-number">500+</div>
+                    <div className="stat-label">Modelos de Veículos</div>
+                    <div className="stat-description">Compatibilidade verificada e testada</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">👥</div>
+                    <div className="stat-number">10.000+</div>
+                    <div className="stat-label">Usuários Ativos</div>
+                    <div className="stat-description">Comunidade crescente de entusiastas</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">⭐</div>
+                    <div className="stat-number">98%</div>
+                    <div className="stat-label">Satisfação</div>
+                    <div className="stat-description">Avaliação positiva dos usuários</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">💰</div>
+                    <div className="stat-number">R$ 5.000</div>
+                    <div className="stat-label">Economia Média/Ano</div>
+                    <div className="stat-description">Por usuário em compras certeiras</div>
+                  </div>
+
+                  <div className="inicio-stat-card">
+                    <div className="stat-icon">⚡</div>
+                    <div className="stat-number">70%</div>
+                    <div className="stat-label">Redução de Tempo</div>
+                    <div className="stat-description">Na busca e compra de peças</div>
+                  </div>
                 </div>
               </div>
             </div>
