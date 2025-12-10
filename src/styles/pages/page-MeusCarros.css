@@ -7,7 +7,7 @@
   padding: 1.5rem;
   margin-bottom: 2rem;
   text-align: center;
-  max-width: fit-content;
+  max-width: 90%;
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
@@ -18,7 +18,8 @@
   margin: 0;
   font-size: 1.05rem;
   line-height: 1.6;
-  white-space: nowrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Botão adicionar */

@@ -16,7 +16,7 @@
   padding: 1.5rem;
   margin: 0 auto 2rem auto;
   text-align: center;
-  max-width: fit-content;
+  max-width: 90%;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -25,7 +25,8 @@
   margin: 0;
   font-size: 1.1rem;
   line-height: 1.6;
-  white-space: nowrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Descrição */
