@@ -604,11 +604,9 @@ export default function BuscarPeca() {
   <div className="page-content buscarpeca-section">
               <h2 className="page-title">Catálogo de Peças</h2>
               
-              <div className="buscarpeca-intro">
-                <p>
-                  Encontre peças automotivas compatíveis com seu veículo. Busque por marca, modelo e ano.
-                </p>
-              </div>
+              <p className="page-subtitle">
+                Encontre peças automotivas compatíveis com seu veículo. Busque por marca, modelo e ano.
+              </p>
 
             <SearchForm
               selectedGrupo={selectedGrupo}

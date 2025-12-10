@@ -58,11 +58,9 @@ export default function NossoProjeto() {
         <div className="page-content" id="nosso-projeto">
           <h2 className="page-title">Nosso Projeto</h2>
           
-          <div className="projeto-intro">
-            <p>
-              Conheça o Garagem Smart - nossa solução completa para o seu problema automotivo.
-            </p>
-          </div>
+          <p className="page-subtitle">
+            Conheça o Garagem Smart - nossa solução completa para o seu problema automotivo.
+          </p>
 
           <div className="projeto-descricao">
             <p>

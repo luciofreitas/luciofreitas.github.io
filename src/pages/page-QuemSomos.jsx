@@ -10,11 +10,9 @@ export default function QuemSomos() {
       <div className="page-content" id="quem-somos">
         <h2 className="page-title">Quem Somos</h2>
           
-          <div className="quem-somos-intro">
-            <p>
-              Conheça nossa história e missão no setor automotivo.
-            </p>
-          </div>
+          <p className="page-subtitle">
+            Conheça nossa história e missão no setor automotivo.
+          </p>
 
           <div className="quem-somos-descricao">
             <p>
