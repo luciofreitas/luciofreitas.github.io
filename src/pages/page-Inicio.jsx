@@ -41,12 +41,10 @@ export default function PageInicio() {
           <div className="inicio-hero">
             <div className="inicio-hero-inner">
               <h1 className="page-title">Seja um expert automotivo, agora mesmo!</h1>
-              <div className="inicio-intro">
-                <p className="inicio-subtitle">
-                  No Garagem Smart você conseguirá se virar sozinho, aprenderá a identificar e comprar as peças certas para o
-                  seu carro com confiança e economia, aprenderá sobre manutenção preventiva, instalação de peças e muito mais.
-                </p>
-              </div>
+              <p className="page-subtitle">
+                No Garagem Smart você conseguirá se virar sozinho, aprenderá a identificar e comprar as peças certas para o
+                seu carro com confiança e economia, aprenderá sobre manutenção preventiva, instalação de peças e muito mais.
+              </p>
             </div>
           </div>
 
