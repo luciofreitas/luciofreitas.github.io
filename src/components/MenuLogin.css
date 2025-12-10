@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
   background: var(--color-primary) !important;
   z-index: 1000;
   box-shadow: var(--shadow-md);
