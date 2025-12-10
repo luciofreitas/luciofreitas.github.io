@@ -110,7 +110,24 @@ export const veiculosFIPE = [
   { id: 71, marca: 'Audi', modelo: 'Q3 1.4 TFSI', ano: 2025, preco: 'R$ 308.900,00', codigo: '019013-1', combustivel: 'Gasolina' },
 ];
 
-export const mesReferencia = 'Dezembro de 2025';
+// Função para obter mês e ano atual com base no horário do Brasil (GMT-3)
+export function getMesReferenciaAtual() {
+  const meses = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  
+  // Cria data atual no horário do Brasil (GMT-3)
+  const dataAtual = new Date();
+  const dataBrasil = new Date(dataAtual.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  
+  const mes = meses[dataBrasil.getMonth()];
+  const ano = dataBrasil.getFullYear();
+  
+  return `${mes} de ${ano}`;
+}
+
+export const mesReferencia = getMesReferenciaAtual();
 
 // Extrai marcas únicas da base de dados
 export const marcasFIPE = [...new Set(veiculosFIPE.map(v => v.marca))].sort().map((marca, index) => ({

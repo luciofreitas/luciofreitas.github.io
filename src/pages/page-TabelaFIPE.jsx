@@ -9,6 +9,9 @@ export default function TabelaFIPE() {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
   
+  // Obter ano atual dinamicamente
+  const anoAtual = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })).getFullYear();
+  
   // Estados para filtros
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [modeloSelecionado, setModeloSelecionado] = useState('');
@@ -35,7 +38,7 @@ export default function TabelaFIPE() {
     }
   };
 
-  // Quando modelo é selecionado (busca veículo direto com ano 2025)
+  // Quando modelo é selecionado (busca veículo com ano atual)
   const handleModeloChange = (codigoModelo) => {
     setModeloSelecionado(codigoModelo);
     setVeiculo(null);
@@ -43,7 +46,7 @@ export default function TabelaFIPE() {
     if (codigoModelo) {
       const marca = marcasFIPE.find(m => m.codigo.toString() === marcaSelecionada);
       const modelo = modelos.find(m => m.codigo.toString() === codigoModelo);
-      const veiculoEncontrado = getVeiculo(marca.nome, modelo.nome, 2025);
+      const veiculoEncontrado = getVeiculo(marca.nome, modelo.nome, anoAtual);
       setVeiculo(veiculoEncontrado);
     }
   };
@@ -75,7 +78,7 @@ export default function TabelaFIPE() {
           )}
           
           <p className="fipe-instrucoes">
-            💡 Selecione a marca e modelo do veículo para consultar o valor na Tabela FIPE (ano 2025).
+            💡 Selecione a marca e modelo do veículo para consultar o valor na Tabela FIPE (ano {anoAtual}).
           </p>
 
           {/* Filtros de Busca */}
