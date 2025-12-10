@@ -11,11 +11,9 @@ export default function Contato() {
   <div className="page-content" id="contato">
           <h2 className="page-title">Contato</h2>
           
-          <div className="contato-intro">
-            <p>
-              Entre em contato conosco pelo formulário abaixo ou pelos canais oficiais.
-            </p>
-          </div>
+          <p className="page-subtitle">
+            Entre em contato conosco pelo formulário abaixo ou pelos canais oficiais.
+          </p>
 
           <ContatoForm />
 
