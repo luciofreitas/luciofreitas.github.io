@@ -167,7 +167,7 @@ export default function PageInicio() {
               <div className="inicio-pro-container">
                 <h2 className="inicio-pro-title">Evolua sua experiência automotiva</h2>
                 <p className="inicio-pro-subtitle">
-                  Escolha o plano que melhor se adapta às suas necessidades, no menu do usuário e tenha acesso a benefícios exclusivos
+                  Escolha o plano que melhor se adapta às suas necessidades e tenha acesso a benefícios exclusivos
                 </p>
                 
                 <div className="inicio-pro-cards">
