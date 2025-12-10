@@ -13,8 +13,8 @@
 .guias-intro {
   background: #FFFFFF;
   border: 1px solid #e2e8f0;
-  border-radius: clamp(0.65rem, 1.2vw, 0.75rem);
-  padding: clamp(1rem, 2.5vw, 1.5rem);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
   margin-bottom: 2rem;
   text-align: center;
   max-width: 90%;
