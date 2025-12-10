@@ -274,13 +274,11 @@ export default function HistoricoManutencao() {
         <div className="page-content historico-section">
           <h2 className="page-title">Histórico de Manutenção</h2>
           
-          <div className="historico-intro">
-            <p>
-              Mantenha um registro completo de todas as manutenções, trocas de peças e serviços 
-              realizados nos seus veículos. Esse histórico digital facilita o acompanhamento de 
-              revisões periódicas e aumenta o valor de revenda.
-            </p>
-          </div>
+          <p className="page-subtitle">
+            Mantenha um registro completo de todas as manutenções, trocas de peças e serviços 
+            realizados nos seus veículos. Esse histórico digital facilita o acompanhamento de 
+            revisões periódicas e aumenta o valor de revenda.
+          </p>
 
           {loading ? (
             <div className="historico-loading">

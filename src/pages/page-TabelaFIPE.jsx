@@ -65,11 +65,9 @@ export default function TabelaFIPE() {
         <div className="page-content" id="tabela-fipe">
           <h2 className="page-title">Tabela FIPE</h2>
           
-          <div className="fipe-intro">
-            <p>
-              Consulte os preços de referência de veículos atualizados pela Tabela FIPE.
-            </p>
-          </div>
+          <p className="page-subtitle">
+            Consulte os preços de referência de veículos atualizados pela Tabela FIPE.
+          </p>
           
           {mesReferencia && (
             <p className="fipe-mes-ref">

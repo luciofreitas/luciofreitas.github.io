@@ -168,12 +168,10 @@ export default function MeusCarros() {
         <div className="page-content">
           <h2 className="page-title">Meus Carros</h2>
           
-          <div className="meus-carros-intro">
-            <p>
-              Cadastre seus veículos para facilitar as buscas por peças, recalls e informações específicas.
-              Você pode marcar um carro como padrão para pesquisas rápidas.
-            </p>
-          </div>
+          <p className="page-subtitle">
+            Cadastre seus veículos para facilitar as buscas por peças, recalls e informações específicas.
+            Você pode marcar um carro como padrão para pesquisas rápidas.
+          </p>
 
           {/* Botão adicionar */}
           {!showForm && (
