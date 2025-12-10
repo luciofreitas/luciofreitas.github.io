@@ -31,8 +31,7 @@ function PageRecalls() {
     loadUserCars();
   }, [usuarioLogado]);
 
-  // Quando seleciona um carro, preenche apenas marca e modelo (não o ano)
-  // Recalls usam intervalos de anos, então não faz sentido filtrar por ano específico
+  // Quando seleciona um carro, preenche marca, modelo e ano
   const handleCarroChange = (e) => {
     const carId = e.target.value;
     setCarroSelecionado(carId);
@@ -46,7 +45,7 @@ function PageRecalls() {
     if (carro) {
       setSearchMarca(carro.marca);
       setSearchModelo(carro.modelo);
-      // NÃO preenche o ano - recalls trabalham com intervalo de anos
+      setSearchAno(carro.ano.toString());
     }
   };
 
