@@ -8,7 +8,7 @@ const GetStartedButton = ({ onClick, className = '' }) => {
       onClick={onClick}
       type="button"
     >
-      <span className="button-text">Comece agora - É grátis</span>
+      <span className="button-text">Cadastre-se agora - É grátis</span>
       <svg 
         className="button-arrow" 
         width="16" 
