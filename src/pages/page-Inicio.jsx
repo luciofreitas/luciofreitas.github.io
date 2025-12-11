@@ -151,7 +151,7 @@ export default function PageInicio() {
                   </div>
 
                   <div className="inicio-stat-card">
-                    <div className="stat-icon">⚡</div>
+                    <div className="stat-icon">⏱️</div>
                     <div className="stat-number">70%</div>
                     <div className="stat-label">Redução de Tempo</div>
                     <div className="stat-description">Na busca e compra de peças</div>
