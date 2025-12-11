@@ -51,6 +51,27 @@
   text-align: justify;
 }
 
+/* Descrição com borda à direita */
+.projeto-descricao-dois {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-right: 5px solid #3182ce;
+}
+
+.projeto-descricao-dois p {
+  color: #2d3748;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  margin: 0;
+  text-align: justify;
+}
+
 /* Seção de Funcionalidades */
 .funcionalidades-section {
   max-width: 1200px;
