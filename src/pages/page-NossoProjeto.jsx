@@ -38,7 +38,7 @@ export default function NossoProjeto() {
       descricao: 'Oferecemos uma biblioteca rica de guias práticos que cobrem desde conceitos básicos até procedimentos técnicos avançados. Aprenda sobre manutenção preventiva, instalação de componentes, diagnóstico de problemas comuns e muito mais. Nossos guias são escritos em linguagem acessível, com ilustrações e explicações passo a passo para que você ganhe autonomia e confiança no cuidado com seu veículo.'
     },
     {
-      titulo: 'Histórico de Manutenção Organizado',
+      titulo: 'Histórico de Manutenção',
       icone: '📋',
       cor: 'laranja',
       descricao: 'Com o Garagem Smart, você mantém um registro completo de todas as manutenções, trocas de peças e serviços realizados no seu veículo. Esse histórico digital facilita o acompanhamento de revisões periódicas, aumenta o valor de revenda e garante que nenhum cuidado essencial seja esquecido.'
