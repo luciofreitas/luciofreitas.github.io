@@ -268,18 +268,28 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
                   <div className="tab-panel">
                     <h3>Aplicações Detalhadas</h3>
                     <div className="compatibility-table">
-                      {productDetails.aplicacoes_detalhadas?.map((app, index) => (
-                        <div key={index} className="compatibility-row">
-                          <div className="app-main">
-                            <strong>{app.marca} {app.modelo}</strong>
-                            <span>{app.ano_inicio}-{app.ano_fim}</span>
-                          </div>
-                          <div className="app-details">
-                            <span>Motor: {app.motor}</span>
-                            {app.observacoes && <small>{app.observacoes}</small>}
-                          </div>
-                        </div>
-                      ))}
+                      {productDetails.aplicacoes_detalhadas?.filter(app => 
+                        app.marca && app.modelo && app.marca !== 'N/A' && app.modelo !== 'N/A'
+                      ).length > 0 ? (
+                        productDetails.aplicacoes_detalhadas
+                          .filter(app => app.marca && app.modelo && app.marca !== 'N/A' && app.modelo !== 'N/A')
+                          .map((app, index) => (
+                            <div key={index} className="compatibility-row">
+                              <div className="app-main">
+                                <strong>{app.marca} {app.modelo}</strong>
+                                <span>{app.ano_inicio}-{app.ano_fim}</span>
+                              </div>
+                              <div className="app-details">
+                                {app.motor && app.motor !== 'N/A' && <span>Motor: {app.motor}</span>}
+                                {app.observacoes && <small>{app.observacoes}</small>}
+                              </div>
+                            </div>
+                          ))
+                      ) : (
+                        <p style={{ padding: '1rem', color: '#64748b', textAlign: 'center' }}>
+                          Informações de compatibilidade detalhadas não disponíveis para esta peça.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
