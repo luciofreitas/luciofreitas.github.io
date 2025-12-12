@@ -48,7 +48,7 @@ const ComponenteEstrelas = ({ guiaId, mediaAtual, totalVotos, votosUsuario, onAv
       </div>
       <div className="avaliacao-info">
         <span className="media-nota">{mediaAtual.toFixed(1)}</span>
-        <span className="total-votos">({totalVotos} avaliação{totalVotos !== 1 ? 'ões' : ''})</span>
+        <span className="total-votos">({totalVotos} avaliaç{totalVotos !== 1 ? 'ões' : 'ão'})</span>
       </div>
       {jaVotou && (
         <div className="voto-confirmado">
