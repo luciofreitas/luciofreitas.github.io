@@ -47,7 +47,7 @@ export default function NossoProjeto() {
       titulo: 'Versão Pro',
       icone: '⭐',
       cor: 'dourado',
-      descricao: 'Para quem busca ainda mais recursos, nossa Versão Pro oferece funcionalidades exclusivas como notificações personalizadas de recalls, acesso antecipado a novos guias técnicos, suporte prioritário e ferramentas avançadas de gestão de frota — ideal para oficinas, revendedoras e entusiastas que levam a sério o cuidado automotivo.'
+      descricao: 'Para quem busca ainda mais recursos, nossa Versão Pro oferece funcionalidades exclusivas como acesso antecipado a novos guias técnicos, suporte prioritário, acesso a comunidade no Discord e ferramentas avançadas de gestão de frota — ideal para oficinas, revendedoras e entusiastas que levam a sério o cuidado automotivo.'
     }
   ];
 
