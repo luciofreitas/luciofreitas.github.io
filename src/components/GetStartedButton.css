@@ -14,32 +14,31 @@
   white-space: nowrap;
   
   /* Fonte */
-  font-family: inherit; /* Mantém a fonte do menu */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: #ffffff !important; /* Fonte branca */
+  color: #ffffff !important;
+  letter-spacing: -0.01em;
   
-  /* Degradê forte com múltiplas cores baseado em #FFAB00 */
-  background: linear-gradient(135deg, #FFD700 0%, #FFAB00 25%, #FF8F00 75%, #E67E00 100%);
+  /* Gradiente moderno laranja */
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
   
-  /* Sombra mais intensa e colorida + brilho interno */
-  box-shadow: 0 4px 15px rgba(255, 171, 0, 0.5), 
-              0 2px 8px rgba(230, 126, 0, 0.3),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  /* Sombra elegante com cor do botão */
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4), 
+              0 2px 4px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
   
   /* Transições suaves */
   transition: all 0.3s ease;
 }
 
-/* Efeito hover com degradê reverso mais intenso */
+/* Efeito hover elegante */
 .get-started-button:hover {
-  /* Degradê reverso com cores mais vibrantes */
-  background: linear-gradient(135deg, #E67E00 0%, #FF8F00 25%, #FFAB00 75%, #FFD700 100%);
-  
-  /* Sombra muito mais intensa no hover + brilho interno mais forte */
-  box-shadow: 0 8px 25px rgba(255, 171, 0, 0.7), 
-              0 4px 15px rgba(230, 126, 0, 0.5),
-              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #EA580C 0%, #DC2626 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5), 
+              0 4px 8px rgba(0, 0, 0, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* Efeito active (quando pressionado) */

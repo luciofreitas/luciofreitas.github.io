@@ -1,0 +1,40 @@
+/* Global Fonts - Garagem Smart */
+
+/* Aplicar Inter como fonte principal em todo o app */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Títulos principais usam Poppins */
+h1, h2, h3, h4, h5, h6,
+.page-title,
+.section-title {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Menu mantém Montserrat */
+.site-header,
+.site-header *,
+.menu-nav,
+.menu-nav * {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Melhorar legibilidade dos parágrafos */
+p {
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+/* Botões com Inter e melhor espaçamento */
+button,
+.btn,
+input[type="button"],
+input[type="submit"] {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: -0.01em;
+}
