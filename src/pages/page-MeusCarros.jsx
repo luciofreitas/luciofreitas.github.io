@@ -326,15 +326,6 @@ export default function MeusCarros() {
                       {car.observacoes && <p className="car-info"><strong>Obs:</strong> {car.observacoes}</p>}
                     </div>
                     <div className="car-actions">
-                      {!car.isDefault && (
-                        <button 
-                          className="btn-set-default"
-                          onClick={() => handleSetDefault(car.id)}
-                          title="Definir como padrão"
-                        >
-                          ⭐
-                        </button>
-                      )}
                       <button 
                         className="btn-edit"
                         onClick={() => handleEdit(car)}
