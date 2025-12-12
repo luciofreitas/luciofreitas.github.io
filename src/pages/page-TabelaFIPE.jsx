@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
@@ -8,6 +8,8 @@ import '../styles/pages/page-TabelaFIPE.css';
 export default function TabelaFIPE() {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
+  const tooltipRef = useRef(null);
+  const lockRef = useRef(null);
   
   // Obter ano atual dinamicamente
   const anoAtual = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })).getFullYear();
@@ -57,6 +59,23 @@ export default function TabelaFIPE() {
     setModelos([]);
     setVeiculo(null);
   };
+
+  // Posiciona o tooltip com position: fixed
+  useEffect(() => {
+    const handleMouseEnter = () => {
+      if (lockRef.current && tooltipRef.current) {
+        const rect = lockRef.current.getBoundingClientRect();
+        tooltipRef.current.style.left = `${rect.left + rect.width / 2}px`;
+        tooltipRef.current.style.top = `${rect.top}px`;
+      }
+    };
+
+    const lockElement = lockRef.current;
+    if (lockElement) {
+      lockElement.addEventListener('mouseenter', handleMouseEnter);
+      return () => lockElement.removeEventListener('mouseenter', handleMouseEnter);
+    }
+  }, [veiculo, isPro]);
 
   return (
     <>
@@ -150,9 +169,9 @@ export default function TabelaFIPE() {
                       <div className="fipe-preco-wrapper">
                         <span className={isPro ? '' : 'fipe-preco-blur'}>{veiculo.preco}</span>
                         {!isPro && (
-                          <div className="fipe-preco-lock">
+                          <div className="fipe-preco-lock" ref={lockRef}>
                             <img src="/images/padlock.png" alt="Cadeado" className="fipe-padlock-icon" />
-                            <div className="fipe-preco-tooltip">
+                            <div className="fipe-preco-tooltip" ref={tooltipRef}>
                               Seja Pro para visualizar os preços da Tabela FIPE
                             </div>
                           </div>
