@@ -780,7 +780,10 @@ app.post('/api/pecas/filtrar', async (req, res) => {
     const ano = (data.ano || '').toLowerCase();
     const fabricante = (data.fabricante || '').toLowerCase();
     
-    console.log('🔍 /api/pecas/filtrar recebido:', { categoria, peca, marca, modelo, ano, fabricante });
+    console.log('🔍 /api/pecas/filtrar recebido:', { 
+      original: data, 
+      lowercase: { categoria, peca, marca, modelo, ano, fabricante } 
+    });
     
     // Se nenhum filtro foi fornecido, retorna todas as peças
     const hasFilters = [categoria, peca, marca, modelo, ano, fabricante].some(v=>v && v.length);
@@ -797,15 +800,21 @@ app.post('/api/pecas/filtrar', async (req, res) => {
         const supabaseAdmin = createClient(supabaseUrl.replace(/\/$/, ''), supabaseKey);
         let query = supabaseAdmin.from('parts').select('*');
         
-        // Apply filters - Note: Supabase .eq() is case-sensitive, so we match original case from data
+        // Apply filters - use original case from request
+        console.log('🔍 Aplicando filtros:', { 
+          categoria: categoria ? data.grupo : null,
+          peca: peca ? data.categoria : null,
+          fabricante: fabricante ? data.fabricante : null
+        });
+        
         if (categoria) {
-          query = query.ilike('category', data.grupo); // Case-insensitive search
+          query = query.eq('category', data.grupo);
         }
         if (peca) {
-          query = query.ilike('name', data.categoria); // Case-insensitive search
+          query = query.eq('name', data.categoria);
         }
         if (fabricante) {
-          query = query.ilike('manufacturer', data.fabricante); // Case-insensitive search
+          query = query.eq('manufacturer', data.fabricante);
         }
         
         // For vehicle filters (marca, modelo, ano), we need to filter in-memory
