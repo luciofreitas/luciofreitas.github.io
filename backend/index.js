@@ -746,6 +746,30 @@ app.get('/api/pecas/meta', (req, res) => {
   }
 });
 
+// Debug endpoint to check data source
+app.get('/api/debug/datasource', async (req, res) => {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  
+  let supabaseCount = 0;
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const { createClient } = require('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl.replace(/\/$/, ''), supabaseKey);
+      const { count, error } = await supabase.from('parts').select('*', { count: 'exact', head: true });
+      if (!error) supabaseCount = count;
+    } catch(e) {}
+  }
+  
+  return res.json({
+    jsonFileCount: PARTS_DB.length,
+    supabaseCount,
+    hasSupabaseUrl: !!supabaseUrl,
+    hasSupabaseKey: !!supabaseKey,
+    supabaseUrlPrefix: supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'not set'
+  });
+});
+
 app.post('/api/pecas/filtrar', async (req, res) => {
   try {
     const data = req.body || {};
