@@ -33,6 +33,7 @@
     "firebase": "^12.4.0",
     "jimp": "^0.16.1",
     "minimist": "^1.2.8",
+    "node-fetch": "^3.3.2",
     "potrace": "^2.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
