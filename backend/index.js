@@ -768,65 +768,65 @@ app.post('/api/pecas/filtrar', async (req, res) => {
       const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
       
       console.log('🗄️  Tentando buscar no Supabase...', { hasUrl: !!supabaseUrl, hasKey: !!supabaseKey });
-    
-    if (supabaseUrl && supabaseKey) {
-      const supabaseAdmin = createClient(supabaseUrl.replace(/\/$/, ''), supabaseKey);
-      let query = supabaseAdmin.from('parts').select('*');
       
-      // Apply filters
-      if (categoria) {
-        query = query.eq('category', data.grupo); // Use original case
-      }
-      if (peca) {
-        query = query.eq('name', data.categoria); // Use original case
-      }
-      if (fabricante) {
-        query = query.eq('manufacturer', data.fabricante); // Use original case
-      }
-      
-      // For vehicle filters (marca, modelo, ano), we need to filter in-memory
-      // because applications is a text[] field
-      const { data: results, error } = await query;
-      
-      if (error) {
-        console.error('Supabase query error:', error);
-      } else {
-        let filtered = results || [];
+      if (supabaseUrl && supabaseKey) {
+        const supabaseAdmin = createClient(supabaseUrl.replace(/\/$/, ''), supabaseKey);
+        let query = supabaseAdmin.from('parts').select('*');
         
-        // Filter by vehicle criteria (marca, modelo, ano)
-        if (marca || modelo || ano) {
-          filtered = filtered.filter(part => {
-            const apps = part.applications || [];
-            return apps.some(app => {
-              const appStr = String(app).toLowerCase();
-              if (marca && !appStr.includes(marca)) return false;
-              if (modelo && !appStr.includes(modelo)) return false;
-              if (ano) {
-                // Extract years from application string
-                const yearMatches = appStr.match(/\d{4}(?:-\d{4})?/g) || [];
-                const anos = [];
-                yearMatches.forEach(str => {
-                  if (str.includes('-')) {
-                    const [start, end] = str.split('-').map(Number);
-                    for (let y = start; y <= end; y++) anos.push(String(y));
-                  } else {
-                    anos.push(str);
-                  }
-                });
-                if (!anos.includes(ano)) return false;
-              }
-              return true;
-            });
-          });
+        // Apply filters
+        if (categoria) {
+          query = query.eq('category', data.grupo); // Use original case
+        }
+        if (peca) {
+          query = query.eq('name', data.categoria); // Use original case
+        }
+        if (fabricante) {
+          query = query.eq('manufacturer', data.fabricante); // Use original case
         }
         
-        console.log(`✅ Supabase filtrar: ${filtered.length} peças encontradas`);
-        return res.json({ pecas: filtered, total: filtered.length });
+        // For vehicle filters (marca, modelo, ano), we need to filter in-memory
+        // because applications is a text[] field
+        const { data: results, error } = await query;
+        
+        if (error) {
+          console.error('Supabase query error:', error);
+        } else {
+          let filtered = results || [];
+          
+          // Filter by vehicle criteria (marca, modelo, ano)
+          if (marca || modelo || ano) {
+            filtered = filtered.filter(part => {
+              const apps = part.applications || [];
+              return apps.some(app => {
+                const appStr = String(app).toLowerCase();
+                if (marca && !appStr.includes(marca)) return false;
+                if (modelo && !appStr.includes(modelo)) return false;
+                if (ano) {
+                  // Extract years from application string
+                  const yearMatches = appStr.match(/\d{4}(?:-\d{4})?/g) || [];
+                  const anos = [];
+                  yearMatches.forEach(str => {
+                    if (str.includes('-')) {
+                      const [start, end] = str.split('-').map(Number);
+                      for (let y = start; y <= end; y++) anos.push(String(y));
+                    } else {
+                      anos.push(str);
+                    }
+                  });
+                  if (!anos.includes(ano)) return false;
+                }
+                return true;
+              });
+            });
+          }
+          
+          console.log(`✅ Supabase filtrar: ${filtered.length} peças encontradas`);
+          return res.json({ pecas: filtered, total: filtered.length });
+        }
       }
+    } catch (err) {
+      console.warn('Failed to query Supabase, falling back to JSON:', err.message);
     }
-  } catch (err) {
-    console.warn('Failed to query Supabase, falling back to JSON:', err.message);
-  }
   
   // Fallback to JSON file
   if(!hasFilters) {
