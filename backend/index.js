@@ -746,18 +746,89 @@ app.get('/api/pecas/meta', (req, res) => {
   }
 });
 
-app.post('/api/pecas/filtrar', (req, res) => {
-  const data = req.body || {};
-  const categoria = (data.grupo || '').toLowerCase();
-  const peca = (data.categoria || '').toLowerCase();
-  const marca = (data.marca || '').toLowerCase();
-  const modelo = (data.modelo || '').toLowerCase();
-  const ano = (data.ano || '').toLowerCase();
-  const fabricante = (data.fabricante || '').toLowerCase();
+app.post('/api/pecas/filtrar', async (req, res) => {
+  try {
+    const data = req.body || {};
+    const categoria = (data.grupo || '').toLowerCase();
+    const peca = (data.categoria || '').toLowerCase();
+    const marca = (data.marca || '').toLowerCase();
+    const modelo = (data.modelo || '').toLowerCase();
+    const ano = (data.ano || '').toLowerCase();
+    const fabricante = (data.fabricante || '').toLowerCase();
+    
+    console.log('🔍 /api/pecas/filtrar recebido:', { categoria, peca, marca, modelo, ano, fabricante });
+    
+    // Se nenhum filtro foi fornecido, retorna todas as peças
+    const hasFilters = [categoria, peca, marca, modelo, ano, fabricante].some(v=>v && v.length);
+    
+    // Try Supabase first
+    try {
+      const { createClient } = require('@supabase/supabase-js');
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      
+      console.log('🗄️  Tentando buscar no Supabase...', { hasUrl: !!supabaseUrl, hasKey: !!supabaseKey });
+    
+    if (supabaseUrl && supabaseKey) {
+      const supabaseAdmin = createClient(supabaseUrl.replace(/\/$/, ''), supabaseKey);
+      let query = supabaseAdmin.from('parts').select('*');
+      
+      // Apply filters
+      if (categoria) {
+        query = query.eq('category', data.grupo); // Use original case
+      }
+      if (peca) {
+        query = query.eq('name', data.categoria); // Use original case
+      }
+      if (fabricante) {
+        query = query.eq('manufacturer', data.fabricante); // Use original case
+      }
+      
+      // For vehicle filters (marca, modelo, ano), we need to filter in-memory
+      // because applications is a text[] field
+      const { data: results, error } = await query;
+      
+      if (error) {
+        console.error('Supabase query error:', error);
+      } else {
+        let filtered = results || [];
+        
+        // Filter by vehicle criteria (marca, modelo, ano)
+        if (marca || modelo || ano) {
+          filtered = filtered.filter(part => {
+            const apps = part.applications || [];
+            return apps.some(app => {
+              const appStr = String(app).toLowerCase();
+              if (marca && !appStr.includes(marca)) return false;
+              if (modelo && !appStr.includes(modelo)) return false;
+              if (ano) {
+                // Extract years from application string
+                const yearMatches = appStr.match(/\d{4}(?:-\d{4})?/g) || [];
+                const anos = [];
+                yearMatches.forEach(str => {
+                  if (str.includes('-')) {
+                    const [start, end] = str.split('-').map(Number);
+                    for (let y = start; y <= end; y++) anos.push(String(y));
+                  } else {
+                    anos.push(str);
+                  }
+                });
+                if (!anos.includes(ano)) return false;
+              }
+              return true;
+            });
+          });
+        }
+        
+        console.log(`✅ Supabase filtrar: ${filtered.length} peças encontradas`);
+        return res.json({ pecas: filtered, total: filtered.length });
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to query Supabase, falling back to JSON:', err.message);
+  }
   
-  // Se nenhum filtro foi fornecido, retorna todas as peças
-  const hasFilters = [categoria, peca, marca, modelo, ano, fabricante].some(v=>v && v.length);
-  
+  // Fallback to JSON file
   if(!hasFilters) {
     try {
       const partsData = JSON.parse(fs.readFileSync(path.join(__dirname, 'parts_db.json'), 'utf8'));
@@ -808,8 +879,12 @@ app.post('/api/pecas/filtrar', (req, res) => {
     return true;
   }
 
-  const filtered = PARTS_DB.filter(matches);
-  return res.json({ pecas: filtered, total: filtered.length });
+    const filtered = PARTS_DB.filter(matches);
+    return res.json({ pecas: filtered, total: filtered.length });
+  } catch (mainError) {
+    console.error('❌ Erro fatal em /api/pecas/filtrar:', mainError);
+    return res.status(500).json({ pecas: [], total: 0, error: mainError.message });
+  }
 });
 
 app.get('/api/pecas/compatibilidade/:part_id', (req, res) => {
