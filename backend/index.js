@@ -797,15 +797,15 @@ app.post('/api/pecas/filtrar', async (req, res) => {
         const supabaseAdmin = createClient(supabaseUrl.replace(/\/$/, ''), supabaseKey);
         let query = supabaseAdmin.from('parts').select('*');
         
-        // Apply filters
+        // Apply filters - Note: Supabase .eq() is case-sensitive, so we match original case from data
         if (categoria) {
-          query = query.eq('category', data.grupo); // Use original case
+          query = query.ilike('category', data.grupo); // Case-insensitive search
         }
         if (peca) {
-          query = query.eq('name', data.categoria); // Use original case
+          query = query.ilike('name', data.categoria); // Case-insensitive search
         }
         if (fabricante) {
-          query = query.eq('manufacturer', data.fabricante); // Use original case
+          query = query.ilike('manufacturer', data.fabricante); // Case-insensitive search
         }
         
         // For vehicle filters (marca, modelo, ano), we need to filter in-memory
