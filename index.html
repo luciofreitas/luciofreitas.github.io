@@ -26,12 +26,8 @@
             window.__API_BASE = prod;
             console.log('[runtime] API base set to', prod);
           }
-        }        // Inject Supabase configuration for production
-        window.__RUNTIME_CONFIG__ = {
-          SUPABASE_URL: 'https://nishmqdbtcqrnxbvssvw.supabase.co',
-          SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pc2htcWRidGNxcm54YnZzc3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ0ODUyNzcsImV4cCI6MjA1MDA2MTI3N30.bKFPSGPcD3TnM8uw7U3OVLy-4PiRAKlQTqGqJvw4cY8'
-        };
-        console.log('[runtime] Supabase config injected');      })();
+        }
+      })();
     } catch(e) { console.warn('Runtime API base injection failed', e); }
   </script>
   <!-- debug script removed -->
