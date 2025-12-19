@@ -28,6 +28,10 @@ backend/parts_db.json
 docs/data/parts_db.json
 src/data/parts_db.json
 # Debug and generated scripts
+backend/test-*.js
+scripts/monitor-deploy.ps1
+test-*.html
+insert_*.sql
 backend/debug-*.js
 backend/scripts/
 docs/*-debug.html
