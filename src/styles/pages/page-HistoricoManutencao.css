@@ -23,7 +23,7 @@
 .historico-intro p {
   color: var(--text-secondary);
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -34,7 +34,7 @@
 }
 
 .historico-login-required p {
-  font-size: 1.1rem;
+  font-size: 15px;
   color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
@@ -46,7 +46,7 @@
 }
 
 .historico-loading p {
-  font-size: 1.1rem;
+  font-size: 15px;
   color: var(--text-secondary);
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -67,7 +67,7 @@
 }
 
 .historico-no-cars p {
-  font-size: 1.1rem;
+  font-size: 15px;
   color: var(--text-secondary);
   margin-bottom: 1rem;
 }
@@ -75,22 +75,22 @@
 .historico-login-btn,
 .historico-add-car-btn {
   display: inline-block;
-  padding: 0.75rem 2rem;
-  background: #0052CC;
+  padding: 0.875rem 1.75rem;
+  background: var(--color-primary);
   color: #fff;
   text-decoration: none;
   border: none;
   border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 500;
+  font-size: 15px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .historico-login-btn:hover,
 .historico-add-car-btn:hover {
-  background: #003A99;
-  transform: translateY(-2px);
+  background: #005571;
+  transform: translateY(-1px);
 }
 
 /* No Cars */
@@ -103,7 +103,7 @@
 }
 
 .historico-no-cars p {
-  font-size: 1.1rem;
+  font-size: 15px;
   color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
@@ -125,7 +125,7 @@
 }
 
 .historico-filters label {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
 }
 
@@ -135,24 +135,24 @@
   border-radius: 0.5rem;
   background: #fff;
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 15px;
   min-width: 15rem;
 }
 
 .historico-add-btn {
-  padding: 0.75rem 1.5rem;
-  background: #0052CC;
+  padding: 0.875rem 1.5rem;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 0.5rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .historico-add-btn:hover {
-  background: #003A99;
-  transform: translateY(-2px);
+  background: #005571;
+  transform: translateY(-1px);
 }
 
 /* Empty State */
@@ -165,7 +165,7 @@
 }
 
 .historico-empty p {
-  font-size: 1.1rem;
+  font-size: 15px;
   color: var(--text-secondary);
   margin: 0.5rem 0;
 }
@@ -200,14 +200,14 @@
 }
 
 .historico-card-veiculo {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #0052CC;
+  font-weight: 600;
+  font-size: 19px;
+  color: var(--color-primary);
 }
 
 .historico-card-data {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 14px;
 }
 
 .historico-card-body {
@@ -223,25 +223,28 @@
 
 .historico-tipo-badge {
   display: inline-block;
-  padding: 0.375rem 0.75rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 1rem;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .historico-tipo-badge.preventiva {
-  background: #d1fae5;
-  color: #065f46;
+  background: #16A34A;
+  color: white;
 }
 
 .historico-tipo-badge.corretiva {
-  background: #fee2e2;
-  color: #991b1b;
+  background: #DC2626;
+  color: white;
 }
 
 .historico-tipo-badge.outro {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--color-primary);
+  color: white;
 }
 
 .historico-card-descricao,
@@ -259,7 +262,7 @@
 .historico-card-valor strong,
 .historico-card-obs strong {
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .historico-card-actions {
@@ -274,30 +277,34 @@
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 0.375rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 14px;
 }
 
 .historico-edit-btn {
-  background: #f3f4f6;
-  color: #172B4D;
-  border: 1px solid #d1d5db;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .historico-edit-btn:hover {
-  background: #e5e7eb;
+  background: #005571;
+  transform: translateY(-1px);
 }
 
 .historico-delete-btn {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--color-error);
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .historico-delete-btn:hover {
-  background: #fecaca;
+  background: rgba(220, 38, 38, 0.2);
 }
 
 /* Modal */
@@ -648,13 +655,13 @@
 }
 
 .theme-dark .historico-edit-btn {
-  background: #334155;
-  color: #f1f5f9;
-  border-color: #475569;
+  background: var(--color-primary);
+  color: white;
+  border: none;
 }
 
 .theme-dark .historico-edit-btn:hover {
-  background: #475569;
+  background: #007a9f;
 }
 
 .theme-dark .historico-modal {

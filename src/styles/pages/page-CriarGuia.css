@@ -35,15 +35,17 @@
 
 .pro-badge {
   display: inline-block;
-  background: #FFA500;
-  color: #ffffff;
-  padding: 0.5rem 1rem;
-  border-radius: 1.5rem;
-  font-weight: 700;
-  font-size: 0.9rem;
+  background: var(--color-warning);
+  color: white;
+  padding: 0.25rem 0.65rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
   margin-top: 0.5rem;
-  border: 2px solid #FF8C00;
-  box-shadow: 0 2px 4px rgba(255, 165, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
 }
 
 /* Mensagem de Sucesso */

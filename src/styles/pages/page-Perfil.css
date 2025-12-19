@@ -48,9 +48,9 @@
 }
 
 .form-group label {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--form-label-color);
-  font-size: 0.875rem;
+  font-size: 14px;
   text-align: left; /* ensure label text is left-aligned */
   display: block;
 }
@@ -61,7 +61,7 @@
   border-radius: 0.5rem;
   border: 0.062rem solid var(--form-border);
   box-sizing: border-box;
-  font-size: 1rem;
+  font-size: 15px;
   background: var(--form-background);
   transition: border-color 0.2s, box-shadow 0.2s;
   color: var(--text-primary);
@@ -69,14 +69,14 @@
 
 .form-input:focus:not(:focus-visible) {
   outline: none;
-  border-color: var(--form-border-focus);
-  box-shadow: 0 0 0 0.188rem rgba(0, 82, 204, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.188rem rgba(0, 107, 143, 0.1);
 }
 
 .form-input:focus-visible {
-  border-color: var(--form-border-focus);
-  box-shadow: 0 0 0 0.3rem rgba(0,82,204,0.12);
-  outline: 2px solid rgba(0,82,204,0.18);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.3rem rgba(0, 107, 143, 0.12);
+  outline: 2px solid rgba(0, 107, 143, 0.18);
   outline-offset: 3px;
 }
 
@@ -108,7 +108,7 @@
   border: none;
   color: #6b7280;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 500;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
@@ -116,12 +116,12 @@
 }
 
 .toggle-pw:hover {
-  color: #172B4D;
+  color: var(--color-text);
   background-color: #f3f4f6;
 }
 
 .toggle-pw.on {
-  color: #0052CC;
+  color: var(--color-primary);
 }
 
 .form-actions {
@@ -134,13 +134,13 @@
 
 .btn-save {
   padding: 0.5rem 1rem !important;
-  background: #0052CC !important;
+  background: var(--color-primary) !important;
   color: #fff !important;
   border: 0.062rem solid transparent !important;
   border-radius: 0.5rem !important;
   cursor: pointer !important;
-  font-weight: 600 !important;
-  font-size: 1rem !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
   transition: background 0.2s ease !important;
   min-width: 7.5rem !important;
   box-sizing: border-box !important;
@@ -149,7 +149,7 @@
 }
 
 .btn-save:hover {
-  background: #003A99;
+  background: #005571;
 }
 
 .btn-save:disabled {
@@ -163,12 +163,12 @@ button.btn.btn-cancel,
 .btn.btn-cancel {
   padding: 0.5rem 1rem !important;
   background: #f3f4f6 !important;
-  color: #172B4D !important;
+  color: var(--color-text) !important;
   border: 0.062rem solid #d1d5db !important;
   border-radius: 0.5rem !important;
   cursor: pointer !important;
-  font-weight: 600 !important;
-  font-size: 1rem !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
   transition: background 0.2s ease !important;
   min-width: 7.5rem !important;
   box-sizing: border-box !important;

@@ -248,11 +248,6 @@ function PageGuias() {
                     <div className="guia-header">
                       <div className="guia-icone">📄</div>
                       <div className="guia-categoria comunidade">{guia.categoria || 'MECÂNICA GERAL'}</div>
-                      {isAutor && (
-                        <div className="guia-author-badge" title="Você é o autor deste guia">
-                          👤 Seu Guia
-                        </div>
-                      )}
                     </div>
 
                     {guia.imagem && (

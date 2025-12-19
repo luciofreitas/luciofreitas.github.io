@@ -1,6 +1,6 @@
 // page-CriarGuia.jsx - Página para criar/editar guias customizados (apenas Pro)
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
@@ -12,6 +12,7 @@ export default function CriarGuia() {
   const navigate = useNavigate();
   const { guiaId } = useParams(); // Para edição
   const isEditing = Boolean(guiaId);
+  const hasChecked = useRef(false);
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -29,38 +30,50 @@ export default function CriarGuia() {
   const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
 
   useEffect(() => {
-    // Redirecionar se não for Pro
+    // Evitar múltiplas execuções
+    if (hasChecked.current) return;
+    
+    // Aguardar usuário estar carregado
+    if (!usuarioLogado) return;
+    
+    hasChecked.current = true;
+
+    // Se estiver editando, verificar primeiro se é o autor
+    if (isEditing && guiaId) {
+      (async () => {
+        const guia = await guiasService.getGuiaById(guiaId);
+        
+        if (!guia) {
+          alert('Guia não encontrado');
+          navigate('/guias');
+          return;
+        }
+
+        // Verificar se é o autor
+        if (guia.autorEmail !== usuarioLogado.email) {
+          alert('Você não tem permissão para editar este guia');
+          navigate('/guias');
+          return;
+        }
+
+        // Se é o autor, pode editar mesmo sem ser Pro
+        setFormData({
+          titulo: guia.titulo,
+          descricao: guia.descricao,
+          categoria: guia.categoria,
+          conteudo: guia.conteudo,
+          imagem: guia.imagem || ''
+        });
+      })();
+      return; // Não verificar Pro se estiver editando como autor
+    }
+
+    // Se estiver criando novo guia, verificar se é Pro
     if (!isPro) {
-      navigate('/seja-pro');
+      navigate('/versao-pro');
       return;
     }
-
-    // Carregar dados se estiver editando
-    if (isEditing && guiaId) {
-      const guia = guiasService.getGuiaById(guiaId);
-      
-      if (!guia) {
-        alert('Guia não encontrado');
-        navigate('/guias');
-        return;
-      }
-
-      // Verificar se é o autor
-      if (guia.autorEmail !== usuarioLogado?.email) {
-        alert('Você não tem permissão para editar este guia');
-        navigate('/guias');
-        return;
-      }
-
-      setFormData({
-        titulo: guia.titulo,
-        descricao: guia.descricao,
-        categoria: guia.categoria,
-        conteudo: guia.conteudo,
-        imagem: guia.imagem || ''
-      });
-    }
-  }, [isPro, isEditing, guiaId, usuarioLogado, navigate]);
+  }, [isPro, isEditing, guiaId, usuarioLogado?.email, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -150,7 +163,9 @@ export default function CriarGuia() {
     'Outros'
   ];
 
-  if (!isPro) {
+  // Não renderiza apenas se for criar novo E não for Pro
+  // Se estiver editando, pode renderizar (já foi validado no useEffect)
+  if (!isEditing && !isPro) {
     return null; // Não renderiza nada enquanto redireciona
   }
 

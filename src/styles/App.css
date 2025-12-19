@@ -15,38 +15,38 @@
   --space-3xl: 4rem;     /* 64px */
   
   /* Colors */
-  --color-primary: #0052CC;
-  --color-primary-dark: #003A99;
-  --color-primary-light: #1A66FF;
-  --color-secondary: #64748b;
-  --color-success: #16a34a;
-  --color-error: #dc2626;
-  --color-warning: #d97706;
+  --color-primary: #006B8F;
+  --color-primary-dark: #005B7F;
+  --color-primary-light: #008C9E;
+  --color-secondary: #4B5563;
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+  --color-warning: #F59E0B;
   
   /* Seja Pro Colors */
   --color-highlight: #FFAB00;
-  --color-success-icon: #36B37E;
-  --color-error-icon: #DE350B;
+  --color-success-icon: #16A34A;
+  --color-error-icon: #DC2626;
   
   /* Form Colors */
   --form-background: #FFFFFF;
   --form-border: #DFE1E6;
-  --form-border-focus: #0052CC;
-  --form-label-color: #172B4D;
+  --form-border-focus: #006B8F;
+  --form-label-color: #111827;
   
   /* Text Colors */
-  --text-primary: #172B4D;
-  --text-secondary: #172B4D;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
   --text-muted: #6b7280;
   --text-inverse: #FFFFFF;
   
   /* Section Titles */
-  --color-section-title: #0052CC;
+  --color-section-title: #006B8F;
   
   /* Background Colors */
   --bg-white: #FFFFFF;
-  --bg-gray-neutral: #F4F5F7;
-  --bg-gray-50: #f9fafb;
+  --bg-gray-neutral: #F3F4F6;
+  --bg-gray-50: #F3F4F6;
   --bg-gray-100: #f3f4f6;
   --bg-gray-200: #e5e7eb;
   --bg-primary-50: #eff6ff;
@@ -55,26 +55,27 @@
   
   /* Border Colors */
   --border-gray: #d1d5db;
-  --border-primary: #0052CC;
+  --border-primary: #006B8F;
   --border-success: #bbf7d0;
   --border-error: #fecaca;
   
-  /* Typography - Roboto como fonte principal */
-  --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  --font-size-xs: 0.75rem;   /* 12px */
-  --font-size-sm: 0.875rem;  /* 14px */
-  --font-size-base: 1rem;    /* 16px */
-  --font-size-lg: 1.125rem;  /* 18px */
-  --font-size-xl: 1.25rem;   /* 20px */
-  --font-size-2xl: 1.5rem;   /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
+  /* Typography - Inter/Roboto como fonte principal, Poppins/Montserrat para títulos */
+  --font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-family-heading: 'Poppins', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-base: 0.9375rem;  /* 15px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.1875rem;    /* 19px - H3 */
+  --font-size-2xl: 1.625rem;    /* 26px - H2 */
+  --font-size-3xl: 2.125rem;    /* 34px - H1 */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --line-height-tight: 1.25;
+  --line-height-tight: 1.2;
   --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
+  --line-height-relaxed: 1.6;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -550,14 +551,14 @@ html {
   width: 100% !important; /* Full width for center alignment */
 }
 
-/* Ensure all top-level h2 page titles use the same blue as the menus */
+/* Ensure all top-level h2 page titles use the primary color */
 h2.page-title {
-  color: #0052CC !important;
+  color: var(--color-primary) !important;
 }
 
 /* Dark mode override for page titles */
 .theme-dark h2.page-title {
-  color: #60a5fa !important; /* Blue-400 for better contrast in dark mode */
+  color: var(--color-primary) !important;
 }
 
 /* Subtitle simples abaixo do título da página */

@@ -204,35 +204,41 @@
 
 /* Badges de risco */
 .risk-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: clamp(581.192rem, 1899.8vw, 624.938rem); /* ~9299px a 9999px - fluido */
-  font-size: 0.8rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 1rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .risk-high {
-  background: #DE350B;
+  background: #DC2626;
   color: #FFFFFF;
 }
 
 .risk-medium {
-  background: #FFAB00;
+  background: #F59E0B;
   color: #FFFFFF;
 }
 
 .risk-low {
-  background: #FFAB00;
+  background: #16A34A;
   color: #FFFFFF;
 }
 
 /* Badges de status */
 .status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: clamp(581.192rem, 1899.8vw, 624.938rem); /* ~9299px a 9999px - fluido */
-  font-size: 0.8rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 1rem;
+  font-size: 0.7rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .status-active {

@@ -1,33 +1,74 @@
 /* Global Fonts - Garagem Smart */
 
-/* Aplicar Inter como fonte principal em todo o app */
+/* Aplicar Inter/Roboto como fonte principal em todo o app */
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Títulos principais usam Poppins */
-h1, h2, h3, h4, h5, h6,
+/* Títulos principais usam Poppins/Montserrat (EXCETO elementos da logo) */
+h1:not(.logo-title):not(.logo-container *):not(.logo-text-container *) {
+  font-family: 'Poppins', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h2:not(.logo-title):not(.logo-container *):not(.logo-text-container *) {
+  font-family: 'Poppins', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+h3:not(.logo-title):not(.logo-container *):not(.logo-text-container *) {
+  font-family: 'Poppins', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+h4:not(.logo-container *):not(.logo-text-container *),
+h5:not(.logo-container *):not(.logo-text-container *),
+h6:not(.logo-container *):not(.logo-text-container *),
 .page-title,
 .section-title {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Poppins', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
-/* Menu mantém Montserrat */
-.site-header,
-.site-header *,
-.menu-nav,
-.menu-nav * {
+/* Menu mantém Montserrat (exceto logo) */
+.site-header :not(.logo-container):not(.logo-container *),
+.menu-nav :not(.logo-container):not(.logo-container *),
+.menu-nav * :not(.logo-container):not(.logo-container *) {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* Melhorar legibilidade dos parágrafos */
-p {
+/* Melhorar legibilidade dos parágrafos e texto */
+p, span:not(.logo-container *):not(.logo-text-container *), div:not(.logo-container):not(.logo-text-container) {
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
   line-height: 1.6;
   letter-spacing: -0.01em;
+}
+
+/* Labels e formulários */
+label,
+input,
+textarea,
+select {
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* Botões com Inter e melhor espaçamento */
@@ -35,6 +76,8 @@ button,
 .btn,
 input[type="button"],
 input[type="submit"] {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
