@@ -33,9 +33,8 @@ const MenuLogin = () => {
 
   const menuItems = [
     { id: 'inicio', label: 'Início', onClick: () => navigate('/inicio') },
-    { id: 'catalogo', label: 'Catálogo de Peças', onClick: () => navigate('/buscar-pecas') },
-    { id: 'quem-somos', label: 'Quem Somos', onClick: () => navigate('/quem-somos') },
-    { id: 'nosso-projeto', label: 'Nosso Projeto', onClick: () => navigate('/nosso-projeto') },
+    { id: 'buscar-pecas', label: 'Buscar Peças', onClick: () => navigate('/buscar-pecas'), destacado: true },
+    { id: 'sobre', label: 'Sobre o GaragemSmart', onClick: () => navigate('/nosso-projeto') },
     { id: 'contato', label: 'Contato', onClick: () => navigate('/contato') }
   ];
 
@@ -300,7 +299,7 @@ const MenuLogin = () => {
                 {menuItems.map(item => (
                   <li key={item.id}>
                     <button
-                      className={`menu-login-item ${item.id === 'nosso-projeto' ? 'nosso-projeto' : ''}`}
+                      className={`menu-login-item ${item.id === 'nosso-projeto' ? 'nosso-projeto' : ''} ${item.destacado ? 'destacado' : ''}`}
                       onClick={handleNavigation(item.onClick)}
                     >
                       {item.label}

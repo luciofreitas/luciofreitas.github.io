@@ -393,6 +393,20 @@ button.menu-login-item {
   width: 60%;
 }
 
+/* Estilo para item destacado (Buscar Peças) */
+.menu-login-item.destacado {
+  font-weight: 700 !important; /* Um pouco mais bold */
+  color: #fbbf24 !important; /* Tom de amarelo para destaque */
+}
+
+.menu-login-item.destacado::after {
+  background: #fbbf24; /* amarelo para combinar com texto */
+}
+
+.menu-login-item.destacado:hover {
+  background: rgba(251, 191, 36, 0.12); /* hover amarelo suave */
+}
+
 /* Ajuste para itens específicos que podem ser mais longos - removido max-width para permitir espaçamento natural */
 .menu-login-item.nosso-projeto {
   /* max-width removido para permitir espaçamento igual entre todos os itens */

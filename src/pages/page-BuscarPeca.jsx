@@ -602,7 +602,7 @@ export default function BuscarPeca() {
       {usuarioLogado && <div className="site-header-spacer"></div>}
       <div className="page-wrapper menu-page">
   <div className="page-content buscarpeca-section">
-              <h2 className="page-title">Catálogo de Peças</h2>
+              <h2 className="page-title">Buscar Peças</h2>
               
               <p className="page-subtitle">
                 Encontre peças automotivas compatíveis com seu veículo. Busque por marca, modelo e ano.

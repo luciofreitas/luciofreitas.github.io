@@ -29,8 +29,9 @@ function Menu() {
   const menuItems = [
     {
       id: 'buscar',
-      label: 'Catálogo de Peças',
-      onClick: () => navigate('/buscar-pecas')
+      label: 'Buscar Peças',
+      onClick: () => navigate('/buscar-pecas'),
+      destacado: true
     },
     { id: 'tabela-fipe', label: 'Tabela FIPE', onClick: () => navigate('/tabela-fipe') },
     { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
@@ -246,7 +247,7 @@ function Menu() {
             <ul className="menu-list">
               {menuItems.map(item => (
                 <li key={item.id}>
-                  <a href={`#${item.id}`} className="menu-login-item" onClick={handleNavigation(item.onClick)}>{item.label}</a>
+                  <a href={`#${item.id}`} className={`menu-login-item ${item.destacado ? 'destacado' : ''}`} onClick={handleNavigation(item.onClick)}>{item.label}</a>
                 </li>
               ))}
             </ul>

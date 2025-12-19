@@ -1,4 +1,4 @@
-/* page-NossoProjeto.css - Estilos modernos com cards */
+/* page-SobreGaragemSmart.css - Estilos modernos com cards */
 
 #nosso-projeto {
   padding: 2rem 1rem;
@@ -70,6 +70,23 @@
   line-height: 1.8;
   margin: 0;
   text-align: justify;
+}
+
+/* Seção do Projeto */
+.projeto-section {
+  margin-top: 4rem;
+  width: 100%;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.projeto-section .section-title {
+  font-size: 2rem;
+  color: #1a365d;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  font-weight: 700;
 }
 
 /* Seção de Funcionalidades */

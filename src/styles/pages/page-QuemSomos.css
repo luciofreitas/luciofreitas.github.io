@@ -122,22 +122,24 @@
 }
 
 .equipe-cards-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
   width: 100%;
 }
 
 .equipe-card {
   display: flex;
-  align-items: flex-start;
-  gap: 2rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
   background: white;
   border: 2px solid #e2e8f0;
   border-radius: 1rem;
-  padding: 2rem;
+  padding: 1.75rem;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
 }
 
 .equipe-card:hover {
@@ -148,8 +150,8 @@
 
 .equipe-card-photo {
   flex-shrink: 0;
-  width: clamp(9rem, 18vw, 11.25rem);
-  height: clamp(9rem, 18vw, 11.25rem);
+  width: clamp(7rem, 12vw, 9rem);
+  height: clamp(7rem, 12vw, 9rem);
 }
 
 .equipe-photo {
@@ -164,12 +166,12 @@
 
 .equipe-card-content {
   flex: 1;
-  text-align: left;
+  text-align: center;
 }
 
 .equipe-nome {
   color: #1a365d;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
   line-height: 1.2;
@@ -177,7 +179,7 @@
 
 .equipe-cargo {
   color: #3182ce;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   margin: 0 0 1rem 0;
   line-height: 1.2;
@@ -185,13 +187,26 @@
 
 .equipe-bio {
   color: #4a5568;
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: 0.9rem;
+  line-height: 1.6;
   margin: 0;
-  text-align: justify;
+  text-align: center;
 }
 
 /* Responsividade */
+@media (max-width: 1024px) {
+  .equipe-cards-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .equipe-card:last-child {
+    grid-column: 1 / -1;
+    max-width: 50%;
+    margin: 0 auto;
+  }
+}
+
 @media (max-width: 768px) {
   #quem-somos {
     padding: 1rem 0.5rem;
@@ -213,12 +228,16 @@
   }
 
   .equipe-cards-container {
+    grid-template-columns: 1fr;
     gap: 2rem;
+  }
+  
+  .equipe-card:last-child {
+    grid-column: auto;
+    max-width: 100%;
   }
 
   .equipe-card {
-    flex-direction: column;
-    align-items: center;
     padding: 1.5rem;
     gap: 1.5rem;
   }
@@ -228,21 +247,16 @@
     height: clamp(7rem, 15vw, 8.75rem);
   }
 
-  .equipe-card-content {
-    text-align: center;
-  }
-
   .equipe-nome {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
   }
 
   .equipe-cargo {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .equipe-bio {
-    font-size: 0.95rem;
-    text-align: center;
+    font-size: 0.85rem;
   }
 }
 }

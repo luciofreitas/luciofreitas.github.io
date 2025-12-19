@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { MenuLogin } from '../components';
-import '../styles/pages/page-NossoProjeto.css';
+import '../styles/pages/page-SobreGaragemSmart.css';
 import '../styles/pages/page-QuemSomos.css';
 
-export default function NossoProjeto() {
+export default function SobreGaragemSmart() {
   const [expandedCards, setExpandedCards] = useState({});
 
   const toggleCard = (cardKey) => {
@@ -56,93 +56,96 @@ export default function NossoProjeto() {
     <>
       <MenuLogin />
       <div className="page-wrapper">
-        <div className="page-content" id="nosso-projeto">
+        <div className="page-content" id="sobre-garagemsmart">
           <h2 className="page-title">Sobre o GaragemSmart</h2>
           
           <p className="page-subtitle">
-            Conheça o Garagem Smart - nossa solução completa para o seu problema automotivo.
+            Conheça nossa história e missão no setor automotivo.
           </p>
 
-          <div className="projeto-descricao">
+          {/* PRIMEIRO: Conteúdo completo de Quem Somos */}
+          <div className="quem-somos-descricao">
             <p>
-              O Garagem Smart é uma plataforma completa e intuitiva desenvolvida para transformar a forma como você cuida do seu veículo. 
-              Nascemos da necessidade de simplificar o complexo universo automotivo, oferecendo ferramentas práticas que colocam o 
-              conhecimento técnico ao alcance de todos — desde consumidores finais até profissionais do setor.            
-            </p>         
-          </div>
-          <div className="projeto-descricao-dois">
-            <p>
-              O Garagem Smart está em constante evolução. Desde o início, adotamos o compromisso de desenvolver uma plataforma transparente, 
-              confiável e alinhada às necessidades reais de quem cuida do próprio veículo. Cada nova funcionalidade nasce de testes contínuos, feedbacks reais e colaboração da nossa comunidade inicial.
-              Estamos construindo algo sólido, passo a passo — com seriedade, clareza e foco no que realmente importa: oferecer informações automotivas acessíveis, organizadas e livres de confusão. Se você está aqui agora, já faz parte deste começo e contribui para moldar um serviço pensado para durar.
-            </p> 
+               Somos uma empresa fundada por três amigos que, cansados de depender de terceiros, decidiram transformar iniciativa em soluções concretas.
+              Com recursos iniciais modestos, unimos curiosidade técnica, colaboração e disciplina para resolver problemas reais do setor automotivo.
+              Atuamos com foco em eficiência, acessibilidade e resultados mensuráveis. Nosso compromisso é entregar produtos úteis e confiáveis,
+              sustentados por ética, transparência e aprendizado contínuo. Não buscamos ser apenas mais uma empresa no mercado global —
+              trabalhamos com serenidade e consistência para, um dia, nos tornar referência em tecnologia.
+            </p>
           </div>
 
-          {/* Seção Quem Somos */}
-          <section className="quem-somos-section">
-            <h3 className="section-title">Quem Somos</h3>
-            <div className="quem-somos-descricao">
-              <p>
-                Somos uma empresa fundada por três amigos que, cansados de depender de terceiros, decidiram transformar iniciativa em soluções concretas.
-                Com recursos iniciais modestos, unimos curiosidade técnica, colaboração e disciplina para resolver problemas reais do setor automotivo.
-                Atuamos com foco em eficiência, acessibilidade e resultados mensuráveis. Nosso compromisso é entregar produtos úteis e confiáveis,
-                sustentados por ética, transparência e aprendizado contínuo. Não buscamos ser apenas mais uma empresa no mercado global —
-                trabalhamos com serenidade e consistência para, um dia, nos tornar referência em tecnologia.
-              </p>
-            </div>
-
-            {/* Seção de Apresentação da Equipe */}
-            <div className="quem-somos-equipe-section">
-              <h4 className="equipe-section-title">Nossa Equipe</h4>
-              
-              <div className="equipe-cards-container">
-                {/* Card Membro 1 */}
-                <div className="equipe-card">
-                  <div className="equipe-card-photo">
-                    <img src="/images/rafael.jpg" alt="Rafael" className="equipe-photo" />
-                  </div>
-                  <div className="equipe-card-content">
-                    <h5 className="equipe-nome">Rafael de Almeida</h5>
-                    <p className="equipe-cargo">Fundador & Head de Inovação</p>
-                    <p className="equipe-bio">
-                      Idealizador do Garagem Smart, é quem trouxe a visão inicial do projeto e ajuda a guiar seus rumos estratégicos. 
-                      Tem perfil criativo e inovador, buscando sempre novas formas de gerar valor para o negócio e seus usuários.
-                    </p>
-                  </div>
+          {/* Seção de Apresentação da Equipe */}
+          <div className="quem-somos-equipe-section">
+            <h3 className="equipe-section-title">Nossa Equipe</h3>
+            
+            <div className="equipe-cards-container">
+              {/* Card Membro 1 */}
+              <div className="equipe-card">
+                <div className="equipe-card-photo">
+                  <img src="/images/rafael.jpg" alt="Rafael" className="equipe-photo" />
                 </div>
-
-                {/* Card Membro 2 */}
-                <div className="equipe-card">
-                  <div className="equipe-card-photo">
-                    <img src="/images/guilherme.jpg" alt="Guilherme" className="equipe-photo" />
-                  </div>
-                  <div className="equipe-card-content">
-                    <h5 className="equipe-nome">Guilherme Melo Fleury</h5>
-                    <p className="equipe-cargo">Co-Fundador & Head de Negócios</p>
-                    <p className="equipe-bio">
-                      Responsável pela liderança e pela representação do Garagem Smart em eventos e apresentações. 
-                      Atua como porta-voz do projeto, conduzindo negociações e transmitindo a visão da empresa. 
-                      Tem foco em crescimento, conexões estratégicas e novos negócios.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Card Membro 3 */}
-                <div className="equipe-card">
-                  <div className="equipe-card-photo">
-                    <img src="/images/lucio.jpg" alt="Lúcio" className="equipe-photo" />
-                  </div>
-                  <div className="equipe-card-content">
-                    <h5 className="equipe-nome">Lúcio de Freitas Pereira</h5>
-                    <p className="equipe-cargo">Co-Fundador & Head de Design/Desenvolvimento</p>
-                    <p className="equipe-bio">
-                      Apaixonado por tecnologia e design, é responsável pelo desenvolvimento e pela experiência digital do Garagem Smart. 
-                      Com formação em TI e experiência em análise de dados, encontrou no design UX/UI uma forma de unir criatividade 
-                      e funcionalidade.
-                    </p>
-                  </div>
+                <div className="equipe-card-content">
+                  <h4 className="equipe-nome">Rafael de Almeida</h4>
+                  <p className="equipe-cargo">Fundador & Head de Inovação</p>
+                  <p className="equipe-bio">
+                   Idealizador do Garagem Smart, é quem trouxe a visão inicial do projeto e ajuda a guiar seus rumos estratégicos. 
+                   Tem perfil criativo e inovador, buscando sempre novas formas de gerar valor para o negócio e seus usuários.
+                  </p>
                 </div>
               </div>
+
+              {/* Card Membro 2 */}
+              <div className="equipe-card">
+                <div className="equipe-card-photo">
+                  <img src="/images/guilherme.jpg" alt="Guilherme" className="equipe-photo" />
+                </div>
+                <div className="equipe-card-content">
+                  <h4 className="equipe-nome">Guilherme Melo Fleury</h4>
+                  <p className="equipe-cargo">Co-Fundador & Head de Negócios</p>
+                  <p className="equipe-bio">
+                    Responsável pela liderança e pela representação do Garagem Smart em eventos e apresentações. 
+                    Atua como porta-voz do projeto, conduzindo negociações e transmitindo a visão da empresa. 
+                    Tem foco em crescimento, conexões estratégicas e novos negócios.
+                  </p>
+                </div>
+              </div>
+
+              {/* Card Membro 3 */}
+              <div className="equipe-card">
+                <div className="equipe-card-photo">
+                  <img src="/images/lucio.jpg" alt="Lúcio" className="equipe-photo" />
+                </div>
+                <div className="equipe-card-content">
+                  <h4 className="equipe-nome">Lúcio de Freitas Pereira</h4>
+                  <p className="equipe-cargo">Co-Fundador & Head de Design/Desenvolvimento</p>
+                  <p className="equipe-bio">
+                 Apaixonado por tecnologia e design, é responsável pelo desenvolvimento e pela experiência digital do Garagem Smart. 
+                 Com formação em TI e experiência em análise de dados, encontrou no design UX/UI uma forma de unir criatividade 
+                 e funcionalidade.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* DEPOIS: Conteúdo do Nosso Projeto */}
+          <section className="projeto-section">
+            <h3 className="section-title">Nosso Projeto</h3>
+            
+            <div className="projeto-descricao">
+              <p>
+                O Garagem Smart é uma plataforma completa e intuitiva desenvolvida para transformar a forma como você cuida do seu veículo. 
+                Nascemos da necessidade de simplificar o complexo universo automotivo, oferecendo ferramentas práticas que colocam o 
+                conhecimento técnico ao alcance de todos — desde consumidores finais até profissionais do setor.            
+              </p>         
+            </div>
+            
+            <div className="projeto-descricao-dois">
+              <p>
+                O Garagem Smart está em constante evolução. Desde o início, adotamos o compromisso de desenvolver uma plataforma transparente, 
+                confiável e alinhada às necessidades reais de quem cuida do próprio veículo. Cada nova funcionalidade nasce de testes contínuos, feedbacks reais e colaboração da nossa comunidade inicial.
+                Estamos construindo algo sólido, passo a passo — com seriedade, clareza e foco no que realmente importa: oferecer informações automotivas acessíveis, organizadas e livres de confusão. Se você está aqui agora, já faz parte deste começo e contribui para moldar um serviço pensado para durar.
+              </p> 
             </div>
           </section>
 
