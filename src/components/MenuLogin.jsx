@@ -82,7 +82,7 @@ const MenuLogin = () => {
     if (usuarioLogado?.isPro) {
       navigate('/versao-pro-assinado');
     } else {
-      navigate('/seja-pro');
+      navigate('/versao-pro');
     }
   };
 

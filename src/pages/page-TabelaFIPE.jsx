@@ -185,7 +185,7 @@ export default function TabelaFIPE() {
                 </p>
                 <button 
                   className="fipe-cta-button"
-                  onClick={() => navigate('/seja-pro')}
+                  onClick={() => navigate('/versao-pro')}
                 >
                   Assinar Versão Pro
                 </button>
