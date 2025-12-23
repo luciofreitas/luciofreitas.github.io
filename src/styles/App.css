@@ -258,6 +258,7 @@ html, body {
   justify-content: center;
   z-index: var(--z-modal-backdrop); /* Using design token - 1040, below menu 1050 */
   padding: 0.5rem 1rem 3rem; /* Pouco padding em cima, muito embaixo para dar folga */
+  overflow: visible;
 }
 
 .modal-content {
@@ -280,11 +281,12 @@ html, body {
   border-radius: 1rem;
   overflow: visible;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1);
-  max-height: calc(100vh - 8rem);
+  max-height: calc(100vh - 6rem);
   max-width: 57.5rem;
   width: calc(100% - 2rem);
-  margin: 0.5rem auto 2rem;
+  margin: 0.5rem auto 1rem;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* Essa div foi removida da estrutura do modal */
@@ -298,6 +300,8 @@ html, body {
   background: linear-gradient(90deg, #FFFFFF, #fbfdff);
   width: 100%;
   box-sizing: border-box;
+  border-radius: 1rem 1rem 0 0;
+  overflow: visible;
 }
 
 .app-compat-title {
@@ -344,8 +348,8 @@ html, body {
   padding: 1rem;
   padding-bottom: 1rem; /* Igual ao padding-top para simetria */
   overflow-y: auto;
-  overflow-x: hidden;
-  max-height: calc(100vh - 8rem); /* Reduzir altura para dar mais folga embaixo */
+  overflow-x: visible;
+  max-height: calc(100vh - 12rem); /* Ajustado para evitar scroll desnecessário */
   position: relative;
   z-index: 1;
 }

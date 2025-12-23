@@ -92,43 +92,23 @@ function PecaCard({ peca, onViewCompatibility, onViewDetails }) {
         )}
         
         {/* Botão Ver Compatibilidade */}
-        <div className="button-with-lock">
-          <button 
-            className={`peca-card-compat-btn ${!usuarioLogado ? 'btn-blocked' : ''}`}
-            onClick={() => usuarioLogado && onViewCompatibility(peca)}
-            disabled={!usuarioLogado}
-          >
-            Ver compatibilidade
-          </button>
-          {!usuarioLogado && (
-            <div className="lock-icon-wrapper">
-              <span className="lock-icon">🔒</span>
-              <span className="lock-tooltip">
-                Faça login para ver a compatibilidade completa desta peça
-              </span>
-            </div>
-          )}
-        </div>
+        <button 
+          className={`peca-card-compat-btn ${!usuarioLogado ? 'btn-blocked' : ''}`}
+          onClick={() => usuarioLogado && onViewCompatibility(peca)}
+          disabled={!usuarioLogado}
+        >
+          Ver compatibilidade
+        </button>
         
         {/* Botão Ver Ficha Completa - only for non-ML products or if logged in */}
         {(!isMLProduct || usuarioLogado) && (
-          <div className="button-with-lock">
-            <button 
-              className={`peca-card-details-btn ${!usuarioLogado ? 'btn-blocked' : ''}`}
-              onClick={() => usuarioLogado && onViewDetails && onViewDetails(peca.id)}
-              disabled={!usuarioLogado}
-            >
-              Ver ficha completa
-            </button>
-            {!usuarioLogado && (
-              <div className="lock-icon-wrapper">
-                <span className="lock-icon">🔒</span>
-                <span className="lock-tooltip">
-                  Faça login para acessar a ficha técnica completa desta peça
-                </span>
-              </div>
-            )}
-          </div>
+          <button 
+            className={`peca-card-details-btn ${!usuarioLogado ? 'btn-blocked' : ''}`}
+            onClick={() => usuarioLogado && onViewDetails && onViewDetails(peca.id)}
+            disabled={!usuarioLogado}
+          >
+            Ver ficha completa
+          </button>
         )}
       </div>
 
