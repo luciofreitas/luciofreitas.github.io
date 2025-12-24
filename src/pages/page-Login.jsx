@@ -698,12 +698,9 @@ export default function Login() {
               <h2 className="login-section-title">Entrar</h2>
               <p className="login-section-subtitle">Acesse sua conta para gerenciar pedidos e recursos</p>
 
-              <form onSubmit={handleLogin} noValidate>
-                  {/* show global errors only when not showing the link modal or when not suppressing during pending flows */}
-                  {!suppressGlobalError && !showLinkPrompt && error && <div className="form-error">{error}</div>}
-
-                  {/* Link accounts modal (shown when showLinkPrompt is true) */}
-                  {showLinkPrompt && (
+              {/* Modals - fora do form */}
+              {/* Link accounts modal (shown when showLinkPrompt is true) */}
+              {showLinkPrompt && (
                     <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:9999}}>
                       <div className="modal" role="dialog" aria-modal="true" style={{background:'#fff',padding:'20px',maxWidth:'420px',width:'100%',borderRadius:8}}>
                         <h3>Unir contas</h3>
@@ -781,22 +778,27 @@ export default function Login() {
                     </div>
                   )}
 
-                    {/* Merge confirmation modal (server-side merge) */}
-                    {showMergeConfirm && (
-                      <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:10000}}>
-                        <div className="modal" role="dialog" aria-modal="true" style={{background:'#fff',padding:'20px',maxWidth:'480px',width:'100%',borderRadius:8}}>
-                          <h3>Unir contas (confirmação)</h3>
-                          <p>Detectamos uma conta existente com o mesmo e-mail (<strong>{pendingMergeEmail}</strong>).</p>
-                          <p>Se confirmar, iremos unir sua conta do Google com a conta existente no nosso sistema. Isso pode atualizar ou mesclar seus dados de perfil.</p>
-                          {mergeError && <div className="form-error" style={{marginTop:8}}>{mergeError}</div>}
-                          <div style={{display:'flex',gap:8,marginTop:12}}>
-                            <button type="button" className="submit" onClick={confirmMerge} disabled={mergeLoading}>{mergeLoading ? 'Unindo...' : 'Confirmar e unir contas'}</button>
-                            <button type="button" className="submit" onClick={() => { setShowMergeConfirm(false); setPendingMergeIdToken(null); setPendingMergeEmail(null); setMergeError(''); }}>Cancelar</button>
-                          </div>
-                          <div style={{marginTop:8,fontSize:12}}><a href="/#/contato">Precisa de ajuda? Contate o suporte.</a></div>
+                  {/* Merge confirmation modal (server-side merge) */}
+                  {showMergeConfirm && (
+                    <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:10000}}>
+                      <div className="modal" role="dialog" aria-modal="true" style={{background:'#fff',padding:'20px',maxWidth:'480px',width:'100%',borderRadius:8}}>
+                        <h3>Unir contas (confirmação)</h3>
+                        <p>Detectamos uma conta existente com o mesmo e-mail (<strong>{pendingMergeEmail}</strong>).</p>
+                        <p>Se confirmar, iremos unir sua conta do Google com a conta existente no nosso sistema. Isso pode atualizar ou mesclar seus dados de perfil.</p>
+                        {mergeError && <div className="form-error" style={{marginTop:8}}>{mergeError}</div>}
+                        <div style={{display:'flex',gap:8,marginTop:12}}>
+                          <button type="button" className="submit" onClick={confirmMerge} disabled={mergeLoading}>{mergeLoading ? 'Unindo...' : 'Confirmar e unir contas'}</button>
+                          <button type="button" className="submit" onClick={() => { setShowMergeConfirm(false); setPendingMergeIdToken(null); setPendingMergeEmail(null); setMergeError(''); }}>Cancelar</button>
                         </div>
+                        <div style={{marginTop:8,fontSize:12}}><a href="/#/contato">Precisa de ajuda? Contate o suporte.</a></div>
                       </div>
-                    )}
+                    </div>
+                  )}
+
+              {/* Formulário de Login */}
+              <form onSubmit={handleLogin} noValidate>
+                  {/* show global errors only when not showing the link modal or when not suppressing during pending flows */}
+                  {!suppressGlobalError && !showLinkPrompt && error && <div className="form-error">{error}</div>}
 
                   <div className="login-input-group">
                     <label htmlFor="email" className="login-label">E-mail</label>
@@ -832,17 +834,6 @@ export default function Login() {
                   </div>
 
                   <button className="login-btn-primary" type="submit">Entrar</button>
-
-                  {showLoginOverlay && (
-                    <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:10000}}>
-                      <div className="modal" role="status" aria-live="polite" style={{background:'#fff',padding:'20px',maxWidth:'420px',width:'100%',borderRadius:8,display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
-                        <div style={{width:44,height:44,borderRadius:22,border:'4px solid #eee',borderTopColor:'#4285F4',animation:'spin 1s linear infinite'}} aria-hidden></div>
-                        <div style={{fontSize:16,fontWeight:600}}>Entrando com Google…</div>
-                        <div style={{fontSize:12,color:'#666'}}>Aguarde enquanto finalizamos sua autenticação.</div>
-                      </div>
-                      <style>{"@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}"}</style>
-                    </div>
-                  )}
 
                   <div className="login-divider">
                     <span className="login-divider-text">ou</span>
@@ -921,6 +912,18 @@ export default function Login() {
                     Não tem uma conta? <Link to="/cadastro" className="login-signup-link">Crie agora!</Link>
                   </div>
                 </form>
+
+                {/* Loading overlay quando fazendo login com Google */}
+                {showLoginOverlay && (
+                  <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:10000}}>
+                    <div className="modal" role="status" aria-live="polite" style={{background:'#fff',padding:'20px',maxWidth:'420px',width:'100%',borderRadius:8,display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+                      <div style={{width:44,height:44,borderRadius:22,border:'4px solid #eee',borderTopColor:'#4285F4',animation:'spin 1s linear infinite'}} aria-hidden></div>
+                      <div style={{fontSize:16,fontWeight:600}}>Entrando com Google…</div>
+                      <div style={{fontSize:12,color:'#666'}}>Aguarde enquanto finalizamos sua autenticação.</div>
+                    </div>
+                    <style>{"@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}"}</style>
+                  </div>
+                )}
               </div>
             </div>
           </div>
