@@ -1,3 +1,11 @@
+/* Mantém os ícones coloridos no modo dark */
+.theme-dark .contato-btn-whatsapp {
+  color: #25D366 !important;
+}
+
+.theme-dark .contato-btn-instagram {
+  color: #E4405F !important;
+}
 /* page-Contato.css - Estilos modernos alinhados com Nosso Projeto */
 
 #contato {
