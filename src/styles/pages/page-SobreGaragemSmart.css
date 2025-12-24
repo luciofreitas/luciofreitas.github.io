@@ -279,9 +279,10 @@
 }
 
 .theme-dark .projeto-descricao,
+.theme-dark .projeto-descricao-dois,
 .theme-dark .projeto-conclusao,
 .theme-dark .funcionalidade-card {
-  background: #2d3748;
+  background: #1e293b;
   color: #e2e8f0;
 }
 
@@ -291,6 +292,7 @@
 }
 
 .theme-dark .projeto-descricao p,
+.theme-dark .projeto-descricao-dois p,
 .theme-dark .projeto-conclusao p,
 .theme-dark .funcionalidade-content p {
   color: #cbd5e0;
