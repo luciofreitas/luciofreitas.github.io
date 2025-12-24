@@ -13,7 +13,7 @@
   align-items: center;
   width: 100%;
   overflow: visible;
-  background: var(--color-primary) !important;
+  background: #006B8F !important;
   z-index: 1000;
   box-shadow: var(--shadow-md);
   margin: 0 !important;
@@ -593,7 +593,7 @@ button.menu-login-item {
 
 /* Ensure the grouped menu + logo container uses the same blue background as header */
 .menu-login-container {
-  background: var(--color-primary) !important;
+  background: #006B8F !important;
   width: 100%;
   overflow-x: hidden;
   overflow-y: visible;
@@ -659,7 +659,7 @@ button.menu-login-item {
 
 /* Defensive rule: ensure MenuLogin stays blue even if other global CSS attempts to override it */
 .site-header {
-  background: var(--color-primary) !important;
+  background: #006B8F !important;
 }
 
 .menu-login-right {
@@ -810,7 +810,7 @@ button.menu-login-item {
 @media (min-width: 100rem) {
   .menu-login-root { 
     padding-left: 3rem; 
-    background: #181f2a !important;
+    background: #006B8F !important;
   }
   /* .menu-login-logo img { 
     height: 7rem; 
@@ -1439,4 +1439,18 @@ a.menu-login-item {
     background: #181f2a !important;
     color: var(--text-primary) !important;
   }
+}
+
+/* DARK MODE: deixa o ícone do input[type=date] branco */
+.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
+}
+.theme-dark input[type="date"]::-ms-input-placeholder {
+  color: #fff;
+}
+.theme-dark input[type="date"]::-moz-placeholder {
+  color: #fff;
+}
+.theme-dark input[type="date"]::placeholder {
+  color: #fff;
 }

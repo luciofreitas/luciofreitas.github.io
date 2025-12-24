@@ -263,3 +263,17 @@
 .theme-dark #contato-logado .contato-btn:active {
   background: #374151;
 }
+
+/* Mantém cores originais dos ícones sociais no modo dark */
+.theme-dark #contato-logado .contato-btn-whatsapp {
+  color: #25D366 !important;
+}
+
+.theme-dark #contato-logado .contato-btn-instagram {
+  color: #E4405F !important;
+}
+
+.theme-dark #contato-logado .contato-btn-whatsapp:hover,
+.theme-dark #contato-logado .contato-btn-instagram:hover {
+  color: inherit;
+}

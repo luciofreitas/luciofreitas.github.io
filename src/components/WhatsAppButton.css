@@ -146,12 +146,13 @@
 .theme-dark .whatsapp-button {
   background: #374151;
   border-color: #4b5563;
-  color: #25D366;
+  color: #25D366; /* Mantém cor verde do WhatsApp igual ao modo light */
 }
 
 .theme-dark .whatsapp-button:hover {
   background: #4b5563;
   border-color: #6b7280;
+  color: #25D366; /* Mantém cor verde do WhatsApp no hover */
 }
 
 .theme-dark .whatsapp-button-blur {

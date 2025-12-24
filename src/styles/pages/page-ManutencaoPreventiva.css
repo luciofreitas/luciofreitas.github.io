@@ -274,6 +274,12 @@
   color: #475569;
 }
 
+/* DARK MODE: legenda-item */
+.theme-dark .legenda-item {
+  background: #273449;
+  color: #cbd5e1;
+}
+
 .legenda-badge {
   padding: 0.25rem 0.6rem;
   border-radius: 0.5rem;
