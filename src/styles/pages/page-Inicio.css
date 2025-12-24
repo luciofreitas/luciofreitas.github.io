@@ -1,3 +1,9 @@
+/* Corrige cor do título na blue band no modo dark */
+.theme-dark .inicio-band h1.inicio-band-title,
+.theme-dark .inicio-band .inicio-band-title {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
 /* page-Inicio.css - Estilos modernos alinhados com Nosso Projeto */
 
 .page-inicio {
@@ -432,8 +438,8 @@ h1.page-title {
 /* Strong override to defeat global h2 rules in App.css which set -webkit-text-fill-color */
 .inicio-band h1.inicio-band-title,
 .inicio-band .inicio-band-title {
-  color: var(--text-inverse) !important;
-  -webkit-text-fill-color: var(--text-inverse) !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
   -webkit-text-stroke: none !important;
   mix-blend-mode: normal !important;
   opacity: 1 !important;

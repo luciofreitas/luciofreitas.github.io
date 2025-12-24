@@ -288,7 +288,7 @@
 
 .theme-dark .section-title,
 .theme-dark .funcionalidade-header h4 {
-  color: #e2e8f0;
+  color: #fff !important;
 }
 
 .theme-dark .projeto-descricao p,
