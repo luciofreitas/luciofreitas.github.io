@@ -49,6 +49,11 @@
   font-weight: 600;
 }
 
+/* DARK MODE: código da peça branco */
+.theme-dark .peca-card-code {
+  color: #fff;
+}
+
 .peca-card-specs {
   background: #ffffff;
   padding: 1rem;
