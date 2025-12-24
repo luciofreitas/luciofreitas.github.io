@@ -810,7 +810,7 @@ button.menu-login-item {
 @media (min-width: 100rem) {
   .menu-login-root { 
     padding-left: 3rem; 
-    padding-right: 3rem; 
+    background: #181f2a !important;
   }
   /* .menu-login-logo img { 
     height: 7rem; 
@@ -977,8 +977,8 @@ button.menu-login-item {
 
 /* Não herdar branco para dentro do dropdown (itens devem ser cinza escuro) */
 .menu-login .user-menu-root .user-dropdown,
-.menu-login .user-menu-root .user-dropdown * {
-  color: initial;
+  background: var(--bg-white) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ===== MOBILE HAMBURGER MENU ===== */
@@ -1281,7 +1281,7 @@ button.menu-login-item {
     visibility: visible !important;
   }
 
-/* Ensure any dropdown marked aria-hidden or closed cannot receive pointer events
+  /* Ensure any dropdown marked aria-hidden or closed cannot receive pointer events
    This covers cases where different class names or attribute-driven hiding is used. */
 .user-dropdown.closed,
 .user-dropdown[aria-hidden="true"],
@@ -1415,5 +1415,28 @@ a.menu-login-item {
   .menu-login-logo img {
     height: 40px !important;
     max-width: 160px !important;
+  }
+}
+
+/* Sincroniza cor do texto do menu hamburguer com o modo do tema */
+@media (max-width: 48rem) {
+  .user-menu-root .mobile-nav-dropdown,
+  .user-menu-root .mobile-nav-dropdown .dropdown-item {
+    color: var(--text-primary) !important;
+    background: var(--bg-white) !important;
+    transition: color 0.2s, background 0.2s;
+  }
+  .user-menu-root .mobile-nav-dropdown .dropdown-item:hover {
+    background: rgba(0,0,0,0.03) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+/* FINAL OVERRIDE: Força fundo escuro no dropdown do menu hamburguer no mobile */
+@media (max-width: 48rem) {
+  html body .user-menu-root .user-dropdown,
+  html body .user-menu-root .mobile-nav-dropdown {
+    background: #181f2a !important;
+    color: var(--text-primary) !important;
   }
 }
