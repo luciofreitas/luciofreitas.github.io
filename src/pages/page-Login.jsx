@@ -681,16 +681,24 @@ export default function Login() {
 
   return (
     <>
-      <MenuLogin />
-      <div className="page-wrapper">
-        <div className="page-content">
-          <div className="cadastro-card-outer">
-            <div className="cadastro-card-grid">
-              <section className="cadastro-card">
-                <h1 className="cadastro-title">Entrar</h1>
-                <p className="cadastro-sub">Acesse sua conta para gerenciar pedidos e recursos</p>
+      <div className="login-page-main">
+        {/* Lado esquerdo - Branding */}
+        <div className="login-brand-side">
+          <div className="login-brand-content">
+            <img src="/images/logo.png" alt="Garagem Smart Logo" className="login-brand-logo" />
+            <h1 className="login-brand-name">GARAGEM SMART</h1>
+            <p className="login-brand-tagline">A Inteligência que seu Veículo Merece</p>
+          </div>
+        </div>
 
-                <form className="cadastro-form" onSubmit={handleLogin} noValidate>
+        {/* Lado direito - Formulário */}
+        <div className="login-form-side">
+          <div className="login-form-container">
+            <div className="login-form-card">
+              <h2 className="login-section-title">Entrar</h2>
+              <p className="login-section-subtitle">Acesse sua conta para gerenciar pedidos e recursos</p>
+
+              <form onSubmit={handleLogin} noValidate>
                   {/* show global errors only when not showing the link modal or when not suppressing during pending flows */}
                   {!suppressGlobalError && !showLinkPrompt && error && <div className="form-error">{error}</div>}
 
@@ -790,24 +798,40 @@ export default function Login() {
                       </div>
                     )}
 
-                  <label className="field">
-                    <span className="label">E-mail</span>
-                    <input className={`input`} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@exemplo.com" autoComplete="username" />
-                  </label>
-
-                  <label className="field">
-                    <span className="label">Senha</span>
-                    <div className="password-field">
-                      <input className={`input password-input`} type={showPasswordLogin ? 'text' : 'password'} value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Senha" autoComplete="current-password" />
-                      <ToggleCar on={showPasswordLogin} onClick={() => setShowPasswordLogin(s => !s)} ariaLabel={showPasswordLogin ? 'Ocultar senha' : 'Mostrar senha'} />
-                    </div>
-                  </label>
-
-                  <div className="cadastro-forgot-row">
-                    <Link to="/esqueci-senha" className="forgot-password-link">Esqueci minha senha</Link>
+                  <div className="login-input-group">
+                    <label htmlFor="email" className="login-label">E-mail</label>
+                    <input 
+                      id="email"
+                      className="login-input" 
+                      type="email" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      placeholder="seu@exemplo.com" 
+                      autoComplete="username" 
+                    />
                   </div>
 
-                  <button className="submit" type="submit">Entrar</button>
+                  <div className="login-input-group">
+                    <label htmlFor="senha" className="login-label">Senha</label>
+                    <div className="login-password-wrapper">
+                      <input 
+                        id="senha"
+                        className="login-input" 
+                        type={showPasswordLogin ? 'text' : 'password'} 
+                        value={senha} 
+                        onChange={(e) => setSenha(e.target.value)} 
+                        placeholder="Senha" 
+                        autoComplete="current-password" 
+                      />
+                      <ToggleCar on={showPasswordLogin} onClick={() => setShowPasswordLogin(s => !s)} ariaLabel={showPasswordLogin ? 'Ocultar senha' : 'Mostrar senha'} />
+                    </div>
+                  </div>
+
+                  <div className="login-forgot-row">
+                    <Link to="/esqueci-senha" className="login-forgot-link">Esqueci minha senha</Link>
+                  </div>
+
+                  <button className="login-btn-primary" type="submit">Entrar</button>
 
                   {showLoginOverlay && (
                     <div className="modal-overlay" style={{position:'fixed',left:0,top:0,right:0,bottom:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.5)',zIndex:10000}}>
@@ -820,14 +844,17 @@ export default function Login() {
                     </div>
                   )}
 
-                  <div className="social-login-row">
-                    <button 
-                      type="button" 
-                      className="google-btn google-btn-round" 
-                      aria-label="Entrar com Google" 
-                      title="Entrar com Google"
-                      disabled={googleLoading}
-                      onClick={async () => {
+                  <div className="login-divider">
+                    <span className="login-divider-text">ou</span>
+                  </div>
+
+                  <button 
+                    type="button" 
+                    className="login-btn-google" 
+                    aria-label="Entrar com Google" 
+                    title="Entrar com Google"
+                    disabled={googleLoading}
+                    onClick={async () => {
                           if (googleLoading) return; // prevent multiple clicks
                           setGoogleLoading(true);
                           setError('');
@@ -887,17 +914,13 @@ export default function Login() {
                         <path fill="#FBBC05" d="M24 46c6.1 0 11.6-2 15.7-5.4l-9.4-7.3c-2.5 1.7-5.7 2.8-9 2.8-6.3 0-11.6-4.6-13.6-10.8L2.5 34.8C6.9 41.4 14.7 46 24 46z"/>
                         <path fill="none" d="M0 0h48v48H0z"/>
                       </svg>
+                      <span>Entrar com Google</span>
                     </button>
-                  </div>
 
-                  <div className="cadastro-signup-row">
-                    <Link to="/cadastro" className="signup-link">Crie sua conta agora!</Link>
+                  <div className="login-signup-row">
+                    Não tem uma conta? <Link to="/cadastro" className="login-signup-link">Crie agora!</Link>
                   </div>
                 </form>
-              </section>
-
-              <div className="cadastro-right" aria-hidden="true">
-                <img className="cadastro-hero" loading="lazy" src="/images/imagem-login.png" alt="Imagem ilustrativa de peças automotivas" />
               </div>
             </div>
           </div>

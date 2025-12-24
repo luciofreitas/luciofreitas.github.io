@@ -31,7 +31,7 @@ export default function VersaoPro() {
             <div className="versao-pro-pricecard">
               <div className="versao-pro-price">R$ 9,90/mês</div>
               <div className="versao-pro-price-note">Cancelamento a qualquer momento</div>
-              <button className="versao-pro-cta" onClick={() => navigate('/versao-pro')}>Assinar Pro</button>
+              <button className="versao-pro-cta" onClick={() => navigate('/checkin')}>Assinar Pro</button>
             </div>
           </div>
               </div>

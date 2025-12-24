@@ -1,4 +1,346 @@
-/* Inputs DaisyUI delicados e limpos no login - compatibilidade cross-browser */
+/* ===== NOVO DESIGN MODERNO DE LOGIN ===== */
+
+/* Container principal - layout split screen */
+.login-page-main {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Lado esquerdo - Branding */
+.login-brand-side {
+  flex: 1;
+  background: linear-gradient(135deg, #0052CC 0%, #003A99 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-brand-side::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: pulse 15s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+.login-brand-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 500px;
+}
+
+.login-brand-logo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+}
+
+.login-brand-name {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.login-brand-tagline {
+  font-size: 1.25rem;
+  font-weight: 300;
+  opacity: 0.95;
+  line-height: 1.6;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Lado direito - Formulário */
+.login-form-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--bg-primary);
+}
+
+.login-form-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-form-card {
+  background: var(--bg-white);
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-gray);
+}
+
+.login-section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.login-section-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Inputs modernos */
+.login-input-group {
+  margin-bottom: 1.25rem;
+}
+
+.login-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.login-input {
+  background-color: var(--form-background);
+  color: var(--text-primary);
+  border: 1px solid var(--form-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  width: 100%;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #0052CC;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+}
+
+.login-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-password-wrapper .login-input {
+  padding-right: 3rem;
+}
+
+.login-forgot-row {
+  text-align: right;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.login-forgot-link {
+  color: #0052CC;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.login-forgot-link:hover {
+  color: #003A99;
+  text-decoration: underline;
+}
+
+/* Botões */
+.login-btn-primary {
+  width: 100%;
+  padding: 0.875rem;
+  background: #0052CC;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.login-btn-primary:hover {
+  background: #003A99;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 82, 204, 0.3);
+}
+
+.login-btn-primary:active {
+  transform: translateY(0);
+}
+
+.login-btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Divider */
+.login-divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  gap: 1rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-gray);
+}
+
+.login-divider-text {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* Google button */
+.login-btn-google {
+  width: 100%;
+  padding: 0.875rem;
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.login-btn-google:hover {
+  background: #f8f9fa;
+  border-color: #ccc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.login-btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Sign up row */
+.login-signup-row {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.login-signup-link {
+  color: #0052CC;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  margin-left: 0.25rem;
+}
+
+.login-signup-link:hover {
+  color: #003A99;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .login-page-main {
+    flex-direction: column;
+  }
+  
+  .login-brand-side {
+    min-height: 40vh;
+    padding: 2rem;
+  }
+  
+  .login-brand-logo {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .login-brand-name {
+    font-size: 2rem;
+  }
+  
+  .login-brand-tagline {
+    font-size: 1rem;
+  }
+  
+  .login-form-side {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-brand-side {
+    min-height: 30vh;
+    padding: 1.5rem;
+  }
+  
+  .login-brand-name {
+    font-size: 1.5rem;
+  }
+  
+  .login-form-card {
+    padding: 1.5rem;
+  }
+}
+
+/* Dark mode */
+.theme-dark .login-brand-side {
+  background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%);
+}
+
+.theme-dark .login-form-side {
+  background: #0f1419;
+}
+
+.theme-dark .login-form-card {
+  background: #1a2332;
+  border-color: #2d3748;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .login-btn-google {
+  background: #2d3748;
+  color: #e2e8f0;
+  border-color: #4a5568;
+}
+
+.theme-dark .login-btn-google:hover {
+  background: #374151;
+  border-color: #6b7280;
+}
+
+/* ===== ESTILOS ANTIGOS MANTIDOS PARA COMPATIBILIDADE ===== */
 .input {
   background-color: var(--form-background) !important;
   color: var(--text-primary) !important;
