@@ -482,10 +482,6 @@ body {
     100% 100%;
   background-attachment: fixed;
 }
-    20px 20px,
-    100% 100%;
-  background-attachment: fixed;
-}
 
 html, body {
   width: 100%;
@@ -1168,11 +1164,6 @@ html body {
   background-color: transparent !important;
 }
 
-/* Override para qualquer regra de background branco que ainda reste */
-.page-wrapper.page-inicio * {
-  background-color: initial !important;
-}
-
 /* Card Components */
 .card {
   border-radius: var(--radius-base);
@@ -1612,33 +1603,6 @@ input, textarea, button, select {
   /* Grid responsivo com gap adequado */
   .search-form-row {
     gap: 1rem;
-  }
-}
-
-/* Breakpoints específicos */
-@media (max-width: 480px) {
-  /* Mobile pequeno - força elementos em coluna */
-  .search-form-row {
-    flex-direction: column;
-  }
-  
-  .search-form-field {
-    width: 100%;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-  /* Tablet - ajustes intermediários */
-  .page-content {
-    padding: 1.5rem;
-  }
-}
-
-@media (min-width: 1025px) {
-  /* Desktop - máxima usabilidade */
-  .page-content {
-    max-width: 1400px;
-    margin: 0 auto;
   }
 }
 
