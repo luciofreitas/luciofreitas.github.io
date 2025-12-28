@@ -27,7 +27,7 @@ export default function PageInicio() {
                     e evite compras erradas.
                   </p>
                 </div>
-                <button className="hero-cta-button" onClick={() => navigate('/cadastro')}>
+                <button className="hero-cta-button" onClick={() => navigate('/login')}>
                   Começar agora – é grátis →
                 </button>
               </div>
@@ -100,7 +100,7 @@ export default function PageInicio() {
               </div>
             </div>
 
-            <button className="benefits-cta-button" onClick={() => navigate('/cadastro')}>
+            <button className="benefits-cta-button" onClick={() => navigate('/login')}>
               Criar conta gratuita →
             </button>
           </div>
@@ -143,7 +143,7 @@ export default function PageInicio() {
                   </div>
                 </div>
 
-                <button className="stats-cta-button" onClick={() => navigate('/cadastro')}>
+                <button className="stats-cta-button" onClick={() => navigate('/buscar-pecas')}>
                   Explore nosso catálogo →
                 </button>
               </div>
