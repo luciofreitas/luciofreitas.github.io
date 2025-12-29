@@ -250,11 +250,7 @@ function PageGuias() {
                       <div className="guia-categoria comunidade">{guia.categoria || 'MECÂNICA GERAL'}</div>
                     </div>
 
-                    {guia.imagem && (
-                      <div className="guia-imagem">
-                        <img src={guia.imagem} alt={guia.titulo} />
-                      </div>
-                    )}
+                    {/* Imagem removida do card para não exibir na listagem */}
                     
                     <div className="guia-content">
                       <div className="guia-info">

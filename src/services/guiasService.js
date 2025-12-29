@@ -1,3 +1,24 @@
+// Corrigir guias antigos que não possuem autorNome
+export function corrigirAutorNomeGuiasAntigos(nomeUsuario, emailUsuario) {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const guias = JSON.parse(stored);
+      let alterado = false;
+      for (const g of guias) {
+        if (!g.autorNome && g.autorEmail === emailUsuario) {
+          g.autorNome = nomeUsuario || emailUsuario;
+          alterado = true;
+        }
+      }
+      if (alterado) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(guias));
+      }
+    }
+  } catch (e) {
+    console.error('Erro ao corrigir autorNome dos guias antigos:', e);
+  }
+}
 // guiasService.js - Serviço para gerenciar guias customizados dos usuários Pro
 // Migrado para usar API com fallback para localStorage
 
@@ -104,6 +125,7 @@ class GuiasService {
     const newGuia = {
       id: `guia_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       autorEmail: autorEmail,
+      autorNome: guiaData.autorNome || autorEmail,
       titulo: guiaData.titulo,
       descricao: guiaData.descricao,
       categoria: guiaData.categoria,
@@ -161,12 +183,10 @@ class GuiasService {
     }
 
     const guia = this.guias[index];
-    
     // Verificar se o usuário é o autor
     if (guia.autorEmail !== autorEmail) {
       throw new Error('Apenas o autor pode editar este guia');
     }
-
     // Preparar dados atualizados
     const updatedGuia = {
       ...guia,
@@ -175,6 +195,7 @@ class GuiasService {
       categoria: guiaData.categoria || guia.categoria,
       conteudo: guiaData.conteudo || guia.conteudo,
       imagem: guiaData.imagem !== undefined ? guiaData.imagem : guia.imagem,
+      autorNome: guiaData.autorNome || guia.autorNome || guia.autorEmail,
       atualizadoEm: new Date().toISOString(),
       status: 'ativo' // Volta para ativo após edição
     };

@@ -5,22 +5,32 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
 import { guiasService } from '../services/guiasService';
+import { corrigirAutorNomeGuiasAntigos } from '../services/guiasService';
 import '../styles/pages/page-CriarGuia.css';
 
 export default function CriarGuia() {
+    // Corrigir autorNome dos guias antigos ao carregar, se usuário logado
+    useEffect(() => {
+      if (usuarioLogado?.email) {
+        corrigirAutorNomeGuiasAntigos(usuarioLogado?.nome || usuarioLogado?.email, usuarioLogado.email);
+      }
+    }, [usuarioLogado?.email, usuarioLogado?.nome]);
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
   const { guiaId } = useParams(); // Para edição
   const isEditing = Boolean(guiaId);
-  const hasChecked = useRef(false);
 
+  // Estado do formulário
   const [formData, setFormData] = useState({
     titulo: '',
     descricao: '',
     categoria: '',
-    conteudo: '',
-    imagem: ''
+    imagem: '',
+    conteudo: ''
   });
+
+  // Referência para evitar múltiplas execuções do useEffect
+  const hasChecked = useRef(false);
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,16 +136,18 @@ export default function CriarGuia() {
     setIsSubmitting(true);
     setSuccessMessage('');
 
+    // Montar dados do autor
+    const autorNome = usuarioLogado?.nome || usuarioLogado?.email || '';
+
     try {
       if (isEditing) {
         // Atualizar guia existente
-        await guiasService.updateGuia(guiaId, formData, usuarioLogado.email);
+        await guiasService.updateGuia(guiaId, { ...formData, autorNome }, usuarioLogado.email);
         setSuccessMessage('Guia atualizado com sucesso!');
       } else {
         // Criar novo guia (await to ensure optimistic state saved and remote POST fired)
-        const created = await guiasService.createGuia(formData, usuarioLogado.email);
+        await guiasService.createGuia({ ...formData, autorNome }, usuarioLogado.email);
         setSuccessMessage('Guia criado com sucesso!');
-        console.debug('createGuia returned', created && created.id ? created.id : '(no-id)');
       }
 
       // Short delay to let the UI settle and ensure the /guias page reads the updated list
@@ -149,7 +161,6 @@ export default function CriarGuia() {
       setIsSubmitting(false);
     }
   };
-
   const categorias = [
     'Manutenção Preventiva',
     'Instalação de Peças',
@@ -180,24 +191,48 @@ export default function CriarGuia() {
           </h2>
 
           <div className="criar-guia-intro">
-            <p>
-              {isEditing 
-                ? 'Edite seu guia e compartilhe seu conhecimento atualizado com a comunidade.'
-                : 'Compartilhe seu conhecimento criando um guia personalizado para a comunidade.'
-              }
-            </p>
-            <p className="pro-badge">
-              ⭐ Recurso exclusivo para assinantes Pro
-            </p>
-          </div>
-
-          {successMessage && (
-            <div className="success-message">
-              ✅ {successMessage}
+            <p>Edite seu guia e compartilhe seu conhecimento atualizado com a comunidade.</p>
+            <div style={{ marginTop: '0.5em' }}>
+              <span style={{
+                display: 'inline-block',
+                background: '#ffb84d',
+                color: '#222',
+                fontWeight: 500,
+                borderRadius: '0.7em',
+                padding: '0.22em 0.8em',
+                fontSize: '0.78em',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                letterSpacing: 0.05,
+                lineHeight: 1.3
+              }}>
+                <span style={{ marginRight: '0.3em', fontSize: '0.95em' }}>⭐</span>
+                RECURSO EXCLUSIVO PARA ASSINANTES PRO
+              </span>
             </div>
-          )}
-
+            {successMessage && (
+              <div className="success-message" style={{marginTop: '1em'}}>
+                ✅ {successMessage}
+              </div>
+            )}
+          </div>
           <form className="guia-form" onSubmit={handleSubmit}>
+                        {/* Exibir imagem centralizada se houver URL válida */}
+                        {formData.imagem && (
+                          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '1.2em 0' }}>
+                            <img
+                              src={formData.imagem}
+                              alt="Imagem do guia"
+                              style={{
+                                maxWidth: '90%',
+                                maxHeight: '320px',
+                                objectFit: 'contain',
+                                borderRadius: '12px',
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+                                background: '#fff'
+                              }}
+                            />
+                          </div>
+                        )}
             {/* Título */}
             <div className="form-group">
               <label htmlFor="titulo" className="form-label">
@@ -265,13 +300,55 @@ export default function CriarGuia() {
                 type="url"
                 id="imagem"
                 name="imagem"
-                className="form-input"
+                className={`form-input${errors.imagem ? ' error' : ''}`}
                 value={formData.imagem}
                 onChange={handleChange}
                 placeholder="https://exemplo.com/imagem.jpg"
               />
-              <span className="help-text">
+              {errors.imagem && <span className="error-message">{errors.imagem}</span>}
+              <span className="help-text" style={{display: 'flex', alignItems: 'center', gap: '0.4em'}}>
                 Cole o link de uma imagem ilustrativa para seu guia
+                <span style={{position: 'relative', display: 'inline-block'}}>
+                  <svg
+                    width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    style={{verticalAlign: 'middle', cursor: 'pointer'}}
+                    onMouseOver={e => {
+                      const tip = e.currentTarget.nextSibling;
+                      if (tip) tip.style.display = 'block';
+                    }}
+                    onMouseOut={e => {
+                      const tip = e.currentTarget.nextSibling;
+                      if (tip) tip.style.display = 'none';
+                    }}
+                  >
+                    <circle cx="12" cy="12" r="10" fill="#f3f4f6"/>
+                    <circle cx="12" cy="8" r="1.2" fill="#888"/>
+                    <rect x="11.1" y="11" width="1.8" height="5.2" rx="0.9" fill="#888"/>
+                  </svg>
+                  <span
+                    style={{
+                      display: 'none',
+                      position: 'absolute',
+                      right: 0,
+                      top: '120%',
+                      zIndex: 10,
+                      background: '#fff',
+                      color: '#222',
+                      border: '1px solid #ddd',
+                      borderRadius: '0.5em',
+                      padding: '0.8em',
+                      width: '320px',
+                      fontSize: '0.95em',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                    }}
+                  >
+                    <strong>Importante:</strong> Para que a imagem apareça corretamente, o link deve ser direto para o arquivo da imagem (terminando em <code>.jpg</code>, <code>.jpeg</code>, <code>.png</code>, <code>.gif</code>, <code>.webp</code> etc).<br/><br/>
+                    Não use links de páginas como <code>prnt.sc</code> ou <code>imgur.com</code> sem pegar o endereço direto da imagem. Para obter o link correto, clique com o botão direito na imagem e escolha "Copiar endereço da imagem".<br/><br/>
+                    Exemplos válidos:<br/>
+                    <code>https://site.com/imagem.jpg</code><br/>
+                    <code>https://imgur.com/abc123.png</code>
+                  </span>
+                </span>
               </span>
             </div>
 

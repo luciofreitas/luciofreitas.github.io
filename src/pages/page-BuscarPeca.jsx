@@ -605,7 +605,7 @@ export default function BuscarPeca() {
               <h2 className="page-title">Buscar Peças</h2>
               
               <p className="page-subtitle">
-                Encontre peças automotivas compatíveis com seu veículo. Busque por marca, modelo e ano.
+                Preencha os campos abaixo para encontrar apenas peças compatíveis com o seu veículo.
               </p>
 
             <SearchForm
