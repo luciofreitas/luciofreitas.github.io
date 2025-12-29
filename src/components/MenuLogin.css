@@ -1,3 +1,31 @@
+/* ULTRA-ESPECIFICIDADE FINAL: Força fundo e cor corretos no menu mobile no modo dark, independente da ordem de importação */
+@media (max-width: 48rem) {
+  html.theme-dark body .user-menu-root .mobile-nav-dropdown,
+  html.theme-dark body .user-menu-root .user-dropdown.mobile-nav-dropdown,
+  html.theme-dark .user-menu-root .mobile-nav-dropdown,
+  html.theme-dark .user-menu-root .user-dropdown.mobile-nav-dropdown {
+    background: #172B4D !important;
+    background-color: #172B4D !important;
+    background-image: none !important;
+    color: #fff !important;
+  }
+  html.theme-dark .user-menu-root .mobile-nav-dropdown .dropdown-item {
+    color: #fff !important;
+  }
+}
+/* ULTRA-ESPECIFICIDADE: Força fundo e cor corretos no menu mobile no modo dark, mesmo contra inline ou blocos conflitantes */
+@media (max-width: 48rem) {
+  html.theme-dark body.theme-dark .user-menu-root .user-dropdown.mobile-nav-dropdown.open[role="menu"],
+  html.theme-dark body.theme-dark .user-menu-root .mobile-nav-dropdown.open[role="menu"],
+  html.theme-dark body.theme-dark .user-menu-root .mobile-nav-dropdown[aria-hidden="false"],
+  html.theme-dark body.theme-dark .user-menu-root .mobile-nav-dropdown {
+    background: #172B4D !important;
+    color: #fff !important;
+  }
+  html.theme-dark body.theme-dark .user-menu-root .mobile-nav-dropdown .dropdown-item {
+    color: #fff !important;
+  }
+}
 /* MenuLogin.css - Estilos para o componente de menu de login */
 
 /* ===== ESTRUTURA BÁSICA DO MENU ===== */
@@ -128,6 +156,16 @@
 }
 
 @media (max-width: 48rem) {
+  }
+
+  /* FINAL OVERRIDE: Hamburger menu mobile APENAS para modo darkness, máxima especificidade */
+  @media (max-width: 48rem) {
+    html.theme-dark body.theme-dark .user-menu-root .user-dropdown,
+    html.theme-dark body.theme-dark .user-menu-root .mobile-nav-dropdown {
+      background: #172B4D !important;
+      color: #ffffff !important;
+    }
+  }
   .site-header button.user-button.icon-only img.user-avatar,
   .menu-login-root button.user-button.icon-only img.user-avatar {
     width: 36px !important;
@@ -137,7 +175,6 @@
     min-width: 36px !important;
     min-height: 36px !important;
   }
-}
 
 /* FINAL ENFORCED AVATAR RULE
    This extremely specific selector is placed at the end of the file to ensure it
@@ -1434,17 +1471,26 @@ a.menu-login-item {
 
 /* FINAL OVERRIDE: Força fundo branco no dropdown do menu hamburguer no mobile quando em modo light */
 @media (max-width: 48rem) {
+  /* Lightness (tema claro) */
   html body:not(.theme-dark) .user-menu-root .user-dropdown,
   html body:not(.theme-dark) .user-menu-root .mobile-nav-dropdown {
-    background: #172B4D !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #172B4D !important;
   }
-  
-  /* Mantém fundo escuro no tema dark */
-  html body.theme-dark .user-menu-root .user-dropdown,
-  html body.theme-dark .user-menu-root .mobile-nav-dropdown {
-    background: #181f2a !important;
-    color: var(--text-primary) !important;
+}
+
+/* FINAL OVERRIDE: Hamburger menu mobile APENAS para modo darkness, máxima especificidade */
+@media (max-width: 48rem) {
+  html.theme-dark .user-menu-root .user-dropdown,
+  html.theme-dark .user-menu-root .mobile-nav-dropdown {
+    background: #172B4D !important;
+    color: #fff !important;
+    /* Garante que não há transparência ou gradiente herdado */
+    background-image: none !important;
+    background-color: #172B4D !important;
+  }
+  html.theme-dark .user-menu-root .mobile-nav-dropdown .dropdown-item {
+    color: #fff !important;
   }
 }
 
