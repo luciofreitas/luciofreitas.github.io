@@ -1432,10 +1432,17 @@ a.menu-login-item {
   }
 }
 
-/* FINAL OVERRIDE: Força fundo escuro no dropdown do menu hamburguer no mobile */
+/* FINAL OVERRIDE: Força fundo branco no dropdown do menu hamburguer no mobile quando em modo light */
 @media (max-width: 48rem) {
-  html body .user-menu-root .user-dropdown,
-  html body .user-menu-root .mobile-nav-dropdown {
+  html body:not(.theme-dark) .user-menu-root .user-dropdown,
+  html body:not(.theme-dark) .user-menu-root .mobile-nav-dropdown {
+    background: #172B4D !important;
+    color: #ffffff !important;
+  }
+  
+  /* Mantém fundo escuro no tema dark */
+  html body.theme-dark .user-menu-root .user-dropdown,
+  html body.theme-dark .user-menu-root .mobile-nav-dropdown {
     background: #181f2a !important;
     color: var(--text-primary) !important;
   }
