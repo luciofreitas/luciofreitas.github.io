@@ -619,12 +619,21 @@ h1.page-title {
   }
 
   .inicio-stats-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 1.5rem;
+    width: 100%;
   }
 
   .inicio-stat-card {
     padding: 1.5rem 1rem;
+    width: 90%;
+    max-width: 340px;
+    min-width: unset;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
   }
 
   .stat-number {
@@ -975,8 +984,21 @@ h1.page-title {
   }
 
   .inicio-pro-cards {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 1.5rem;
+    width: 100%;
+  }
+
+  .inicio-pro-card,
+  .inicio-pro-card-featured {
+    width: 90%;
+    max-width: 340px;
+    min-width: unset;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
   }
 
   .inicio-pro-card-featured {
@@ -1275,8 +1297,19 @@ h1.page-title {
   }
 
   .benefits-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 2rem;
+    width: 100%;
+  }
+
+  .benefit-card,
+  .benefit-card-elevated {
+    margin: 0.5rem 0;
+    align-self: center;
+    width: 90%;
+    max-width: 340px;
   }
 
   .inicio-hero-section {
