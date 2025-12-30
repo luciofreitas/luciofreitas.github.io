@@ -113,7 +113,7 @@ export default function SobreGaragemSmart() {
               {/* Card Membro 3 */}
               <div className="equipe-card">
                 <div className="equipe-card-photo">
-                  <img src="/images/lucio.jpg" alt="Lúcio" className="equipe-photo" />
+                  <img src="/images/lucio.png" alt="Lúcio" className="equipe-photo" />
                 </div>
                 <div className="equipe-card-content">
                   <h4 className="equipe-nome">Lúcio de Freitas Pereira</h4>
