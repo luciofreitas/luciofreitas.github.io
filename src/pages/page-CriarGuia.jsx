@@ -9,13 +9,16 @@ import { corrigirAutorNomeGuiasAntigos } from '../services/guiasService';
 import '../styles/pages/page-CriarGuia.css';
 
 export default function CriarGuia() {
-    // Corrigir autorNome dos guias antigos ao carregar, se usuário logado
-    useEffect(() => {
-      if (usuarioLogado?.email) {
-        corrigirAutorNomeGuiasAntigos(usuarioLogado?.nome || usuarioLogado?.email, usuarioLogado.email);
-      }
-    }, [usuarioLogado?.email, usuarioLogado?.nome]);
   const { usuarioLogado } = useContext(AuthContext) || {};
+  // Não renderiza nada até usuarioLogado estar definido
+  if (typeof usuarioLogado === 'undefined') {
+    return null;
+  }
+  // Corrigir autorNome dos guias antigos ao carregar, se usuário logado
+  useEffect(() => {
+    if (!usuarioLogado || !usuarioLogado.email) return;
+    corrigirAutorNomeGuiasAntigos(usuarioLogado.nome || usuarioLogado.email, usuarioLogado.email);
+  }, [usuarioLogado && usuarioLogado.email, usuarioLogado && usuarioLogado.nome]);
   const navigate = useNavigate();
   const { guiaId } = useParams(); // Para edição
   const isEditing = Boolean(guiaId);
@@ -136,8 +139,8 @@ export default function CriarGuia() {
     setIsSubmitting(true);
     setSuccessMessage('');
 
-    // Montar dados do autor
-    const autorNome = usuarioLogado?.nome || usuarioLogado?.email || '';
+    // Montar dados do autor (apenas nome, nunca e-mail)
+    const autorNome = usuarioLogado?.nome || '';
 
     try {
       if (isEditing) {
@@ -146,7 +149,21 @@ export default function CriarGuia() {
         setSuccessMessage('Guia atualizado com sucesso!');
       } else {
         // Criar novo guia (await to ensure optimistic state saved and remote POST fired)
-        await guiasService.createGuia({ ...formData, autorNome }, usuarioLogado.email);
+        const novoGuia = await guiasService.createGuia({ ...formData, autorNome }, usuarioLogado.email);
+        // Forçar atualização local do campo autorNome APÓS o carregamento da lista
+        setTimeout(() => {
+          if (novoGuia && novoGuia.id) {
+            const stored = localStorage.getItem('user_custom_guias');
+            if (stored) {
+              const guias = JSON.parse(stored);
+              const idx = guias.findIndex(g => g.id === novoGuia.id);
+              if (idx !== -1) {
+                guias[idx].autorNome = autorNome;
+                localStorage.setItem('user_custom_guias', JSON.stringify(guias));
+              }
+            }
+          }
+        }, 500);
         setSuccessMessage('Guia criado com sucesso!');
       }
 

@@ -165,6 +165,12 @@ function PageVisualizarGuia() {
   const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
   const averageRating = guiasService.calculateAverageRating(guia);
 
+  // Corrigir autorNome na visualização se for o autor e não tiver nome salvo
+  let autorNomeExibir = guia?.autorNome;
+  if (isAutor && (!autorNomeExibir || autorNomeExibir === 'Anônimo')) {
+    autorNomeExibir = usuarioLogado?.nome || usuarioLogado?.email || 'Anônimo';
+  }
+
   return (
     <>
       <Menu />
@@ -183,7 +189,7 @@ function PageVisualizarGuia() {
             <h1 className="guia-titulo-full">{guia.titulo}</h1>
             
             <div className="guia-info">
-              <span className="guia-autor">Por: {guia.autorNome || 'Anônimo'}</span>
+              <span className="guia-autor">Por: {autorNomeExibir || 'Anônimo'}</span>
               <span className="guia-data">
                 Criado em: {new Date(guia.criadoEm).toLocaleDateString('pt-BR')}
               </span>
