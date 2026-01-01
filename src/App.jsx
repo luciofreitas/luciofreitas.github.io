@@ -466,6 +466,7 @@ export default function App() {
             } />
             {/* Redirecionamento da rota antiga para a nova */}
             <Route path="/perfil-teste" element={<Navigate to="/perfil" replace />} />
+            {/* <Route path="/page-login-teste" element={<PageLoginTeste />} /> */}
               </Routes>
             </Suspense>
           </div>
