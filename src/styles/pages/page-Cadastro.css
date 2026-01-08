@@ -8,6 +8,80 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
+/* ====== Modo Darkness ====== */
+.theme-dark .cadastro-logo-wrapper p,
+.theme-dark .cadastro-section-subtitle,
+.theme-dark .cadastro-instruction {
+  color: #fff !important;
+}
+
+.theme-dark .cadastro-title {
+  color: #fff !important;
+}
+
+.theme-dark .cadastro-form {
+  background: transparent !important;
+}
+
+.theme-dark .cadastro-main {
+  background: transparent !important;
+}
+
+.theme-dark .cadastro-logo-wrapper {
+  background: transparent !important;
+}
+
+.theme-dark .cadastro-content-right {
+  background: transparent !important;
+}
+
+.theme-dark .input {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+.theme-dark .input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.theme-dark .cadastro-info-card {
+  background: rgba(30, 41, 59, 0.4) !important;
+  border-color: rgba(71, 85, 105, 0.5) !important;
+}
+
+.theme-dark .cadastro-info-title {
+  color: #fff !important;
+}
+
+.theme-dark .cadastro-info-subtitle {
+  color: #cbd5e1 !important;
+}
+
+.theme-dark .cadastro-benefit-text strong {
+  color: #fff !important;
+}
+
+.theme-dark .cadastro-benefit-text span {
+  color: #94a3b8 !important;
+}
+
+.theme-dark .cadastro-benefit-item:hover .cadastro-benefit-icon {
+  background: #2563eb !important;
+}
+
+.theme-dark .error {
+  color: #fca5a5 !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+  border-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+.theme-dark .success {
+  color: #86efac !important;
+  background: rgba(22, 163, 74, 0.1) !important;
+  border-color: rgba(22, 163, 74, 0.3) !important;
+}
+
 .cadastro-teste-form {
   display: flex;
   flex-direction: column;
@@ -68,114 +142,123 @@
 }
 
 /* ====== Seja Pro Section Adaptado ====== */
-.cadastro-content-center {
+/* Novo card informativo do lado direito */
+.cadastro-content-right {
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 2rem 0;
-}
-
-.cadastro-inicio-pro-card {
+  background: #fff;
   position: relative;
-  background: rgba(255, 255, 255, 0.85);
-  border: 2px solid rgba(226, 232, 240, 0.6);
-  border-radius: 1.5rem;
-  padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 2rem;
+  padding-top: 112px;
+  margin-left: 5rem;
+  margin-right: 3rem;
 }
 
-.cadastro-inicio-pro-card-featured {
-  border: 2px solid #f59e0b;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(251, 191, 36, 0.1) 100%);
-  box-shadow: 0 12px 40px rgba(245, 158, 11, 0.2);
-  transform: scale(1.05);
+.cadastro-info-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
 }
 
-.cadastro-inicio-pro-card-featured:hover {
-  transform: translateY(-8px) scale(1.05);
-  box-shadow: 0 20px 56px rgba(245, 158, 11, 0.3);
-}
-
-.cadastro-pro-card-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-}
-
-.cadastro-pro-card-title {
-  font-size: 1.8rem;
+.cadastro-info-title {
+  font-size: 1.75rem;
   font-weight: 700;
-  color: #22223b;
-  margin-bottom: 0.5rem;
+  color: #1e293b;
+  margin-bottom: 12px;
+  text-align: left;
 }
 
-.cadastro-pro-card-price {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #1976d2;
-  margin: 0.5rem 0 0 0;
-}
-
-.cadastro-inicio-pro-card-featured .cadastro-pro-card-price {
-  background: linear-gradient(135deg, #f59e0b 0%, #fb923c 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.cadastro-pro-card-period {
-  font-size: 0.9rem;
+.cadastro-info-subtitle {
+  font-size: 1rem;
   color: #64748b;
-  margin-top: 0.25rem;
+  margin-bottom: 32px;
+  line-height: 1.6;
+  text-align: left;
 }
 
-.cadastro-pro-card-body {
-  flex: 1;
-  margin-bottom: 1.5rem;
-}
-
-.cadastro-pro-card-features {
+.cadastro-benefits-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.cadastro-pro-card-features li {
+.cadastro-benefit-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
-  font-size: 1rem;
-  color: #22223b;
+  gap: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.cadastro-feature-enabled .cadastro-feature-icon {
-  background: rgba(34, 197, 94, 0.15);
-  color: #16a34a;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
+.cadastro-benefit-item:last-child {
+  margin-bottom: 0;
 }
 
-.cadastro-feature-icon {
-  display: inline-flex;
+.cadastro-benefit-icon {
+  background: #3b82f6;
+  color: #fff;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-weight: 700;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.cadastro-benefit-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  position: relative;
+  min-height: 48px;
+  justify-content: center;
+}
+
+.cadastro-benefit-text strong {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: block;
+  transition: all 0.3s ease;
+  opacity: 1;
+  transform: translateY(0);
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.cadastro-benefit-text span {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.cadastro-benefit-item:hover .cadastro-benefit-text strong {
+  opacity: 0;
+  transform: translateY(-60%);
+}
+
+.cadastro-benefit-item:hover .cadastro-benefit-text span {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .cadastro-separador-central {
@@ -240,18 +323,7 @@
   font-size: 1.2rem;
   color: #222;
 }
-.cadastro-content-center {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  position: relative;
-  padding-top: 112px;
-  margin-left: 5rem;
-  margin-right: 3rem;
-}
+
 .cadastro-section-title {
   font-size: 2.2rem !important;
   font-weight: 700 !important;
@@ -307,49 +379,6 @@
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 1rem;
-}
-.cadastro-pro-card {
-  border: 2px solid #ffe0b2;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #fffbe6 0%, #fff 100%);
-  padding: 2.5rem 2.2rem;
-  max-width: 340px;
-  width: 100%;
-  box-shadow: 0 2px 12px rgba(255,193,7,0.07);
-  margin: 0 auto;
-  text-align: center;
-}
-.cadastro-pro-title {
-  font-weight: 700;
-  font-size: 1.3rem;
-  margin-bottom: 8px;
-}
-.cadastro-pro-price {
-  font-weight: 700;
-  font-size: 2.2rem;
-  color: #ffa726;
-  margin-bottom: 0;
-}
-.cadastro-pro-period {
-  color: #888;
-  font-size: 1rem;
-  margin-bottom: 24px;
-}
-.cadastro-pro-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  text-align: left;
-  font-size: 1.05rem;
-  color: #444;
-}
-.cadastro-pro-list li {
-  margin-bottom: 12px;
-}
-.cadastro-pro-check {
-  color: #43a047;
-  font-weight: 700;
-  margin-right: 8px;
 }
 .cadastro-separador-central {
   position: absolute;
@@ -434,7 +463,7 @@
     align-items: center;
     justify-content: flex-start;
   }
-  .cadastro-content-center {
+  .cadastro-content-right {
     min-height: auto;
     padding: 0 1rem !important;
     align-items: flex-start;
@@ -462,7 +491,7 @@
     font-size: 0.95rem !important;
     margin-bottom: 0.5rem !important;
   }
-  .cadastro-content-center {
+  .cadastro-content-right {
     min-height: auto !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -549,12 +578,4 @@
 
 .cadastro-form {
   width: 100%;
-}
-
-.cadastro-content-center {
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
