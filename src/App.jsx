@@ -17,6 +17,7 @@ const Checkin = lazy(() => import('./pages/page-Checkin'));
 const VersaoPro_Assinado = lazy(() => import('./pages/page-VersaoPro_Assinado'));
 const Contato = lazy(() => import('./pages/page-Contato'));
 const PageCadastro = lazy(() => import('./pages/page-Cadastro'));
+const PageCadastroTeste = lazy(() => import('./pages/page-cadastro-teste'));
 const Parceiros = lazy(() => import('./pages/page-Parceiros'));
 const ContatoLogado = lazy(() => import('./pages/page-ContatoLogado'));
 const BuscarPeca = lazy(() => import('./pages/page-BuscarPeca'));
@@ -466,6 +467,7 @@ export default function App() {
             } />
             {/* Redirecionamento da rota antiga para a nova */}
             <Route path="/perfil-teste" element={<Navigate to="/perfil" replace />} />
+            <Route path="/page-cadastro-teste" element={<PageCadastroTeste />} />
             {/* <Route path="/page-login-teste" element={<PageLoginTeste />} /> */}
               </Routes>
             </Suspense>

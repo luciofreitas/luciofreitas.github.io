@@ -14,6 +14,7 @@ export default function PageCadastro() {
   const [showConfirmSenha, setShowConfirmSenha] = useState(false);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { setUsuarioLogado } = useContext(AuthContext || {});
 
@@ -41,219 +42,241 @@ export default function PageCadastro() {
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit(ev) {
+  async function handleSubmit(ev) {
     ev.preventDefault();
     setSuccess('');
+    setErrors({});
     if (!validate()) return;
-
+    setLoading(true);
     // Normalize name (collapse whitespace, trim) and attempt create -> then auto-login
     const normalizedNome = String(nome || '').trim().replace(/\s+/g, ' ');
-    // Try to create user via API; fallback to localStorage when unavailable
-    (async () => {
-      try {
-        const apiBase = window.__API_BASE || '';
-        const resp = await fetch(`${apiBase}/api/users`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome: normalizedNome, email: email.trim(), senha }),
-        });
-
-        if (resp.status === 201) {
-          // Parse created user (may include id/email/name)
-          const created = await resp.json().catch(() => ({}));
-          const normalizedUsuario = {
-            id: created.id || (`local_${Date.now()}`),
-            email: created.email || email.trim(),
-            nome: (created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome,
-            name: (created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome,
-            avatarBg: computeAvatarBg((created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome),
-            photoURL: created.photoURL || created.photo_url || null
-          };
-          // Auto-login: set context and localStorage so header updates with initials
-          try { if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario); } catch(e){}
-          try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch(e){}
-          setSuccess('Cadastro realizado com sucesso! Entrando...');
-          if (window.showToast) window.showToast('Cadastro realizado com sucesso! Entrando...', 'success', 1200);
-          setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
-          setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
-          return;
-        }
-
-        if (resp.status === 409) {
-          // User exists
-          const body = await resp.json().catch(() => ({}));
-          setErrors({ form: 'Usuário já existe. Tente recuperar a senha ou entre em contato.' });
-          console.warn('User exists:', body);
-          return;
-        }
-
-        // Other non-OK: fall back to attempt creating the user directly in Supabase
-        console.warn('API /api/users returned non-201 status, attempting Supabase signup fallback', resp.status);
-        try {
-          const emailAddr = email.trim();
-          const pw = senha;
-          // Lazy-import supabase client for fallback
-          let _supabase = null;
-          try { const mod = await import('../supabase'); _supabase = mod.default || mod.supabase; } catch (e) { _supabase = null; }
-          if (_supabase && _supabase.auth && typeof _supabase.auth.signUp === 'function') {
-            const { data, error } = await _supabase.auth.signUp({ email: emailAddr, password: pw, options: { data: { nome: normalizedNome } } });
-            if (error) {
-              console.warn('Supabase signup fallback failed:', error);
-            } else if (data && (data.user || data)) {
-              const sbUser = data.user || data;
-              const normalizedUsuario = {
-                id: sbUser.id || sbUser.user?.id || (`local_${Date.now()}`),
-                email: sbUser.email || emailAddr,
-                nome: (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome,
-                name: (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome,
-                avatarBg: computeAvatarBg((sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome),
-                photoURL: sbUser.photoURL || sbUser.avatar_url || null
-              };
-              try { if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario); } catch(e){}
-              try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch(e){}
-              setSuccess('Cadastro realizado (Supabase). Entrando...');
-              if (window.showToast) window.showToast('Cadastro realizado (Supabase).', 'success', 1200);
-              setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
-              setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
-              return;
-            }
-          }
-        } catch (err2) {
-          console.warn('Supabase signup fallback threw:', err2 && err2.message ? err2.message : err2);
-        }
-        
-        console.warn('Falling back to localStorage after API + Supabase attempts failed');
-      } catch (err) {
-        // Network or other error -> try supabase signup fallback
-        console.warn('Failed to call /api/users, attempting Supabase signup fallback', err && err.message);
-        try {
-          if (supabase && supabase.auth && typeof supabase.auth.signUp === 'function') {
-            const { data, error } = await supabase.auth.signUp({ email: email.trim(), password: senha });
-            if (!error && (data && (data.user || data))) {
-              setSuccess('Cadastro realizado (Supabase). Redirecionando para o login...');
-              if (window.showToast) window.showToast('Cadastro realizado (Supabase).', 'success', 2000);
-              setTimeout(() => { try { navigate('/login', { state: { email: email.trim() } }); } catch (e) {} }, 1500);
-              setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
-              return;
-            }
-            console.warn('Supabase signup fallback returned error', error);
-          }
-        } catch (err2) {
-          console.warn('Supabase signup fallback threw:', err2 && err2.message ? err2.message : err2);
-        }
+    try {
+      const apiBase = window.__API_BASE || '';
+      const resp = await fetch(`${apiBase}/api/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: normalizedNome, email: email.trim(), senha }),
+      });
+      if (resp.status === 201) {
+        const created = await resp.json().catch(() => ({}));
+        const normalizedUsuario = {
+          id: created.id || (`local_${Date.now()}`),
+          email: created.email || email.trim(),
+          nome: (created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome,
+          name: (created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome,
+          avatarBg: computeAvatarBg((created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome),
+          photoURL: created.photoURL || created.photo_url || null,
+          isPro: false
+        };
+        try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
+        try { if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario); } catch(e){}
+        try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch(e){}
+        setSuccess('Cadastro realizado com sucesso! Entrando...');
+        if (window.showToast) window.showToast('Cadastro realizado com sucesso! Entrando...', 'success', 1200);
+        setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
+        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+        setLoading(false);
+        return;
       }
-
+      if (resp.status === 409) {
+        const body = await resp.json().catch(() => ({}));
+        setErrors({ form: 'Usuário já existe. Tente recuperar a senha ou entre em contato.' });
+        setLoading(false);
+        return;
+      }
+      // Other non-OK: fall back to attempt creating the user directly in Supabase
+      try {
+        const emailAddr = email.trim();
+        const pw = senha;
+        let _supabase = null;
+        try { const mod = await import('../supabase'); _supabase = mod.default || mod.supabase; } catch (e) { _supabase = null; }
+        if (_supabase && _supabase.auth && typeof _supabase.auth.signUp === 'function') {
+          const { data, error } = await _supabase.auth.signUp({ email: emailAddr, password: pw, options: { data: { nome: normalizedNome } } });
+          if (error) {
+            setErrors({ form: 'Erro ao cadastrar no Supabase: ' + (error.message || 'Erro desconhecido') });
+            setLoading(false);
+            return;
+          } else if (data && (data.user || data)) {
+            const sbUser = data.user || data;
+            const normalizedUsuario = {
+              id: sbUser.id || sbUser.user?.id || (`local_${Date.now()}`),
+              email: sbUser.email || emailAddr,
+              nome: (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome,
+              name: (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome,
+              avatarBg: computeAvatarBg((sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome),
+              photoURL: sbUser.photoURL || sbUser.avatar_url || null,
+              isPro: false
+            };
+            try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
+            try { if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario); } catch(e){}
+            try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch(e){}
+            setSuccess('Cadastro realizado (Supabase). Entrando...');
+            if (window.showToast) window.showToast('Cadastro realizado (Supabase).', 'success', 1200);
+            setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
+            setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (err2) {
+        setErrors({ form: 'Erro ao cadastrar no Supabase. Tente novamente.' });
+        setLoading(false);
+        return;
+      }
       // Fallback persistence in localStorage
       try {
-  const key = 'usuarios';
-  const existing = JSON.parse(localStorage.getItem(key) || '[]');
-  const createdLocal = { id: `local_${Date.now()}`, nome: normalizedNome, email: email.trim(), senha, criadoEm: new Date().toISOString(), avatarBg: computeAvatarBg(normalizedNome) };
-  existing.push(createdLocal);
-  localStorage.setItem(key, JSON.stringify(existing));
-  // Auto-login local user
-  try { if (setUsuarioLogado) setUsuarioLogado(createdLocal); } catch(e){}
-  try { localStorage.setItem('usuario-logado', JSON.stringify(createdLocal)); } catch(e){}
-  setSuccess('Cadastro (local) realizado com sucesso! Entrando...');
-  if (window.showToast) window.showToast('Cadastro realizado (local). Entrando...', 'success', 1200);
-  setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
-  setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+        const key = 'usuarios';
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        const createdLocal = { id: `local_${Date.now()}`, nome: normalizedNome, email: email.trim(), senha, criadoEm: new Date().toISOString(), avatarBg: computeAvatarBg(normalizedNome), isPro: false };
+        try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
+        existing.push(createdLocal);
+        localStorage.setItem(key, JSON.stringify(existing));
+        try { if (setUsuarioLogado) setUsuarioLogado(createdLocal); } catch(e){}
+        try { localStorage.setItem('usuario-logado', JSON.stringify(createdLocal)); } catch(e){}
+        setSuccess('Cadastro (local) realizado com sucesso! Entrando...');
+        if (window.showToast) window.showToast('Cadastro realizado (local). Entrando...', 'success', 1200);
+        setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
+        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+        setLoading(false);
+        return;
       } catch (err) {
         setErrors({ form: 'Erro ao salvar os dados localmente. Verifique o console.' });
-        // eslint-disable-next-line no-console
-        console.error('Erro salvando usuário localmente:', err);
+        setLoading(false);
+        return;
       }
-    })();
+    } catch (err) {
+      setErrors({ form: 'Erro inesperado ao cadastrar. Verifique sua conexão ou tente novamente.' });
+      setLoading(false);
+    }
   }
 
   return (
     <>
       <MenuLogin />
-      <div className="page-wrapper">
-        <div className="page-content">
-          <div className="cadastro-card-outer">
-            <div className="cadastro-card-grid">
-                <section className="cadastro-card">
-        <h1 className="cadastro-title">Cadastro</h1>
-        <p className="cadastro-sub">Crie sua conta para acessar recursos adicionais</p>
-
-        <form className="cadastro-form" onSubmit={handleSubmit} noValidate>
-          {errors.form && <div className="form-error">{errors.form}</div>}
-
-          <label className="field">
-            <span className="label">Nome completo</span>
-            <input
-              className={`input ${errors.nome ? 'input-error' : ''}`}
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Seu nome"
-              aria-invalid={!!errors.nome}
-              aria-describedby={errors.nome ? 'err-nome' : undefined}
-            />
-            {errors.nome && <div id="err-nome" className="error">{errors.nome}</div>}
-          </label>
-
-          <label className="field">
-            <span className="label">E-mail</span>
-            <input
-              className={`input ${errors.email ? 'input-error' : ''}`}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@exemplo.com"
-              aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? 'err-email' : undefined}
-            />
-            {errors.email && <div id="err-email" className="error">{errors.email}</div>}
-          </label>
-
-          <label className="field">
-            <span className="label">Senha</span>
-            <div className="password-field">
-              <input
-                className={`input password-input ${errors.senha ? 'input-error' : ''}`}
-                type={showSenha ? 'text' : 'password'}
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                placeholder="Crie uma senha"
-                aria-invalid={!!errors.senha}
-                aria-describedby={errors.senha ? 'err-senha' : undefined}
-              />
-              <ToggleCar on={showSenha} onClick={() => setShowSenha((s) => !s)} ariaLabel={showSenha ? 'Ocultar senha' : 'Mostrar senha'} />
-            </div>
-            {errors.senha && <div id="err-senha" className="error">{errors.senha}</div>}
-          </label>
-
-          <label className="field field-password">
-            <span className="label">Confirmar senha</span>
-            <div className="password-field">
-              <input
-                className={`input password-input ${errors.confirmSenha ? 'input-error' : ''}`}
-                type={showConfirmSenha ? 'text' : 'password'}
-                value={confirmSenha}
-                onChange={(e) => setConfirmSenha(e.target.value)}
-                placeholder="Repita a senha"
-                aria-invalid={!!errors.confirmSenha}
-                aria-describedby={errors.confirmSenha ? 'err-confirm' : undefined}
-              />
-              <ToggleCar on={showConfirmSenha} onClick={() => setShowConfirmSenha((s) => !s)} ariaLabel={showConfirmSenha ? 'Ocultar senha' : 'Mostrar senha'} />
-            </div>
-            {errors.confirmSenha && <div id="err-confirm" className="error">{errors.confirmSenha}</div>}
-          </label>
-
-          <button className="submit" type="submit">Criar conta</button>
-
-          {success && <div className="success">{success}</div>}
-        </form>
-                </section>
-
-                <div className="cadastro-right" aria-hidden="true">
-                  <img className="cadastro-hero" loading="lazy" src="/images/imagem-login.png" alt="Imagem ilustrativa de peças automotivas" />
+      <div className="cadastro-main relative">
+        <div className="cadastro-main-inner">
+          {/* Lado esquerdo: formulário de cadastro */}
+          <div className="cadastro-logo-wrapper">
+            <h2 className="cadastro-section-title cadastro-title">Cadastrar</h2>
+            <p className="cadastro-instruction">Crie sua conta para acessar todos os recursos.</p>
+            <form className="cadastro-form" autoComplete="on" onSubmit={handleSubmit}>
+              {errors.form && (
+                <div className="form-error" style={{ marginBottom: 12, color: '#b91c1c', background: '#fff1f2', border: '1px solid #fecaca', padding: 8, borderRadius: 6, textAlign: 'center' }}>
+                  {errors.form}
                 </div>
+              )}
+              <label className="field">
+                <input
+                  className="input"
+                  type="text"
+                  value={nome}
+                  onChange={e => setNome(e.target.value)}
+                  placeholder="Nome Completo"
+                  autoComplete="name"
+                  disabled={loading}
+                />
+                {errors.nome && <div className="error">{errors.nome}</div>}
+              </label>
+              <label className="field">
+                <input
+                  className="input"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Email"
+                  autoComplete="email"
+                  disabled={loading}
+                />
+                {errors.email && <div className="error">{errors.email}</div>}
+              </label>
+              <label className="field">
+                <div className="password-field">
+                  <input
+                    className="input password-input"
+                    type={showSenha ? 'text' : 'password'}
+                    value={senha}
+                    onChange={e => setSenha(e.target.value)}
+                    placeholder="Senha"
+                    autoComplete="new-password"
+                    disabled={loading}
+                  />
+                  <ToggleCar
+                    on={showSenha}
+                    onClick={() => setShowSenha(s => !s)}
+                    ariaLabel={showSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                    disabled={loading}
+                  />
+                </div>
+                {errors.senha && <div className="error">{errors.senha}</div>}
+              </label>
+              <label className="field">
+                <div className="password-field">
+                  <input
+                    className="input password-input"
+                    type={showConfirmSenha ? 'text' : 'password'}
+                    value={confirmSenha}
+                    onChange={e => setConfirmSenha(e.target.value)}
+                    placeholder="Confirmar Senha"
+                    autoComplete="new-password"
+                    disabled={loading}
+                  />
+                  <ToggleCar
+                    on={showConfirmSenha}
+                    onClick={() => setShowConfirmSenha(s => !s)}
+                    ariaLabel={showConfirmSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                    disabled={loading}
+                  />
+                </div>
+                {errors.confirmSenha && <div className="error">{errors.confirmSenha}</div>}
+              </label>
+              <button className="submit" type="submit" disabled={loading} style={loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}}>
+                {loading ? 'Cadastrando...' : 'Cadastrar'}
+              </button>
+              {success && (
+                <div className="success" style={{ marginTop: 12, color: '#065f46', background: '#ecfeff', border: '1px solid #bbf7d0', padding: 8, borderRadius: 6, textAlign: 'center' }}>
+                  {success}
+                </div>
+              )}
+            </form>
+          </div>
+          {/* Separador central */}
+          <div className="cadastro-separador-central" />
+          {/* Lado direito: Card Seja Pro */}
+          <div className="cadastro-content-center">
+            <div className="cadastro-inicio-pro-card cadastro-inicio-pro-card-featured">
+              <div className="cadastro-pro-card-header">
+                <h3 className="cadastro-pro-card-title">Seja Pro</h3>
+                <p className="cadastro-pro-card-price">R$ 10,00</p>
+                <p className="cadastro-pro-card-period">por mês</p>
+              </div>
+              <div className="cadastro-pro-card-body">
+                <ul className="cadastro-pro-card-features">
+                  <li className="cadastro-feature-enabled">
+                    <span className="cadastro-feature-icon">✓</span>
+                    <span>Acesso ao buscador de peças</span>
+                  </li>
+                  <li className="cadastro-feature-enabled">
+                    <span className="cadastro-feature-icon">✓</span>
+                    <span>Valores da Tabela FIPE</span>
+                  </li>
+                  <li className="cadastro-feature-enabled">
+                    <span className="cadastro-feature-icon">✓</span>
+                    <span>Suporte via email</span>
+                  </li>
+                  <li className="cadastro-feature-enabled">
+                    <span className="cadastro-feature-icon">✓</span>
+                    <span>Suporte via WhatsApp</span>
+                  </li>
+                  <li className="cadastro-feature-enabled">
+                    <span className="cadastro-feature-icon">✓</span>
+                    <span>Comunidade no Discord</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
         </div>
+      </div>
     </>
   );
 }

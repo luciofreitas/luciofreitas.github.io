@@ -87,11 +87,7 @@ export function getSubscription(userId) {
  * @returns {boolean}
  */
 export function isProActive(userId) {
-  if (!userId) {
-    // Fallback para compatibilidade
-    return localStorage.getItem('versaoProAtiva') === 'true';
-  }
-
+  if (!userId) return false;
   const subscription = getSubscription(userId);
   return subscription && subscription.isActive && !subscription.expired;
 }

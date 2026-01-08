@@ -707,19 +707,19 @@ export default function Login() {
 return (
     <>
       <MenuLogin />
-      <div className="login-teste-main relative">
+      <div className="login-main relative">
         {/* Lado esquerdo: logo, nome, texto */}
-        <div className="login-teste-logo-wrapper">
-          <img src="/images/logo-azul.png" alt="Garagem Smart Logo" className="login-teste-logo" />
+        <div className="login-logo-wrapper login-logo-wrapper-loginpage">
+          <img src="/images/logo-azul.png" alt="Garagem Smart Logo" className="login-logo" />
           <h1>Garagem Smart</h1>
           <p>Seja um especialista automotivo</p>
         </div>
         <SeparadorCentral />
         {/* Lado direito: formulário de login */}
-        <div className="login-teste-content-center">
-          <h2 className="login-teste-section-title">Entrar</h2>
-          <p className="login-teste-section-subtitle">Acesse sua conta para gerenciar pedidos e recursos</p>
-          <form className="login-teste-form" autoComplete="on" onSubmit={handleLogin}>
+        <div className="login-content-center login-content-center-loginpage">
+          <h2 className="login-section-title login-section-title-loginpage">Entrar</h2>
+          <p className="login-section-subtitle login-section-subtitle-loginpage">Acesse sua conta para gerenciar pedidos e recursos</p>
+          <form className="login-form" autoComplete="on" onSubmit={handleLogin}>
             {error && (
               <div className="login-error-msg">{error}</div>
             )}
@@ -732,11 +732,11 @@ return (
                 <ToggleCar on={showPasswordLogin} onClick={() => setShowPasswordLogin(s => !s)} ariaLabel={showPasswordLogin ? 'Ocultar senha' : 'Mostrar senha'} />
               </div>
             </label>
-            <div className="login-teste-forgot-row">
+            <div className="login-forgot-row">
               <Link to="/esqueci-senha" className="forgot-password-link">Esqueci minha senha</Link>
             </div>
             <button className="submit" type="submit" disabled={googleLoading || redirectPending}>Entrar</button>
-            <div className="login-teste-social-row">
+            <div className="login-social-row">
               <button type="button" className="google-btn google-btn-round flex" aria-label="Entrar com Google" title="Entrar com Google" onClick={handleGoogleLogin} disabled={googleLoading || redirectPending}>
                 <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
                   <path fill="#EA4335" d="M24 9.5c3.9 0 7.1 1.4 9.2 3.2l6.8-6.6C35.6 3 30.1 1 24 1 14.7 1 6.9 6.6 3.1 14.7l7.9 6.1C12.4 15.1 17.7 9.5 24 9.5z"/>

@@ -21,7 +21,7 @@ function PageGuias() {
   const [termoPesquisa, setTermoPesquisa] = useState('');
 
   // Verificar se é Pro
-  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
+  const isPro = Boolean(usuarioLogado && usuarioLogado.isPro);
 
   // Carregar guias customizados
   useEffect(() => {

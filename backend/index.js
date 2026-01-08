@@ -2596,6 +2596,37 @@ app.get('/api/debug/last-user-error', (req, res) => {
 
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
+// Atualiza o status Pro do usuário
+app.patch('/api/users/:id/pro', async (req, res) => {
+  const { id } = req.params;
+  const { is_pro } = req.body;
+  if (typeof is_pro === 'undefined') {
+    return res.status(400).json({ error: 'is_pro is required in body' });
+  }
+  if (!pgClient) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
+  try {
+    // Detect column name for is_pro
+    let names = [];
+    try {
+      const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+      names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+    } catch (e) { names = []; }
+    const isProCol = names.indexOf('is_pro') >= 0 ? 'is_pro' : (names.indexOf('ispro') >= 0 ? 'ispro' : null);
+    if (!isProCol) {
+      return res.status(500).json({ error: 'is_pro column not found in users table' });
+    }
+    const updRes = await pgClient.query(`UPDATE users SET ${isProCol} = $1, atualizado_em = now() WHERE id = $2 OR auth_id = $2 RETURNING id, email, ${isProCol}`, [is_pro, id]);
+    if (updRes.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    return res.json({ success: true, user: updRes.rows[0] });
+  } catch (err) {
+    console.error('PATCH /api/users/:id/pro error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
   const { email, senha } = req.body || {};
   if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
   const normalizedEmail = String(email).trim().toLowerCase();

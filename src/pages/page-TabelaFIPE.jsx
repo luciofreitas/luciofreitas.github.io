@@ -9,8 +9,8 @@ export default function TabelaFIPE() {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
   
-  // Obter ano atual dinamicamente
-  const anoAtual = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })).getFullYear();
+  // Ano disponível na base de dados FIPE
+  const anoDisponivel = 2025;
   
   // Estados para filtros
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
@@ -38,7 +38,7 @@ export default function TabelaFIPE() {
     }
   };
 
-  // Quando modelo é selecionado (busca veículo com ano atual)
+  // Quando modelo é selecionado (busca veículo com ano disponível)
   const handleModeloChange = (codigoModelo) => {
     setModeloSelecionado(codigoModelo);
     setVeiculo(null);
@@ -46,7 +46,7 @@ export default function TabelaFIPE() {
     if (codigoModelo) {
       const marca = marcasFIPE.find(m => m.codigo.toString() === marcaSelecionada);
       const modelo = modelos.find(m => m.codigo.toString() === codigoModelo);
-      const veiculoEncontrado = getVeiculo(marca.nome, modelo.nome, anoAtual);
+      const veiculoEncontrado = getVeiculo(marca.nome, modelo.nome, anoDisponivel);
       setVeiculo(veiculoEncontrado);
     }
   };
@@ -71,12 +71,12 @@ export default function TabelaFIPE() {
           
           {mesReferencia && (
             <p className="fipe-mes-ref">
-              Mês de referência: <strong>{mesReferencia}</strong>
+              Mês de referência: <strong>Janeiro de 2025</strong>
             </p>
           )}
           
           <p className="fipe-instrucoes">
-            💡 Selecione a marca e modelo do veículo para consultar o valor na Tabela FIPE (ano {anoAtual}).
+            💡 Selecione a marca e modelo do veículo para consultar o valor na Tabela FIPE (ano {anoDisponivel}).
           </p>
 
           {/* Filtros de Busca */}
