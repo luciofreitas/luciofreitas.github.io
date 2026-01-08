@@ -1,9 +1,0 @@
-{
-  "url": "http://localhost:5174",
-  "storedBefore": false,
-  "storedAfter": false,
-  "providerStatus": {
-    "firebase": null,
-    "supabase": null
-  }
-}
