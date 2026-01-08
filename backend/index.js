@@ -37,7 +37,7 @@ app.use((req, res, next) => {
     else res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Debug, X-Debug-Key');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     // Short-circuit OPTIONS preflight
     if (req.method === 'OPTIONS') return res.status(204).end();
   } catch (e) { /* ignore header set errors */ }
@@ -84,7 +84,7 @@ app.options('*', (req, res) => {
     else res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Debug, X-Debug-Key');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   } catch (e) { /* ignore */ }
   return res.status(204).end();
 });
@@ -2594,8 +2594,6 @@ app.get('/api/debug/last-user-error', (req, res) => {
 });
 */
 
-// Login endpoint
-app.post('/api/auth/login', async (req, res) => {
 // Atualiza o status Pro do usuário
 app.patch('/api/users/:id/pro', async (req, res) => {
   const { id } = req.params;
@@ -2627,6 +2625,9 @@ app.patch('/api/users/:id/pro', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Login endpoint
+app.post('/api/auth/login', async (req, res) => {
   const { email, senha } = req.body || {};
   if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
   const normalizedEmail = String(email).trim().toLowerCase();
