@@ -65,16 +65,16 @@ export default function Checkin() {
 
     setProcessing(true);
     // simula processamento de pagamento
-      setTimeout(() => {
-        setProcessing(false);
-        setSuccess(true);
-        // grava pagamento no localStorage (simulação de persistência)
-        try {
-          const payments = JSON.parse(localStorage.getItem('payments') || '[]');
-          const record = { id: Date.now(), user: usuarioLogado ? usuarioLogado.email || usuarioLogado.nome : 'guest', amount: 9.9, currency: 'BRL', date: new Date().toISOString(), card: '**** **** **** ' + card.replace(/\s+/g, '').slice(-4) };
-          payments.push(record);
-          localStorage.setItem('payments', JSON.stringify(payments));
-        } catch (e) {}
+    setTimeout(async () => {
+      setProcessing(false);
+      setSuccess(true);
+      // grava pagamento no localStorage (simulação de persistência)
+      try {
+        const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+        const record = { id: Date.now(), user: usuarioLogado ? usuarioLogado.email || usuarioLogado.nome : 'guest', amount: 9.9, currency: 'BRL', date: new Date().toISOString(), card: '**** **** **** ' + card.replace(/\s+/g, '').slice(-4) };
+        payments.push(record);
+        localStorage.setItem('payments', JSON.stringify(payments));
+      } catch (e) {}
 
       // atualiza usuário para Pro com duração de 1 mês
       if (usuarioLogado && setUsuarioLogado) {
@@ -86,6 +86,39 @@ export default function Checkin() {
           setUsuarioLogado(updated);
           localStorage.setItem('usuario-logado', JSON.stringify(updated));
           console.log('✅ Assinatura Pro ativada com sucesso:', subscription);
+          
+          // Atualiza no banco de dados (Supabase)
+          if (usuarioLogado.id) {
+            try {
+              const apiBase = window.__API_BASE || 'http://localhost:3001';
+              const url = `${apiBase}/api/users/${usuarioLogado.id}/pro`;
+              console.log('🔄 Tentando atualizar is_pro no banco...', url);
+              
+              const response = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_pro: true })
+              });
+              
+              if (response.ok) {
+                console.log('✅ Status Pro atualizado no banco de dados');
+                if (window.showToast) {
+                  window.showToast('Assinatura Pro sincronizada com sucesso!', 'success', 3000);
+                }
+              } else {
+                const errorText = await response.text();
+                console.error('❌ Erro ao atualizar is_pro no banco:', errorText);
+                if (window.showToast) {
+                  window.showToast('Aviso: Assinatura ativa localmente, mas não sincronizada com o servidor.', 'warning', 5000);
+                }
+              }
+            } catch (err) {
+              console.error('❌ Erro na requisição para atualizar is_pro:', err);
+              if (window.showToast) {
+                window.showToast('Aviso: Assinatura ativa localmente. Verifique sua conexão para sincronizar.', 'warning', 5000);
+              }
+            }
+          }
         }
       } else {
         // marca flag geral para compatibilidade (sem ID)

@@ -195,6 +195,8 @@ export default function Login() {
               phone: backendUser.phone || backendUser.telefone || backendUser.celular || null,
               telefone: backendUser.telefone || backendUser.phone || backendUser.celular || null,
               celular: backendUser.celular || backendUser.phone || backendUser.telefone || null,
+              // Map is_pro from backend to isPro for frontend
+              isPro: Boolean(backendUser.is_pro || backendUser.isPro),
             };
             
             if (isDev) console.log('[DEBUG] Updated user with merged data:', updatedUser);
@@ -234,7 +236,8 @@ export default function Login() {
         // These will be populated by backend response
         phone: null,
         telefone: null,
-        celular: null
+        celular: null,
+        isPro: false // Will be updated from backend if user is Pro
       };
 
       // If the backend returned a development/mock user (id like 'dev_...') or a
