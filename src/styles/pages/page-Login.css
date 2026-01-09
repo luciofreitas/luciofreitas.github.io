@@ -600,3 +600,21 @@ input[type="password"].input::placeholder {
   font-weight: 500;
 }
 
+/* Tornar o container do botão Google invisível, mantendo o conteúdo visível */
+.google-btn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Modo escuro: manter o container invisível também */
+.theme-dark .google-btn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Ajustar cor do texto no modo escuro para melhor visibilidade */
+.theme-dark .google-btn-text {
+  color: #fff !important;
+}
