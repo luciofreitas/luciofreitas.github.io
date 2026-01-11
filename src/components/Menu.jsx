@@ -37,7 +37,7 @@ function Menu() {
     { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
     { id: 'historico', label: 'Histórico de Manutenção', onClick: () => navigate('/historico-manutencao') },
     { id: 'guias', label: 'Guias', onClick: () => navigate('/guias') },
-    { id: 'contato', label: 'Contato', onClick: () => navigate('/contato-logado') }
+    { id: 'contato', label: 'Contato/Feedback', onClick: () => navigate('/contato-logado') }
   ];
 
   useEffect(() => {

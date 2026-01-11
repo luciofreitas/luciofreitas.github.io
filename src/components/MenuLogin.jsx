@@ -35,7 +35,7 @@ const MenuLogin = () => {
     { id: 'inicio', label: 'Início', onClick: () => navigate('/inicio') },
     { id: 'buscar-pecas', label: 'Buscar Peças', onClick: () => navigate('/buscar-pecas'), destacado: true },
     { id: 'sobre', label: 'Sobre o GaragemSmart', onClick: () => navigate('/nosso-projeto') },
-    { id: 'contato', label: 'Contato', onClick: () => navigate('/contato') }
+    { id: 'contato', label: 'Contato/Feedback', onClick: () => navigate('/contato') }
   ];
 
   const showToast = (type, title, message) => {
