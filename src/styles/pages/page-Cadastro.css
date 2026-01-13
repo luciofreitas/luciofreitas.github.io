@@ -421,6 +421,14 @@ button.submit {
   }
 }
 @media (max-width: 900px) {
+  .cadastro-form {
+    align-items: stretch !important;
+  }
+
+  .cadastro-form .field {
+    width: 100% !important;
+  }
+
   .cadastro-form .input {
     width: 100% !important;
     min-width: 0 !important;
