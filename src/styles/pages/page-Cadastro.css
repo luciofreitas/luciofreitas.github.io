@@ -269,6 +269,13 @@
   border-radius: 1px;
 }
 @media (max-width: 600px) {
+  .cadastro-form .input,
+  .cadastro-form .submit {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
   .cadastro-instruction {
     width: clamp(16rem, 40vw, 32rem) !important;
     max-width: 100%;
