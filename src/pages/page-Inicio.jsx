@@ -23,8 +23,8 @@ export default function PageInicio() {
                     para o seu carro, <span className="hero-highlight">sem erro.</span>
                   </h1>
                   <p className="hero-subtitle">
-                    Busque por modelo, ano e fabricante<br />
-                    e evite compras erradas.
+                    Descubra peças compatíveis, de outros modelos,<br />
+                    e evite gastar a mais sem necessidade.
                   </p>
                 </div>
                 <button className="hero-cta-button" onClick={() => navigate('/login')}>
@@ -173,6 +173,10 @@ export default function PageInicio() {
                         </li>
                         <li className="feature-disabled">
                           <span className="feature-icon">✗</span>
+                          <span>Criação de guias automotivos</span>
+                        </li>
+                        <li className="feature-disabled">
+                          <span className="feature-icon">✗</span>
                           <span>Valores da Tabela FIPE</span>
                         </li>
                         <li className="feature-enabled">
@@ -203,6 +207,10 @@ export default function PageInicio() {
                         <li className="feature-enabled">
                           <span className="feature-icon">✓</span>
                           <span>Acesso ao buscador de peças</span>
+                        </li>
+                        <li className="feature-enabled">
+                          <span className="feature-icon">✓</span>
+                          <span>Criação de guias automotivos</span>
                         </li>
                         <li className="feature-enabled">
                           <span className="feature-icon">✓</span>
