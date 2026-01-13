@@ -270,11 +270,12 @@
 }
 @media (max-width: 600px) {
   .cadastro-form .input,
-  .cadastro-form .submit {
+  .cadastro-form button.submit {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
+    padding: 0.8rem !important;
   }
   .cadastro-instruction {
     width: clamp(16rem, 40vw, 32rem) !important;
@@ -376,22 +377,22 @@
   box-sizing: border-box;
   transition: width 0.2s;
 }
-.cadastro-form .submit,
-.submit {
+.cadastro-form button.submit,
+button.submit {
   width: clamp(16rem, 40vw, 32rem) !important;
   max-width: 100%;
   min-width: 12rem;
   height: 3.2rem !important;
   background: #4285F4;
   color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.8rem;
-  font-size: 1.1rem;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 0.8rem !important;
+  font-size: 1.1rem !important;
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 1rem;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
 }
 .cadastro-separador-central {
   position: absolute;
@@ -409,11 +410,11 @@
 }
 @media (max-width: 900px) {
   .cadastro-form .input,
-  .cadastro-form .submit {
+  .cadastro-form button.submit {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
   }
   .cadastro-main-inner {
     flex-direction: column !important;
@@ -456,11 +457,12 @@
 }
 @media (max-width: 800px) {
   .cadastro-form .input,
-  .cadastro-form .submit {
+  .cadastro-form button.submit {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
+    padding: 0.8rem !important;
   }
   .cadastro-separador-central {
     width: 100% !important;
@@ -534,12 +536,12 @@
     margin-bottom: 1.2rem !important;
   }
   .cadastro-form .input,
-  .cadastro-form .submit {
+  .cadastro-form button.submit {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
     flex: 1 1 0 !important;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
     font-size: 1rem !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -547,9 +549,9 @@
   .cadastro-form .field {
     margin-bottom: 0.7rem !important;
   }
-  .submit {
+  button.submit {
     font-size: 1rem !important;
-    padding: 0.7rem 0 !important;
+    padding: 0.7rem !important;
     margin-bottom: 0.7rem !important;
   }
 }
