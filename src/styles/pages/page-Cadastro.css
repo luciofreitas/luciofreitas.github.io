@@ -383,14 +383,12 @@ input.input {
 .cadastro-form button.submit,
 button.submit {
   width: 100%;
-  max-width: clamp(16rem, 40vw, 32rem);
-  min-width: 12rem;
   height: 3.2rem !important;
   background: #4285F4;
   color: #fff;
   border: none !important;
   border-radius: 8px !important;
-  padding: 0.6rem 1rem !important;
+  padding: 0.8rem !important;
   font-size: 1.1rem !important;
   font-weight: 600;
   cursor: pointer;
