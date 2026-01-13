@@ -373,7 +373,6 @@
 .cadastro-form .input,
 .cadastro-form input.input,
 input.input {
-  background: #f7f7f7 !important;
   border: 1px solid #ccc !important;
   border-radius: 8px !important;
   padding: 0.6rem 1rem !important;
