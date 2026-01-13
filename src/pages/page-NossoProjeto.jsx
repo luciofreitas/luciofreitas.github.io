@@ -18,7 +18,7 @@ export default function NossoProjeto() {
       titulo: 'Busca Inteligente de Peças',
       icone: '🔍',
       cor: 'azul',
-      descricao: 'Nossa ferramenta de busca foi projetada para eliminar a frustração de encontrar a peça errada. Utilizando um sistema de compatibilidade preciso, você seleciona marca, modelo e ano do seu veículo e recebe apenas as peças que realmente servem. Acabaram-se as compras erradas, devoluções e tempo perdido — cada resultado é verificado e validado para garantir compatibilidade total.'
+      descricao: 'Nosso catálogo foi criado para ajudar você a encontrar peças compatíveis com o seu carro — inclusive de outros modelos que usam a mesma peça e costumam ser mais baratas. Você seleciona marca, modelo e ano do seu veículo e recebe apenas as opções que realmente servem. Assim você evita compras erradas, devoluções e gasto desnecessário.'
     },
     {
       titulo: 'Tabela FIPE Atualizada',
