@@ -455,7 +455,9 @@ h1.page-title {
 /* ===== SEÇÃO DE ESTATÍSTICAS - IMPACTO E CREDIBILIDADE ===== */
 
 .inicio-stats-section {
-  background: #f8fafc;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
   width: 100%;
   padding: 4rem 0;
   margin: 0 auto;
@@ -1351,8 +1353,11 @@ h1.page-title {
 }
 
 /* Dark Mode Support */
+
 .theme-dark .inicio-benefits-section {
-  background: rgba(30, 41, 59, 0.5);
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 .theme-dark .benefits-title {
