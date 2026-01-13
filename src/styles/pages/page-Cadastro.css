@@ -379,6 +379,7 @@
   width: clamp(16rem, 40vw, 32rem) !important;
   max-width: 100%;
   min-width: 12rem;
+  height: 3.2rem !important;
   background: #4285F4;
   color: #fff;
   border: none;
