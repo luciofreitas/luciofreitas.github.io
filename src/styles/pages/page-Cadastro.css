@@ -364,6 +364,8 @@
   display: flex;
   flex-direction: column;
   margin-bottom: 1rem;
+  width: 100%;
+  max-width: clamp(16rem, 40vw, 32rem);
 }
 .cadastro-form .label {
   font-size: 1rem;
@@ -385,8 +387,8 @@
 }
 .cadastro-form button.submit,
 button.submit {
-  width: clamp(16rem, 40vw, 32rem) !important;
-  max-width: 100%;
+  width: 100%;
+  max-width: clamp(16rem, 40vw, 32rem);
   min-width: 12rem;
   height: 3.2rem !important;
   background: #4285F4;
@@ -574,6 +576,7 @@ button.submit {
   }
   .cadastro-form .field {
     margin-bottom: 0.7rem !important;
+    max-width: 100% !important;
   }
   button.submit {
     font-size: 1rem !important;
