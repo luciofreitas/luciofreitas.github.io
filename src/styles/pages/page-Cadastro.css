@@ -275,7 +275,7 @@
     min-width: 0 !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    padding: 0.8rem !important;
+    padding: 0.6rem 1rem !important;
   }
   .cadastro-instruction {
     width: clamp(16rem, 40vw, 32rem) !important;
@@ -387,7 +387,7 @@ button.submit {
   color: #fff;
   border: none !important;
   border-radius: 8px !important;
-  padding: 0.8rem !important;
+  padding: 0.6rem 1rem !important;
   font-size: 1.1rem !important;
   font-weight: 600;
   cursor: pointer;
@@ -462,7 +462,7 @@ button.submit {
     min-width: 0 !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    padding: 0.8rem !important;
+    padding: 0.6rem 1rem !important;
   }
   .cadastro-separador-central {
     width: 100% !important;
@@ -551,7 +551,7 @@ button.submit {
   }
   button.submit {
     font-size: 1rem !important;
-    padding: 0.7rem !important;
+    padding: 0.6rem 1rem !important;
     margin-bottom: 0.7rem !important;
   }
 }
