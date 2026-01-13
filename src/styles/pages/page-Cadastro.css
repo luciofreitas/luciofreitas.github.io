@@ -414,8 +414,7 @@ button.submit {
 }
 @media (min-width: 901px) {
   .cadastro-form .input,
-  .cadastro-form button.submit,
-  .cadastro-form .field {
+  .cadastro-form button.submit {
     width: clamp(16rem, 40vw, 32rem) !important;
     max-width: 100%;
     min-width: 12rem;
