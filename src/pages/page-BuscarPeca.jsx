@@ -236,19 +236,20 @@ export default function BuscarPeca() {
     filtered.forEach(peca => {
       if (peca && peca.applications && Array.isArray(peca.applications)) {
         peca.applications.forEach(app => {
-          const appStr = String(app).toLowerCase();
-          // Extract brand names from application strings
-          const commonBrands = ['ford', 'chevrolet', 'volkswagen', 'fiat', 'honda', 'toyota', 'hyundai', 'nissan', 'renault', 'peugeot', 'citroën', 'bmw', 'mercedes', 'audi', 'volvo', 'mitsubishi', 'kia', 'suzuki', 'jeep', 'land rover', 'jaguar'];
-          commonBrands.forEach(brand => {
-            if (appStr.includes(brand)) {
-              marcasSet.add(brand.charAt(0).toUpperCase() + brand.slice(1));
+          if (typeof app === 'string') {
+            // Extract brand from application string (first word)
+            const parts = app.trim().split(/\s+/);
+            if (parts.length >= 1 && parts[0]) {
+              marcasSet.add(parts[0]);
             }
-          });
+          } else if (typeof app === 'object' && app.make) {
+            marcasSet.add(app.make);
+          }
         });
       }
     });
     
-    const marcasArray = Array.from(marcasSet);
+    const marcasArray = Array.from(marcasSet).sort();
     
     // Only preserve selected brand if user has selected a specific car
     if (carroSelecionadoId && selectedMarca && !marcasArray.includes(selectedMarca)) {
@@ -279,23 +280,26 @@ export default function BuscarPeca() {
     filtered.forEach(peca => {
       if (peca && peca.applications && Array.isArray(peca.applications)) {
         peca.applications.forEach(app => {
-          const appStr = String(app).toLowerCase();
-          if (appStr.includes(marcaLower)) {
-            // Extract model from application string - this is a simplified approach
-            const parts = appStr.split(' ');
-            const marcaIndex = parts.findIndex(part => part.includes(marcaLower));
-            if (marcaIndex >= 0 && marcaIndex < parts.length - 1) {
-              const possibleModel = parts[marcaIndex + 1];
-              if (possibleModel && possibleModel.length > 1) {
-                modelosSet.add(possibleModel.charAt(0).toUpperCase() + possibleModel.slice(1));
+          if (typeof app === 'string') {
+            const parts = app.trim().split(/\s+/);
+            if (parts.length >= 2) {
+              const marca = parts[0].toLowerCase();
+              const modelo = parts[1];
+              // Check if this application matches the selected brand
+              if (marca === marcaLower) {
+                modelosSet.add(modelo);
               }
+            }
+          } else if (typeof app === 'object' && app.make && app.model) {
+            if (app.make.toLowerCase() === marcaLower) {
+              modelosSet.add(app.model);
             }
           }
         });
       }
     });
     
-    const modelosArray = Array.from(modelosSet);
+    const modelosArray = Array.from(modelosSet).sort();
     
     // Only preserve selected model if user has selected a specific car
     if (carroSelecionadoId && selectedModelo && !modelosArray.includes(selectedModelo)) {
@@ -327,24 +331,29 @@ export default function BuscarPeca() {
     filtered.forEach(peca => {
       if (peca && peca.applications && Array.isArray(peca.applications)) {
         peca.applications.forEach(app => {
-          const appStr = String(app).toLowerCase();
-          const matchesMarca = !marcaLower || appStr.includes(marcaLower);
-          const matchesModelo = !modeloLower || appStr.includes(modeloLower);
-          
-          if (matchesMarca && matchesModelo) {
-            // Extract years from application string
-            const yearRegex = /\d{4}(?:-\d{4})?/g;
-            const yearMatches = appStr.match(yearRegex) || [];
-            yearMatches.forEach(yearStr => {
-              if (yearStr.includes('-')) {
-                const [start, end] = yearStr.split('-').map(Number);
-                for (let y = start; y <= end; y++) {
-                  anosSet.add(String(y));
-                }
-              } else {
-                anosSet.add(yearStr);
+          if (typeof app === 'string') {
+            const parts = app.trim().split(/\s+/);
+            if (parts.length >= 2) {
+              const marca = parts[0].toLowerCase();
+              const modelo = parts[1].toLowerCase();
+              
+              const matchesMarca = !marcaLower || marca === marcaLower;
+              const matchesModelo = !modeloLower || modelo === modeloLower;
+              
+              if (matchesMarca && matchesModelo) {
+                // Extract years from application string
+                const yearRegex = /\b(19|20)\d{2}\b/g;
+                const yearMatches = app.match(yearRegex) || [];
+                yearMatches.forEach(year => anosSet.add(year));
               }
-            });
+            }
+          } else if (typeof app === 'object') {
+            const matchesMarca = !marcaLower || (app.make && app.make.toLowerCase() === marcaLower);
+            const matchesModelo = !modeloLower || (app.model && app.model.toLowerCase() === modeloLower);
+            
+            if (matchesMarca && matchesModelo && app.year) {
+              anosSet.add(String(app.year));
+            }
           }
         });
       }
