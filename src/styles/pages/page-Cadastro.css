@@ -269,7 +269,13 @@
   border-radius: 1px;
 }
 @media (max-width: 600px) {
-  .cadastro-form .input,
+  .cadastro-form .input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0.6rem 1rem !important;
+  }
   .cadastro-form button.submit {
     width: 100% !important;
     min-width: 0 !important;
@@ -409,7 +415,12 @@ button.submit {
   display: block;
 }
 @media (max-width: 900px) {
-  .cadastro-form .input,
+  .cadastro-form .input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
   .cadastro-form button.submit {
     width: 100% !important;
     min-width: 0 !important;
@@ -456,7 +467,13 @@ button.submit {
   }
 }
 @media (max-width: 800px) {
-  .cadastro-form .input,
+  .cadastro-form .input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0.6rem 1rem !important;
+  }
   .cadastro-form button.submit {
     width: 100% !important;
     min-width: 0 !important;
@@ -535,7 +552,16 @@ button.submit {
     font-size: 0.85rem !important;
     margin-bottom: 1.2rem !important;
   }
-  .cadastro-form .input,
+  .cadastro-form .input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 1 0 !important;
+    box-sizing: border-box !important;
+    font-size: 1rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
   .cadastro-form button.submit {
     width: 100% !important;
     min-width: 0 !important;
