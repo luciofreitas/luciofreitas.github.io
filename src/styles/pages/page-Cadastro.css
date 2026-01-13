@@ -369,7 +369,9 @@
   transition: width 0.2s;
 }
 .submit {
-  width: 100%;
+  width: clamp(16rem, 40vw, 32rem) !important;
+  max-width: 100%;
+  min-width: 12rem;
   background: #4285F4;
   color: #fff;
   border: none;
@@ -379,6 +381,7 @@
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 1rem;
+  box-sizing: border-box;
 }
 .cadastro-separador-central {
   position: absolute;
