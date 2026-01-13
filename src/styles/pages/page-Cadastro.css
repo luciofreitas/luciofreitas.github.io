@@ -365,7 +365,6 @@
   flex-direction: column;
   margin-bottom: 1rem;
   width: 100%;
-  max-width: clamp(16rem, 40vw, 32rem);
 }
 .cadastro-form .label {
   font-size: 1rem;
@@ -380,6 +379,7 @@
   font-size: 1rem;
   max-width: 100%;
   height: 3.2rem !important;
+  box-sizing: border-box;
 }
 .cadastro-form button.submit,
 button.submit {
@@ -411,6 +411,19 @@ button.submit {
   z-index: 2;
   border-radius: 2px;
   display: block;
+}
+@media (min-width: 901px) {
+  .cadastro-form .input,
+  .cadastro-form button.submit,
+  .cadastro-form .field {
+    width: clamp(16rem, 40vw, 32rem) !important;
+    max-width: 100%;
+    min-width: 12rem;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+    transition: width 0.2s;
+  }
 }
 @media (max-width: 900px) {
   .cadastro-form .input {
