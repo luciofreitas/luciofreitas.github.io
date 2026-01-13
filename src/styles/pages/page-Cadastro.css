@@ -382,7 +382,6 @@ input.input {
 }
 .cadastro-form button.submit,
 button.submit {
-  width: 100%;
   height: 3.2rem !important;
   background: #4285F4;
   color: #fff;
