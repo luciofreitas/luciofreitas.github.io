@@ -362,6 +362,7 @@
   font-size: 1rem;
   margin-bottom: 0.3rem;
 }
+.cadastro-form .input,
 .input {
   background: #f7f7f7;
   border: 1px solid #ccc;
@@ -375,6 +376,7 @@
   box-sizing: border-box;
   transition: width 0.2s;
 }
+.cadastro-form .submit,
 .submit {
   width: clamp(16rem, 40vw, 32rem) !important;
   max-width: 100%;
