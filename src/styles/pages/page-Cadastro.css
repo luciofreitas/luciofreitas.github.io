@@ -369,7 +369,7 @@
   transition: width 0.2s;
 }
 .submit {
-  width: clamp(16rem, 40vw, 32rem);
+  width: clamp(16rem, 40vw, 32rem) !important;
   max-width: 100%;
   min-width: 12rem;
   background: #4285F4;
@@ -398,6 +398,13 @@
   display: block;
 }
 @media (max-width: 900px) {
+  .cadastro-form .input,
+  .cadastro-form .submit {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
   .cadastro-main-inner {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -438,6 +445,13 @@
   }
 }
 @media (max-width: 800px) {
+  .cadastro-form .input,
+  .cadastro-form .submit {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
   .cadastro-separador-central {
     width: 100% !important;
     height: 2px !important;
