@@ -378,12 +378,8 @@
   border-radius: 8px;
   padding: 0.6rem 1rem;
   font-size: 1rem;
-  width: clamp(16rem, 40vw, 32rem) !important;
   max-width: 100%;
-  min-width: 12rem;
   height: 3.2rem !important;
-  box-sizing: border-box;
-  transition: width 0.2s;
 }
 .cadastro-form button.submit,
 button.submit {
