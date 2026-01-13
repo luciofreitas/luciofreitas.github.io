@@ -277,7 +277,7 @@
     padding: 0.6rem 1rem !important;
   }
   .cadastro-form button.submit {
-    width: 81% !important;
+    width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -422,7 +422,7 @@ button.submit {
     box-sizing: border-box !important;
   }
   .cadastro-form button.submit {
-    width: 81% !important;
+    width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -475,7 +475,7 @@ button.submit {
     padding: 0.6rem 1rem !important;
   }
   .cadastro-form button.submit {
-    width: 81% !important;
+    width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -563,7 +563,7 @@ button.submit {
     margin-right: 0 !important;
   }
   .cadastro-form button.submit {
-    width: 81% !important;
+    width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
     flex: 1 1 0 !important;
