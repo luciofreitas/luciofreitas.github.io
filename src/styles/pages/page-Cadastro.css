@@ -371,12 +371,13 @@
   margin-bottom: 0.3rem;
 }
 .cadastro-form .input,
-.input {
-  background: #f7f7f7;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 0.6rem 1rem;
-  font-size: 1rem;
+.cadastro-form input.input,
+input.input {
+  background: #f7f7f7 !important;
+  border: 1px solid #ccc !important;
+  border-radius: 8px !important;
+  padding: 0.6rem 1rem !important;
+  font-size: 1rem !important;
   max-width: 100%;
   height: 3.2rem !important;
   box-sizing: border-box;
