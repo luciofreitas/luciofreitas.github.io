@@ -100,8 +100,11 @@ export default function PageInicio() {
               </div>
             </div>
 
-            <button className="benefits-cta-button" onClick={() => navigate('/login')}>
-              Criar conta gratuita →
+            <button
+              className="benefits-cta-button"
+              onClick={() => navigate('/nosso-projeto#funcionalidades')}
+            >
+              Conheça o projeto melhor
             </button>
           </div>
 

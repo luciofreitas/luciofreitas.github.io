@@ -8,7 +8,7 @@ export { default as CompatibilityModal } from './CompatibilityModal';
 export { default as ComponenteEstrelas } from './ComponenteEstrelas';
 export { default as ContatoForm } from './ContatoForm';
 export { default as CustomDropdown } from './CustomDropdown';
-// export { default as DesignSystemComponents } from './DesignSystemComponents'; // Arquivo vazio - comentado temporariamente
+export { default as DesignSystemComponents } from './DesignSystemComponents';
 export { default as GetStartedButton } from './GetStartedButton';
 export { default as GlossarioExpandido } from './GlossarioExpandido';
 export { default as LoadingSpinner } from './LoadingSpinner';
@@ -23,6 +23,7 @@ export { default as ProExpiryWarning } from './ProExpiryWarning';
 export { default as ProductDetailModal } from './ProductDetailModal';
 export { default as RatingStars } from './RatingStars';
 export { default as SearchForm } from './SearchForm';
+export { default as SeparadorCentral } from './SeparadorCentral';
 export { default as Skeleton } from './Skeleton';
 export { default as SmallLoadingModal } from './SmallLoadingModal';
 export { default as ThemeToggle } from './ThemeToggle';

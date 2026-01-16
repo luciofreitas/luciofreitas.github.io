@@ -1,10 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MenuLogin } from '../components';
 import '../styles/pages/page-SobreGaragemSmart.css';
 import '../styles/pages/page-QuemSomos.css';
 
 export default function SobreGaragemSmart() {
   const [expandedCards, setExpandedCards] = useState({});
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+
+    const targetId = location.hash.replace('#', '');
+    if (!targetId) return;
+
+    const scrollToTarget = () => {
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    // Garante que o DOM já renderizou antes de tentar rolar
+    const timeoutId = window.setTimeout(scrollToTarget, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [location.hash]);
 
   const toggleCard = (cardKey) => {
     setExpandedCards(prev => ({
@@ -149,7 +169,7 @@ export default function SobreGaragemSmart() {
             </div>
           </section>
 
-          <section className="funcionalidades-section">
+          <section className="funcionalidades-section" id="funcionalidades">
             <h3 className="section-title">Funcionalidades</h3>
             <div className="funcionalidades-grid">
               {funcionalidades.map((func, index) => {
@@ -193,3 +213,4 @@ export default function SobreGaragemSmart() {
     </>
   );
 }
+
