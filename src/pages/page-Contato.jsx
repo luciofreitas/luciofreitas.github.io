@@ -57,7 +57,7 @@ export default function Contato() {
             
             <button 
               className="contato-btn contato-btn-instagram"
-              onClick={() => window.open('https://instagram.com/', '_blank')}
+              onClick={() => window.open('https://www.instagram.com/garagemsmartofc/', '_blank')}
               title="Instagram"
             >
               <FaInstagram />

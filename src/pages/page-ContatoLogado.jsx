@@ -64,7 +64,7 @@ export default function ContatoLogado() {
               </button>              
               <button 
                 className="contato-btn contato-btn-instagram"
-                onClick={() => window.open('https://instagram.com/garagemsmart', '_blank')}
+                onClick={() => window.open('https://www.instagram.com/garagemsmartofc/', '_blank')}
                 title="Instagram"
               >
                 <FaInstagram />
