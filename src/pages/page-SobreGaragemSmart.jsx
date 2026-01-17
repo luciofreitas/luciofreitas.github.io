@@ -71,14 +71,24 @@ export default function SobreGaragemSmart() {
       const targetEl = document.getElementById(targetId);
       if (!targetEl) return false;
 
+      const behavior = behaviorOverride || getScrollBehavior();
+      // Prefer scrollIntoView para alinhar o elemento de forma consistente.
+      // O CSS `scroll-margin-top` ajuda a compensar o header fixo.
+      targetEl.scrollIntoView({ behavior, block: 'start' });
+
+      // Ajuste fino (fallback) caso o header fixe ainda cubra o topo.
       const headerEl = document.querySelector('.site-header');
       const headerOffset = headerEl ? headerEl.getBoundingClientRect().height : 0;
       const extraOffset = 12;
-      const targetTop = targetEl.getBoundingClientRect().top + window.pageYOffset;
-      const top = Math.max(0, targetTop - headerOffset - extraOffset);
+      if (headerOffset > 0) {
+        const rect = targetEl.getBoundingClientRect();
+        const desiredTop = headerOffset + extraOffset;
+        const delta = rect.top - desiredTop;
+        if (Math.abs(delta) > 2) {
+          window.scrollBy({ top: delta, behavior: 'auto' });
+        }
+      }
 
-      const behavior = behaviorOverride || getScrollBehavior();
-      window.scrollTo({ top, behavior });
       return true;
     };
 
