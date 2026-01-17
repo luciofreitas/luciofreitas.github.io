@@ -14,16 +14,60 @@ export default function SobreGaragemSmart() {
     const targetId = location.hash.replace('#', '');
     if (!targetId) return;
 
-    const scrollToTarget = () => {
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) {
-        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    let cancelled = false;
+    const timeoutIds = [];
+
+    const getScrollBehavior = () => {
+      try {
+        const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+        return prefersReducedMotion ? 'auto' : 'smooth';
+      } catch {
+        return 'smooth';
       }
     };
 
-    // Garante que o DOM já renderizou antes de tentar rolar
-    const timeoutId = window.setTimeout(scrollToTarget, 0);
-    return () => window.clearTimeout(timeoutId);
+    const scrollToTarget = (behaviorOverride) => {
+      const targetEl = document.getElementById(targetId);
+      if (!targetEl) return false;
+
+      const headerEl = document.querySelector('.site-header');
+      const headerOffset = headerEl ? headerEl.getBoundingClientRect().height : 0;
+      const extraOffset = 12;
+      const targetTop = targetEl.getBoundingClientRect().top + window.pageYOffset;
+      const top = Math.max(0, targetTop - headerOffset - extraOffset);
+
+      const behavior = behaviorOverride || getScrollBehavior();
+      window.scrollTo({ top, behavior });
+      return true;
+    };
+
+    // Em mobile, imagens/fontes e a barra de endereço podem mudar o layout após o primeiro scroll.
+    // Faz algumas tentativas espaçadas para garantir que o usuário caia exatamente na seção.
+    const schedule = (ms, behaviorOverride) => {
+      const id = window.setTimeout(() => {
+        if (cancelled) return;
+        scrollToTarget(behaviorOverride);
+      }, ms);
+      timeoutIds.push(id);
+    };
+
+    schedule(0, 'auto');
+    schedule(50);
+    schedule(150);
+    schedule(350);
+    schedule(700);
+
+    const onLoad = () => {
+      if (cancelled) return;
+      scrollToTarget();
+    };
+    window.addEventListener('load', onLoad, { once: true });
+
+    return () => {
+      cancelled = true;
+      timeoutIds.forEach((id) => window.clearTimeout(id));
+      window.removeEventListener('load', onLoad);
+    };
   }, [location.hash]);
 
   const toggleCard = (cardKey) => {
