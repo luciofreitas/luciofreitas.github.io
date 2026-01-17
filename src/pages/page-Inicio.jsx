@@ -7,6 +7,7 @@ import catalogo1 from '/images/catalogo-1.jpg';
 export default function PageInicio() {
   const navigate = useNavigate();
   const [zoomImage, setZoomImage] = useState(null);
+  const SHOW_USUARIOS_ATIVOS = false;
 
   return (
     <>
@@ -131,12 +132,14 @@ export default function PageInicio() {
                     <div className="stat-description">Compatibilidade verificada e testada</div>
                   </div>
 
-                  <div className="inicio-stat-card">
-                    <div className="stat-icon">👥</div>
-                    <div className="stat-number">10.000+</div>
-                    <div className="stat-label">Usuários Ativos</div>
-                    <div className="stat-description">Comunidade crescente de entusiastas</div>
-                  </div>
+                  {SHOW_USUARIOS_ATIVOS && (
+                    <div className="inicio-stat-card">
+                      <div className="stat-icon">👥</div>
+                      <div className="stat-number">10.000+</div>
+                      <div className="stat-label">Usuários Ativos</div>
+                      <div className="stat-description">Comunidade crescente de entusiastas</div>
+                    </div>
+                  )}
 
                   <div className="inicio-stat-card">
                     <div className="stat-icon">⭐</div>
