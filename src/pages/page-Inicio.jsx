@@ -104,7 +104,7 @@ export default function PageInicio() {
               className="benefits-cta-button"
               onClick={() => navigate('/nosso-projeto?scroll=funcionalidades')}
             >
-              Conheça o projeto melhor
+              Conheça melhor as funcionalidades
             </button>
           </div>
 
