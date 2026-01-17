@@ -9,9 +9,28 @@ export default function SobreGaragemSmart() {
   const location = useLocation();
 
   useEffect(() => {
-    if (!location.hash) return;
+    const resolveAnchorId = () => {
+      const fromRouter = (location.hash || '').replace('#', '').trim();
+      if (fromRouter) return fromRouter;
 
-    const targetId = location.hash.replace('#', '');
+      // Compatibilidade com HashRouter em produção (ex: /#/nosso-projeto#funcionalidades)
+      // Nesses casos, o browser só tem um "hash" e o react-router pode não preencher location.hash.
+      const rawHash = (typeof window !== 'undefined' && window.location?.hash) ? window.location.hash : '';
+      if (rawHash.includes('#')) {
+        const candidate = rawHash.split('#').pop()?.trim() || '';
+        if (candidate && !candidate.startsWith('/') && !candidate.includes('/')) return candidate;
+      }
+
+      const rawHref = (typeof window !== 'undefined' && window.location?.href) ? window.location.href : '';
+      if (rawHref.includes('#')) {
+        const candidate = rawHref.split('#').pop()?.trim() || '';
+        if (candidate && !candidate.startsWith('/') && !candidate.includes('/')) return candidate;
+      }
+
+      return '';
+    };
+
+    const targetId = resolveAnchorId();
     if (!targetId) return;
 
     let cancelled = false;
@@ -68,7 +87,7 @@ export default function SobreGaragemSmart() {
       timeoutIds.forEach((id) => window.clearTimeout(id));
       window.removeEventListener('load', onLoad);
     };
-  }, [location.hash]);
+  }, [location.pathname, location.search, location.hash]);
 
   const toggleCard = (cardKey) => {
     setExpandedCards(prev => ({
