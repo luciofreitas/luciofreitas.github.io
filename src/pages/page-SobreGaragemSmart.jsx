@@ -10,14 +10,35 @@ export default function SobreGaragemSmart() {
 
   useEffect(() => {
     const resolveAnchorId = () => {
+      // 1) Preferir query param (funciona em HashRouter: /#/rota?scroll=secao)
+      try {
+        const params = new URLSearchParams(location.search || '');
+        const fromQuery = (params.get('scroll') || params.get('section') || '').trim();
+        if (fromQuery) return fromQuery;
+      } catch {
+        // ignore
+      }
+
+      // 2) Hash normal (BrowserRouter) ou quando o router preencher location.hash
       const fromRouter = (location.hash || '').replace('#', '').trim();
       if (fromRouter) return fromRouter;
 
       // Compatibilidade com HashRouter em produção (ex: /#/nosso-projeto#funcionalidades)
       // Nesses casos, o browser só tem um "hash" e o react-router pode não preencher location.hash.
       const rawHash = (typeof window !== 'undefined' && window.location?.hash) ? window.location.hash : '';
-      if (rawHash.includes('#')) {
-        const candidate = rawHash.split('#').pop()?.trim() || '';
+      const decodedHash = (() => {
+        try { return decodeURIComponent(rawHash); } catch { return rawHash; }
+      })();
+
+      // Alguns navegadores/routers transformam o "#" extra em "%23".
+      // Ex: "#/nosso-projeto%23funcionalidades" -> queremos "funcionalidades".
+      if (decodedHash.includes('%23')) {
+        const candidate = decodedHash.split('%23').pop()?.trim() || '';
+        if (candidate && !candidate.startsWith('/') && !candidate.includes('/')) return candidate;
+      }
+
+      if (decodedHash.includes('#')) {
+        const candidate = decodedHash.split('#').pop()?.trim() || '';
         if (candidate && !candidate.startsWith('/') && !candidate.includes('/')) return candidate;
       }
 
