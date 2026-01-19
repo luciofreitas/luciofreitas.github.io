@@ -25,6 +25,78 @@
   min-height: 2.75rem; /* ensure same height whether empty or not */
 }
 
+/* Autocomplete mode (input + arrow) */
+.dropdown-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 0.125rem solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #f9fafb;
+  color: #555;
+  font-size: 1rem;
+  text-align: left;
+  cursor: text;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s;
+  padding-right: 2.25rem; /* reserve space for the arrow */
+  min-height: 2.75rem;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.dropdown-control.open {
+  border-color: #e5e7eb;
+}
+
+.dropdown-input {
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown-input:focus,
+.dropdown-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.dropdown-arrow-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 2.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.custom-dropdown.disabled .dropdown-control {
+  background: #f3f4f6;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.custom-dropdown.disabled .dropdown-input {
+  cursor: not-allowed;
+}
+
+.dropdown-control:focus-within,
+.dropdown-control:focus-within:not(:focus-visible) {
+  outline: none;
+  border-color: #e5e7eb;
+  box-shadow: none;
+}
+
 .dropdown-btn.open {
   border-color: #1A66FF;
 }
@@ -116,6 +188,10 @@
   color: #172B4D;
 }
 
+.dropdown-item.active {
+  background: #f3f4f6;
+}
+
 .dropdown-item.disabled {
   color: #aaa;
   cursor: not-allowed;
@@ -192,8 +268,18 @@
   color: #f8fafc; /* Slate-50 - texto branco */
 }
 
+.theme-dark .dropdown-control {
+  background: #0f172a;
+  border-color: #475569;
+  color: #f8fafc;
+}
+
 .theme-dark .dropdown-btn.open {
   border-color: #3b82f6; /* Blue-500 */
+}
+
+.theme-dark .dropdown-control.open {
+  border-color: #475569;
 }
 
 .theme-dark .dropdown-btn:disabled {

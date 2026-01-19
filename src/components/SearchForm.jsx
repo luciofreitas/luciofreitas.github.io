@@ -95,6 +95,7 @@ function SearchForm({
             value={carroSelecionado}
             onChange={handleCarroChange}
             placeholder="Selecione um carro cadastrado"
+            searchable
           />
         </div>
       )}
@@ -106,6 +107,7 @@ function SearchForm({
             value={selectedGrupo}
             onChange={setSelectedGrupo}
             placeholder=""
+            searchable
           />
         </div>
         <div className="search-form-field">
@@ -116,6 +118,7 @@ function SearchForm({
             value={selectedCategoria}
             onChange={setSelectedCategoria}
             placeholder=""
+            searchable
           />
         </div>
       </div>
@@ -128,6 +131,7 @@ function SearchForm({
             value={selectedMarca}
             onChange={setSelectedMarca}
             placeholder=""
+            searchable
           />
         </div>
         <div className="search-form-field">
@@ -137,6 +141,7 @@ function SearchForm({
             value={selectedModelo}
             onChange={setSelectedModelo}
             placeholder=""
+            searchable
           />
         </div>
       </div>
@@ -149,6 +154,7 @@ function SearchForm({
             value={selectedAno}
             onChange={setSelectedAno}
             placeholder=""
+            searchable
           />
         </div>
         <div className="search-form-field">
@@ -158,6 +164,7 @@ function SearchForm({
             value={selectedFabricante}
             onChange={setSelectedFabricante}
             placeholder=""
+            searchable
           />
         </div>
       </div>
