@@ -5,25 +5,32 @@ const FIPE_API_BASE = 'https://parallelum.com.br/fipe/api/v1';
 
 // Cache para evitar requisições repetidas
 const cache = {
-  marcas: null,
+  marcas: {},
   modelos: {},
   anos: {},
   valores: {}
 };
 
+function normalizeTipoVeiculo(tipoVeiculo) {
+  const t = String(tipoVeiculo || '').trim().toLowerCase();
+  if (t === 'carros' || t === 'motos' || t === 'caminhoes') return t;
+  return 'carros';
+}
+
 /**
  * Busca todas as marcas de carros
  */
-export async function buscarMarcas() {
+export async function buscarMarcas(tipoVeiculo = 'carros') {
   try {
+    const tipo = normalizeTipoVeiculo(tipoVeiculo);
     // Retorna do cache se disponível
-    if (cache.marcas) {
-      console.log('Marcas do cache:', cache.marcas.length);
-      return cache.marcas;
+    if (cache.marcas[tipo]) {
+      console.log('Marcas do cache:', cache.marcas[tipo].length);
+      return cache.marcas[tipo];
     }
     
     console.log('Buscando marcas da API...');
-    const response = await fetch(`${FIPE_API_BASE}/carros/marcas`);
+    const response = await fetch(`${FIPE_API_BASE}/${tipo}/marcas`);
     
     if (!response.ok) {
       console.error('Resposta da API:', response.status, response.statusText);
@@ -34,7 +41,7 @@ export async function buscarMarcas() {
     console.log('Marcas recebidas:', data.length);
     
     // Salva no cache
-    cache.marcas = data;
+    cache.marcas[tipo] = data;
     return data;
   } catch (error) {
     console.error('Erro ao buscar marcas:', error);
@@ -47,20 +54,22 @@ export async function buscarMarcas() {
  * Busca todos os modelos de uma marca específica
  * @param {string} codigoMarca - Código da marca
  */
-export async function buscarModelos(codigoMarca) {
+export async function buscarModelos(tipoVeiculo = 'carros', codigoMarca) {
   try {
+    const tipo = normalizeTipoVeiculo(tipoVeiculo);
+    const cacheKey = `${tipo}-${codigoMarca}`;
     // Retorna do cache se disponível
-    if (cache.modelos[codigoMarca]) {
-      return cache.modelos[codigoMarca];
+    if (cache.modelos[cacheKey]) {
+      return cache.modelos[cacheKey];
     }
     
-    const response = await fetch(`${FIPE_API_BASE}/carros/marcas/${codigoMarca}/modelos`);
+    const response = await fetch(`${FIPE_API_BASE}/${tipo}/marcas/${codigoMarca}/modelos`);
     if (!response.ok) throw new Error('Erro ao buscar modelos');
     const data = await response.json();
     
     // Salva no cache
-    cache.modelos[codigoMarca] = data.modelos || [];
-    return cache.modelos[codigoMarca];
+    cache.modelos[cacheKey] = data.modelos || [];
+    return cache.modelos[cacheKey];
   } catch (error) {
     console.error('Erro ao buscar modelos:', error);
     return [];
@@ -72,16 +81,17 @@ export async function buscarModelos(codigoMarca) {
  * @param {string} codigoMarca - Código da marca
  * @param {string} codigoModelo - Código do modelo
  */
-export async function buscarAnos(codigoMarca, codigoModelo) {
+export async function buscarAnos(tipoVeiculo = 'carros', codigoMarca, codigoModelo) {
   try {
-    const chaveCache = `${codigoMarca}-${codigoModelo}`;
+    const tipo = normalizeTipoVeiculo(tipoVeiculo);
+    const chaveCache = `${tipo}-${codigoMarca}-${codigoModelo}`;
     
     // Retorna do cache se disponível
     if (cache.anos[chaveCache]) {
       return cache.anos[chaveCache];
     }
     
-    const response = await fetch(`${FIPE_API_BASE}/carros/marcas/${codigoMarca}/modelos/${codigoModelo}/anos`);
+    const response = await fetch(`${FIPE_API_BASE}/${tipo}/marcas/${codigoMarca}/modelos/${codigoModelo}/anos`);
     if (!response.ok) throw new Error('Erro ao buscar anos');
     const data = await response.json();
     
@@ -102,7 +112,21 @@ export async function buscarAnos(codigoMarca, codigoModelo) {
  */
 export async function buscarValor(codigoMarca, codigoModelo, codigoAno) {
   try {
-    const chaveCache = `${codigoMarca}-${codigoModelo}-${codigoAno}`;
+    // Compat: assinatura antiga assumia carros
+    return await buscarValorPorTipo('carros', codigoMarca, codigoModelo, codigoAno);
+  } catch (error) {
+    console.error('Erro ao buscar valor:', error);
+    return null;
+  }
+}
+
+/**
+ * Busca o valor FIPE de um veículo específico por tipo.
+ */
+export async function buscarValorPorTipo(tipoVeiculo = 'carros', codigoMarca, codigoModelo, codigoAno) {
+  try {
+    const tipo = normalizeTipoVeiculo(tipoVeiculo);
+    const chaveCache = `${tipo}-${codigoMarca}-${codigoModelo}-${codigoAno}`;
     
     // Retorna do cache se disponível
     if (cache.valores[chaveCache]) {
@@ -110,7 +134,7 @@ export async function buscarValor(codigoMarca, codigoModelo, codigoAno) {
     }
     
     const response = await fetch(
-      `${FIPE_API_BASE}/carros/marcas/${codigoMarca}/modelos/${codigoModelo}/anos/${codigoAno}`
+      `${FIPE_API_BASE}/${tipo}/marcas/${codigoMarca}/modelos/${codigoModelo}/anos/${codigoAno}`
     );
     if (!response.ok) throw new Error('Erro ao buscar valor');
     const data = await response.json();
@@ -143,16 +167,16 @@ export async function buscarVeiculosPopulares() {
     
     // Buscar modelos de cada marca (reduzido para 5 marcas)
     for (const marca of marcasPopulares) {
-      const modelos = await buscarModelos(marca.codigo);
+      const modelos = await buscarModelos('carros', marca.codigo);
       
       // Pega apenas os 5 primeiros modelos de cada marca (reduzido de 8 para 5)
       for (const modelo of modelos.slice(0, 5)) {
-        const anos = await buscarAnos(marca.codigo, modelo.codigo);
+        const anos = await buscarAnos('carros', marca.codigo, modelo.codigo);
         
         if (anos.length > 0) {
           // Pega apenas o ano mais recente
           const anoRecente = anos[0];
-          const valor = await buscarValor(marca.codigo, modelo.codigo, anoRecente.codigo);
+          const valor = await buscarValorPorTipo('carros', marca.codigo, modelo.codigo, anoRecente.codigo);
           
           if (valor) {
             veiculos.push({
@@ -198,16 +222,16 @@ export async function buscarVeiculosComFiltros(filtros = {}) {
     
     // Se tem marca mas não tem modelo, busca modelos da marca
     if (filtros.codigoMarca && !filtros.codigoModelo) {
-      const modelos = await buscarModelos(filtros.codigoMarca);
+      const modelos = await buscarModelos('carros', filtros.codigoMarca);
       
       // Busca valor para os primeiros 20 modelos (reduzido de 50 para 20)
       for (const modelo of modelos.slice(0, 20)) {
-        const anos = await buscarAnos(filtros.codigoMarca, modelo.codigo);
+        const anos = await buscarAnos('carros', filtros.codigoMarca, modelo.codigo);
         
         if (anos.length > 0) {
           // Busca apenas o ano mais recente
           const anoRecente = anos[0];
-          const valor = await buscarValor(filtros.codigoMarca, modelo.codigo, anoRecente.codigo);
+          const valor = await buscarValorPorTipo('carros', filtros.codigoMarca, modelo.codigo, anoRecente.codigo);
           
           if (valor) {
             veiculos.push({
@@ -232,11 +256,11 @@ export async function buscarVeiculosComFiltros(filtros = {}) {
     
     // Se tem marca e modelo, busca anos do modelo
     if (filtros.codigoMarca && filtros.codigoModelo) {
-      const anos = await buscarAnos(filtros.codigoMarca, filtros.codigoModelo);
+      const anos = await buscarAnos('carros', filtros.codigoMarca, filtros.codigoModelo);
       
       // Busca todos os anos disponíveis
       for (const ano of anos) {
-        const valor = await buscarValor(filtros.codigoMarca, filtros.codigoModelo, ano.codigo);
+        const valor = await buscarValorPorTipo('carros', filtros.codigoMarca, filtros.codigoModelo, ano.codigo);
         
         if (valor) {
           veiculos.push({
