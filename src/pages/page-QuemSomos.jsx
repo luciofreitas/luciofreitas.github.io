@@ -29,7 +29,8 @@ export default function QuemSomos() {
             <h3 className="equipe-section-title">Nossa Equipe</h3>
             
             <div className="equipe-cards-container">
-              {/* Card Membro 1 */}
+              {/* Card Membro 1 (mantido no código; desativado até ter foto) */}
+              {/*
               <div className="equipe-card">
                 <div className="equipe-card-photo">
                   <img src="/images/rafael.jpg" alt="Rafael" className="equipe-photo" />
@@ -43,6 +44,7 @@ export default function QuemSomos() {
                   </p>
                 </div>
               </div>
+              */}
 
               {/* Card Membro 2 */}
               <div className="equipe-card">

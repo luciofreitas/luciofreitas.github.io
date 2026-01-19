@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { MenuLogin } from '../components';
 import { useNavigate } from 'react-router-dom';
 // Supabase client is lazily imported where needed to avoid bundling it into
@@ -16,6 +16,20 @@ export default function RedefinirSenha() {
   const [userEmail, setUserEmail] = useState('');
   
   const navigate = useNavigate();
+
+  const passwordChecklist = useMemo(() => {
+    const s = String(novaSenha || '');
+    return {
+      upper: /\p{Lu}/u.test(s),
+      lower: /\p{Ll}/u.test(s),
+      number: /\d/.test(s),
+      minLength: s.length >= 6,
+    };
+  }, [novaSenha]);
+
+  const isPasswordValid = useMemo(() => {
+    return !!(passwordChecklist.upper && passwordChecklist.lower && passwordChecklist.number && passwordChecklist.minLength);
+  }, [passwordChecklist]);
 
   useEffect(() => {
     // Verificar se há um token de recuperação válido
@@ -75,8 +89,8 @@ export default function RedefinirSenha() {
     setError('');
     
     // Validações
-    if (novaSenha.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.');
+    if (!isPasswordValid) {
+      setError('Senha fraca. Atenda aos requisitos abaixo.');
       return;
     }
 
@@ -208,7 +222,14 @@ export default function RedefinirSenha() {
                 className="input-field"
                 minLength={6}
               />
-              <small className="hint">Mínimo 6 caracteres</small>
+              <div className="password-checklist" aria-live="polite">
+                <ul className="password-checklist-list">
+                  <li className={passwordChecklist.upper ? 'ok' : 'missing'}>Letra maiúscula</li>
+                  <li className={passwordChecklist.lower ? 'ok' : 'missing'}>Letra minúscula</li>
+                  <li className={passwordChecklist.number ? 'ok' : 'missing'}>Números</li>
+                  <li className={passwordChecklist.minLength ? 'ok' : 'missing'}>Mínimo 6 dígitos</li>
+                </ul>
+              </div>
             </div>
 
             <div className="form-group">
@@ -243,9 +264,9 @@ export default function RedefinirSenha() {
             <div className="security-tips">
               <h3>🛡️ Dicas de Segurança:</h3>
               <ul>
-                <li>✅ Use pelo menos 6 caracteres</li>
-                <li>✅ Misture letras, números e símbolos</li>
-                <li>✅ Não use senhas óbvias (123456, senha, etc.)</li>
+                <li>✅ Use letras maiúsculas e minúsculas</li>
+                <li>✅ Use números</li>
+                <li>✅ Mínimo 6 caracteres</li>
                 <li>✅ Não compartilhe sua senha com ninguém</li>
               </ul>
             </div>

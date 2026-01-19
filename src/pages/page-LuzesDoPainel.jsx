@@ -426,11 +426,11 @@ function LuzesDoPainel() {
                     onChange={(e) => setFiltros({...filtros, cor: e.target.value})}
                   >
                     <option value="">Todas</option>
-                    <option value="vermelho">Vermelho</option>
                     <option value="amarelo">Amarelo</option>
-                    <option value="verde">Verde</option>
                     <option value="azul">Azul</option>
                     <option value="laranja">Laranja</option>
+                    <option value="verde">Verde</option>
+                    <option value="vermelho">Vermelho</option>
                   </select>
                 </div>
                 

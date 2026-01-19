@@ -4,6 +4,7 @@ import '../styles/pages/page-Recalls.css';
 import recallsData from '../data/recalls.json';
 import { AuthContext } from '../App';
 import { getCars } from '../services/carService';
+import { comparePtBr, sortByLabelPtBr } from '../utils/sortUtils';
 
 function PageRecalls() {
   const { usuarioLogado } = useContext(AuthContext) || {};
@@ -127,7 +128,7 @@ function PageRecalls() {
                   className="recalls-input"
                 >
                   <option value="">-- Busca geral (deixar em branco) --</option>
-                  {carros.map(carro => (
+                  {sortByLabelPtBr(carros, (c) => `${c?.marca ?? ''} ${c?.modelo ?? ''} ${c?.ano ?? ''}`).map(carro => (
                     <option key={carro.id} value={carro.id}>
                       {carro.marca} {carro.modelo} {carro.ano}{carro.isDefault ? ' ⭐' : ''}
                     </option>
@@ -184,9 +185,9 @@ function PageRecalls() {
                   className="recalls-select"
                 >
                   <option value="">Todos</option>
-                  <option value="Alto">Alto</option>
-                  <option value="Médio">Médio</option>
-                  <option value="Baixo">Baixo</option>
+                  {['Alto', 'Baixo', 'Médio'].sort(comparePtBr).map((v) => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
                 </select>
               </div>
             </div>

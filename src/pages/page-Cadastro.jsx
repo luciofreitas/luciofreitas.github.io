@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToggleCar, MenuLogin } from '../components';
 import '../styles/pages/page-Cadastro.css';
@@ -18,6 +18,20 @@ export default function PageCadastro() {
   const navigate = useNavigate();
   const { setUsuarioLogado } = useContext(AuthContext || {});
 
+  const passwordChecklist = useMemo(() => {
+    const s = String(senha || '');
+    return {
+      upper: /\p{Lu}/u.test(s),
+      lower: /\p{Ll}/u.test(s),
+      number: /\d/.test(s),
+      minLength: s.length >= 6,
+    };
+  }, [senha]);
+
+  const isPasswordValid = useMemo(() => {
+    return !!(passwordChecklist.upper && passwordChecklist.lower && passwordChecklist.number && passwordChecklist.minLength);
+  }, [passwordChecklist]);
+
   // Helper to compute deterministic avatar background color from a name/email
   const computeAvatarBg = (seed) => {
     try {
@@ -36,11 +50,31 @@ export default function PageCadastro() {
     if (!email || !email.trim()) e.email = 'E-mail é obrigatório.';
     else if (!emailRegex.test(email)) e.email = 'E-mail inválido.';
     if (!senha) e.senha = 'Senha é obrigatória.';
-    else if (senha.length < 6) e.senha = 'Senha deve ter pelo menos 6 caracteres.';
-    if (senha !== confirmSenha) e.confirmSenha = 'As senhas não conferem.';
+    else if (!isPasswordValid) e.senha = 'Senha fraca. Atenda aos requisitos abaixo.';
+    if (!confirmSenha) e.confirmSenha = 'Confirme sua senha.';
+    else if (senha !== confirmSenha) e.confirmSenha = 'As senhas não conferem.';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
+
+  const normalizeNome = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const s = raw.replace(/\s+/g, ' ');
+    const lowerWords = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
+    return s
+      .split(' ')
+      .map((part, idx) => {
+        if (!part) return '';
+        const lower = part.toLocaleLowerCase('pt-BR');
+        if (idx > 0 && lowerWords.has(lower)) return lower;
+        const isAllUpper = part === part.toLocaleUpperCase('pt-BR');
+        const rest = isAllUpper ? part.slice(1).toLocaleLowerCase('pt-BR') : part.slice(1);
+        return part.charAt(0).toLocaleUpperCase('pt-BR') + rest;
+      })
+      .join(' ')
+      .trim();
+  };
 
   async function handleSubmit(ev) {
     ev.preventDefault();
@@ -49,7 +83,7 @@ export default function PageCadastro() {
     if (!validate()) return;
     setLoading(true);
     // Normalize name (collapse whitespace, trim) and attempt create -> then auto-login
-    const normalizedNome = String(nome || '').trim().replace(/\s+/g, ' ');
+    const normalizedNome = normalizeNome(nome);
     try {
       const apiBase = window.__API_BASE || '';
       const resp = await fetch(`${apiBase}/api/users`, {
@@ -59,12 +93,13 @@ export default function PageCadastro() {
       });
       if (resp.status === 201) {
         const created = await resp.json().catch(() => ({}));
+        const createdNome = normalizeNome((created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome);
         const normalizedUsuario = {
           id: created.id || (`local_${Date.now()}`),
           email: created.email || email.trim(),
-          nome: (created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome,
-          name: (created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome,
-          avatarBg: computeAvatarBg((created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome),
+          nome: createdNome,
+          name: createdNome,
+          avatarBg: computeAvatarBg(createdNome || normalizedNome),
           photoURL: created.photoURL || created.photo_url || null,
           isPro: false
         };
@@ -98,12 +133,13 @@ export default function PageCadastro() {
             return;
           } else if (data && (data.user || data)) {
             const sbUser = data.user || data;
+            const sbNome = normalizeNome((sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome);
             const normalizedUsuario = {
               id: sbUser.id || sbUser.user?.id || (`local_${Date.now()}`),
               email: sbUser.email || emailAddr,
-              nome: (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome,
-              name: (sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome,
-              avatarBg: computeAvatarBg((sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome),
+              nome: sbNome,
+              name: sbNome,
+              avatarBg: computeAvatarBg(sbNome || normalizedNome),
               photoURL: sbUser.photoURL || sbUser.avatar_url || null,
               isPro: false
             };
@@ -207,6 +243,16 @@ export default function PageCadastro() {
                     disabled={loading}
                   />
                 </div>
+
+                <div className="password-checklist" aria-live="polite">
+                  <ul className="password-checklist-list">
+                    <li className={passwordChecklist.upper ? 'ok' : 'missing'}>Letra maiúscula</li>
+                    <li className={passwordChecklist.lower ? 'ok' : 'missing'}>Letra minúscula</li>
+                    <li className={passwordChecklist.number ? 'ok' : 'missing'}>Números</li>
+                    <li className={passwordChecklist.minLength ? 'ok' : 'missing'}>Mínimo 6 dígitos</li>
+                  </ul>
+                </div>
+
                 {errors.senha && <div className="error">{errors.senha}</div>}
               </label>
               <label className="field">
@@ -229,7 +275,12 @@ export default function PageCadastro() {
                 </div>
                 {errors.confirmSenha && <div className="error">{errors.confirmSenha}</div>}
               </label>
-              <button className="submit" type="submit" disabled={loading} style={loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}}>
+              <button
+                className="submit"
+                type="submit"
+                disabled={loading}
+                style={loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}}
+              >
                 {loading ? 'Cadastrando...' : 'Cadastrar'}
               </button>
               {success && (

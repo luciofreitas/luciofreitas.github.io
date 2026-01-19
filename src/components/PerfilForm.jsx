@@ -28,11 +28,30 @@ export default function PerfilForm({
   const [showConfirmNova, setShowConfirmNova] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const normalizeNome = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const s = raw.replace(/\s+/g, ' ');
+    const lowerWords = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
+    return s
+      .split(' ')
+      .map((part, idx) => {
+        if (!part) return '';
+        const lower = part.toLocaleLowerCase('pt-BR');
+        if (idx > 0 && lowerWords.has(lower)) return lower;
+        const isAllUpper = part === part.toLocaleUpperCase('pt-BR');
+        const rest = isAllUpper ? part.slice(1).toLocaleLowerCase('pt-BR') : part.slice(1);
+        return part.charAt(0).toLocaleUpperCase('pt-BR') + rest;
+      })
+      .join(' ')
+      .trim();
+  };
+
   useEffect(() => {
     if (usuarioLogado) {
       // Primeiro define com os dados locais
       setLocal({
-        nome: usuarioLogado.nome || '',
+        nome: normalizeNome(usuarioLogado.nome || usuarioLogado.name || ''),
         celular: usuarioLogado.celular || '',
         email: usuarioLogado.email || '',
         senhaAtual: '',
@@ -57,7 +76,7 @@ export default function PerfilForm({
             if (data.success && data.user) {
               setLocal(prev => ({
                 ...prev,
-                nome: data.user.nome || data.user.name || prev.nome,
+                nome: normalizeNome(data.user.nome || data.user.name || prev.nome),
                 celular: data.user.celular || data.user.telefone || data.user.phone || prev.celular,
                 email: data.user.email || prev.email
               }));
@@ -199,9 +218,10 @@ export default function PerfilForm({
     }
 
     try {
+      const normalizedNome = normalizeNome(local.nome);
       // Prepare payload for server update
       const payload = {
-        nome: local.nome,
+        nome: normalizedNome,
         email: local.email,
         celular: local.celular,
       };
@@ -237,6 +257,14 @@ export default function PerfilForm({
 
   // If server returned updated user, prefer it. Otherwise construct from local + existing usuarioLogado
   const updatedUser = savedUser ? { ...usuarioLogado, ...savedUser } : { ...usuarioLogado, ...local };
+  // Ensure name is normalized before persisting/displaying
+  try {
+    const finalNome = normalizedNome || normalizeNome(updatedUser.nome || updatedUser.name || '');
+    if (finalNome) {
+      updatedUser.nome = finalNome;
+      updatedUser.name = finalNome;
+    }
+  } catch (e) { /* ignore */ }
   // Do NOT persist plaintext senha in localStorage. Keep password changes only on the server side.
 
       // Atualizar contexto

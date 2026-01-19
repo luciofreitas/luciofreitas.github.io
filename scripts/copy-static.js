@@ -4,8 +4,42 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const dist = path.join(root, 'dist');
 
-function copyFile(src, dest) {
+function copyPath(src, dest) {
   try {
+    const stat = fs.statSync(src);
+    if (stat.isDirectory()) {
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      // Windows pode falhar ao sobrescrever diretórios parcialmente copiados.
+      // Remover o destino antes torna a cópia idempotente.
+      fs.rmSync(dest, { recursive: true, force: true });
+      fs.mkdirSync(dest, { recursive: true });
+
+      const manualCopyDir = () => {
+        for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+          const from = path.join(src, entry.name);
+          const to = path.join(dest, entry.name);
+          if (entry.isDirectory()) {
+            copyPath(from, to);
+          } else {
+            fs.mkdirSync(path.dirname(to), { recursive: true });
+            fs.copyFileSync(from, to);
+          }
+        }
+      };
+
+      try {
+        if (typeof fs.cpSync === 'function') {
+          fs.cpSync(src, dest, { recursive: true, force: true });
+        } else {
+          manualCopyDir();
+        }
+      } catch (e) {
+        manualCopyDir();
+      }
+      console.log('copied dir', src, '->', dest);
+      return;
+    }
+
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(src, dest);
     console.log('copied', src, '->', dest);
@@ -28,8 +62,8 @@ imagesCandidates.forEach(dirName => {
       const s = path.join(srcDir, item);
       const dImages = path.join(imagesDest, item);
       const dImagens = path.join(imagensDest, item);
-      copyFile(s, dImages);
-      copyFile(s, dImagens);
+      copyPath(s, dImages);
+      copyPath(s, dImagens);
       copiedAny = true;
     });
   }
@@ -42,7 +76,7 @@ if (!copiedAny) {
 const partsSrc = path.join(root, 'src', 'data', 'parts_db.json');
 const partsDest = path.join(dist, 'data', 'parts_db.json');
 if (fs.existsSync(partsSrc)) {
-  copyFile(partsSrc, partsDest);
+  copyPath(partsSrc, partsDest);
 } else {
   console.warn('No src/data/parts_db.json found at', partsSrc);
 }

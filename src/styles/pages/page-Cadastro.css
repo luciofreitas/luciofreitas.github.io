@@ -141,6 +141,69 @@
   padding-right: 3rem !important;
 }
 
+.password-checklist {
+  margin-top: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.password-checklist-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 0.75rem;
+}
+
+.password-checklist-list li {
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #64748b;
+}
+
+.password-checklist-list li::before {
+  content: '•';
+  color: currentColor;
+}
+
+.password-checklist-list li.ok {
+  color: #065f46;
+}
+
+.password-checklist-list li.ok::before {
+  content: '✓';
+}
+
+.password-checklist-list li.missing {
+  color: #b45309;
+}
+
+.password-checklist-list li.missing::before {
+  content: '✕';
+}
+
+.theme-dark .password-checklist {
+  border: 0;
+  background: transparent;
+}
+
+.theme-dark .password-checklist-list li {
+  color: #94a3b8;
+}
+
+.theme-dark .password-checklist-list li.ok {
+  color: #86efac;
+}
+
+.theme-dark .password-checklist-list li.missing {
+  color: #fbbf24;
+}
+
 /* ====== Seja Pro Section Adaptado ====== */
 /* Novo card informativo do lado direito */
 .cadastro-content-right {

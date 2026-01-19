@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
 import { marcasFIPE, getModelosPorMarca, getVeiculo, mesReferencia } from '../data/veiculosFIPE';
+import { comparePtBr } from '../utils/sortUtils';
 import '../styles/pages/page-TabelaFIPE.css';
 
 export default function TabelaFIPE() {
@@ -32,7 +33,7 @@ export default function TabelaFIPE() {
     if (codigoMarca) {
       const marca = marcasFIPE.find(m => m.codigo.toString() === codigoMarca);
       const modelosDisponiveis = getModelosPorMarca(marca.nome);
-      setModelos(modelosDisponiveis);
+      setModelos([...(modelosDisponiveis || [])].sort((a, b) => comparePtBr(a?.nome, b?.nome)));
     } else {
       setModelos([]);
     }
@@ -92,7 +93,7 @@ export default function TabelaFIPE() {
                 onChange={(e) => handleMarcaChange(e.target.value)}
               >
                 <option value="">Selecione a marca</option>
-                {marcasFIPE.map(marca => (
+                {[...marcasFIPE].sort((a, b) => comparePtBr(a?.nome, b?.nome)).map(marca => (
                   <option key={marca.codigo} value={marca.codigo}>{marca.nome}</option>
                 ))}
               </select>
@@ -112,7 +113,7 @@ export default function TabelaFIPE() {
                 <option value="">
                   {!marcaSelecionada ? 'Selecione uma marca primeiro' : 'Selecione o modelo'}
                 </option>
-                {modelos.map(modelo => (
+                {[...modelos].sort((a, b) => comparePtBr(a?.nome, b?.nome)).map(modelo => (
                   <option key={modelo.codigo} value={modelo.codigo}>{modelo.nome}</option>
                 ))}
               </select>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import './CompatibilityGrid.css';
+import { comparePtBr } from '../utils/sortUtils';
 
 function CompatibilityRow({ veiculo, anosList }) {
-  const uniqueYears = Array.from(new Set(anosList.map(String))).sort();
+  const uniqueYears = Array.from(new Set(anosList.map(String))).sort(comparePtBr);
   const [selectedYear, setSelectedYear] = useState(uniqueYears.length ? uniqueYears[0] : '');
 
   return (

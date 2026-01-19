@@ -123,7 +123,8 @@
 
 .equipe-cards-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+  justify-content: center;
   gap: 1.5rem;
   width: 100%;
 }
@@ -196,11 +197,11 @@
 /* Responsividade */
 @media (max-width: 1024px) {
   .equipe-cards-container {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
     gap: 1.5rem;
   }
   
-  .equipe-card:last-child {
+  .equipe-card:last-child:nth-child(odd) {
     grid-column: 1 / -1;
     max-width: 50%;
     margin: 0 auto;
@@ -258,5 +259,4 @@
   .equipe-bio {
     font-size: 0.85rem;
   }
-}
 }

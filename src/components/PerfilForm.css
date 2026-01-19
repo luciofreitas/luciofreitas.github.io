@@ -112,3 +112,8 @@ button.btn.btn-cancel:hover {
   border-color: #ef4444;
   box-shadow: 0 0 0 0.125rem rgba(239, 68, 68, 0.1);
 }
+
+/* Perfil: centralizar o título "Informações Pessoais" */
+.login-form-card .login-section-title {
+  text-align: center;
+}

@@ -116,6 +116,25 @@ export default function App() {
             return s || raw;
           }
 
+          function titleCaseName(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return '';
+            const s = raw.replace(/\s+/g, ' ');
+            const lowerWords = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
+            return s
+              .split(' ')
+              .map((part, idx) => {
+                if (!part) return '';
+                const lower = part.toLocaleLowerCase('pt-BR');
+                if (idx > 0 && lowerWords.has(lower)) return lower;
+                const isAllUpper = part === part.toLocaleUpperCase('pt-BR');
+                const rest = isAllUpper ? part.slice(1).toLocaleLowerCase('pt-BR') : part.slice(1);
+                return part.charAt(0).toLocaleUpperCase('pt-BR') + rest;
+              })
+              .join(' ')
+              .trim();
+          }
+
           // If stored nome looks like a dev/mock name, try to replace it with a cleaned
           // displayName or email-derived name so the UI shows a human name.
           try {
@@ -128,6 +147,17 @@ export default function App() {
                 stored.nome = cleaned;
                 stored.name = cleaned;
               }
+            }
+          } catch (e) { /* ignore */ }
+
+          // Always ensure the stored nome starts with uppercase for consistency.
+          try {
+            const before = String(stored.nome || stored.name || '');
+            const after = titleCaseName(before);
+            if (after && after !== before) {
+              stored.nome = after;
+              stored.name = after;
+              try { localStorage.setItem('usuario-logado', JSON.stringify(stored)); } catch (e) {}
             }
           } catch (e) { /* ignore */ }
           // Normalize old key photo_url to photoURL

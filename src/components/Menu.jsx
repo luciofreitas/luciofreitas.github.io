@@ -30,8 +30,7 @@ function Menu() {
     {
       id: 'buscar',
       label: 'Buscar Peças',
-      onClick: () => navigate('/buscar-pecas'),
-      destacado: true
+      onClick: () => navigate('/buscar-pecas')
     },
     { id: 'tabela-fipe', label: 'Tabela FIPE', onClick: () => navigate('/tabela-fipe') },
     { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },

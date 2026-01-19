@@ -7,6 +7,7 @@ import { AuthContext } from '../App';
 import { guiasService } from '../services/guiasService';
 import { corrigirAutorNomeGuiasAntigos } from '../services/guiasService';
 import '../styles/pages/page-CriarGuia.css';
+import { comparePtBr } from '../utils/sortUtils';
 
 export default function CriarGuia() {
   const { usuarioLogado } = useContext(AuthContext) || {};
@@ -301,7 +302,7 @@ export default function CriarGuia() {
                 onChange={handleChange}
               >
                 <option value="">Selecione uma categoria</option>
-                {categorias.map(cat => (
+                {[...categorias].sort(comparePtBr).map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>

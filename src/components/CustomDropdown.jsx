@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import '../styles/CustomDropdown.css';
+import { sortDropdownOptionsPtBr } from '../utils/sortUtils';
 
 export default function CustomDropdown({ options = [], value, onChange, placeholder = '', disabled = false }) {
   const [open, setOpen] = useState(false);
@@ -22,8 +23,8 @@ export default function CustomDropdown({ options = [], value, onChange, placehol
     setOpen(false);
   }
 
-  const selectedLabel = options.find(opt => opt.value === value)?.label || '';
-  const visibleOptions = options; // show all options; first item can be blank
+  const visibleOptions = useMemo(() => sortDropdownOptionsPtBr(options), [options]);
+  const selectedLabel = visibleOptions.find(opt => opt.value === value)?.label || '';
 
   return (
     <div className={`custom-dropdown${disabled ? ' disabled' : ''}`} ref={ref}>

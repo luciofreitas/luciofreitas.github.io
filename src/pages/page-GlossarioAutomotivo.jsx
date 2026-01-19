@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Menu } from '../components';
 import { apiService } from '../utils/apiService';
 import { getCorClass, getPrioridadeClass } from '../utils/colorUtils';
+import { sortDropdownOptionsPtBr } from '../utils/sortUtils';
 import '../styles/pages/page-GlossarioAutomotivo.css';
 
 function PageGlossarioAutomotivo() {
@@ -46,6 +47,10 @@ function PageGlossarioAutomotivo() {
     { value: 'verde', label: 'Verde' },
     { value: 'azul', label: 'Azul' }
   ];
+
+  const categoriasOrdenadas = sortDropdownOptionsPtBr(categorias);
+  const prioridadesOrdenadas = sortDropdownOptionsPtBr(prioridades);
+  const coresOrdenadas = sortDropdownOptionsPtBr(cores);
 
   // Carregar dados das luzes
   useEffect(() => {
@@ -200,7 +205,7 @@ function PageGlossarioAutomotivo() {
                   value={filtros.categoria}
                   onChange={(e) => handleFiltroChange('categoria', e.target.value)}
                 >
-                  {categorias.map(cat => (
+                  {categoriasOrdenadas.map(cat => (
                     <option key={cat.value} value={cat.value}>{cat.label}</option>
                   ))}
                 </select>
@@ -212,7 +217,7 @@ function PageGlossarioAutomotivo() {
                   value={filtros.prioridade}
                   onChange={(e) => handleFiltroChange('prioridade', e.target.value)}
                 >
-                  {prioridades.map(prio => (
+                  {prioridadesOrdenadas.map(prio => (
                     <option key={prio.value} value={prio.value}>{prio.label}</option>
                   ))}
                 </select>
@@ -224,7 +229,7 @@ function PageGlossarioAutomotivo() {
                   value={filtros.cor}
                   onChange={(e) => handleFiltroChange('cor', e.target.value)}
                 >
-                  {cores.map(cor => (
+                  {coresOrdenadas.map(cor => (
                     <option key={cor.value} value={cor.value}>{cor.label}</option>
                   ))}
                 </select>

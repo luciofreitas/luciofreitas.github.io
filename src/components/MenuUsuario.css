@@ -42,8 +42,9 @@
   height: 44px !important;
 }
 
-/* Mobile initials/avatar size */
-.user-initials-mobile { width: 36px !important; height: 36px !important; font-size: 0.85rem !important; }
+/* Show only ONE initials SVG at a time (prevents overlap/striped look) */
+.user-initials-desktop { display: block !important; }
+.user-initials-mobile { display: none !important; width: 36px !important; height: 36px !important; font-size: 0.85rem !important; }
 
 /* Avatar image styling - match initials badge size and make circular */
 .user-avatar {
@@ -57,7 +58,6 @@
 /* Styling for initials fallback to ensure centered, visible badge */
 .user-initials-desktop,
 .user-initials-mobile {
-  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   /* Background color is applied inline for deterministic per-user color */
@@ -65,6 +65,31 @@
   font-weight: 700 !important;
   border-radius: 999px !important;
   text-transform: uppercase !important;
+}
+
+/* New single-element fallback (preferred): avoids SVG/CSS overlap issues */
+.user-menu-root .user-button.icon-only .user-avatar-fallback {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: var(--avatar-bg) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  user-select: none !important;
+}
+
+/* Make the fallback fill the inner area so the outer button border becomes the ring */
+.user-menu-root .user-button.icon-only .user-avatar-fallback {
+  border-radius: 0 !important;
+}
+
+/* Font sizing for fallback initial */
+.user-menu-root .user-button.icon-only .user-avatar-fallback { font-size: 16px !important; }
+@media (max-width: 48rem) {
+  .user-menu-root .user-button.icon-only .user-avatar-fallback { font-size: 14px !important; }
 }
 
 /* Apply CSS variable as background with highest specificity; this prevents other
@@ -114,6 +139,8 @@
 .user-initials-mobile { font-size: 0.92rem !important; }
 
 @media (max-width: 48rem) {
+  .user-initials-desktop { display: none !important; }
+  .user-initials-mobile { display: block !important; }
   .user-avatar { width: 36px !important; height: 36px !important; }
 }
 

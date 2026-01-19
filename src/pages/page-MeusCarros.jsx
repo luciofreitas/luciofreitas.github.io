@@ -4,6 +4,7 @@ import { Menu } from '../components';
 import { AuthContext } from '../App';
 import { getCars, addCar, removeCar, updateCar, setDefaultCar } from '../services/carService';
 import { brandList, getModelsByBrand } from '../data/carBrands';
+import { comparePtBr } from '../utils/sortUtils';
 import '../styles/pages/page-MeusCarros.css';
 
 export default function MeusCarros() {
@@ -37,7 +38,7 @@ export default function MeusCarros() {
   useEffect(() => {
     if (marca && marca !== 'Outro') {
       const modelos = getModelsByBrand(marca);
-      setModelosDisponiveis(modelos);
+      setModelosDisponiveis([...(modelos || [])].sort(comparePtBr));
       // Limpa o modelo selecionado se não estiver editando
       if (!isEditing) {
         setModelo('');
@@ -200,7 +201,7 @@ export default function MeusCarros() {
                       required
                     >
                       <option value="">Selecione a marca</option>
-                      {brandList.map(brand => (
+                      {[...brandList].sort(comparePtBr).map(brand => (
                         <option key={brand} value={brand}>{brand}</option>
                       ))}
                     </select>
@@ -215,7 +216,7 @@ export default function MeusCarros() {
                       required
                     >
                       <option value="">Selecione o modelo</option>
-                      {modelosDisponiveis.map(model => (
+                      {[...modelosDisponiveis].sort(comparePtBr).map(model => (
                         <option key={model} value={model}>{model}</option>
                       ))}
                       <option value="Outro">Outro (digitar manualmente)</option>

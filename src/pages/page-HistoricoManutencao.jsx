@@ -9,6 +9,7 @@ import {
   updateMaintenance, 
   deleteMaintenance 
 } from '../services/maintenanceService';
+import { comparePtBr, sortByLabelPtBr } from '../utils/sortUtils';
 import '../styles/pages/page-HistoricoManutencao.css';
 
 export default function HistoricoManutencao() {
@@ -307,7 +308,7 @@ export default function HistoricoManutencao() {
                     className="historico-select"
                   >
                     <option value="todos">Todos os veículos</option>
-                    {carros.map(carro => (
+                    {sortByLabelPtBr(carros, (c) => `${c?.marca ?? ''} ${c?.modelo ?? ''} ${c?.ano ?? ''}`).map(carro => (
                       <option key={carro.id} value={carro.id}>
                         {carro.marca} {carro.modelo} ({carro.ano})
                       </option>
@@ -438,7 +439,7 @@ export default function HistoricoManutencao() {
                         className="historico-input historico-car-selector"
                       >
                         <option value="">-- Selecione um carro cadastrado --</option>
-                        {carros.map(carro => (
+                        {sortByLabelPtBr(carros, (c) => `${c?.marca ?? ''} ${c?.modelo ?? ''} ${c?.ano ?? ''}`).map(carro => (
                           <option key={carro.id} value={carro.id}>
                             {carro.marca} {carro.modelo} ({carro.ano}){carro.isDefault ? ' ⭐' : ''}
                           </option>
@@ -462,7 +463,7 @@ export default function HistoricoManutencao() {
                           className="historico-input historico-vehicle-select"
                         >
                           <option value="">Selecione um veículo</option>
-                          {carros.map(carro => (
+                          {sortByLabelPtBr(carros, (c) => `${c?.marca ?? ''} ${c?.modelo ?? ''}`).map(carro => (
                             <option key={carro.id} value={carro.id}>
                               {carro.marca} {carro.modelo}
                             </option>
@@ -507,9 +508,11 @@ export default function HistoricoManutencao() {
                         required
                         className="historico-input"
                       >
-                        <option value="preventiva">Preventiva</option>
-                        <option value="corretiva">Corretiva</option>
-                        <option value="outro">Outro</option>
+                        {[{ value: 'corretiva', label: 'Corretiva' }, { value: 'outro', label: 'Outro' }, { value: 'preventiva', label: 'Preventiva' }]
+                          .sort((a, b) => comparePtBr(a.label, b.label))
+                          .map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
                       </select>
                     </div>
                   </div>

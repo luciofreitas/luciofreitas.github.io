@@ -52,8 +52,8 @@ const GlossarioExpandido = ({
             >
               <option value="">Todas</option>
               <option value="Alta">Alta</option>
-              <option value="Média">Média</option>
               <option value="Baixa">Baixa</option>
+              <option value="Média">Média</option>
             </select>
           </div>
           
@@ -64,11 +64,11 @@ const GlossarioExpandido = ({
               onChange={(e) => setFiltros({...filtros, cor: e.target.value})}
             >
               <option value="">Todas</option>
-              <option value="vermelho">Vermelho</option>
               <option value="amarelo">Amarelo</option>
-              <option value="verde">Verde</option>
               <option value="azul">Azul</option>
               <option value="laranja">Laranja</option>
+              <option value="verde">Verde</option>
+              <option value="vermelho">Vermelho</option>
             </select>
           </div>
           

@@ -96,7 +96,8 @@ export default function NossoProjeto() {
               <h4 className="equipe-section-title">Nossa Equipe</h4>
               
               <div className="equipe-cards-container">
-                {/* Card Membro 1 */}
+                {/* Card Membro 1 (mantido no código; desativado até ter foto) */}
+                {/*
                 <div className="equipe-card">
                   <div className="equipe-card-photo">
                     <img src="/images/rafael.jpg" alt="Rafael" className="equipe-photo" />
@@ -110,6 +111,7 @@ export default function NossoProjeto() {
                     </p>
                   </div>
                 </div>
+                */}
 
                 {/* Card Membro 2 */}
                 <div className="equipe-card">
