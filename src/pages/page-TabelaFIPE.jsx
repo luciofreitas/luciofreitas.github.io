@@ -161,7 +161,17 @@ export default function TabelaFIPE() {
 
       // 2) Consulta BrasilAPI para obter o preço
       const data = await consultarPrecoPorCodigoFipe(codigo, tabelaReferenciaSelecionada || undefined);
-      setPrecosBrasilApiOnline(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+
+      // A BrasilAPI pode retornar múltiplos anos/versões para o mesmo Código FIPE.
+      // Como o usuário escolheu um ano específico (incluindo 32000 = 0 Km) no dropdown,
+      // filtramos para exibir apenas o item correspondente.
+      const anoSelecionado = parseInt(String(codigoAno).split('-')[0], 10);
+      const filtered = Number.isFinite(anoSelecionado)
+        ? list.filter((p) => Number(p?.anoModelo) === anoSelecionado)
+        : list;
+
+      setPrecosBrasilApiOnline(filtered.length > 0 ? filtered : list);
       if (!data || (Array.isArray(data) && data.length === 0)) {
         setOnlineErro('Nenhum resultado encontrado na BrasilAPI para esse código.');
       }
@@ -199,7 +209,7 @@ export default function TabelaFIPE() {
             </div>
 
             <div className="filtro-group">
-              <label htmlFor="tabelaRef" className="filtro-label">Tabela de referência (opcional)</label>
+              <label htmlFor="tabelaRef" className="filtro-label">Tabela de referência</label>
               <select
                 id="tabelaRef"
                 className="filtro-select"
@@ -260,9 +270,12 @@ export default function TabelaFIPE() {
                 disabled={!modeloOnline || onlineLoading}
               >
                 <option value="">{!modeloOnline ? 'Selecione o modelo primeiro' : 'Selecione o ano'}</option>
-                {anosOnline.map((a) => (
-                  <option key={a.codigo} value={a.codigo}>{a.nome}</option>
-                ))}
+                {anosOnline.map((a) => {
+                  const label = typeof a?.nome === 'string' ? a.nome.replace(/^32000\b/, '0 Km') : '';
+                  return (
+                    <option key={a.codigo} value={a.codigo}>{label}</option>
+                  );
+                })}
               </select>
             </div>
 
@@ -303,7 +316,7 @@ export default function TabelaFIPE() {
                         <td data-label="Código FIPE">{p.codigoFipe || codigoFipeDerivado}</td>
                         <td data-label="Marca">{p.marca || '—'}</td>
                         <td data-label="Modelo">{p.modelo || '—'}</td>
-                        <td data-label="Ano">{p.anoModelo ?? '—'}</td>
+                        <td data-label="Ano">{p.anoModelo === 32000 ? '0 Km' : (p.anoModelo ?? '—')}</td>
                         <td data-label="Combustível">{p.combustivel || '—'}</td>
                         <td data-label="Mês ref.">{(p.mesReferencia || '').trim() || '—'}</td>
                         <td data-label="Preço" className="fipe-preco">
