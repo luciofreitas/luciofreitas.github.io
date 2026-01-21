@@ -81,6 +81,16 @@ if (fs.existsSync(partsSrc)) {
   console.warn('No src/data/parts_db.json found at', partsSrc);
 }
 
+// Copy detailed parts database (used by the frontend fallback)
+// Frontend expects it at /data/parts_detailed.json
+const detailedPartsSrc = path.join(root, 'data', 'parts_detailed.json');
+const detailedPartsDest = path.join(dist, 'data', 'parts_detailed.json');
+if (fs.existsSync(detailedPartsSrc)) {
+  copyPath(detailedPartsSrc, detailedPartsDest);
+} else {
+  console.warn('No data/parts_detailed.json found at', detailedPartsSrc);
+}
+
 // Note: oauth-callback.html is no longer required for Firebase popup flow.
 // If you rely on redirect flows, restore a callback page and copy logic here.
 

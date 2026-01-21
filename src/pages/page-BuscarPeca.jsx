@@ -420,9 +420,24 @@ export default function BuscarPeca() {
         try {
           const itemId = peca.ml_id || peca.id;
           const resp = await mlService.getProductCompatibilities(itemId, { userId: usuarioLogado?.id, authToken: usuarioLogado?.access_token });
-          const products = Array.isArray(resp?.products) ? resp.products : [];
+          const products = Array.isArray(resp?.products)
+            ? resp.products
+            : (Array.isArray(resp?.compatible_products)
+              ? resp.compatible_products
+              : (Array.isArray(resp?.results)
+                ? resp.results
+                : (Array.isArray(resp) ? resp : [])));
+
           const applications = products
-            .map((p) => p?.catalog_product_name)
+            .map((p) => (
+              p?.catalog_product_name ||
+              p?.catalog_product?.name ||
+              p?.name ||
+              p?.title ||
+              p?.product_name ||
+              p?.catalog_product_name_pt ||
+              null
+            ))
             .filter(Boolean);
 
           // If ML returned nothing, fall back to any attribute-derived applications (may be empty)
@@ -448,7 +463,7 @@ export default function BuscarPeca() {
               <div style={{ padding: '1rem' }}>
                 <p style={{ margin: 0 }}>{msg}</p>
                 <p style={{ marginTop: '0.5rem', color: '#666' }}>
-                  Alguns anúncios não publicam a lista de veículos compatíveis. Você pode continuar pesquisando normalmente — conectar o Mercado Livre é opcional e só ajuda em alguns casos.
+                  Alguns anúncios não publicam a lista de veículos compatíveis. Você pode continuar pesquisando normalmente — mesmo conectado, isso pode não aparecer em todos os anúncios.
                 </p>
               </div>
             );
