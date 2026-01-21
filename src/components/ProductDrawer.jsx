@@ -152,6 +152,7 @@ export default function ProductDrawer({
   const [loading, setLoading] = useState(false);
   const [productDetails, setProductDetails] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [badImageUrls, setBadImageUrls] = useState(() => new Set());
 
   const drawerRef = useRef(null);
   useFocusTrap(isOpen, drawerRef);
@@ -184,6 +185,7 @@ export default function ProductDrawer({
         }
         setProductDetails(product);
         setSelectedImage(0);
+        setBadImageUrls(new Set());
       } catch (e) {
         if (!mounted) return;
         setProductDetails(null);
@@ -306,16 +308,28 @@ export default function ProductDrawer({
     return false;
   };
 
+  const markBadImage = (url) => {
+    const s = String(url ?? '').trim();
+    if (!s) return;
+    setBadImageUrls((prev) => {
+      if (prev && prev.has(s)) return prev;
+      const next = new Set(prev || []);
+      next.add(s);
+      return next;
+    });
+  };
+
   const images = Array.isArray(productDetails?.imagens)
     ? productDetails.imagens
       .filter((img) => typeof img === 'string')
       .map((img) => img.trim())
       .filter(isRenderableImageUrl)
+      .filter((img) => !(badImageUrls && badImageUrls.has(img)))
     : [];
 
   const hasImages = images.length > 0;
   const safeSelectedImage = Math.min(Math.max(selectedImage, 0), Math.max(images.length - 1, 0));
-  const mainImage = hasImages ? (images[safeSelectedImage] || PLACEHOLDER_SRC) : null;
+  const mainImage = hasImages ? images[safeSelectedImage] : null;
 
   const formatCurrencyBRL = (value) => {
     const n = Number(value);
@@ -380,8 +394,7 @@ export default function ProductDrawer({
                     src={mainImage}
                     alt={title}
                     onError={(e) => {
-                      // eslint-disable-next-line no-param-reassign
-                      e.target.src = PLACEHOLDER_SRC;
+                      markBadImage(mainImage);
                     }}
                   />
 
@@ -399,8 +412,7 @@ export default function ProductDrawer({
                             src={img}
                             alt=""
                             onError={(e) => {
-                              // eslint-disable-next-line no-param-reassign
-                              e.target.src = PLACEHOLDER_SRC;
+                              markBadImage(img);
                             }}
                           />
                         </button>

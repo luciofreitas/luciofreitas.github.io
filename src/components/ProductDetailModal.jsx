@@ -12,6 +12,7 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('geral');
   const [selectedImage, setSelectedImage] = useState(0);
+  const [badImageUrls, setBadImageUrls] = useState(() => new Set());
   const [userCars, setUserCars] = useState([]);
 
   const { usuarioLogado } = useContext(AuthContext) || {};
@@ -68,6 +69,7 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
       }
       setProductDetails(product);
       setSelectedImage(0);
+      setBadImageUrls(new Set());
     } catch (error) {
       console.error('Erro ao carregar detalhes da peça:', error);
       setProductDetails(null);
@@ -98,10 +100,22 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
       .filter((img) => typeof img === 'string')
       .map((img) => img.trim())
       .filter(isRenderableImageUrl)
+      .filter((img) => !(badImageUrls && badImageUrls.has(img)))
     : [];
 
   const hasImages = images.length > 0;
   const safeSelectedImage = Math.min(Math.max(selectedImage, 0), Math.max(images.length - 1, 0));
+
+  const markBadImage = (url) => {
+    const s = String(url ?? '').trim();
+    if (!s) return;
+    setBadImageUrls((prev) => {
+      if (prev && prev.has(s)) return prev;
+      const next = new Set(prev || []);
+      next.add(s);
+      return next;
+    });
+  };
 
   return (
     <div className="product-modal-overlay" onClick={handleOverlayClick}>
@@ -133,7 +147,7 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
                     <img 
                       src={images[safeSelectedImage] || PLACEHOLDER_SRC} 
                       alt={productDetails?.nome || ''}
-                      onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
+                      onError={() => { markBadImage(images[safeSelectedImage]); }}
                     />
                   </div>
                   {images.length > 1 && (
@@ -145,7 +159,7 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
                           alt={productDetails?.nome ? `${productDetails.nome} - ${index + 1}` : ''}
                           className={safeSelectedImage === index ? 'active' : ''}
                           onClick={() => setSelectedImage(index)}
-                          onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
+                          onError={() => { markBadImage(img); }}
                         />
                       ))}
                     </div>
