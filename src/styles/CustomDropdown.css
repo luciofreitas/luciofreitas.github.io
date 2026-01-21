@@ -25,6 +25,18 @@
   min-height: 2.75rem; /* ensure same height whether empty or not */
 }
 
+/* Prevent the global button:hover (shadow/translate) from making the dropdown
+   look like it "floats" over the input area. Keep only a subtle border change. */
+.dropdown-btn:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #d1d5db;
+}
+
+.dropdown-btn:active {
+  transform: none;
+}
+
 /* Autocomplete mode (input + arrow) */
 .dropdown-control {
   width: 100%;
@@ -78,6 +90,14 @@
   border: none;
   background: transparent;
   cursor: pointer;
+}
+
+/* Arrow button is a <button>; neutralize global hover effects here too */
+.dropdown-arrow-btn:hover,
+.dropdown-arrow-btn:active {
+  transform: none;
+  box-shadow: none;
+  border-color: transparent;
 }
 
 .custom-dropdown.disabled .dropdown-control {

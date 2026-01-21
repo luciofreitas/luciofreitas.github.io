@@ -19,16 +19,25 @@
   <!-- Runtime API base injection: sets window.__API_BASE when hosted on GitHub Pages or production domain -->
   <script>
     try {
-      (function(){
+      (function () {
         var prod = 'https://luciofreitas-github-io.onrender.com';
-        if (typeof window !== 'undefined' && window.location && window.location.hostname) {
-          if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            window.__API_BASE = prod;
-            console.log('[runtime] API base set to', prod);
-          }
+        if (typeof window === 'undefined' || !window.location || !window.location.hostname) return;
+
+        var host = window.location.hostname;
+        var isLocalhost = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1';
+        var isPrivateIp = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
+        var isLocalTld = host.endsWith('.local') || host.endsWith('.lan');
+        var isLikelyDevHost = isLocalhost || isPrivateIp || isLocalTld || !host.includes('.');
+
+        // Only set the production API base when we're clearly not on a dev hostname.
+        if (!isLikelyDevHost) {
+          window.__API_BASE = prod;
+          console.log('[runtime] API base set to', prod);
         }
       })();
-    } catch(e) { console.warn('Runtime API base injection failed', e); }
+    } catch (e) {
+      console.warn('Runtime API base injection failed', e);
+    }
   </script>
   <!-- debug script removed -->
   <!-- Vite dev server uses /src/main.jsx; include the standard Vite entry so builds emit bundles correctly -->

@@ -267,6 +267,7 @@ function Menu() {
               onPerfil={handleNavigation(() => navigate('/perfil'))}
               onMeusCarros={handleNavigation(() => navigate('/meus-carros'))}
               onPro={handleNavigation(() => navigate(proActive ? '/versao-pro-assinado' : '/versao-pro'))}
+              onConfiguracoes={handleNavigation(() => navigate('/configuracoes'))}
               onLogout={handleNavigation(async () => {
                 // Sign out from third-party auth providers first so the auth listener
                 // doesn't immediately re-populate the user session.

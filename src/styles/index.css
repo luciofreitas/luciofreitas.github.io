@@ -146,6 +146,14 @@ button:focus-visible {
   padding: 0;
 }
 
+/* The toggle lives inside an input; it should not lift/shadow on hover */
+.password-field .car-toggle:hover,
+.password-field .car-toggle:active {
+  transform: translateY(-50%);
+  box-shadow: none;
+  border-color: transparent;
+}
+
 .password-field .car-toggle svg {
   width: 1.5rem;
   height: 1.5rem;

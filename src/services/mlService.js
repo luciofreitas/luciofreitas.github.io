@@ -5,7 +5,48 @@
  * and provides methods to interact with the API.
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://luciofreitas-github-io.onrender.com ?';
+function normalizeBaseUrl(url) {
+  const trimmed = (url || '').trim();
+  return trimmed ? trimmed.replace(/\/+$/, '') : '';
+}
+
+function isLikelyDevHostname(hostname) {
+  const host = (hostname || '').trim();
+  if (!host) return false;
+  if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1') return true;
+  if (host.endsWith('.local') || host.endsWith('.lan')) return true;
+  if (!host.includes('.')) return true;
+  // RFC1918 private IPv4 ranges
+  if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host)) return true;
+  return false;
+}
+
+function getApiBaseUrl() {
+  try {
+    if (typeof window !== 'undefined') {
+      try {
+        // Local dev safety: if running on localhost/LAN dev hostnames, force the backend dev server.
+        if (window.location && isLikelyDevHostname(window.location.hostname)) {
+          return normalizeBaseUrl(`${window.location.protocol}//${window.location.hostname}:3001`);
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      if (window.__API_BASE) return normalizeBaseUrl(window.__API_BASE);
+      if (window.__RUNTIME_CONFIG__ && window.__RUNTIME_CONFIG__.API_URL) {
+        return normalizeBaseUrl(window.__RUNTIME_CONFIG__.API_URL);
+      }
+    }
+  } catch (e) {
+    // ignore and fallback
+  }
+
+  const env = normalizeBaseUrl(import.meta.env.VITE_API_URL || '');
+  return env || 'https://luciofreitas-github-io.onrender.com';
+}
+
+let __mlServiceLoggedBase = false;
 
 /**
  * Initiate OAuth authorization flow
@@ -20,7 +61,7 @@ export const initiateAuth = async (userId) => {
     }
 
     // Request authorization URL from backend
-    const response = await fetch(`${API_URL}/api/ml/auth?userId=${encodeURIComponent(userId)}`);
+    const response = await fetch(`${getApiBaseUrl()}/api/ml/auth?userId=${encodeURIComponent(userId)}`);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -52,7 +93,7 @@ export const initiateAuth = async (userId) => {
  */
 export const handleCallback = async (code, redirectUri) => {
   try {
-    const response = await fetch(`${API_URL}/api/ml/token`, {
+    const response = await fetch(`${getApiBaseUrl()}/api/ml/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -91,7 +132,7 @@ export const refreshToken = async () => {
       throw new Error('No refresh token available');
     }
 
-    const response = await fetch(`${API_URL}/api/ml/refresh`, {
+    const response = await fetch(`${getApiBaseUrl()}/api/ml/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -128,7 +169,7 @@ export const getUserInfo = async () => {
   try {
     const tokenData = await getValidToken();
 
-    const response = await fetch(`${API_URL}/api/ml/user`, {
+    const response = await fetch(`${getApiBaseUrl()}/api/ml/user`, {
       headers: {
         'Authorization': `Bearer ${tokenData.accessToken}`
       }
@@ -158,7 +199,7 @@ export const disconnect = async () => {
     if (tokenData && tokenData.accessToken) {
       // Optionally call revoke endpoint
       try {
-        await fetch(`${API_URL}/api/ml/revoke`, {
+        await fetch(`${getApiBaseUrl()}/api/ml/revoke`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${tokenData.accessToken}`
@@ -215,6 +256,60 @@ export const getConnectionStatus = () => {
     expiresAt: tokenData.expiresAt,
     userId: tokenData.userId
   };
+};
+
+/**
+ * Get server-side connection status.
+ * This uses the app's Supabase access token (not the Mercado Livre token).
+ *
+ * @param {Object} options
+ * @param {string} options.authToken - Supabase access token
+ * @param {string} [options.userId] - optional (dev convenience)
+ */
+export const getServerConnectionStatus = async ({ authToken, userId } = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (userId) params.set('userId', String(userId));
+    const qs = params.toString();
+
+    const response = await fetch(`${getApiBaseUrl()}/api/ml/status${qs ? `?${qs}` : ''}`, {
+      headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : undefined
+    });
+
+    if (!response.ok) {
+      return { connected: false, expired: false };
+    }
+
+    const data = await response.json().catch(() => ({}));
+    return {
+      connected: !!data.connected,
+      expired: !!data.expired,
+      connectedAt: data.connectedAt || null,
+      expiresAt: data.expiresAt || null,
+      userId: data.userId || null,
+      scope: data.scope || null
+    };
+  } catch (e) {
+    return { connected: false, expired: false };
+  }
+};
+
+/**
+ * Disconnect ML account server-side (deletes stored tokens).
+ * Uses the app's Supabase access token (not the Mercado Livre token).
+ */
+export const disconnectServer = async ({ authToken, userId } = {}) => {
+  const params = new URLSearchParams();
+  if (userId) params.set('userId', String(userId));
+  const qs = params.toString();
+  await fetch(`${getApiBaseUrl()}/api/ml/disconnect${qs ? `?${qs}` : ''}`, {
+    method: 'POST',
+    headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : undefined
+  }).catch(() => null);
+
+  // Clear any legacy local tokens too
+  try { localStorage.removeItem('ml_token_data'); } catch (e) {}
+  try { sessionStorage.removeItem('ml_oauth_state'); } catch (e) {}
 };
 
 // Helper functions
@@ -336,12 +431,34 @@ export const searchProducts = async (query, options = {}) => {
       params.set('category', category);
     }
 
-    const response = await fetch(`${API_URL}/api/ml/products/search?${params.toString()}`);
+    const qs = params.toString();
+    // In local dev, never call the hosted backend for ML search. Prefer local backend or soft-fail.
+    const base = (typeof window !== 'undefined' && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+      ? `${window.location.protocol}//${window.location.hostname}:3001`
+      : getApiBaseUrl();
+
+    if (!__mlServiceLoggedBase) {
+      __mlServiceLoggedBase = true;
+      try { console.log('[mlService] using API base', base); } catch (e) {}
+    }
+    const response = await fetch(`${base}/api/ml/products/search${qs ? `?${qs}` : ''}`);
 
     if (!response.ok) {
       // Set error timestamp to prevent repeated failed requests
       lastMLError = Date.now();
       consecutiveErrors++;
+
+      // Soft-fail for block/rate-limit/unavailable: let UI keep working.
+      if ([403, 429, 503].includes(response.status)) {
+        return {
+          products: [],
+          total: 0,
+          paging: { total: 0, offset: 0, limit: 0 },
+          filters: [],
+          availableFilters: [],
+          warning: 'Busca no Mercado Livre indisponível no momento.'
+        };
+      }
       
       const errorData = await response.json().catch(() => ({ error: 'API error' }));
       
@@ -369,8 +486,16 @@ export const searchProducts = async (query, options = {}) => {
     };
 
   } catch (error) {
-    console.error('Error searching ML products:', error);
-    throw error;
+    // Soft-fail on network errors / local backend down so the UI can fall back to local data.
+    console.warn('Error searching ML products (soft):', error && error.message ? error.message : error);
+    return {
+      products: [],
+      total: 0,
+      paging: { total: 0, offset: 0, limit: 0 },
+      filters: [],
+      availableFilters: [],
+      warning: 'Busca no Mercado Livre indisponível no momento.'
+    };
   }
 };
 
@@ -392,7 +517,7 @@ export const getProductDetails = async (productId) => {
       throw new Error('Product ID is required');
     }
 
-    const response = await fetch(`${API_URL}/api/ml/products/${productId}`);
+    const response = await fetch(`${getApiBaseUrl()}/api/ml/products/${productId}`);
 
     if (!response.ok) {
       lastMLError = Date.now();
@@ -437,7 +562,8 @@ export const searchByCategory = async (categoryId, options = {}) => {
       offset: offset.toString()
     });
 
-    const response = await fetch(`${API_URL}/api/ml/products/category/${categoryId}?${params.toString()}`);
+    const qs = params.toString();
+    const response = await fetch(`${getApiBaseUrl()}/api/ml/products/category/${categoryId}${qs ? `?${qs}` : ''}`);
 
     if (!response.ok) {
       lastMLError = Date.now();
@@ -459,6 +585,57 @@ export const searchByCategory = async (categoryId, options = {}) => {
   } catch (error) {
     console.error('Error searching ML by category:', error);
     throw error;
+  }
+};
+
+/**
+ * Get product compatibilities (fitment) by item id.
+ * Notes:
+ * - Depending on the listing, Mercado Livre may require an authenticated token to access compatibilities.
+ * - Backend will try to use the stored token for the current app user (if available).
+ *
+ * @param {string} productId - ML item id (e.g., "MLB123456789")
+ * @param {Object} options
+ * @param {string} options.userId - App user id to resolve stored ML token server-side
+ * @returns {Promise<Object>} Compatibilities response
+ */
+export const getProductCompatibilities = async (productId, options = {}) => {
+  try {
+    // Check cooldown
+    if (lastMLError && (Date.now() - lastMLError) < ML_ERROR_COOLDOWN) {
+      throw new Error('ML API temporarily unavailable');
+    }
+
+    if (!productId) {
+      throw new Error('Product ID is required');
+    }
+
+    const params = new URLSearchParams();
+    if (options.userId) params.set('userId', String(options.userId));
+
+    const qs = params.toString();
+    const headers = {};
+    // Pass Supabase access token so the backend can resolve the user and use stored ML tokens.
+    if (options.authToken) headers['Authorization'] = `Bearer ${String(options.authToken)}`;
+
+    const response = await fetch(`${getApiBaseUrl()}/api/ml/products/${encodeURIComponent(productId)}/compatibilities${qs ? `?${qs}` : ''}`, {
+      headers: Object.keys(headers).length ? headers : undefined
+    });
+
+    if (!response.ok) {
+      lastMLError = Date.now();
+      if ([401, 403, 404, 429, 503].includes(response.status)) {
+        return { products: [], warning: 'Compatibilidade não disponível para este anúncio.' };
+      }
+      const errorData = await response.json().catch(() => ({ error: 'API error' }));
+      throw new Error(errorData.error || 'Failed to get product compatibilities');
+    }
+
+    lastMLError = null;
+    return await response.json();
+  } catch (error) {
+    console.warn('Error getting ML product compatibilities (soft):', error && error.message ? error.message : error);
+    return { products: [], warning: 'Compatibilidade não disponível para este anúncio.' };
   }
 };
 
@@ -507,6 +684,7 @@ export default {
   // Product Search (Public)
   searchProducts,
   getProductDetails,
+  getProductCompatibilities,
   searchByCategory,
   buildPartSearchQuery
 };

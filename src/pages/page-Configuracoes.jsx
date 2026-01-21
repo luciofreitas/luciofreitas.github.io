@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useMemo, useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MenuLogin } from '../components';
-import { useTheme } from '../context/ThemeContext';
+import { Menu, ToggleCar } from '../components';
 import { AuthContext } from '../App';
 import * as mlService from '../services/mlService';
 import '../styles/pages/page-Configuracoes.css';
@@ -9,29 +8,120 @@ import '../styles/pages/page-Configuracoes.css';
 export default function PageConfiguracoes() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme, isDark } = useTheme();
-  const { usuarioLogado: user } = useContext(AuthContext) || {};
+  const { usuarioLogado: user, setUsuarioLogado } = useContext(AuthContext) || {};
   const [mlStatus, setMlStatus] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [profileNome, setProfileNome] = useState('');
+  const [profileTelefone, setProfileTelefone] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState('');
+  const [profileError, setProfileError] = useState('');
+
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const passwordChecklist = useMemo(() => {
+    const s = String(newPassword || '');
+    return {
+      upper: /\p{Lu}/u.test(s),
+      lower: /\p{Ll}/u.test(s),
+      number: /\d/.test(s),
+      minLength: s.length >= 8,
+    };
+  }, [newPassword]);
+
+  const isPasswordValid = useMemo(() => {
+    return !!(passwordChecklist.upper && passwordChecklist.lower && passwordChecklist.number && passwordChecklist.minLength);
+  }, [passwordChecklist]);
+
+  function normalizeNome(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const s = raw.replace(/\s+/g, ' ');
+    const lowerWords = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
+    return s
+      .split(' ')
+      .map((part, idx) => {
+        if (!part) return '';
+        const lower = part.toLocaleLowerCase('pt-BR');
+        if (idx > 0 && lowerWords.has(lower)) return lower;
+        const isAllUpper = part === part.toLocaleUpperCase('pt-BR');
+        const rest = isAllUpper ? part.slice(1).toLocaleLowerCase('pt-BR') : part.slice(1);
+        return part.charAt(0).toLocaleUpperCase('pt-BR') + rest;
+      })
+      .join(' ')
+      .trim();
+  }
+
+  function getUserNome(u) {
+    if (!u) return '';
+    const md = u.user_metadata || u.userMetadata || null;
+    return (
+      (md && (md.nome || md.name))
+      || u.nome
+      || u.name
+      || ''
+    );
+  }
+
+  function getUserTelefone(u) {
+    if (!u) return '';
+    const md = u.user_metadata || u.userMetadata || null;
+    return (
+      (md && (md.telefone || md.phone))
+      || u.telefone
+      || u.phone
+      || ''
+    );
+  }
 
   useEffect(() => {
-    // Check ML connection status on mount
-    const status = mlService.getConnectionStatus();
-    setMlStatus(status);
+    const nome = getUserNome(user);
+    const telefone = getUserTelefone(user);
+    setProfileNome(String(nome || ''));
+    setProfileTelefone(String(telefone || ''));
+  }, [user?.id]);
 
-    // Check for success parameter in URL
-    const params = new URLSearchParams(location.search);
-    if (params.get('ml_success') === 'true') {
-      setShowSuccess(true);
-      // Update connection status
-      setMlStatus(mlService.getConnectionStatus());
-      // Hide success message after 5 seconds
-      setTimeout(() => setShowSuccess(false), 5000);
-      // Clean URL
-      navigate('/configuracoes', { replace: true });
-    }
-  }, [location, navigate]);
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        // Prefer server-side status (uses Supabase auth token; ML tokens stay on backend)
+        const authToken = user?.access_token;
+        const status = await mlService.getServerConnectionStatus({ authToken, userId: user?.id });
+        if (!cancelled) setMlStatus(status);
+      } catch (e) {
+        if (!cancelled) setMlStatus({ connected: false, expired: false });
+      }
+
+      // Check for success parameter in URL
+      const params = new URLSearchParams(location.search);
+      if (params.get('ml_success') === 'true') {
+        if (!cancelled) setShowSuccess(true);
+        // Refresh status after successful connection
+        try {
+          const authToken = user?.access_token;
+          const status = await mlService.getServerConnectionStatus({ authToken, userId: user?.id });
+          if (!cancelled) setMlStatus(status);
+        } catch (e) {}
+        setTimeout(() => { if (!cancelled) setShowSuccess(false); }, 5000);
+        navigate('/configuracoes', { replace: true });
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [location, navigate, user]);
 
   const handleConnectML = async () => {
     try {
@@ -52,8 +142,9 @@ export default function PageConfiguracoes() {
   const handleDisconnectML = async () => {
     try {
       if (confirm('Deseja realmente desconectar sua conta do Mercado Livre?')) {
-        await mlService.disconnect();
-        setMlStatus(mlService.getConnectionStatus());
+        await mlService.disconnectServer({ authToken: user?.access_token, userId: user?.id });
+        const status = await mlService.getServerConnectionStatus({ authToken: user?.access_token, userId: user?.id });
+        setMlStatus(status);
         alert('Conta do Mercado Livre desconectada com sucesso!');
       }
     } catch (error) {
@@ -62,9 +153,199 @@ export default function PageConfiguracoes() {
     }
   };
 
+  const handleSaveProfile = async (ev) => {
+    if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+    setProfileError('');
+    setProfileMessage('');
+
+    if (!user) {
+      setProfileError('Você precisa estar logado para editar o perfil.');
+      return;
+    }
+
+    const normalizedNome = normalizeNome(profileNome);
+    const telefone = String(profileTelefone || '').trim();
+
+    if (!normalizedNome) {
+      setProfileError('Informe seu nome.');
+      return;
+    }
+
+    setProfileSaving(true);
+    try {
+      let _supabase = null;
+      try {
+        const mod = await import('../supabase');
+        _supabase = mod.default || mod.supabase;
+      } catch (e) {
+        _supabase = null;
+      }
+
+      if (!_supabase || !_supabase.auth || typeof _supabase.auth.updateUser !== 'function' || _supabase._notConfigured) {
+        setProfileError('Perfil indisponível: Supabase não configurado nesta build.');
+        setProfileSaving(false);
+        return;
+      }
+
+      const { data, error } = await _supabase.auth.updateUser({
+        data: {
+          nome: normalizedNome,
+          telefone: telefone || null,
+        }
+      });
+
+      if (error) {
+        setProfileError(error.message || 'Erro ao salvar perfil.');
+        setProfileSaving(false);
+        return;
+      }
+
+      const updatedSbUser = data && data.user ? data.user : null;
+      const mergedUser = {
+        ...(user || {}),
+        ...(updatedSbUser || {}),
+        nome: normalizedNome,
+        name: normalizedNome,
+        telefone: telefone || '',
+        user_metadata: {
+          ...(((user || {}).user_metadata) || {}),
+          ...((updatedSbUser && updatedSbUser.user_metadata) || {}),
+          nome: normalizedNome,
+          telefone: telefone || null,
+        },
+      };
+
+      // Preserve access_token if present, as Supabase user object doesn't include it.
+      if (user && user.access_token) mergedUser.access_token = user.access_token;
+
+      try {
+        // Update AuthContext + localStorage so the UI reflects changes immediately.
+        if (typeof setUsuarioLogado === 'function') setUsuarioLogado(mergedUser);
+      } catch (e) { /* ignore */ }
+
+      try { localStorage.setItem('usuario-logado', JSON.stringify(mergedUser)); } catch (e) {}
+      setProfileNome(normalizedNome);
+      setProfileTelefone(telefone);
+      setProfileMessage('Perfil atualizado com sucesso.');
+      if (window.showToast) window.showToast('Perfil atualizado com sucesso.', 'success', 1800);
+      setProfileSaving(false);
+    } catch (e) {
+      setProfileError('Erro inesperado ao salvar perfil.');
+      setProfileSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (ev) => {
+    if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+    setPasswordError('');
+    setPasswordMessage('');
+
+    if (!user) {
+      setPasswordError('Você precisa estar logado para alterar a senha.');
+      return;
+    }
+
+    if (!String(user?.email || '').trim()) {
+      setPasswordError('Não foi possível identificar seu e-mail para confirmar a senha atual.');
+      return;
+    }
+
+    if (!String(currentPassword || '').trim()) {
+      setPasswordError('Digite sua senha atual para confirmar.');
+      return;
+    }
+
+    if (!isPasswordValid) {
+      setPasswordError('Senha fraca. Atenda aos requisitos abaixo.');
+      return;
+    }
+
+    if (String(newPassword || '') !== String(confirmPassword || '')) {
+      setPasswordError('As senhas não coincidem.');
+      return;
+    }
+
+    setPasswordSaving(true);
+    try {
+      let _supabase = null;
+      try {
+        const mod = await import('../supabase');
+        _supabase = mod.default || mod.supabase;
+      } catch (e) {
+        _supabase = null;
+      }
+
+      if (!_supabase || !_supabase.auth || typeof _supabase.auth.updateUser !== 'function' || _supabase._notConfigured) {
+        setPasswordError('Alteração de senha indisponível: Supabase não configurado nesta build.');
+        setPasswordSaving(false);
+        return;
+      }
+
+      // Security: confirm the current password by re-authenticating.
+      try {
+        const email = String(user?.email || '').trim();
+        const password = String(currentPassword || '');
+
+        let reauthResult = null;
+        if (typeof _supabase.auth.signInWithPassword === 'function') {
+          reauthResult = await _supabase.auth.signInWithPassword({ email, password });
+        } else if (typeof _supabase.auth.signIn === 'function') {
+          reauthResult = await _supabase.auth.signIn({ email, password });
+        }
+
+        const reauthError = reauthResult && reauthResult.error ? reauthResult.error : null;
+        if (reauthError) {
+          const msg = (reauthError.message || '').toLowerCase();
+          setPasswordError(msg.includes('invalid') || msg.includes('credentials') || msg.includes('senha')
+            ? 'Senha atual incorreta.'
+            : (reauthError.message || 'Não foi possível confirmar sua senha atual.'));
+          setPasswordSaving(false);
+          return;
+        }
+
+        const session = reauthResult && reauthResult.data ? reauthResult.data.session : null;
+        const reauthUser = reauthResult && reauthResult.data ? reauthResult.data.user : null;
+
+        if (session && session.access_token) {
+          const merged = { ...(user || {}), ...(reauthUser || {}) };
+          merged.access_token = session.access_token;
+          try {
+            if (typeof setUsuarioLogado === 'function') setUsuarioLogado(merged);
+          } catch (e) { /* ignore */ }
+          try { localStorage.setItem('usuario-logado', JSON.stringify(merged)); } catch (e) {}
+        }
+      } catch (e) {
+        setPasswordError('Não foi possível confirmar sua senha atual.');
+        setPasswordSaving(false);
+        return;
+      }
+
+      const { error } = await _supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        setPasswordError(error.message || 'Erro ao alterar senha.');
+        setPasswordSaving(false);
+        return;
+      }
+
+      setPasswordMessage('Senha atualizada com sucesso.');
+      if (window.showToast) window.showToast('Senha atualizada com sucesso.', 'success', 1800);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+      setShowPasswordForm(false);
+      setPasswordSaving(false);
+    } catch (e) {
+      setPasswordError('Erro inesperado ao alterar senha.');
+      setPasswordSaving(false);
+    }
+  };
+
   return (
     <>
-      <MenuLogin />
+      <Menu />
       <div className="page-wrapper">
         <div className="page-content">
           <div className="config-container">
@@ -84,94 +365,217 @@ export default function PageConfiguracoes() {
             </div>
 
             <div className="config-sections">
-              {/* Seção de Aparência */}
+              {/* Seção de Perfil */}
               <section className="config-section">
                 <div className="config-section-header">
-                  <div className="config-section-icon">
+                  <div className="config-section-icon" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="5"/>
-                      <line x1="12" y1="1" x2="12" y2="3"/>
-                      <line x1="12" y1="21" x2="12" y2="23"/>
-                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                      <line x1="1" y1="12" x2="3" y2="12"/>
-                      <line x1="21" y1="12" x2="23" y2="12"/>
-                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
                     </svg>
                   </div>
                   <div className="config-section-info">
-                    <h2 className="config-section-title">Aparência</h2>
-                    <p className="config-section-description">Escolha o tema que melhor se adapta ao seu estilo</p>
+                    <h2 className="config-section-title">Perfil</h2>
+                    <p className="config-section-description">Atualize seus dados de conta</p>
                   </div>
                 </div>
 
-                <div className="config-option">
-                  <div className="config-option-content">
-                    <label htmlFor="theme-toggle" className="config-option-label">
-                      <span className="config-option-title">Modo Escuro</span>
-                      <span className="config-option-description">
-                        {isDark ? 'Ativado - Interface com cores escuras' : 'Desativado - Interface com cores claras'}
-                      </span>
-                    </label>
+                {profileError && (
+                  <div className="config-banner error">
+                    {profileError}
                   </div>
-                  
-                  <div className="theme-toggle-wrapper">
-                    <input
-                      type="checkbox"
-                      id="theme-toggle"
-                      className="theme-toggle-input"
-                      checked={isDark}
-                      onChange={toggleTheme}
-                      aria-label="Alternar modo escuro"
-                    />
-                    <label htmlFor="theme-toggle" className="theme-toggle-label">
-                      <span className="theme-toggle-button">
-                        <span className="theme-toggle-icon">
-                          {isDark ? (
-                            // Ícone de lua (modo escuro ativo)
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
-                            </svg>
-                          ) : (
-                            // Ícone de sol (modo claro ativo)
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                              <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
-                            </svg>
-                          )}
-                        </span>
-                      </span>
-                    </label>
+                )}
+                {profileMessage && (
+                  <div className="config-banner success">
+                    {profileMessage}
                   </div>
-                </div>
+                )}
 
-                {/* Preview dos temas */}
-                <div className="theme-preview">
-                  <div className={`theme-preview-card ${!isDark ? 'active' : ''}`}>
-                    <div className="theme-preview-header light">
-                      <div className="theme-preview-dot"></div>
-                      <div className="theme-preview-dot"></div>
-                      <div className="theme-preview-dot"></div>
-                    </div>
-                    <div className="theme-preview-body light">
-                      <div className="theme-preview-line light"></div>
-                      <div className="theme-preview-line light short"></div>
-                    </div>
-                    <span className="theme-preview-label">Claro</span>
-                  </div>
+                <div className="profile-form">
+                  <form onSubmit={handleSaveProfile}>
+                    <div className="profile-grid">
+                      <label className="profile-field">
+                        <span className="profile-label">E-mail</span>
+                        <input
+                          className="profile-input"
+                          type="email"
+                          value={String(user?.email || '')}
+                          readOnly
+                          disabled
+                        />
+                      </label>
 
-                  <div className={`theme-preview-card ${isDark ? 'active' : ''}`}>
-                    <div className="theme-preview-header dark">
-                      <div className="theme-preview-dot"></div>
-                      <div className="theme-preview-dot"></div>
-                      <div className="theme-preview-dot"></div>
+                      <label className="profile-field">
+                        <span className="profile-label">Nome</span>
+                        <input
+                          className="profile-input"
+                          type="text"
+                          value={profileNome}
+                          onChange={(e) => setProfileNome(e.target.value)}
+                          placeholder="Seu nome"
+                          disabled={profileSaving}
+                          autoComplete="name"
+                        />
+                      </label>
+
+                      <label className="profile-field">
+                        <span className="profile-label">Telefone (opcional)</span>
+                        <input
+                          className="profile-input"
+                          type="tel"
+                          value={profileTelefone}
+                          onChange={(e) => setProfileTelefone(e.target.value)}
+                          placeholder="(DDD) 99999-9999"
+                          disabled={profileSaving}
+                          autoComplete="tel"
+                        />
+                      </label>
                     </div>
-                    <div className="theme-preview-body dark">
-                      <div className="theme-preview-line dark"></div>
-                      <div className="theme-preview-line dark short"></div>
+
+                    <div className="profile-actions">
+                      <button
+                        type="button"
+                        className="profile-btn secondary"
+                        onClick={() => {
+                          setPasswordMessage('');
+                          setPasswordError('');
+                          setCurrentPassword('');
+                          setNewPassword('');
+                          setConfirmPassword('');
+                          setShowCurrentPassword(false);
+                          setShowNewPassword(false);
+                          setShowConfirmPassword(false);
+                          setShowPasswordForm(v => !v);
+                        }}
+                        disabled={profileSaving || passwordSaving}
+                      >
+                        {showPasswordForm ? 'Cancelar troca de senha' : 'Alterar senha'}
+                      </button>
+                      <button
+                        type="submit"
+                        className="profile-btn primary"
+                        disabled={profileSaving}
+                      >
+                        {profileSaving ? 'Salvando...' : 'Salvar'}
+                      </button>
                     </div>
-                    <span className="theme-preview-label">Escuro</span>
-                  </div>
+                  </form>
+
+                  {showPasswordForm && (
+                    <div className="profile-password">
+                      {passwordError && (
+                        <div className="config-banner error">
+                          {passwordError}
+                        </div>
+                      )}
+                      {passwordMessage && (
+                        <div className="config-banner success">
+                          {passwordMessage}
+                        </div>
+                      )}
+
+                      <form onSubmit={handleChangePassword}>
+                        <div className="profile-grid">
+                          <label className="profile-field">
+                            <span className="profile-label">Senha atual</span>
+                            <div className="password-field">
+                              <input
+                                className="profile-input password-input"
+                                type={showCurrentPassword ? 'text' : 'password'}
+                                value={currentPassword}
+                                onChange={(e) => {
+                                  setPasswordError('');
+                                  setPasswordMessage('');
+                                  setCurrentPassword(e.target.value);
+                                }}
+                                placeholder="Digite sua senha atual"
+                                disabled={passwordSaving}
+                                autoComplete="current-password"
+                              />
+                              <ToggleCar
+                                on={showCurrentPassword}
+                                onClick={() => { if (passwordSaving) return; setShowCurrentPassword(v => !v); }}
+                                ariaLabel={showCurrentPassword ? 'Ocultar senha atual' : 'Mostrar senha atual'}
+                              />
+                            </div>
+                          </label>
+
+                          <label className="profile-field">
+                            <span className="profile-label">Nova senha</span>
+                            <div className="password-field">
+                              <input
+                                className="profile-input password-input"
+                                type={showNewPassword ? 'text' : 'password'}
+                                value={newPassword}
+                                onChange={(e) => {
+                                  setPasswordError('');
+                                  setPasswordMessage('');
+                                  setNewPassword(e.target.value);
+                                }}
+                                placeholder="Digite a nova senha"
+                                disabled={passwordSaving}
+                                minLength={8}
+                                autoComplete="new-password"
+                              />
+                              <ToggleCar
+                                on={showNewPassword}
+                                onClick={() => { if (passwordSaving) return; setShowNewPassword(v => !v); }}
+                                ariaLabel={showNewPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'}
+                              />
+                            </div>
+                            <div className="password-checklist" aria-live="polite">
+                              <ul className="password-checklist-list">
+                                <li className={passwordChecklist.upper ? 'ok' : 'missing'}>Letra maiúscula</li>
+                                <li className={passwordChecklist.lower ? 'ok' : 'missing'}>Letra minúscula</li>
+                                <li className={passwordChecklist.number ? 'ok' : 'missing'}>Números</li>
+                                <li className={passwordChecklist.minLength ? 'ok' : 'missing'}>Mínimo 8 dígitos</li>
+                              </ul>
+                            </div>
+                          </label>
+
+                          <label className="profile-field">
+                            <span className="profile-label">Confirmar nova senha</span>
+                            <div className="password-field">
+                              <input
+                                className="profile-input password-input"
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={(e) => {
+                                  setPasswordError('');
+                                  setPasswordMessage('');
+                                  setConfirmPassword(e.target.value);
+                                }}
+                                placeholder="Digite novamente"
+                                disabled={passwordSaving}
+                                minLength={8}
+                                autoComplete="new-password"
+                              />
+                              <ToggleCar
+                                on={showConfirmPassword}
+                                onClick={() => { if (passwordSaving) return; setShowConfirmPassword(v => !v); }}
+                                ariaLabel={showConfirmPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'}
+                              />
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="profile-actions">
+                          <button
+                            type="submit"
+                            className="profile-btn primary"
+                            disabled={
+                              passwordSaving
+                              || !String(currentPassword || '').trim()
+                              || !isPasswordValid
+                              || String(newPassword || '') !== String(confirmPassword || '')
+                            }
+                          >
+                            {passwordSaving ? 'Atualizando...' : 'Atualizar senha'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
                 </div>
               </section>
 

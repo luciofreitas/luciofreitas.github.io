@@ -2,23 +2,77 @@
 import { glossarioMockData } from '../data/glossarioData.js';
 import * as mlService from '../services/mlService.js';
 
+function isLikelyDevHostname(hostname) {
+  const host = (hostname || '').trim();
+  if (!host) return false;
+  if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1') return true;
+  if (host.endsWith('.local') || host.endsWith('.lan')) return true;
+  if (!host.includes('.')) return true;
+  if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host)) return true;
+  return false;
+}
+
+function extractApplicationsFromMLProduct(mlProduct) {
+  const applications = [];
+
+  if (mlProduct && mlProduct.attributes && Array.isArray(mlProduct.attributes)) {
+    const marca = mlProduct.attributes.find(a => a.id === 'BRAND' || a.id === 'VEHICLE_BRAND');
+    const modelo = mlProduct.attributes.find(a => a.id === 'MODEL' || a.id === 'VEHICLE_MODEL');
+    const ano = mlProduct.attributes.find(a => a.id === 'VEHICLE_YEAR');
+
+    if (marca || modelo || ano) {
+      const app = [
+        marca?.value_name,
+        modelo?.value_name,
+        ano?.value_name
+      ].filter(Boolean).join(' ');
+
+      if (app) applications.push(app);
+    }
+  }
+
+  return applications;
+}
+
 class ApiService {
   constructor() {
-    this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    this.isLocal = isLikelyDevHostname(window.location.hostname);
     // Prefer runtime-injected base (window.__API_BASE). Build-time env or localhost fallback
     // should only be used at runtime to avoid embedding dev-only URLs into the production bundle.
     this.getBaseUrl = () => {
       if (typeof window === 'undefined') return '';
-      if (window.__API_BASE) return window.__API_BASE;
-      // If we're running on a developer machine, construct the localhost URL at runtime
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // If we're running on a developer machine, construct the backend URL at runtime.
+      // This intentionally runs before window.__API_BASE so LAN-hosted dev sessions
+      // don't accidentally hit the production backend.
+      if (isLikelyDevHostname(window.location.hostname)) {
         return `${window.location.protocol}//${window.location.hostname}:3001`;
       }
+      if (window.__API_BASE) return window.__API_BASE;
     // Avoid using import.meta.env here to prevent Vite from inlining a build-time
     // value (like a localhost fallback) into the production bundle. If no
     // runtime injector is present, return empty and let callers handle fallbacks.
     return '';
     };
+
+    // Ensure instance methods keep `this` even when passed as callbacks.
+    try {
+      this.convertMLProductToPeca = this.convertMLProductToPeca.bind(this);
+      this.extractApplicationsFromMLProduct = this.extractApplicationsFromMLProduct.bind(this);
+      this.buildMLSearchQuery = this.buildMLSearchQuery.bind(this);
+      this.buscarPecasML = this.buscarPecasML.bind(this);
+    } catch (e) {
+      // ignore
+    }
+
+    // Extra safety: wrap methods with arrow functions so `this` is always preserved
+    // even if some caller stores a reference and calls it later.
+    try {
+      const self = this;
+      this.convertMLProductToPeca = (...args) => ApiService.prototype.convertMLProductToPeca.apply(self, args);
+      this.extractApplicationsFromMLProduct = (...args) => ApiService.prototype.extractApplicationsFromMLProduct.apply(self, args);
+    } catch (e) {
+      // ignore
+    }
   }
 
   async fetchWithFallback(apiPath, fallbackData = null) {
@@ -365,7 +419,7 @@ class ApiService {
         console.log(`✅ Encontrados ${mlResult.products.length} produtos no ML`);
         
         // Convert ML products to our format
-        const pecasML = mlResult.products.map(this.convertMLProductToPeca);
+        const pecasML = mlResult.products.map((p) => this.convertMLProductToPeca(p));
         
         return {
           pecas: pecasML,
@@ -447,7 +501,7 @@ class ApiService {
       original_price: mlProduct.original_price,
       listing_type_id: mlProduct.listing_type_id,
       // Compatibility info (if available in attributes)
-      applications: this.extractApplicationsFromMLProduct(mlProduct)
+      applications: extractApplicationsFromMLProduct(mlProduct)
     };
   }
 
@@ -455,27 +509,7 @@ class ApiService {
    * Extract vehicle applications from ML product attributes
    */
   extractApplicationsFromMLProduct(mlProduct) {
-    const applications = [];
-    
-    if (mlProduct.attributes && Array.isArray(mlProduct.attributes)) {
-      const marca = mlProduct.attributes.find(a => a.id === 'BRAND' || a.id === 'VEHICLE_BRAND');
-      const modelo = mlProduct.attributes.find(a => a.id === 'MODEL' || a.id === 'VEHICLE_MODEL');
-      const ano = mlProduct.attributes.find(a => a.id === 'VEHICLE_YEAR');
-
-      if (marca || modelo || ano) {
-        const app = [
-          marca?.value_name,
-          modelo?.value_name,
-          ano?.value_name
-        ].filter(Boolean).join(' ');
-        
-        if (app) {
-          applications.push(app);
-        }
-      }
-    }
-
-    return applications;
+    return extractApplicationsFromMLProduct(mlProduct);
   }
 
   /**

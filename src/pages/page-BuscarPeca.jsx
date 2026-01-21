@@ -6,6 +6,7 @@ import { SearchForm, PecasGrid, CompatibilityGrid } from '../components';
 import '../styles/pages/page-BuscarPeca.css';
 import { Menu, MenuLogin, CompatibilityModal, ProductDetailModal } from '../components';
 import { addMaintenance } from '../services/maintenanceService';
+import * as mlService from '../services/mlService';
 
 export default function BuscarPeca() {
   const { usuarioLogado } = useContext(AuthContext) || {};
@@ -393,20 +394,99 @@ export default function BuscarPeca() {
   };
 
   const openModal = (pecaOrId) => {
-  const peca = typeof pecaOrId === 'object' && pecaOrId ? pecaOrId : pecas.find(p => p.id === pecaOrId);
+    const peca = typeof pecaOrId === 'object' && pecaOrId ? pecaOrId : pecas.find(p => p.id === pecaOrId);
     setModalTitle('Compatibilidade');
-    if (!peca || !peca.applications) {
-      console.debug('[BuscarPeca] no applications for peca', peca);
-      setModalContent(<div>Nenhuma aplicação encontrada.</div>);
+    const isMLProduct = Boolean(peca && (peca.ml_product || peca.permalink));
+
+    // Helper to render grid from applications
+    const renderCompatGrid = (applications) => (
+      <div className="buscarpeca-compat-wrapper">
+        <CompatibilityGrid applications={applications} usuarioLogado={usuarioLogado} />
+      </div>
+    );
+
+    // For Mercado Livre products, try to fetch compatibilities on-demand (only when missing)
+    const hasApplications = Boolean(peca && Array.isArray(peca.applications) && peca.applications.length > 0);
+    if (peca && isMLProduct && !hasApplications) {
+      setModalContent(
+        <div style={{ padding: '1rem' }}>
+          <p style={{ margin: 0 }}>Carregando compatibilidade do Mercado Livre…</p>
+        </div>
+      );
+      setModalSaveHandler(null);
+      setShowModal(true);
+
+      (async () => {
+        try {
+          const itemId = peca.ml_id || peca.id;
+          const resp = await mlService.getProductCompatibilities(itemId, { userId: usuarioLogado?.id, authToken: usuarioLogado?.access_token });
+          const products = Array.isArray(resp?.products) ? resp.products : [];
+          const applications = products
+            .map((p) => p?.catalog_product_name)
+            .filter(Boolean);
+
+          // If ML returned nothing, fall back to any attribute-derived applications (may be empty)
+          const finalApplications = applications.length > 0
+            ? applications
+            : (Array.isArray(peca.applications) ? peca.applications : []);
+
+          // Persist applications into local state so next open is instant
+          try {
+            if (finalApplications.length > 0) {
+              setPecas((prev) => Array.isArray(prev)
+                ? prev.map((pp) => (pp && (pp.id === peca.id) ? { ...pp, applications: finalApplications } : pp))
+                : prev
+              );
+            }
+          } catch (e) { /* ignore */ }
+
+          if (!finalApplications || finalApplications.length === 0) {
+            const msg = resp?.warning
+              ? String(resp.warning)
+              : 'Compatibilidade não disponível para este anúncio.';
+            setModalContent(
+              <div style={{ padding: '1rem' }}>
+                <p style={{ margin: 0 }}>{msg}</p>
+                <p style={{ marginTop: '0.5rem', color: '#666' }}>
+                  Alguns anúncios não publicam a lista de veículos compatíveis. Você pode continuar pesquisando normalmente — conectar o Mercado Livre é opcional e só ajuda em alguns casos.
+                </p>
+              </div>
+            );
+            return;
+          }
+
+          // Re-open with applications so we reuse the existing saveHandler flow
+          openModal({ ...peca, applications: finalApplications });
+        } catch (e) {
+          console.error('Falha ao carregar compatibilidade do Mercado Livre:', e);
+          setModalContent(
+            <div style={{ padding: '1rem' }}>
+              <p style={{ margin: 0 }}>Não foi possível carregar a compatibilidade agora.</p>
+            </div>
+          );
+        }
+      })();
+      return;
+    }
+
+    // No piece
+    if (!peca) {
+      setModalContent(<div>Nenhuma peça encontrada.</div>);
+      setModalSaveHandler(null);
       setShowModal(true);
       return;
     }
 
-    const compatContent = (
-      <div className="buscarpeca-compat-wrapper">
-        <CompatibilityGrid applications={peca.applications} usuarioLogado={usuarioLogado} />
-      </div>
-    );
+    // Non-ML product and no applications
+    if (!hasApplications) {
+      console.debug('[BuscarPeca] no applications for peca', peca);
+      setModalContent(<div>Nenhuma aplicação encontrada.</div>);
+      setModalSaveHandler(null);
+      setShowModal(true);
+      return;
+    }
+
+    const compatContent = renderCompatGrid(peca.applications);
 
     // create a save handler bound to this part (peca)
     const saveHandler = async () => {

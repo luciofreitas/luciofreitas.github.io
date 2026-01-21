@@ -47,7 +47,10 @@ app.use((req, res, next) => {
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
+  'http://localhost:5175',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:5175',
   'https://luciofreitas.github.io',
   'https://luciofreitas-github-io.onrender.com',
   'https://garagemsmart.com.br',
@@ -57,6 +60,26 @@ app.use(cors({
   origin: function(origin, callback){
     // allow requests with no origin (like mobile apps, curl)
     if(!origin) return callback(null, true);
+
+    // Dev ergonomics: allow any localhost/127.0.0.1 origin (any port).
+    // This prevents CORS issues when Vite picks a different port (e.g. 5175).
+    try {
+      const u = new URL(origin);
+      if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') {
+        return callback(null, true);
+      }
+
+      // Dev ergonomics: when running the frontend via LAN IP (e.g. http://192.168.x.x:5174),
+      // allow private network origins in non-production environments.
+      if (process.env.NODE_ENV !== 'production') {
+        const isPrivateIp = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(u.hostname);
+        if (isPrivateIp) {
+          return callback(null, true);
+        }
+      }
+    } catch (e) {
+      // ignore URL parse errors and fallback to allowlist
+    }
     
     // Normalize origin: remove trailing slash for comparison
     const normalizedOrigin = origin.replace(/\/$/, '');
@@ -3882,11 +3905,18 @@ try{
       }
     }));
 
-    // SPA fallback: serve index.html for any other GET request not handled by API
+    // SPA fallback: serve index.html for non-API GET routes only.
+    // IMPORTANT: never respond with HTML for /api/* paths (it breaks clients expecting JSON).
     app.get('*', (req, res) => {
-      try{
-        res.sendFile(path.join(distPath, 'index.html'));
-      }catch(e){ res.status(500).send('error'); }
+      try {
+        const requestPath = String(req.path || '');
+        if (requestPath.startsWith('/api/')) {
+          return res.status(404).json({ error: 'not found' });
+        }
+        return res.sendFile(path.join(distPath, 'index.html'));
+      } catch (e) {
+        return res.status(500).send('error');
+      }
     });
   }
 }catch(e){ console.warn('Could not serve dist folder:', e && e.message ? e.message : e); }

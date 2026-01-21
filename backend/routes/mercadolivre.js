@@ -16,8 +16,37 @@ try {
 // Simple in-memory caches to reduce calls to Mercado Livre
 const searchCache = new Map(); // key -> { expiresAt, data }
 const detailsCache = new Map();
+const compatCache = new Map();
 const SEARCH_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const DETAILS_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const COMPAT_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// Mercado Livre Notifications (optional)
+// If you enable notifications in the ML DevCenter, set the callback URL to:
+//   https://<your-backend-domain>/api/ml/notifications
+// This endpoint intentionally ACKs quickly (200) to avoid retries.
+router.get('/notifications', (req, res) => {
+  return res.json({ ok: true });
+});
+
+router.post('/notifications', (req, res) => {
+  try {
+    const payload = req && req.body ? req.body : null;
+    // Typical payload includes: topic, resource, user_id, application_id
+    const topic = payload && payload.topic ? String(payload.topic) : '';
+    const resource = payload && payload.resource ? String(payload.resource) : '';
+    const userId = payload && (payload.user_id || payload.userId) ? String(payload.user_id || payload.userId) : '';
+    if (topic || resource) {
+      console.log('[ml-notifications] received', { topic, resource, userId });
+    } else {
+      console.log('[ml-notifications] received payload');
+    }
+  } catch (e) {
+    // Always ACK to prevent repeated retries; log on best-effort.
+    try { console.warn('[ml-notifications] handler error', e && e.message ? e.message : e); } catch (_) {}
+  }
+  return res.status(200).json({ ok: true });
+});
 
 // Helper: proxied fetch to ML with consistent headers, optional Authorization forwarding,
 // retry with exponential backoff and improved logging.
@@ -97,10 +126,73 @@ function doLocalProductDetail(id) {
 // Mercado Livre OAuth 2.0 Configuration
 const ML_CLIENT_ID = process.env.MERCADO_LIVRE_CLIENT_ID;
 const ML_CLIENT_SECRET = process.env.MERCADO_LIVRE_CLIENT_SECRET;
-const ML_REDIRECT_URI = process.env.MERCADO_LIVRE_REDIRECT_URI || 'https://projeto-automotivo-bc7ae.firebaseapp.com/__/auth/handler';
+// IMPORTANT: redirect_uri must match the one configured in Mercado Livre DevCenter.
+// In production, this MUST be HTTPS. In local dev, use an HTTPS tunnel (e.g. ngrok)
+// and set MERCADO_LIVRE_REDIRECT_URI accordingly.
+const ML_REDIRECT_URI = process.env.MERCADO_LIVRE_REDIRECT_URI || '';
 const ML_AUTH_URL = 'https://auth.mercadolivre.com.br/authorization';
 const ML_TOKEN_URL = 'https://api.mercadolibre.com/oauth/token';
 const ML_API_BASE = 'https://api.mercadolibre.com';
+
+function isLocalhostHost(hostname) {
+  const h = String(hostname || '').toLowerCase();
+  return h === 'localhost' || h.startsWith('localhost:') || h === '127.0.0.1' || h.startsWith('127.0.0.1:') || h === '::1' || h.startsWith('[::1]');
+}
+
+function getRequestBaseUrl(req) {
+  try {
+    const forwardedProtoRaw = req && req.headers ? (req.headers['x-forwarded-proto'] || '') : '';
+    const forwardedHostRaw = req && req.headers ? (req.headers['x-forwarded-host'] || '') : '';
+
+    const proto = String(forwardedProtoRaw || '').split(',')[0].trim() || (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+    const host = String(forwardedHostRaw || req.headers.host || '').split(',')[0].trim();
+    if (!host) return '';
+    return `${proto}://${host}`;
+  } catch (e) {
+    return '';
+  }
+}
+
+function resolveMlRedirectUri(req) {
+  const configured = String(ML_REDIRECT_URI || '').trim();
+  const baseFromReq = getRequestBaseUrl(req);
+  const reqHost = baseFromReq ? new URL(baseFromReq).host : '';
+
+  // If configured, use it, except when it's mistakenly set to localhost in production.
+  if (configured) {
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        const u = new URL(configured);
+        if (isLocalhostHost(u.host) && reqHost && !isLocalhostHost(reqHost) && baseFromReq) {
+          return `${baseFromReq}/api/ml/callback`;
+        }
+      } catch (e) {
+        // If configured is not a URL, fall back to request-derived.
+        if (baseFromReq) return `${baseFromReq}/api/ml/callback`;
+      }
+    }
+    return configured;
+  }
+
+  // No configured redirect: derive from request.
+  if (baseFromReq) return `${baseFromReq}/api/ml/callback`;
+  return '';
+}
+
+function normalizeBaseUrl(url) {
+  const trimmed = String(url || '').trim();
+  return trimmed ? trimmed.replace(/\/+$/, '') : '';
+}
+
+function getFrontendBaseFromReq(req) {
+  try {
+    const origin = req && req.headers && req.headers.origin ? String(req.headers.origin) : '';
+    if (origin && origin !== 'null') return normalizeBaseUrl(origin);
+  } catch (e) {
+    // ignore
+  }
+  return normalizeBaseUrl(process.env.FRONTEND_BASE_URL || 'https://garagemsmart.com.br');
+}
 
 // In-memory store for OAuth states (for CSRF protection)
 // In production, use Redis or database
@@ -154,24 +246,75 @@ async function getMlTokens(userId){
   }
 }
 
+// Helper: resolve Supabase user id from an Authorization bearer token.
+async function getSupabaseUserIdFromReq(req) {
+  try {
+    const authHeader = req && req.headers ? (req.headers.authorization || '') : '';
+    const bearer = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    if (!bearer || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(bearer);
+    if (userErr) return null;
+    return userData && userData.user && userData.user.id ? userData.user.id : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Helper: refresh ML token if it's expired/expiring.
+async function ensureFreshMlToken(userId, tokenRow) {
+  try {
+    if (!userId || !tokenRow) return tokenRow;
+    const expiresAt = tokenRow.expires_at ? Number(tokenRow.expires_at) : null;
+    const refreshToken = tokenRow.refresh_token ? String(tokenRow.refresh_token) : null;
+    if (!expiresAt || !refreshToken) return tokenRow;
+
+    // Refresh if already expired or will expire soon (2 min buffer)
+    const threshold = Date.now() + (2 * 60 * 1000);
+    if (expiresAt > threshold) return tokenRow;
+
+    if (!ML_CLIENT_ID || !ML_CLIENT_SECRET) return tokenRow;
+
+    const tokenResponse = await fetch(ML_TOKEN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: ML_CLIENT_ID,
+        client_secret: ML_CLIENT_SECRET,
+        refresh_token: refreshToken
+      })
+    });
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text().catch(() => '<no body>');
+      console.warn('ML token refresh failed (server-side):', tokenResponse.status, errorText);
+      return tokenRow;
+    }
+
+    const tokenData = await tokenResponse.json();
+    try { await saveMlTokens(userId, tokenData); } catch (e) {}
+    const refreshed = await getMlTokens(userId);
+    return refreshed || tokenRow;
+  } catch (e) {
+    return tokenRow;
+  }
+}
+
 // Helper: try to resolve a userId and ML token from the incoming request.
 // Priority: Authorization Bearer <supabase_access_token> -> query.userId -> header x-user-id
 async function getMlTokensFromReq(req){
   try{
     // 1) If client passed a Supabase access token in Authorization header, validate it and use that user
-    const authHeader = req.headers.authorization || '';
-    const bearer = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-    if(bearer && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
-      try{
-        const { createClient } = require('@supabase/supabase-js');
-        const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
-        const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(bearer);
-        if(!userErr && userData && userData.user && userData.user.id){
-          const userId = userData.user.id;
-          const tokenRow = await getMlTokens(userId);
-          if(tokenRow) return { userId, tokenRow };
-        }
-      }catch(e){ /* ignore and fallback */ }
+    const supabaseUserId = await getSupabaseUserIdFromReq(req);
+    if (supabaseUserId) {
+      const tokenRowRaw = await getMlTokens(supabaseUserId);
+      const tokenRow = await ensureFreshMlToken(supabaseUserId, tokenRowRaw);
+      return { userId: supabaseUserId, tokenRow: tokenRow || null };
     }
 
     // 2) Query param or header (convenience for testing)
@@ -179,8 +322,9 @@ async function getMlTokensFromReq(req){
     const hUser = req.headers['x-user-id'] ? String(req.headers['x-user-id']) : null;
     const candidate = qUser || hUser;
     if(candidate){
-      const tokenRow = await getMlTokens(candidate);
-      if(tokenRow) return { userId: candidate, tokenRow };
+      const tokenRowRaw = await getMlTokens(candidate);
+      const tokenRow = await ensureFreshMlToken(candidate, tokenRowRaw);
+      return { userId: candidate, tokenRow: tokenRow || null };
     }
 
     return { userId: null, tokenRow: null };
@@ -189,6 +333,60 @@ async function getMlTokensFromReq(req){
     return { userId: null, tokenRow: null };
   }
 }
+
+/**
+ * Connection status (server-side).
+ * GET /api/ml/status
+ * Uses Supabase bearer token to resolve the app user and checks if we have ML tokens stored.
+ */
+router.get('/status', async (req, res) => {
+  try {
+    const tokenInfo = await getMlTokensFromReq(req);
+    const tokenRow = tokenInfo && tokenInfo.tokenRow ? tokenInfo.tokenRow : null;
+    const expiresAt = tokenRow && tokenRow.expires_at ? Number(tokenRow.expires_at) : null;
+    const expired = !!(expiresAt && Date.now() > expiresAt);
+
+    return res.json({
+      connected: !!tokenRow,
+      expired,
+      userId: tokenInfo && tokenInfo.userId ? tokenInfo.userId : null,
+      connectedAt: tokenRow && tokenRow.updated_at ? tokenRow.updated_at : null,
+      expiresAt: expiresAt || null,
+      scope: tokenRow && tokenRow.scope ? tokenRow.scope : null
+    });
+  } catch (e) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Disconnect ML account (server-side).
+ * POST /api/ml/disconnect
+ * Uses Supabase bearer token (recommended) or userId (dev convenience) to delete stored tokens.
+ */
+router.post('/disconnect', async (req, res) => {
+  try {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(503).json({ error: 'Supabase not configured' });
+    }
+
+    const tokenInfo = await getMlTokensFromReq(req);
+    const userId = tokenInfo && tokenInfo.userId ? tokenInfo.userId : (req.query && req.query.userId ? String(req.query.userId) : null);
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const { error } = await supabaseAdmin.from('ml_tokens').delete().eq('user_id', String(userId));
+    if (error) {
+      console.warn('Failed to delete ml_tokens row:', error.message || error);
+      return res.status(500).json({ error: 'Failed to disconnect' });
+    }
+
+    return res.json({ success: true });
+  } catch (e) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 /**
  * Initiate OAuth flow
@@ -200,14 +398,21 @@ router.get('/auth', (req, res) => {
       return res.status(503).json({ error: 'ML credentials not configured' });
     }
 
-    const userId = req.query.userId;
+    const userId = req.query && req.query.userId ? String(req.query.userId) : null;
     if (!userId) {
       return res.status(400).json({ error: 'userId required' });
     }
 
+    const frontendBase = getFrontendBaseFromReq(req);
+
+    const redirectUri = resolveMlRedirectUri(req);
+    if (!redirectUri) {
+      return res.status(503).json({ error: 'ML redirect URI not configured' });
+    }
+
     // Generate state for CSRF protection
     const state = crypto.randomBytes(16).toString('hex');
-    oauthStates.set(state, { userId, createdAt: Date.now() });
+    oauthStates.set(state, { userId, createdAt: Date.now(), frontendBase, redirectUri });
 
     // Clean old states (older than 10 minutes)
     const now = Date.now();
@@ -221,10 +426,10 @@ router.get('/auth', (req, res) => {
     const authUrl = new URL(ML_AUTH_URL);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('client_id', ML_CLIENT_ID);
-    authUrl.searchParams.set('redirect_uri', ML_REDIRECT_URI);
+    authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('state', state);
 
-    console.log(`ML OAuth initiated for userId=${userId}, state=${state}`);
+    console.log(`ML OAuth initiated for userId=${userId}, state=${state}, redirectUri=${redirectUri}`);
 
     res.json({ 
       authUrl: authUrl.toString(),
@@ -244,10 +449,12 @@ router.get('/callback', async (req, res) => {
   try {
     const { code, state, error } = req.query;
 
+    const fallbackFrontendBase = normalizeBaseUrl(process.env.FRONTEND_BASE_URL || 'https://garagemsmart.com.br');
+
     // Check for OAuth error
     if (error) {
       console.error('ML OAuth error:', error);
-      return res.redirect(`https://garagemsmart.com.br/#/configuracoes?ml_error=${encodeURIComponent(error)}`);
+      return res.redirect(`${fallbackFrontendBase}/#/configuracoes?ml_error=${encodeURIComponent(error)}`);
     }
 
     if (!code || !state) {
@@ -262,6 +469,12 @@ router.get('/callback', async (req, res) => {
 
     oauthStates.delete(state);
 
+    const redirectUri = storedState.redirectUri || resolveMlRedirectUri(req);
+    if (!redirectUri) {
+      const frontendBase = normalizeBaseUrl(storedState.frontendBase || fallbackFrontendBase);
+      return res.redirect(`${frontendBase}/#/configuracoes?ml_error=redirect_uri_not_configured`);
+    }
+
     // Exchange code for access token
     const tokenResponse = await fetch(ML_TOKEN_URL, {
       method: 'POST',
@@ -274,14 +487,15 @@ router.get('/callback', async (req, res) => {
         client_id: ML_CLIENT_ID,
         client_secret: ML_CLIENT_SECRET,
         code: code,
-        redirect_uri: ML_REDIRECT_URI
+        redirect_uri: redirectUri
       })
     });
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error('ML token exchange failed:', errorText);
-      return res.redirect(`https://garagemsmart.com.br/#/configuracoes?ml_error=token_exchange_failed`);
+      const frontendBase = normalizeBaseUrl(storedState.frontendBase || fallbackFrontendBase);
+      return res.redirect(`${frontendBase}/#/configuracoes?ml_error=token_exchange_failed`);
     }
 
     const tokenData = await tokenResponse.json();
@@ -295,12 +509,13 @@ router.get('/callback', async (req, res) => {
       console.warn('Failed to persist ML tokens after callback:', e && e.message ? e.message : e);
     }
 
-    // Redirect to frontend with success - usando garagemsmart.com.br
-    const redirectUrl = `https://garagemsmart.com.br/#/ml/callback?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}&expires_in=${tokenData.expires_in}&userId=${storedState.userId}`;
-    res.redirect(redirectUrl);
+      // Redirect to frontend with success (do NOT include tokens in the URL)
+      const frontendBase = normalizeBaseUrl(storedState.frontendBase || fallbackFrontendBase);
+      res.redirect(`${frontendBase}/#/configuracoes?ml_success=true`);
   } catch (error) {
     console.error('ML callback error:', error);
-    res.redirect(`https://garagemsmart.com.br/#/configuracoes?ml_error=internal_error`);
+    const fallbackFrontendBase = normalizeBaseUrl(process.env.FRONTEND_BASE_URL || 'https://garagemsmart.com.br');
+    res.redirect(`${fallbackFrontendBase}/#/configuracoes?ml_error=internal_error`);
   }
 });
 
@@ -550,18 +765,31 @@ router.get('/products/search', async (req, res) => {
     if (!response.ok) {
       const errorText = await response.text().catch(() => '<no body>');
       console.error('ML search error:', response.status, errorText);
-      // If blocked by PolicyAgent (403) provide local fallback so UI doesn't break
+      // If ML blocks/rate-limits us, provide local fallback so UI doesn't break
+      const fallbackStatuses = new Set([403, 429, 503]);
+      if (fallbackStatuses.has(response.status)) {
+        console.warn('ML blocked/rate-limited; returning local fallback for search', response.status);
+        const local = doLocalSearch(q, limit, offset);
+        local.warning = 'Busca no Mercado Livre indisponível no momento; exibindo base local.';
+        local.source = 'local';
+        return res.json(local);
+      }
+
+      // Special-case PolicyAgent codes (still return local fallback)
       try {
         const parsed = JSON.parse(errorText || '{}');
         if (response.status === 403 && parsed && parsed.code && String(parsed.code).startsWith('PA_')) {
           console.warn('ML blocked by policy; returning local fallback for search');
           const local = doLocalSearch(q, limit, offset);
+          local.warning = 'Busca no Mercado Livre bloqueada por política; exibindo base local.';
+          local.source = 'local';
           return res.json(local);
         }
       } catch (e) { /* ignore parse errors */ }
-      return res.status(response.status).json({ 
+
+      return res.status(response.status).json({
         error: 'Mercado Livre API error',
-        details: errorText 
+        details: errorText
       });
     }
 
@@ -628,13 +856,30 @@ router.get('/products/:id', async (req, res) => {
     if (!response.ok) {
       const errorText = await response.text().catch(() => '<no body>');
       console.error('ML product details error:', response.status, errorText);
+      // If ML blocks/rate-limits us, provide local fallback for product detail
+      const fallbackStatuses = new Set([403, 429, 503]);
+      if (fallbackStatuses.has(response.status)) {
+        console.warn('ML blocked/rate-limited; returning local fallback for product detail', response.status);
+        const local = doLocalProductDetail(id);
+        if (local) {
+          local.warning = 'Detalhes do Mercado Livre indisponíveis no momento; exibindo base local.';
+          local.source = 'local';
+          return res.json(local);
+        }
+        return res.status(404).json({ error: 'Product not found (local fallback)' });
+      }
+
       // If blocked by PolicyAgent (403) provide local fallback for product detail
       try {
         const parsed = JSON.parse(errorText || '{}');
         if (response.status === 403 && parsed && parsed.code && String(parsed.code).startsWith('PA_')) {
           console.warn('ML blocked by policy; returning local fallback for product detail');
           const local = doLocalProductDetail(id);
-          if (local) return res.json(local);
+          if (local) {
+            local.warning = 'Detalhes do Mercado Livre bloqueados por política; exibindo base local.';
+            local.source = 'local';
+            return res.json(local);
+          }
           return res.status(404).json({ error: 'Product not found (local fallback)' });
         }
       } catch (e) { /* ignore parse errors */ }
@@ -651,6 +896,66 @@ router.get('/products/:id', async (req, res) => {
   } catch (error) {
     console.error('ML product details error:', error);
     res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * Get product compatibilities (fitment) by item id.
+ * GET /api/ml/products/:id/compatibilities
+ * Optional: userId (query or x-user-id) to resolve stored ML token server-side.
+ */
+router.get('/products/:id/compatibilities', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Product ID is required' });
+
+    const compatUrl = `${ML_API_BASE}/items/${encodeURIComponent(String(id))}/compatibilities`;
+
+    // Resolve token (if any) and build cache key per-user to avoid mixing auth/non-auth
+    const tokenInfo = await getMlTokensFromReq(req);
+    const cacheKey = `${compatUrl}::user:${tokenInfo.userId || 'public'}`;
+    const cached = compatCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return res.json(cached.data);
+    }
+
+    let response;
+    try {
+      const extraHeaders = {};
+      if (tokenInfo && tokenInfo.tokenRow && tokenInfo.tokenRow.access_token) {
+        extraHeaders['Authorization'] = `Bearer ${tokenInfo.tokenRow.access_token}`;
+      }
+      response = await proxiedFetch(compatUrl, req, { method: 'GET', headers: extraHeaders });
+    } catch (err) {
+      console.error('ML compat fetch failed:', err && err.message ? err.message : err);
+      return res.status(502).json({ error: 'Mercado Livre fetch failed', message: String(err) });
+    }
+
+    // Many items will not expose compatibilities publicly (or require auth). Return a soft payload.
+    // Important: respond with 200 so the frontend doesn't spam the console with failed requests.
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '<no body>');
+      const softStatuses = new Set([400, 401, 403, 404, 429, 503]);
+      if (softStatuses.has(response.status)) {
+        const payload = {
+          products: [],
+          warning: 'Compatibilidade não disponível para este anúncio.'
+        };
+        try { compatCache.set(cacheKey, { expiresAt: Date.now() + COMPAT_TTL_MS, data: payload }); } catch (e) {}
+        return res.json(payload);
+      }
+
+      console.error('ML compat error:', response.status, errorText);
+      return res.status(response.status).json({ error: 'Mercado Livre API error', details: errorText });
+    }
+
+    const data = await response.json();
+    const payload = data && typeof data === 'object' ? data : { products: [] };
+    try { compatCache.set(cacheKey, { expiresAt: Date.now() + COMPAT_TTL_MS, data: payload }); } catch (e) {}
+    return res.json(payload);
+  } catch (error) {
+    console.error('ML compat error:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 });
 

@@ -1,11 +1,13 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { MenuLogin } from '../components';
+import React, { useMemo, useState, useEffect, useContext } from 'react';
+import { Menu, MenuLogin } from '../components';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../App';
 // Supabase client is lazily imported where needed to avoid bundling it into
 // pages that don't require it on first paint.
 import '../styles/pages/page-RedefinirSenha.css';
 
 export default function RedefinirSenha() {
+  const { usuarioLogado } = useContext(AuthContext) || {};
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [loading, setLoading] = useState(false);
@@ -134,7 +136,7 @@ export default function RedefinirSenha() {
   if (checkingToken) {
     return (
       <div className="page-wrapper">
-        <MenuLogin />
+        {usuarioLogado ? <Menu /> : <MenuLogin />}
         <div className="redefinir-senha-container">
           <div className="redefinir-senha-card">
             <div className="loading-message">
@@ -149,7 +151,7 @@ export default function RedefinirSenha() {
   if (!validToken) {
     return (
       <div className="page-wrapper">
-        <MenuLogin />
+        {usuarioLogado ? <Menu /> : <MenuLogin />}
         <div className="redefinir-senha-container">
           <div className="redefinir-senha-card">
             <div className="error-container">
@@ -177,7 +179,7 @@ export default function RedefinirSenha() {
   if (success) {
     return (
       <div className="page-wrapper">
-        <MenuLogin />
+        {usuarioLogado ? <Menu /> : <MenuLogin />}
         <div className="redefinir-senha-container">
           <div className="redefinir-senha-card">
             <div className="success-container">
@@ -199,7 +201,7 @@ export default function RedefinirSenha() {
 
   return (
     <div className="page-wrapper">
-      <MenuLogin />
+      {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="redefinir-senha-container">
         <div className="redefinir-senha-card">

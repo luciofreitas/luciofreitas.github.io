@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './MenuUsuario.css';
 
-function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLogout, photoURL }) {
+function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onConfiguracoes, onLogout, photoURL }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -163,6 +163,9 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onLog
           <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button>
           <button className="dropdown-item" onClick={() => { setOpen(false); onMeusCarros(); }}>Meus Carros</button>
           <button className="dropdown-item" onClick={() => { setOpen(false); onPro(); }}>Versão Pro</button>
+          {typeof onConfiguracoes === 'function' && (
+            <button className="dropdown-item" onClick={() => { setOpen(false); onConfiguracoes(); }}>Configurações</button>
+          )}
           <button className="dropdown-item dropdown-item-logout" onClick={() => { setOpen(false); onLogout(); }}>Sair</button>
         </div>
       )}

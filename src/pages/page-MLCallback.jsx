@@ -18,74 +18,71 @@ const MLCallback = () => {
   useEffect(() => {
     const processCallback = async () => {
       try {
+        const normalizeBaseUrl = (url) => {
+          const trimmed = (url || '').trim();
+          return trimmed ? trimmed.replace(/\/+$/, '') : '';
+        };
+
+        const getApiBaseUrl = () => {
+          try {
+            if (typeof window !== 'undefined') {
+              if (window.__API_BASE) return normalizeBaseUrl(window.__API_BASE);
+              if (window.__RUNTIME_CONFIG__ && window.__RUNTIME_CONFIG__.API_URL) {
+                return normalizeBaseUrl(window.__RUNTIME_CONFIG__.API_URL);
+              }
+            }
+          } catch (e) {
+            // ignore
+          }
+          return normalizeBaseUrl(import.meta.env.VITE_API_URL || '');
+        };
+
         // Parse URL parameters
         const params = new URLSearchParams(location.search);
         const accessToken = params.get('access_token');
         const refreshToken = params.get('refresh_token');
         const expiresIn = params.get('expires_in');
         const errorParam = params.get('ml_error') || params.get('error');
+        const userIdFromUrl = params.get('userId');
 
         // Check for error
         if (errorParam) {
           console.error('ML OAuth error:', errorParam);
           setError(`Erro na autorização: ${errorParam}`);
           setStatus('error');
-          setTimeout(() => navigate('/#/configuracoes'), 3000);
+          setTimeout(() => navigate('/configuracoes'), 3000);
           return;
         }
 
-        // Check for required tokens
-        if (!accessToken) {
-          console.error('No access token received');
-          setError('Nenhum token de acesso recebido');
-          setStatus('error');
-          setTimeout(() => navigate('/#/configuracoes'), 3000);
-          return;
+        // New secure flow: backend should not send tokens in URL.
+        // If accessToken is present, this is a legacy flow; persist server-side but do NOT store locally.
+        if (accessToken) {
+          try {
+            const base = getApiBaseUrl();
+            if (!base) throw new Error('API base not configured');
+            await fetch(`${base}/api/ml/token`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                expires_in: expiresIn ? parseInt(expiresIn) : null,
+                userId: user?.id || userIdFromUrl
+              })
+            });
+          } catch (err) {
+            console.warn('Failed to send ML token to backend:', err);
+          }
         }
 
-        // Calculate token expiration time
-        const expiresAt = Date.now() + (parseInt(expiresIn) * 1000);
-
-        // Store tokens in localStorage
-        const mlTokenData = {
-          accessToken,
-          refreshToken,
-          expiresIn: parseInt(expiresIn),
-          expiresAt,
-          userId: user?.id,
-          connectedAt: new Date().toISOString()
-        };
-
-        localStorage.setItem('ml_token_data', JSON.stringify(mlTokenData));
-        console.log('ML tokens stored successfully');
-
-        // Send token to backend to persist server-side (optional but recommended)
-        try {
-          const API_URL = import.meta.env.VITE_API_URL || '';
-          await fetch(`${API_URL}/api/ml/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-              expires_in: parseInt(expiresIn),
-              userId: user?.id
-            })
-          });
-          console.log('ML token sent to backend for persistence');
-        } catch (err) {
-          console.warn('Failed to send ML token to backend:', err);
-        }
-
-        // Success - redirect to settings
         setStatus('success');
-        setTimeout(() => navigate('/#/configuracoes?ml_success=true'), 1500);
+        setTimeout(() => navigate('/configuracoes?ml_success=true'), 800);
 
       } catch (err) {
         console.error('Error processing ML callback:', err);
         setError('Erro ao processar autorização');
         setStatus('error');
-        setTimeout(() => navigate('/#/configuracoes'), 3000);
+        setTimeout(() => navigate('/configuracoes'), 3000);
       }
     };
 

@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
-import { MenuLogin } from '../components';
+import React, { useContext, useMemo, useState } from 'react';
+import { Menu, MenuLogin } from '../components';
 import { Link } from 'react-router-dom';
 import EmailService from '../services/emailService';
+import { AuthContext } from '../App';
 // Lazy-import supabase only when needed to avoid increasing initial bundle size
 import '../styles/pages/page-EsqueciSenha.css';
 
 export default function EsqueciSenha() {
+  const { usuarioLogado } = useContext(AuthContext) || {};
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [emailEnviado, setEmailEnviado] = useState(false);
+  const [debugResetLink, setDebugResetLink] = useState('');
+
+  const isLocalhost = useMemo(() => {
+    try {
+      return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    } catch (e) {
+      return false;
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,11 +66,11 @@ export default function EsqueciSenha() {
       const resetToken = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
       
       // Detectar ambiente (localhost ou produção)
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const baseUrl = isLocalhost ? window.location.origin : 'https://www.garagemsmart.com.br';
       const resetLink = `${baseUrl}/#/redefinir-senha?token=${resetToken}&email=${encodeURIComponent(emailTrimmed)}`;
 
       console.log('Link de recuperação gerado:', resetLink);
+      setDebugResetLink(resetLink);
 
       // Salvar token no localStorage (temporário - expira em 1 hora)
       const tokenData = {
@@ -84,7 +95,13 @@ export default function EsqueciSenha() {
       
     } catch (err) {
       console.error('Erro ao solicitar recuperação de senha:', err);
-      setError('Erro ao enviar email de recuperação. Tente novamente mais tarde.');
+      // Show EmailJS error details when available
+      try {
+        const msg = EmailService.getErrorMessage(err);
+        setError(msg || 'Erro ao enviar email de recuperação. Tente novamente mais tarde.');
+      } catch (e) {
+        setError('Erro ao enviar email de recuperação. Tente novamente mais tarde.');
+      }
     } finally {
       setLoading(false);
     }
@@ -92,7 +109,7 @@ export default function EsqueciSenha() {
 
   return (
     <div className="page-wrapper">
-      <MenuLogin />
+      {usuarioLogado ? <Menu /> : <MenuLogin />}
       
       <div className="esqueci-senha-card">
         <div className="esqueci-senha-header">
@@ -146,6 +163,34 @@ export default function EsqueciSenha() {
               {message}
             </div>
 
+            {isLocalhost && debugResetLink && (
+              <div className="info-box" style={{ marginTop: 12 }}>
+                <p><strong>🔧 Dev (localhost):</strong> se o email não chegar, use este link:</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <a className="submit-btn" style={{ textDecoration: 'none', textAlign: 'center' }} href={debugResetLink}>
+                    Abrir link de recuperação
+                  </a>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(debugResetLink);
+                        setMessage('✅ Link copiado para a área de transferência.');
+                      } catch (e) {
+                        // Fallback: show as selectable text
+                      }
+                    }}
+                  >
+                    Copiar link
+                  </button>
+                </div>
+                <p style={{ marginTop: 8, opacity: 0.85 }}>
+                  Obs: este fluxo de recuperação usa um token salvo no <strong>localStorage</strong>, então precisa abrir o link no mesmo navegador/dispositivo.
+                </p>
+              </div>
+            )}
+
             <div className="success-info">
               <h3>📬 Próximos passos:</h3>
               <ul>
@@ -162,6 +207,7 @@ export default function EsqueciSenha() {
                 setEmailEnviado(false);
                 setEmail('');
                 setMessage('');
+                setDebugResetLink('');
               }}
               className="resend-btn"
             >

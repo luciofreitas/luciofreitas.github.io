@@ -98,6 +98,14 @@ export default function App() {
     if (authLoaded) setAuthLoadedState(true);
   }, [authLoaded]);
 
+  // Clean up legacy Mercado Livre token storage.
+  // The new integration keeps ML tokens server-side (Supabase) and uses the
+  // app's Supabase access token to query the backend.
+  useEffect(() => {
+    try { localStorage.removeItem('ml_token_data'); } catch (e) {}
+    try { sessionStorage.removeItem('ml_oauth_state'); } catch (e) {}
+  }, []);
+
   React.useEffect(() => {
     async function initFromStorage(){
       try { console.time('[app-timing] initFromStorage start'); } catch(e){}
