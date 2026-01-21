@@ -297,8 +297,23 @@ export default function ProductDrawer({
 
   const title = productDetails?.nome || productDetails?.name || (loading ? 'Carregando…' : 'Detalhes');
 
-  const images = Array.isArray(productDetails?.imagens) ? productDetails.imagens : [];
-  const mainImage = images[selectedImage] || PLACEHOLDER_SRC;
+  const images = Array.isArray(productDetails?.imagens)
+    ? productDetails.imagens.filter((img) => typeof img === 'string' && img.trim())
+    : [];
+
+  const hasImages = images.length > 0;
+  const safeSelectedImage = Math.min(Math.max(selectedImage, 0), Math.max(images.length - 1, 0));
+  const mainImage = hasImages ? (images[safeSelectedImage] || PLACEHOLDER_SRC) : null;
+
+  const formatCurrencyBRL = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    try {
+      return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    } catch (e) {
+      return `R$ ${n.toFixed(2)}`;
+    }
+  };
 
   return (
     <div className="product-drawer-overlay" onClick={handleOverlayClick}>
@@ -346,44 +361,80 @@ export default function ProductDrawer({
             </div>
           ) : activeTab === 'details' ? (
             <div className="product-drawer-details">
-              <div className="product-drawer-image-block">
-                <img
-                  className="product-drawer-main-image"
-                  src={mainImage}
-                  alt={title}
-                  onError={(e) => {
-                    // eslint-disable-next-line no-param-reassign
-                    e.target.src = PLACEHOLDER_SRC;
-                  }}
-                />
+              {hasImages ? (
+                <div className="product-drawer-image-block">
+                  <img
+                    className="product-drawer-main-image"
+                    src={mainImage}
+                    alt={title}
+                    onError={(e) => {
+                      // eslint-disable-next-line no-param-reassign
+                      e.target.src = PLACEHOLDER_SRC;
+                    }}
+                  />
 
-                {images.length > 1 ? (
-                  <div className="product-drawer-thumbs">
-                    {images.slice(0, 6).map((img, idx) => (
-                      <button
-                        key={`${img}-${idx}`}
-                        type="button"
-                        className={idx === selectedImage ? 'active' : ''}
-                        onClick={() => setSelectedImage(idx)}
-                        aria-label={`Imagem ${idx + 1}`}
-                      >
-                        <img
-                          src={img}
-                          alt=""
-                          onError={(e) => {
-                            // eslint-disable-next-line no-param-reassign
-                            e.target.src = PLACEHOLDER_SRC;
-                          }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+                  {images.length > 1 ? (
+                    <div className="product-drawer-thumbs">
+                      {images.slice(0, 6).map((img, idx) => (
+                        <button
+                          key={`${img}-${idx}`}
+                          type="button"
+                          className={idx === safeSelectedImage ? 'active' : ''}
+                          onClick={() => setSelectedImage(idx)}
+                          aria-label={`Imagem ${idx + 1}`}
+                        >
+                          <img
+                            src={img}
+                            alt=""
+                            onError={(e) => {
+                              // eslint-disable-next-line no-param-reassign
+                              e.target.src = PLACEHOLDER_SRC;
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="product-drawer-noimage">
+                  Sem imagem cadastrada para esta peça.
+                </div>
+              )}
 
               <div className="product-drawer-meta">
+                {productDetails?.categoria || productDetails?.category ? (
+                  <div><strong>Categoria:</strong> {productDetails.categoria || productDetails.category}</div>
+                ) : null}
                 <div><strong>Fabricante:</strong> {productDetails.fabricante || productDetails.manufacturer || '-'}</div>
                 {getPrimaryCode() ? <div><strong>Código:</strong> {getPrimaryCode()}</div> : null}
+                {productDetails?.codigos && Array.isArray(productDetails.codigos.oem) && productDetails.codigos.oem.length ? (
+                  <div><strong>Cód. OEM:</strong> {productDetails.codigos.oem.slice(0, 4).join(', ')}</div>
+                ) : null}
+                {productDetails?.codigos && Array.isArray(productDetails.codigos.equivalentes) && productDetails.codigos.equivalentes.length ? (
+                  <div><strong>Equivalentes:</strong> {productDetails.codigos.equivalentes.slice(0, 4).join(', ')}</div>
+                ) : null}
+
+                {formatCurrencyBRL(productDetails?.preco ?? productDetails?.price) ? (
+                  <div><strong>Preço:</strong> {formatCurrencyBRL(productDetails?.preco ?? productDetails?.price)}</div>
+                ) : null}
+                {Number.isFinite(Number(productDetails?.estoque ?? productDetails?.available_quantity)) ? (
+                  <div><strong>Estoque:</strong> {Number(productDetails?.estoque ?? productDetails?.available_quantity)}</div>
+                ) : null}
+                {Number.isFinite(Number(productDetails?.prazo_entrega_dias)) ? (
+                  <div><strong>Entrega:</strong> {Number(productDetails.prazo_entrega_dias)} dia(s)</div>
+                ) : null}
+                {Number.isFinite(Number(productDetails?.garantia_meses)) ? (
+                  <div><strong>Garantia:</strong> {Number(productDetails.garantia_meses)} mês(es)</div>
+                ) : null}
+                {productDetails?.instalacao?.dificuldade ? (
+                  <div><strong>Dificuldade:</strong> {productDetails.instalacao.dificuldade}</div>
+                ) : null}
+                {Number.isFinite(Number(productDetails?.instalacao?.tempo_estimado_min)) ? (
+                  <div><strong>Tempo estimado:</strong> {Number(productDetails.instalacao.tempo_estimado_min)} min</div>
+                ) : null}
+                <div><strong>Compatibilidade:</strong> {applications.length > 0 ? `${applications.length} aplicação(ões)` : 'não disponível'}</div>
+
                 {productDetails?.descricao || productDetails?.description ? (
                   <div className="product-drawer-description">{productDetails.descricao || productDetails.description}</div>
                 ) : null}

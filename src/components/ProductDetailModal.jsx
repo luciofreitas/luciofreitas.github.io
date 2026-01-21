@@ -84,6 +84,9 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
 
   if (!isOpen) return null;
 
+  const hasImages = Array.isArray(productDetails?.imagens)
+    && productDetails.imagens.some((img) => typeof img === 'string' && img.trim());
+
   return (
     <div className="product-modal-overlay" onClick={handleOverlayClick}>
       <div ref={modalRef} className="product-modal" role="dialog" aria-modal="true" aria-label={productDetails?.nome || 'Detalhes da peça'}>
@@ -108,29 +111,31 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
           <div className="product-modal-content">
             {/* Seção de Imagens e Info Básica */}
             <div className="product-header-section">
-              <div className="product-images">
-                <div className="main-image">
-                  <img 
-                    src={productDetails.imagens?.[selectedImage] || PLACEHOLDER_SRC} 
-                    alt={productDetails?.nome || ''}
-                    onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
-                  />
-                </div>
-                {productDetails.imagens && productDetails.imagens.length > 1 && (
-                  <div className="image-thumbnails">
-                    {productDetails.imagens.map((img, index) => (
-                        <img 
-                        key={index}
-                        src={img}
-                        alt={productDetails?.nome ? `${productDetails.nome} - ${index + 1}` : ''}
-                        className={selectedImage === index ? 'active' : ''}
-                        onClick={() => setSelectedImage(index)}
-                        onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
-                      />
-                    ))}
+              {hasImages ? (
+                <div className="product-images">
+                  <div className="main-image">
+                    <img 
+                      src={productDetails.imagens?.[selectedImage] || PLACEHOLDER_SRC} 
+                      alt={productDetails?.nome || ''}
+                      onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
+                    />
                   </div>
-                )}
-              </div>
+                  {productDetails.imagens && productDetails.imagens.length > 1 && (
+                    <div className="image-thumbnails">
+                      {productDetails.imagens.map((img, index) => (
+                          <img 
+                          key={index}
+                          src={img}
+                          alt={productDetails?.nome ? `${productDetails.nome} - ${index + 1}` : ''}
+                          className={selectedImage === index ? 'active' : ''}
+                          onClick={() => setSelectedImage(index)}
+                          onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
               
               <div className="product-basic-info">
                 {productDetails.recall_relacionado && (
