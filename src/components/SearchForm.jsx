@@ -202,6 +202,7 @@ function SearchForm({
                 onChange={setSelectedMarca}
                 placeholder=""
                 searchable
+                allowCustomValue
               />
             </div>
             <div className="search-form-field">
@@ -212,6 +213,7 @@ function SearchForm({
                 onChange={setSelectedModelo}
                 placeholder=""
                 searchable
+                allowCustomValue
               />
             </div>
           </div>
@@ -225,6 +227,7 @@ function SearchForm({
                 onChange={setSelectedAno}
                 placeholder=""
                 searchable
+                allowCustomValue
               />
             </div>
             <div className="search-form-field">

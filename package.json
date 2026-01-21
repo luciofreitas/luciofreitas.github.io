@@ -9,7 +9,7 @@
     "dev:chrome": "concurrently \"npm run dev\" \"wait-on http://localhost:5174 && .\\open-chrome.bat\"",
     "build": "vite build",
     "ci-build": "NPM_CONFIG_PRODUCTION=false npm ci && npm run build",
-    "prebuild": "node scripts/generate-components-index.js",
+    "prebuild": "node scripts/generate-components-index.js && node scripts/generate-parts-meta.js",
     "preview": "vite preview",
     "postbuild": "node scripts/copy-static.js",
     "generate-barrel": "node scripts/generate-components-index.js",

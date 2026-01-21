@@ -22,6 +22,7 @@ export default function BuscarPeca() {
   const [selectedFabricante, setSelectedFabricante] = useState('');
 
   const [grupos, setGrupos] = useState([]);
+  // Lista de nomes de peças (para dropdown). Não carregamos o catálogo completo no início.
   const [todasPecas, setTodasPecas] = useState([]);
   const [marcas, setMarcas] = useState([]);
   const [modelos, setModelos] = useState([]);
@@ -63,11 +64,8 @@ export default function BuscarPeca() {
         
         // states initialized from metadata
 
-        // Fazer uma busca inicial sem filtros para mostrar todas as peças
-        if (data.pecas && data.pecas.length > 0) {
-          // make initial search with all parts
-          setPecas(data.pecas);
-        }
+        // Importante: não carregar/mostrar o catálogo completo na abertura.
+        setPecas([]);
       } catch (err) {
         console.warn('Failed to load metadata:', err && err.message ? err.message : err);
         setError('Não foi possível carregar os dados iniciais. Tente recarregar a página.');
@@ -81,181 +79,22 @@ export default function BuscarPeca() {
     return () => window.removeEventListener('app-refresh', onRefresh);
   }, []);
 
-  // Verificar compatibilidade e gerar mensagens de aviso
-  useEffect(() => {
-    // Limpar mensagens
-    setWarningMarca('');
-    setWarningModelo('');
-    setWarningAno('');
-    setWarningFabricante('');
-    // Limpar aviso de campos vazios quando usuário começar a preencher
-    const temAlgumCampo = selectedGrupo || selectedCategoria || selectedMarca || 
-                          selectedModelo || selectedAno || selectedFabricante;
-    if (temAlgumCampo) {
-      setEmptyFieldsWarning('');
-    }
-
-    // Verificar se há incompatibilidade entre fabricante e outros campos
-    if (selectedFabricante && todasPecas.length > 0) {
-      const pecasComFabricante = todasPecas.filter(p => 
-        (!selectedGrupo || p.category === selectedGrupo) &&
-        (!selectedCategoria || p.name === selectedCategoria) &&
-        p.manufacturer === selectedFabricante
-      );
-
-      // Verificar marca
-      if (selectedMarca && pecasComFabricante.length > 0) {
-        const temMarca = pecasComFabricante.some(p => {
-          if (!p.applications || !Array.isArray(p.applications)) return false;
-          return p.applications.some(app => 
-            String(app).toLowerCase().includes(selectedMarca.toLowerCase())
-          );
-        });
-        if (!temMarca) {
-          setWarningMarca(`Não há peças do fabricante "${selectedFabricante}" compatíveis com a marca "${selectedMarca}"`);
-        }
-      }
-
-      // Verificar modelo
-      if (selectedModelo && pecasComFabricante.length > 0) {
-        const temModelo = pecasComFabricante.some(p => {
-          if (!p.applications || !Array.isArray(p.applications)) return false;
-          return p.applications.some(app => 
-            String(app).toLowerCase().includes(selectedModelo.toLowerCase())
-          );
-        });
-        if (!temModelo) {
-          setWarningModelo(`Não há peças do fabricante "${selectedFabricante}" compatíveis com o modelo "${selectedModelo}"`);
-        }
-      }
-
-      // Verificar ano
-      if (selectedAno && pecasComFabricante.length > 0) {
-        const temAno = pecasComFabricante.some(p => {
-          if (!p.applications || !Array.isArray(p.applications)) return false;
-          return p.applications.some(app => 
-            String(app).toLowerCase().includes(selectedAno)
-          );
-        });
-        if (!temAno) {
-          setWarningAno(`Não há peças do fabricante "${selectedFabricante}" compatíveis com o ano "${selectedAno}"`);
-        }
-      }
-    }
-
-    // Verificar incompatibilidade quando marca/modelo/ano são selecionados mas fabricante não tem peças
-    if ((selectedMarca || selectedModelo || selectedAno) && selectedFabricante) {
-      const pecasCompativeis = todasPecas.filter(p => {
-        const grupoMatch = !selectedGrupo || p.category === selectedGrupo;
-        const categoriaMatch = !selectedCategoria || p.name === selectedCategoria;
-        const fabricanteMatch = p.manufacturer === selectedFabricante;
-        
-        if (!grupoMatch || !categoriaMatch || !fabricanteMatch) return false;
-        
-        if (!p.applications || !Array.isArray(p.applications)) return false;
-        
-        return p.applications.some(app => {
-          const appStr = String(app).toLowerCase();
-          const marcaMatch = !selectedMarca || appStr.includes(selectedMarca.toLowerCase());
-          const modeloMatch = !selectedModelo || appStr.includes(selectedModelo.toLowerCase());
-          const anoMatch = !selectedAno || appStr.includes(selectedAno);
-          return marcaMatch && modeloMatch && anoMatch;
-        });
-      });
-
-      if (pecasCompativeis.length === 0 && !warningMarca && !warningModelo && !warningAno) {
-        setWarningFabricante(`Não há peças que atendam todos os filtros selecionados`);
-      }
-    }
-  }, [selectedGrupo, selectedCategoria, selectedFabricante, selectedMarca, selectedModelo, selectedAno, todasPecas]);
+  // Observação: removemos a validação de compatibilidade baseada no catálogo completo
+  // para evitar carregar todas as peças no início (ganho de performance).
 
   // Filtrar opções de dropdown baseado nas seleções atuais
   const getFilteredPecas = () => {
-    // Verificação de segurança - retorna vazio se dados não carregaram
-    if (!todasPecas || todasPecas.length === 0) {
-      return [];
-    }
-    
-    if (!selectedGrupo || selectedGrupo === '') {
-      const todasPecasNomes = Array.from(new Set(todasPecas.map(p => p.name || '').filter(Boolean)));
-      return todasPecasNomes;
-    }
-    
-    // Filtrar peças pelo grupo selecionado
-    const pecasFiltradas = todasPecas.filter(p => {
-      if (!p.category) return false;
-      const match = p.category.toLowerCase().trim() === selectedGrupo.toLowerCase().trim();
-      return match;
-    });
-    
-    const nomesUnicos = Array.from(new Set(pecasFiltradas.map(p => p.name || '').filter(Boolean)));
-    
-    // Only preserve selected category if user has selected a specific car
-    if (carroSelecionadoId && selectedCategoria && !nomesUnicos.includes(selectedCategoria)) {
-      nomesUnicos.push(selectedCategoria);
-    }
-    
-    return nomesUnicos;
+    // Meta já vem como lista de nomes; não filtramos por grupo aqui
+    // para evitar depender de um índice completo de peças.
+    return Array.isArray(todasPecas) ? todasPecas : [];
   };
 
   const getFilteredFabricantes = () => {
-    if (!Array.isArray(todasPecas)) return [];
-    let filtered = todasPecas;
-    if (selectedGrupo) {
-      filtered = filtered.filter(p => p && p.category === selectedGrupo);
-    }
-    if (selectedCategoria) {
-      filtered = filtered.filter(p => p && p.name === selectedCategoria);
-    }
-    
-    const fabricantesArray = Array.from(new Set(filtered.map(p => p && p.manufacturer).filter(Boolean)));
-    
-    // Only preserve selected manufacturer if user has selected a specific car
-    if (carroSelecionadoId && selectedFabricante && !fabricantesArray.includes(selectedFabricante)) {
-      fabricantesArray.push(selectedFabricante);
-    }
-    
-    return fabricantesArray;
+    return Array.isArray(fabricantes) ? fabricantes : [];
   };
 
   const getFilteredMarcas = () => {
-    if (!Array.isArray(todasPecas)) return [];
-    let filtered = todasPecas;
-    if (selectedGrupo) {
-      filtered = filtered.filter(p => p && p.category === selectedGrupo);
-    }
-    if (selectedCategoria) {
-      filtered = filtered.filter(p => p && p.name === selectedCategoria);
-    }
-    if (selectedFabricante) {
-      filtered = filtered.filter(p => p && p.manufacturer === selectedFabricante);
-    }
-    
-    const marcasSet = new Set();
-    filtered.forEach(peca => {
-      if (peca && peca.applications && Array.isArray(peca.applications)) {
-        peca.applications.forEach(app => {
-          if (typeof app === 'string') {
-            // Extract brand from application string (first word)
-            const parts = app.trim().split(/\s+/);
-            if (parts.length >= 1 && parts[0]) {
-              marcasSet.add(parts[0]);
-            }
-          } else if (typeof app === 'object' && app.make) {
-            marcasSet.add(app.make);
-          }
-        });
-      }
-    });
-    
-    const marcasArray = Array.from(marcasSet).sort();
-    
-    // Only preserve selected brand if user has selected a specific car
-    if (carroSelecionadoId && selectedMarca && !marcasArray.includes(selectedMarca)) {
-      marcasArray.push(selectedMarca);
-    }
-    
-    return marcasArray;
+    return Array.isArray(marcas) ? marcas : [];
   };
 
   const getFilteredModelos = () => {
@@ -388,17 +227,22 @@ export default function BuscarPeca() {
     // Limpar mensagem de campos vazios ao tentar buscar
     setEmptyFieldsWarning('');
 
-    // Validar se pelo menos um campo foi preenchido
-    const temAlgumCampo = selectedGrupo || selectedCategoria || selectedMarca ||
-                          selectedModelo || selectedAno || selectedFabricante;
+    // Para performance: não buscar se isso implicar carregar o catálogo inteiro.
+    // Exigimos pelo menos um filtro "estruturante" (grupo/peça/fabricante).
+    const temFiltroEstruturante = Boolean(selectedGrupo || selectedCategoria || selectedFabricante);
 
-    if (validateNonEmpty && !temAlgumCampo) {
-      setEmptyFieldsWarning('Por favor, preencha pelo menos um campo para realizar a busca.');
+    if (!temFiltroEstruturante) {
+      if (validateNonEmpty) {
+        setEmptyFieldsWarning('Para buscar, selecione pelo menos: Grupo, Peça ou Fabricante.');
+      }
       // Limpar avisos de incompatibilidade quando mostrar aviso de campos vazios
       setWarningMarca('');
       setWarningModelo('');
       setWarningAno('');
       setWarningFabricante('');
+
+      // Não carregar nada (evita puxar tudo do Supabase/JSON)
+      setPecas([]);
       return;
     }
 
@@ -453,7 +297,7 @@ export default function BuscarPeca() {
     if (!carroSelecionadoId) {
       setError('');
       setEmptyFieldsWarning('');
-      setPecas(Array.isArray(todasPecas) ? todasPecas : []);
+      setPecas([]);
       return;
     }
 
@@ -474,8 +318,8 @@ export default function BuscarPeca() {
     setSelectedFabricante('');
     setCarroSelecionadoId('');
     setSearchFormKey((k) => k + 1);
-    // Voltar para o catálogo completo ao limpar
-    setPecas(Array.isArray(todasPecas) ? todasPecas : []);
+    // Ao limpar, não voltar para o catálogo completo (performance)
+    setPecas([]);
     setError('');
     setWarningMarca('');
     setWarningModelo('');

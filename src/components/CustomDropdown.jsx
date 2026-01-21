@@ -9,6 +9,7 @@ export default function CustomDropdown({
   placeholder = '',
   disabled = false,
   searchable = false,
+  allowCustomValue = false,
 }) {
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -36,7 +37,7 @@ export default function CustomDropdown({
   }
 
   const visibleOptions = useMemo(() => sortDropdownOptionsPtBr(options), [options]);
-  const selectedLabel = visibleOptions.find(opt => opt.value === value)?.label || '';
+  const selectedLabel = visibleOptions.find(opt => opt.value === value)?.label || (value ? String(value) : '');
 
   const normalizeForSearch = (s) => {
     try {
@@ -130,6 +131,15 @@ export default function CustomDropdown({
                 if (activeIndex >= 0 && activeIndex < filteredOptions.length) {
                   e.preventDefault();
                   handleSelect(filteredOptions[activeIndex].value);
+                  return;
+                }
+
+                if (allowCustomValue) {
+                  const typed = (searchText || '').trim();
+                  if (typed) {
+                    e.preventDefault();
+                    handleSelect(typed);
+                  }
                 }
               }
             }}

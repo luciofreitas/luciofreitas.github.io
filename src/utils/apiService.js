@@ -117,7 +117,7 @@ class ApiService {
     const pathMap = {
       '/api/glossario-dashboard': null,
       '/api/luzes-painel': '/data/luzes_painel.json',
-      '/api/pecas/meta': '/data/parts_db.json',
+      '/api/pecas/meta': '/data/parts_meta.json',
     };
     return pathMap[apiPath] || null;
   }
@@ -145,7 +145,27 @@ class ApiService {
   }
 
   async getPecasMeta() {
-    // Try Supabase first (runtime-config or env must provide credentials)
+    // Prefer a lightweight static meta file to keep the initial load fast.
+    // It contains only lists (grupos/pecas/fabricantes) instead of the full catalog.
+    try {
+      const response = await fetch('/data/parts_meta.json');
+      if (response.ok) {
+        const meta = await response.json();
+        return {
+          grupos: meta.grupos || [],
+          pecas: meta.pecas || [],
+          fabricantes: meta.fabricantes || [],
+          // optional lists (may be absent)
+          marcas: meta.marcas || [],
+          modelos: meta.modelos || [],
+          anos: meta.anos || [],
+        };
+      }
+    } catch (e) {
+      // ignore and try Supabase next
+    }
+
+    // Try Supabase next (runtime-config or env must provide credentials)
     try {
       const mod = await import('../supabase');
       const _supabase = mod.default || mod.supabase;
@@ -153,44 +173,16 @@ class ApiService {
 
       if (_supabase && isConfigured && !_supabase._notConfigured) {
         try {
-          const { data: partsData, error } = await _supabase.from('parts').select('*');
+          // Fetch only the columns needed to build dropdown lists.
+          const { data: partsData, error } = await _supabase.from('parts').select('category,name,manufacturer');
           if (!error && partsData && Array.isArray(partsData)) {
-            const grupos = [...new Set(partsData.map(p => p.category).filter(Boolean))].sort();
-            const fabricantes = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
-
-            const modelos = new Set();
-            const anos = new Set();
-            const todasMarcasVeiculos = new Set();
-
-            partsData.forEach(part => {
-              if (part.applications && Array.isArray(part.applications)) {
-                part.applications.forEach(app => {
-                  if (typeof app === 'string') {
-                    const parts = app.trim().split(/\s+/);
-                    if (parts.length >= 2) {
-                      const marca = parts[0];
-                      const modelo = parts[1];
-                      todasMarcasVeiculos.add(marca);
-                      modelos.add(`${marca} ${modelo}`);
-                      const yearsMatch = app.match(/\b(19|20)\d{2}\b/g);
-                      if (yearsMatch) yearsMatch.forEach(year => anos.add(year));
-                    }
-                  } else if (typeof app === 'object') {
-                    if (app.model) modelos.add(app.model);
-                    if (app.year) anos.add(app.year);
-                    if (app.make) todasMarcasVeiculos.add(app.make);
-                  }
-                });
-              }
-            });
-
             return {
-              grupos,
-              pecas: partsData,
-              marcas: [...todasMarcasVeiculos].sort(),
-              modelos: [...modelos].sort(),
-              anos: [...anos].sort(),
-              fabricantes
+              grupos: [...new Set(partsData.map(p => p.category).filter(Boolean))].sort(),
+              pecas: [...new Set(partsData.map(p => p.name).filter(Boolean))].sort(),
+              fabricantes: [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort(),
+              marcas: [],
+              modelos: [],
+              anos: []
             };
           }
           if (error) console.warn('Supabase returned error for parts:', error);
@@ -202,7 +194,7 @@ class ApiService {
       console.debug('Supabase client not available or failed to import:', err && err.message ? err.message : err);
     }
 
-    // Fallback: try local JSON or backend API
+    // Last resort: fallback to the full local JSON (heavier)
     try {
       const response = await fetch('/data/parts_db.json');
       if (response.ok) {
@@ -239,7 +231,7 @@ class ApiService {
 
         return {
           grupos,
-          pecas: partsData,
+          pecas: [...new Set(partsData.map(p => p && p.name).filter(Boolean))].sort(),
           marcas: [...todasMarcasVeiculos].sort(),
           modelos: [...modelos].sort(),
           anos: [...anos].sort(),
