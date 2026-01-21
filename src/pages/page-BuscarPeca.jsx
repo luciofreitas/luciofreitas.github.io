@@ -2,10 +2,10 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { apiService } from '../utils/apiService';
-import { SearchForm, PecasGrid, CompatibilityGrid } from '../components';
+import { SearchForm, PecasGrid } from '../components';
 import '../styles/pages/page-BuscarPeca.css';
-import { Menu, MenuLogin, CompatibilityModal, ProductDetailModal } from '../components';
-import { addMaintenance } from '../services/maintenanceService';
+import { Menu, MenuLogin } from '../components';
+import ProductDrawer from '../components/ProductDrawer';
 // Mercado Livre integration disabled for now.
 // Kept commented so it can be re-enabled later.
 // import * as mlService from '../services/mlService';
@@ -33,6 +33,7 @@ export default function BuscarPeca() {
   
   // Track if user selected a specific car (to preserve filter values)
   const [carroSelecionadoId, setCarroSelecionadoId] = useState('');
+  const [searchFormKey, setSearchFormKey] = useState(0);
 
   // Estados para mensagens de incompatibilidade
   const [warningMarca, setWarningMarca] = useState('');
@@ -41,16 +42,11 @@ export default function BuscarPeca() {
   const [warningFabricante, setWarningFabricante] = useState('');
   const [emptyFieldsWarning, setEmptyFieldsWarning] = useState('');
 
-  // modal state
-  const [showModal, setShowModal] = useState(false);
-  const [modalTitle, setModalTitle] = useState('');
-  const [modalContent, setModalContent] = useState(null);
-  const [modalSaveHandler, setModalSaveHandler] = useState(null);
+  // drawer state (preferred over modals)
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerProductId, setDrawerProductId] = useState(null);
+  const [drawerInitialTab, setDrawerInitialTab] = useState('compat');
   const navigate = useNavigate();
-  
-  // modal de detalhes da peça
-  const [showProductDetailModal, setShowProductDetailModal] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState(null);
 
   useEffect(() => {
     const loadMeta = async () => {
@@ -373,269 +369,30 @@ export default function BuscarPeca() {
     return anosArray;
   };
 
-  const renderPecasModal = (lista) => (
-    <div className="buscarpeca-modal-pecas">
-      <div className="compat-results-grid">
-        <PecasGrid 
-          pecas={lista} 
-          onViewCompatibility={openModal}
-          onViewDetails={openProductDetailModal}
-        />
-      </div>
-    </div>
-  );
-
-  const openProductDetailModal = (productId) => {
-    setSelectedProductId(productId);
-    setShowProductDetailModal(true);
+  const openDrawerCompat = (pecaOrId) => {
+    const id = (pecaOrId && typeof pecaOrId === 'object') ? pecaOrId.id : pecaOrId;
+    if (!id) return;
+    setDrawerProductId(id);
+    setDrawerInitialTab('compat');
+    setDrawerOpen(true);
   };
 
-  const closeProductDetailModal = () => {
-    setShowProductDetailModal(false);
-    setSelectedProductId(null);
+  const openDrawerDetails = (id) => {
+    if (!id) return;
+    setDrawerProductId(id);
+    setDrawerInitialTab('details');
+    setDrawerOpen(true);
   };
 
-  const openModal = (pecaOrId) => {
-    const peca = typeof pecaOrId === 'object' && pecaOrId ? pecaOrId : pecas.find(p => p.id === pecaOrId);
-    setModalTitle('Compatibilidade');
-    const isMLProduct = Boolean(peca && (peca.ml_product || peca.permalink));
-
-    // Mercado Livre integration toggle (disabled)
-    const ML_INTEGRATION_ENABLED = false;
-
-    // Helper to render grid from applications
-    const renderCompatGrid = (applications) => (
-      <div className="buscarpeca-compat-wrapper">
-        <CompatibilityGrid applications={applications} usuarioLogado={usuarioLogado} />
-      </div>
-    );
-
-    // For Mercado Livre products, try to fetch compatibilities on-demand (only when missing)
-    const hasApplications = Boolean(peca && Array.isArray(peca.applications) && peca.applications.length > 0);
-    if (ML_INTEGRATION_ENABLED && peca && isMLProduct && !hasApplications) {
-      setModalContent(
-        <div style={{ padding: '1rem' }}>
-          <p style={{ margin: 0 }}>Carregando compatibilidade do Mercado Livre…</p>
-        </div>
-      );
-      setModalSaveHandler(null);
-      setShowModal(true);
-
-      (async () => {
-        try {
-          const itemId = peca.ml_id || peca.id;
-          const resp = await mlService.getProductCompatibilities(itemId, { userId: usuarioLogado?.id, authToken: usuarioLogado?.access_token });
-          const products = Array.isArray(resp?.products)
-            ? resp.products
-            : (Array.isArray(resp?.compatible_products)
-              ? resp.compatible_products
-              : (Array.isArray(resp?.results)
-                ? resp.results
-                : (Array.isArray(resp) ? resp : [])));
-
-          const applications = products
-            .map((p) => (
-              p?.catalog_product_name ||
-              p?.catalog_product?.name ||
-              p?.name ||
-              p?.title ||
-              p?.product_name ||
-              p?.catalog_product_name_pt ||
-              null
-            ))
-            .filter(Boolean);
-
-          // If ML returned nothing, fall back to any attribute-derived applications (may be empty)
-          const finalApplications = applications.length > 0
-            ? applications
-            : (Array.isArray(peca.applications) ? peca.applications : []);
-
-          // Persist applications into local state so next open is instant
-          try {
-            if (finalApplications.length > 0) {
-              setPecas((prev) => Array.isArray(prev)
-                ? prev.map((pp) => (pp && (pp.id === peca.id) ? { ...pp, applications: finalApplications } : pp))
-                : prev
-              );
-            }
-          } catch (e) { /* ignore */ }
-
-          if (!finalApplications || finalApplications.length === 0) {
-            const msg = resp?.warning
-              ? String(resp.warning)
-              : 'Compatibilidade não disponível para este anúncio.';
-            setModalContent(
-              <div style={{ padding: '1rem' }}>
-                <p style={{ margin: 0 }}>{msg}</p>
-                <p style={{ marginTop: '0.5rem', color: '#666' }}>
-                  Alguns anúncios não publicam a lista de veículos compatíveis. Você pode continuar pesquisando normalmente — mesmo conectado, isso pode não aparecer em todos os anúncios.
-                </p>
-              </div>
-            );
-            return;
-          }
-
-          // Re-open with applications so we reuse the existing saveHandler flow
-          openModal({ ...peca, applications: finalApplications });
-        } catch (e) {
-          console.error('Falha ao carregar compatibilidade do Mercado Livre:', e);
-          setModalContent(
-            <div style={{ padding: '1rem' }}>
-              <p style={{ margin: 0 }}>Não foi possível carregar a compatibilidade agora.</p>
-            </div>
-          );
-        }
-      })();
-      return;
-    }
-
-    /*
-    Mercado Livre integration (disabled for now):
-    - on-demand compatibilities fetch via mlService.getProductCompatibilities
-    - cache applications into local state
-    */
-
-    // No piece
-    if (!peca) {
-      setModalContent(<div>Nenhuma peça encontrada.</div>);
-      setModalSaveHandler(null);
-      setShowModal(true);
-      return;
-    }
-
-    // Non-ML product and no applications
-    if (!hasApplications) {
-      console.debug('[BuscarPeca] no applications for peca', peca);
-      setModalContent(<div>Nenhuma aplicação encontrada.</div>);
-      setModalSaveHandler(null);
-      setShowModal(true);
-      return;
-    }
-
-    const compatContent = renderCompatGrid(peca.applications);
-
-    // create a save handler bound to this part (peca)
-    const saveHandler = async () => {
-        try {
-        if (!usuarioLogado) {
-          if (window.showToast) window.showToast('Faça login para registrar manutenção', 'error', 3000);
-          return;
-        }
-        // Debug: log auth state before saving
-        try { console.debug('[debug-save] usuarioLogado before save:', usuarioLogado); } catch(e){}
-        try { console.debug('[debug-save] localStorage usuario-logado before save:', localStorage.getItem('usuario-logado')); } catch(e){}
-        const rawUserId = usuarioLogado.id || usuarioLogado.email;
-        const userId = rawUserId ? String(rawUserId).trim().toLowerCase() : rawUserId;
-
-        // Attempt to gather selected years from the compatibility grid inside the open modal.
-        // This avoids major refactors: we read the modal DOM for rows and selects.
-        let selectedApplications = [];
-        try {
-          const rows = Array.from(document.querySelectorAll('.compat-modal .compatibility-grid-row'));
-          rows.forEach(row => {
-            const veiculoEl = row.querySelector('.compatibility-vehicle-text');
-            const selectEl = row.querySelector('.compatibility-year-select');
-            const veiculoText = veiculoEl ? String(veiculoEl.textContent || '').trim() : '';
-            const ano = selectEl ? String(selectEl.value || '').trim() : '';
-            if (veiculoText || ano) selectedApplications.push({ veiculo: veiculoText, ano });
-          });
-        } catch (e) {
-          // non-blocking - if DOM access fails, continue without selectedApplications
-          console.debug('Não foi possível ler anos selecionados do modal de compatibilidade', e);
-        }
-
-        // Determine primary product code (same logic we use for prefill)
-        let codigo = '';
-        try {
-          codigo = peca?.part_number || peca?.numero_peca ||
-            (peca?.codigos && Array.isArray(peca.codigos.oem) && peca.codigos.oem[0]) ||
-            (peca?.codigos && Array.isArray(peca.codigos.equivalentes) && peca.codigos.equivalentes[0]) ||
-            peca?.code || peca?.sku || peca?.id || '';
-        } catch (e) { codigo = peca?.id || ''; }
-
-        const toSave = {
-          veiculoId: carroSelecionadoId || '',
-          data: new Date().toISOString(),
-          tipo: 'preventiva',
-          descricao: peca?.nome || peca?.name || '',
-          codigoProduto: codigo,
-          kmAtual: '',
-          oficina: '',
-          valor: '',
-          observacoes: '',
-          meta: {
-            savedFrom: 'search',
-            mappedFields: { id: peca?.id },
-            selectedApplications // array of {veiculo, ano}
-          }
-        };
-
-        // If there's a clear single year selection, add a short summary for convenience
-        try {
-          const anosUnicos = Array.from(new Set(selectedApplications.map(sa => sa.ano).filter(Boolean)));
-          if (anosUnicos.length === 1) {
-            toSave.meta.selectedYearSummary = anosUnicos[0];
-            // Optionally append to descricao to make it visible in prefill
-            if (toSave.descricao) toSave.descricao = `${toSave.descricao} — Ano: ${anosUnicos[0]}`;
-          } else if (anosUnicos.length > 1) {
-            toSave.meta.selectedYearSummary = anosUnicos.join(', ');
-          }
-        } catch (e) {
-          // ignore
-        }
-
-        const saved = await addMaintenance(userId, toSave);
-        // Debug: log after saving
-        try { console.debug('[debug-save] addMaintenance returned:', saved); } catch(e){}
-        try { console.debug('[debug-save] localStorage usuario-logado after save:', localStorage.getItem('usuario-logado')); } catch(e){}
-        setShowModal(false);
-        if (saved && saved.id) {
-          try {
-            // Save the product code into sessionStorage so the history form can prefill it
-            try {
-              const codigo = peca?.part_number || peca?.numero_peca ||
-                (peca?.codigos && Array.isArray(peca.codigos.oem) && peca.codigos.oem[0]) ||
-                (peca?.codigos && Array.isArray(peca.codigos.equivalentes) && peca.codigos.equivalentes[0]) ||
-                peca?.code || peca?.sku || peca?.id || '';
-              if (codigo) sessionStorage.setItem('pf_prefill_codigo', String(codigo));
-            } catch (e) { /* ignore sessionStorage errors */ }
-
-            // Debug: log before navigation
-            try { console.debug('[debug-save] navigating to historico. localStorage usuario-logado just before navigate:', localStorage.getItem('usuario-logado')); } catch(e){}
-
-            const alreadyOnHistory = typeof window !== 'undefined' && window.location && String(window.location.hash || '').includes('/historico-manutencao');
-            if (alreadyOnHistory) {
-              try { navigate('/historico-manutencao', { replace: true }); } catch (err) {}
-            } else {
-              navigate('/historico-manutencao');
-            }
-          } catch (e) {
-            try { window.location.hash = '#/historico-manutencao'; } catch (err) {}
-          }
-        }
-        if (window.showToast) window.showToast('Manutenção registrada no histórico', 'success', 2500);
-      } catch (err) {
-        console.error('Falha ao registrar manutenção (compatibility modal)', err);
-        if (window.showToast) window.showToast('Erro ao registrar manutenção', 'error', 3000);
-      }
-    };
-
-    setModalContent(compatContent);
-    setModalSaveHandler(() => saveHandler);
-    setShowModal(true);
-  };
-
-  const handleSearch = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    
+  const runSearch = async ({ validateNonEmpty = true } = {}) => {
     // Limpar mensagem de campos vazios ao tentar buscar
     setEmptyFieldsWarning('');
-    
+
     // Validar se pelo menos um campo foi preenchido
-    const temAlgumCampo = selectedGrupo || selectedCategoria || selectedMarca || 
+    const temAlgumCampo = selectedGrupo || selectedCategoria || selectedMarca ||
                           selectedModelo || selectedAno || selectedFabricante;
-    
-    if (!temAlgumCampo) {
+
+    if (validateNonEmpty && !temAlgumCampo) {
       setEmptyFieldsWarning('Por favor, preencha pelo menos um campo para realizar a busca.');
       // Limpar avisos de incompatibilidade quando mostrar aviso de campos vazios
       setWarningMarca('');
@@ -644,27 +401,25 @@ export default function BuscarPeca() {
       setWarningFabricante('');
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    const filtros = { 
-      grupo: selectedGrupo, 
-      categoria: selectedCategoria, 
-      marca: selectedMarca, 
-      modelo: selectedModelo, 
-      ano: selectedAno, 
-      fabricante: selectedFabricante 
+    const filtros = {
+      grupo: selectedGrupo,
+      categoria: selectedCategoria,
+      marca: selectedMarca,
+      modelo: selectedModelo,
+      ano: selectedAno,
+      fabricante: selectedFabricante
     };
+
     try {
-    // Usar API do Mercado Livre (com fallback para JSON local)
-    const data = await apiService.buscarPecasML(filtros);
-    console.log('🔍 Filtros aplicados:', filtros);
-    console.log('📦 Dados retornados:', data);
-    console.log('📋 Peças encontradas:', data.pecas?.length || 0);
-    console.log('🌐 Fonte:', data.source || 'local');
-    // A API retorna data.pecas, não data.results
-    const pecasFiltradas = data.pecas || [];
-      
+      const data = await apiService.buscarPecasML(filtros);
+      const pecasFiltradas = data?.pecas || [];
+
+      // Always reflect the current filter in the catálogo (even if empty)
+      setPecas(pecasFiltradas);
+
       if (pecasFiltradas.length === 0) {
         const filtrosAtivos = [];
         if (filtros.marca) filtrosAtivos.push(`Marca: ${filtros.marca}`);
@@ -673,18 +428,11 @@ export default function BuscarPeca() {
         if (filtros.grupo) filtrosAtivos.push(`Grupo: ${filtros.grupo}`);
         if (filtros.categoria) filtrosAtivos.push(`Peça: ${filtros.categoria}`);
         if (filtros.fabricante) filtrosAtivos.push(`Fabricante: ${filtros.fabricante}`);
-        
-        const mensagem = filtrosAtivos.length > 0 
+
+        const mensagem = filtrosAtivos.length > 0
           ? `Nenhuma peça encontrada para: ${filtrosAtivos.join(', ')}. Tente remover alguns filtros ou buscar por termos mais genéricos.`
           : 'Nenhuma peça encontrada para os filtros selecionados.';
         setError(mensagem);
-        // Não limpar as peças - manter catálogo visível
-        // setPecas(pecasFiltradas); - REMOVIDO
-      } else {
-        setPecas(pecasFiltradas);
-        setModalTitle(`Encontradas ${pecasFiltradas.length} peça(s)`);
-        setModalContent(renderPecasModal(pecasFiltradas));
-        setShowModal(true);
       }
     } catch (err) {
       console.error('❌ Erro na busca:', err);
@@ -694,6 +442,29 @@ export default function BuscarPeca() {
     }
   };
 
+  const handleSearch = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    await runSearch({ validateNonEmpty: true });
+  };
+
+  // Auto-filter when a car is selected
+  useEffect(() => {
+    // If cleared, restore full catalog
+    if (!carroSelecionadoId) {
+      setError('');
+      setEmptyFieldsWarning('');
+      setPecas(Array.isArray(todasPecas) ? todasPecas : []);
+      return;
+    }
+
+    // Debounce a bit to avoid flicker if multiple state updates happen together
+    const t = setTimeout(() => {
+      runSearch({ validateNonEmpty: false });
+    }, 150);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carroSelecionadoId]);
+
   const handleClear = () => {
     setSelectedGrupo('');
     setSelectedCategoria('');
@@ -701,7 +472,10 @@ export default function BuscarPeca() {
     setSelectedModelo('');
     setSelectedAno('');
     setSelectedFabricante('');
-    setPecas([]);
+    setCarroSelecionadoId('');
+    setSearchFormKey((k) => k + 1);
+    // Voltar para o catálogo completo ao limpar
+    setPecas(Array.isArray(todasPecas) ? todasPecas : []);
     setError('');
     setWarningMarca('');
     setWarningModelo('');
@@ -720,10 +494,11 @@ export default function BuscarPeca() {
               <h2 className="page-title">Buscar Peças</h2>
               
               <p className="page-subtitle">
-                Preencha os campos abaixo para encontrar apenas peças compatíveis com o seu veículo.
+                Escolha seu carro e a peça. O catálogo mostra opções compatíveis e alternativas.
               </p>
 
             <SearchForm
+              key={searchFormKey}
               selectedGrupo={selectedGrupo}
               setSelectedGrupo={setSelectedGrupo}
               selectedCategoria={selectedCategoria}
@@ -753,23 +528,26 @@ export default function BuscarPeca() {
               warningFabricante={warningFabricante}
               emptyFieldsWarning={emptyFieldsWarning}
             />
+
+            <div className="buscarpeca-results">
+              <div className="buscarpeca-results-header">
+                <h3 className="buscarpeca-results-title">Catálogo</h3>
+                <div className="buscarpeca-results-count">{Array.isArray(pecas) ? pecas.length : 0} item(ns)</div>
+              </div>
+              <PecasGrid
+                pecas={pecas}
+                onViewCompatibility={openDrawerCompat}
+                onViewDetails={openDrawerDetails}
+              />
+            </div>
         </div>
       </div>
 
-      <CompatibilityModal 
-        show={showModal} 
-        onClose={() => setShowModal(false)} 
-        title={modalTitle}
-        titleIcon={modalTitle === 'Compatibilidade' ? './check.png' : null}
-        onSave={modalTitle === 'Compatibilidade' ? modalSaveHandler : undefined}
-      >
-        {modalContent}
-      </CompatibilityModal>
-
-      <ProductDetailModal
-        isOpen={showProductDetailModal}
-        onClose={closeProductDetailModal}
-        productId={selectedProductId}
+      <ProductDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        productId={drawerProductId}
+        initialTab={drawerInitialTab}
         selectedCarId={carroSelecionadoId}
       />
     </>

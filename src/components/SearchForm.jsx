@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SearchForm.css';
 import CustomDropdown from './CustomDropdown';
 import SmallLoadingModal from './SmallLoadingModal';
@@ -36,8 +37,10 @@ function SearchForm({
   onCarroChange // NEW: callback to notify parent when car is selected
 }) {
   const { usuarioLogado } = useContext(AuthContext) || {};
+  const navigate = useNavigate();
   const [carros, setCarros] = useState([]);
   const [carroSelecionado, setCarroSelecionado] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Carrega carros do usuário quando logado
   useEffect(() => {
@@ -54,17 +57,40 @@ function SearchForm({
     loadUserCars();
   }, [usuarioLogado]);
 
+  // Auto-select default car (or first) to make the experience feel guided
+  useEffect(() => {
+    if (!usuarioLogado) return;
+    if (!Array.isArray(carros) || carros.length === 0) return;
+    if (carroSelecionado) return;
+
+    const defaultCar = carros.find(c => c && c.isDefault) || carros[0];
+    if (defaultCar && defaultCar.id) {
+      handleCarroChange(defaultCar.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuarioLogado, carros, carroSelecionado]);
+
+  const carroAtivo = useMemo(() => {
+    if (!Array.isArray(carros) || carros.length === 0) return null;
+    if (!carroSelecionado) return null;
+    return carros.find(c => c && c.id === carroSelecionado) || null;
+  }, [carros, carroSelecionado]);
+
   // Quando seleciona um carro, preenche os campos
   const handleCarroChange = (carId) => {
     setCarroSelecionado(carId);
-    
-    // Notify parent component about car selection change
-    if (onCarroChange) {
-      onCarroChange(carId);
-    }
+
+    // Hide advanced filters when a car context is chosen; users can still open them.
+    if (carId) setShowAdvanced(false);
     
     if (!carId) {
       // Se desmarcou, não faz nada (permite busca geral)
+      setShowAdvanced(true);
+
+      // Notify parent after local state adjustments
+      if (onCarroChange) {
+        onCarroChange(carId);
+      }
       return;
     }
 
@@ -76,29 +102,60 @@ function SearchForm({
       // Converte ano para string, pois pode estar como número
       setSelectedAno(String(carro.ano));
     }
+
+    // Notify parent component about car selection change *after* filters are set
+    if (onCarroChange) {
+      onCarroChange(carId);
+    }
   };
 
   return (
   <form className="search-form" onSubmit={onSearch} aria-label="Formulário de busca de peças">
-      {/* Dropdown de carros - só aparece se usuário logado e tiver carros */}
-      {usuarioLogado && carros.length > 0 && (
+      {/* Carro ativo (contexto principal) */}
+      {usuarioLogado && (
         <div className="search-form-car-selector">
-          <label htmlFor="carro-selecionado">Buscar por um carro específico (opcional)</label>
-          <CustomDropdown
-            options={[
-              { value: '', label: '-- Busca geral (deixar em branco) --' },
-              ...carros.map(c => ({
-                value: c.id,
-                label: `${c.marca} ${c.modelo} ${c.ano}${c.isDefault ? ' ⭐' : ''}`
-              }))
-            ]}
-            value={carroSelecionado}
-            onChange={handleCarroChange}
-            placeholder="Selecione um carro cadastrado"
-            searchable
-          />
+          <div className="search-form-car-header">
+            <div>
+              <div className="search-form-car-title">Carro ativo</div>
+              <div className="search-form-car-subtitle">
+                {carroAtivo
+                  ? `${carroAtivo.marca} ${carroAtivo.modelo} ${carroAtivo.ano}`
+                  : (Array.isArray(carros) && carros.length > 0
+                    ? 'Selecione um carro para preencher Marca/Modelo/Ano'
+                    : 'Você ainda não cadastrou nenhum carro')}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="search-form-manage-cars"
+              onClick={() => navigate('/meus-carros')}
+            >
+              Meus carros
+            </button>
+          </div>
+
+          {Array.isArray(carros) && carros.length > 0 ? (
+            <CustomDropdown
+              options={[
+                { value: '', label: '-- Busca geral (sem carro) --' },
+                ...carros.map(c => ({
+                  value: c.id,
+                  label: `${c.marca} ${c.modelo} ${c.ano}${c.isDefault ? ' ⭐' : ''}`
+                }))
+              ]}
+              value={carroSelecionado}
+              onChange={handleCarroChange}
+              placeholder="Selecionar carro"
+              searchable
+            />
+          ) : (
+            <div className="search-form-car-empty">
+              Cadastre um carro para deixar a busca mais rápida e precisa.
+            </div>
+          )}
         </div>
       )}
+
       <div className="search-form-row">
         <div className="search-form-field">
           <label htmlFor="grupo">Grupo</label>
@@ -123,51 +180,66 @@ function SearchForm({
         </div>
       </div>
 
-      <div className="search-form-row">
-        <div className="search-form-field">
-          <label htmlFor="marca">Marca</label>
-          <CustomDropdown
-            options={[{ value: '', label: '' }, ...marcas.map(m => ({ value: m, label: m }))]}
-            value={selectedMarca}
-            onChange={setSelectedMarca}
-            placeholder=""
-            searchable
-          />
-        </div>
-        <div className="search-form-field">
-          <label htmlFor="modelo">Modelo</label>
-          <CustomDropdown
-            options={[{ value: '', label: '' }, ...modelos.map(m => ({ value: m, label: m }))]}
-            value={selectedModelo}
-            onChange={setSelectedModelo}
-            placeholder=""
-            searchable
-          />
-        </div>
+      <div className="search-form-advanced-row">
+        <button
+          type="button"
+          className="search-form-advanced-btn"
+          onClick={() => setShowAdvanced((v) => !v)}
+          aria-expanded={showAdvanced || !carroSelecionado}
+        >
+          {showAdvanced || !carroSelecionado ? 'Ocultar filtros avançados' : 'Filtros avançados'}
+        </button>
       </div>
 
-      <div className="search-form-row">
-        <div className="search-form-field">
-          <label htmlFor="ano">Ano</label>
-          <CustomDropdown
-            options={[{ value: '', label: '' }, ...anos.map(a => ({ value: a, label: a }))]}
-            value={selectedAno}
-            onChange={setSelectedAno}
-            placeholder=""
-            searchable
-          />
-        </div>
-        <div className="search-form-field">
-          <label htmlFor="fabricante">Fabricante</label>
-          <CustomDropdown
-            options={[{ value: '', label: 'Todos' }, ...fabricantes.map(f => ({ value: f, label: f }))]}
-            value={selectedFabricante}
-            onChange={setSelectedFabricante}
-            placeholder=""
-            searchable
-          />
-        </div>
-      </div>
+      {(showAdvanced || !carroSelecionado) && (
+        <>
+          <div className="search-form-row">
+            <div className="search-form-field">
+              <label htmlFor="marca">Marca</label>
+              <CustomDropdown
+                options={[{ value: '', label: '' }, ...marcas.map(m => ({ value: m, label: m }))]}
+                value={selectedMarca}
+                onChange={setSelectedMarca}
+                placeholder=""
+                searchable
+              />
+            </div>
+            <div className="search-form-field">
+              <label htmlFor="modelo">Modelo</label>
+              <CustomDropdown
+                options={[{ value: '', label: '' }, ...modelos.map(m => ({ value: m, label: m }))]}
+                value={selectedModelo}
+                onChange={setSelectedModelo}
+                placeholder=""
+                searchable
+              />
+            </div>
+          </div>
+
+          <div className="search-form-row">
+            <div className="search-form-field">
+              <label htmlFor="ano">Ano</label>
+              <CustomDropdown
+                options={[{ value: '', label: '' }, ...anos.map(a => ({ value: a, label: a }))]}
+                value={selectedAno}
+                onChange={setSelectedAno}
+                placeholder=""
+                searchable
+              />
+            </div>
+            <div className="search-form-field">
+              <label htmlFor="fabricante">Fabricante</label>
+              <CustomDropdown
+                options={[{ value: '', label: 'Todos' }, ...fabricantes.map(f => ({ value: f, label: f }))]}
+                value={selectedFabricante}
+                onChange={setSelectedFabricante}
+                placeholder=""
+                searchable
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="search-form-actions">
         <div className="search-form-buttons-row">

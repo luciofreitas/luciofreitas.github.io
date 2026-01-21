@@ -951,13 +951,47 @@ app.get('/api/pecas/compatibilidade/:part_id', (req, res) => {
 
 app.get('/api/pecas/:id', (req, res) => {
   const id = req.params.id;
+  const idNum = Number(id);
+  const matchesId = (v) => {
+    if (v === undefined || v === null) return false;
+    if (String(v) === String(id)) return true;
+    if (Number.isFinite(idNum) && Number(v) === idNum) return true;
+    return false;
+  };
+
+  const parseYearsFromApplicationString = (s) => {
+    try {
+      const text = String(s || '');
+      if (!text.trim()) return { ano_inicio: null, ano_fim: null };
+
+      // Collect all years first (covers formats like "2010-2011-2012-..." or scattered years)
+      const years = (text.match(/\b(?:19|20)\d{2}\b/g) || []).map(Number).filter(Number.isFinite);
+      if (years.length === 1) return { ano_inicio: years[0], ano_fim: years[0] };
+      if (years.length > 2) return { ano_inicio: Math.min(...years), ano_fim: Math.max(...years) };
+
+      // Try explicit ranges like 2010-2015
+      const range = text.match(/\b((?:19|20)\d{2})\s*[-–—]\s*((?:19|20)\d{2})\b/);
+      if (range) {
+        const a = Number(range[1]);
+        const b = Number(range[2]);
+        if (Number.isFinite(a) && Number.isFinite(b)) {
+          return { ano_inicio: Math.min(a, b), ano_fim: Math.max(a, b) };
+        }
+      }
+      // Otherwise, pick the min/max of all found years
+      if (years.length > 1) return { ano_inicio: Math.min(...years), ano_fim: Math.max(...years) };
+    } catch (e) {
+      // ignore
+    }
+    return { ano_inicio: null, ano_fim: null };
+  };
   
   // Tentar carregar dados detalhados do JSON
   try {
     const detailsPath = path.join(__dirname, 'parts_detailed.json');
     if (fs.existsSync(detailsPath)) {
       const detailedParts = JSON.parse(fs.readFileSync(detailsPath, 'utf8'));
-      const detailedPart = detailedParts.find(p => p.id === id);
+      const detailedPart = detailedParts.find(p => matchesId(p && p.id));
       
       if (detailedPart) {
         return res.json(detailedPart);
@@ -968,7 +1002,7 @@ app.get('/api/pecas/:id', (req, res) => {
   }
   
   // Fallback para dados básicos se não encontrar no detailed
-  const basicPart = PARTS_DB.find(p => p.id === id);
+  const basicPart = PARTS_DB.find(p => matchesId(p && p.id));
   if (basicPart) {
     // Converter dados básicos para formato detalhado
     const detailedFromBasic = {
@@ -979,14 +1013,26 @@ app.get('/api/pecas/:id', (req, res) => {
       numero_peca: basicPart.part_number,
       descricao: basicPart.description,
       especificacoes_tecnicas: basicPart.specifications || {},
-      aplicacoes_detalhadas: (basicPart.applications || []).map(app => ({
-        marca: "N/A",
-        modelo: "N/A", 
-        ano_inicio: null,
-        ano_fim: null,
-        motor: "N/A",
-        observacoes: app
-      })),
+      aplicacoes_detalhadas: (basicPart.applications || []).map(app => {
+        const appStr = String(app || '').trim();
+        const veiculoSemAnos = appStr
+          .replace(/\b(?:19|20)\d{2}\b/g, ' ')
+          .replace(/[()?,]/g, ' ')
+          .replace(/[-–—]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const years = parseYearsFromApplicationString(appStr);
+        return {
+          // Prefer a string vehicle label so the UI can always render something meaningful
+          veiculo: veiculoSemAnos || appStr,
+          marca: null,
+          modelo: null,
+          ano_inicio: years.ano_inicio,
+          ano_fim: years.ano_fim,
+          motor: null,
+          observacoes: appStr
+        };
+      }),
   imagens: ["/imagens/placeholder-part.jpg"],
       instalacao: {
         dificuldade: "Médio",
