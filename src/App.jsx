@@ -1,5 +1,5 @@
-import React, { useState, createContext, useContext, useEffect, lazy, Suspense } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, createContext, useContext, useEffect, lazy, Suspense, useRef } from 'react';
+import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 // Import migration helper to run data migration on app load
 import './utils/migrationHelper';
@@ -57,6 +57,79 @@ function PageLoader() {
 }
 
 export const AuthContext = createContext(null);
+
+function StartupEnforcer() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const ranRef = useRef(false);
+  const { setUsuarioLogado } = useContext(AuthContext) || {};
+
+  useEffect(() => {
+    if (ranRef.current) return;
+    ranRef.current = true;
+
+    // Run only once per browser-tab session (sessionStorage persists across refresh)
+    // so the user doesn't get logged out on every page reload.
+    try {
+      if (sessionStorage.getItem('gs_startup_enforced') === '1') {
+        // still ensure /inicio is the first page for the session
+        if (location && location.pathname !== '/inicio') {
+          navigate('/inicio', { replace: true });
+        }
+        return;
+      }
+      sessionStorage.setItem('gs_startup_enforced', '1');
+    } catch (e) {
+      // If sessionStorage is blocked, fallback to enforcing (best-effort).
+    }
+
+    // Force logged out on first open of the session.
+    try { localStorage.removeItem('usuario-logado'); } catch (e) {}
+    try { sessionStorage.removeItem('usuario-logado'); } catch (e) {}
+    try { if (setUsuarioLogado) setUsuarioLogado(null); } catch (e) {}
+
+    // Best-effort cleanup of Supabase auth token keys in localStorage.
+    try {
+      const keys = Object.keys(localStorage || {});
+      for (const k of keys) {
+        if (typeof k === 'string' && k.startsWith('sb-') && k.endsWith('-auth-token')) {
+          try { localStorage.removeItem(k); } catch (e) {}
+        }
+      }
+    } catch (e) {}
+
+    // Best-effort sign out from Supabase and Firebase (if configured).
+    (async () => {
+      try {
+        const mod = await import('./supabase').catch(() => ({}));
+        const supabase = (mod && (mod.default || mod.supabase)) ? (mod.default || mod.supabase) : null;
+        if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
+          await supabase.auth.signOut();
+        }
+      } catch (e) {
+        // ignore
+      }
+      try {
+        const fb = await import('./firebase').catch(() => ({}));
+        const auth = fb && fb.auth ? fb.auth : null;
+        if (auth) {
+          const authMod = await import('firebase/auth').catch(() => ({}));
+          if (authMod && typeof authMod.signOut === 'function') {
+            await authMod.signOut(auth);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+
+    if (location && location.pathname !== '/inicio') {
+      navigate('/inicio', { replace: true });
+    }
+  }, [navigate, location]);
+
+  return null;
+}
 
 function ProtectedRoute({ children }) {
   const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
@@ -419,6 +492,7 @@ export default function App() {
     <ThemeProvider>
       <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
         <HashRouter>
+          <StartupEnforcer />
           <div className="app">
             <ThemeToggle />
             
