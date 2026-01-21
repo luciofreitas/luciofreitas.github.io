@@ -5,6 +5,10 @@ import { EMAILJS_CONFIG } from '../config/emailjs.config';
  * Serviço centralizado para envio de emails via EmailJS
  */
 class EmailService {
+  static ERROR_CODES = {
+    NOT_CONFIGURED: 'EMAILJS_NOT_CONFIGURED'
+  };
+
   /**
    * Verifica se o EmailJS está configurado
    */
@@ -22,7 +26,9 @@ class EmailService {
    */
   static async sendContactEmail({ nome, email, mensagem, userId = 'Visitante' }) {
     if (!this.isConfigured()) {
-      throw new Error('EmailJS não configurado. Configure em src/config/emailjs.config.js');
+      const error = new Error(this.ERROR_CODES.NOT_CONFIGURED);
+      error.code = this.ERROR_CODES.NOT_CONFIGURED;
+      throw error;
     }
 
     const templateParams = {
@@ -83,7 +89,9 @@ class EmailService {
    */
   static async sendPasswordResetEmail({ nome, email, userId, resetLink }) {
     if (!this.isConfigured()) {
-      throw new Error('EmailJS não configurado. Configure em src/config/emailjs.config.js');
+      const error = new Error(this.ERROR_CODES.NOT_CONFIGURED);
+      error.code = this.ERROR_CODES.NOT_CONFIGURED;
+      throw error;
     }
 
     if (!EMAILJS_CONFIG.TEMPLATE_ID_RESET_PASSWORD || EMAILJS_CONFIG.TEMPLATE_ID_RESET_PASSWORD === 'SEU_TEMPLATE_SENHA_AQUI') {
@@ -110,17 +118,20 @@ class EmailService {
    * Trata erros do EmailJS de forma amigável
    */
   static getErrorMessage(error) {
-    if (error.text) {
-      return error.text;
-    } else if (error.status === 400) {
-      return 'Credenciais do EmailJS inválidas. Verifique a configuração.';
-    } else if (error.status === 412) {
-      return 'Template do EmailJS não encontrado.';
-    } else if (error.message) {
-      return error.message;
-    } else {
-      return 'Erro desconhecido ao enviar email. Tente novamente.';
+    const code = error?.code || error?.message;
+    if (code === this.ERROR_CODES.NOT_CONFIGURED || /emailjs\s*n[aã]o\s*configurado/i.test(String(error?.message || ''))) {
+      return 'No momento o envio por e-mail está indisponível. Se preferir, use os canais rápidos (WhatsApp/Instagram) ou tente novamente mais tarde.';
     }
+
+    if (error?.status === 400) {
+      return 'Não foi possível enviar sua mensagem agora. Tente novamente mais tarde.';
+    }
+
+    if (error?.status === 412) {
+      return 'Serviço de envio indisponível no momento. Tente novamente mais tarde.';
+    }
+
+    return 'Não foi possível enviar sua mensagem agora. Tente novamente mais tarde.';
   }
 }
 

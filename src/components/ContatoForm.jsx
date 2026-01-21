@@ -122,7 +122,7 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
       
       // Mensagem de erro amigável
       const errorMessage = EmailService.getErrorMessage(err);
-      const msg = `Falha ao enviar a mensagem. ${errorMessage}`;
+      const msg = errorMessage;
       setStatus({ type: 'error', message: msg });
       if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
         window.showToast(msg, 'error', 4500);
