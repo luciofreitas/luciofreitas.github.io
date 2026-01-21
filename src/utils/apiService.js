@@ -1,6 +1,10 @@
 // API utility with JSON fallback for GitHub Pages
 import { glossarioMockData } from '../data/glossarioData.js';
-import * as mlService from '../services/mlService.js';
+// Mercado Livre integration disabled for now.
+// Kept (commented) so it can be re-enabled later without starting from zero.
+// import * as mlService from '../services/mlService.js';
+
+const ML_INTEGRATION_ENABLED = false;
 
 function isLikelyDevHostname(hostname) {
   const host = (hostname || '').trim();
@@ -398,6 +402,17 @@ class ApiService {
    * @returns {Promise<Object>} Products from ML or local JSON
    */
   async buscarPecasML(filtros) {
+    // Mercado Livre integration disabled: use Supabase/JSON only.
+    // NOTE: original ML logic preserved below for future re-enable.
+    if (!ML_INTEGRATION_ENABLED) {
+      const data = await this.filtrarPecas(filtros);
+      return {
+        ...(data || {}),
+        source: (data && data.source) ? data.source : 'local'
+      };
+    }
+
+    /*
     try {
       // Build search query from filters
       const query = this.buildMLSearchQuery(filtros);
@@ -436,6 +451,7 @@ class ApiService {
       console.error('Erro ao buscar no Mercado Livre, usando dados locais:', error);
       return this.filtrarPecas(filtros);
     }
+    */
   }
 
   /**
@@ -516,6 +532,11 @@ class ApiService {
    * Get product details from Mercado Livre
    */
   async getPecaByIdML(mlId) {
+    if (!ML_INTEGRATION_ENABLED) {
+      return this.getPecaById(mlId);
+    }
+
+    /*
     try {
       console.log('🔍 Buscando detalhes do produto ML:', mlId);
       
@@ -532,6 +553,7 @@ class ApiService {
       console.error('Erro ao buscar detalhes no ML, usando dados locais:', error);
       return this.getPecaById(mlId);
     }
+    */
   }
 }
 

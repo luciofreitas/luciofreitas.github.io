@@ -6,7 +6,9 @@ import { SearchForm, PecasGrid, CompatibilityGrid } from '../components';
 import '../styles/pages/page-BuscarPeca.css';
 import { Menu, MenuLogin, CompatibilityModal, ProductDetailModal } from '../components';
 import { addMaintenance } from '../services/maintenanceService';
-import * as mlService from '../services/mlService';
+// Mercado Livre integration disabled for now.
+// Kept commented so it can be re-enabled later.
+// import * as mlService from '../services/mlService';
 
 export default function BuscarPeca() {
   const { usuarioLogado } = useContext(AuthContext) || {};
@@ -398,6 +400,9 @@ export default function BuscarPeca() {
     setModalTitle('Compatibilidade');
     const isMLProduct = Boolean(peca && (peca.ml_product || peca.permalink));
 
+    // Mercado Livre integration toggle (disabled)
+    const ML_INTEGRATION_ENABLED = false;
+
     // Helper to render grid from applications
     const renderCompatGrid = (applications) => (
       <div className="buscarpeca-compat-wrapper">
@@ -407,7 +412,7 @@ export default function BuscarPeca() {
 
     // For Mercado Livre products, try to fetch compatibilities on-demand (only when missing)
     const hasApplications = Boolean(peca && Array.isArray(peca.applications) && peca.applications.length > 0);
-    if (peca && isMLProduct && !hasApplications) {
+    if (ML_INTEGRATION_ENABLED && peca && isMLProduct && !hasApplications) {
       setModalContent(
         <div style={{ padding: '1rem' }}>
           <p style={{ margin: 0 }}>Carregando compatibilidade do Mercado Livre…</p>
@@ -483,6 +488,12 @@ export default function BuscarPeca() {
       })();
       return;
     }
+
+    /*
+    Mercado Livre integration (disabled for now):
+    - on-demand compatibilities fetch via mlService.getProductCompatibilities
+    - cache applications into local state
+    */
 
     // No piece
     if (!peca) {

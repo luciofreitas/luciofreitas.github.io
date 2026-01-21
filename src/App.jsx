@@ -34,7 +34,8 @@ const LuzesDoPainel = lazy(() => import('./pages/page-LuzesDoPainel'));
 const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'));
 const EsqueciSenha = lazy(() => import('./pages/page-EsqueciSenha'));
 const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
-const MLCallback = lazy(() => import('./pages/page-MLCallback'));
+// Mercado Livre integration disabled for now.
+// const MLCallback = lazy(() => import('./pages/page-MLCallback'));
 import { ThemeToggle } from './components';
 import './styles/App.css';
 import './styles/CustomDropdown.css';
@@ -98,13 +99,13 @@ export default function App() {
     if (authLoaded) setAuthLoadedState(true);
   }, [authLoaded]);
 
-  // Clean up legacy Mercado Livre token storage.
-  // The new integration keeps ML tokens server-side (Supabase) and uses the
-  // app's Supabase access token to query the backend.
+  // Mercado Livre integration disabled: keeping this cleanup commented for future.
+  /*
   useEffect(() => {
     try { localStorage.removeItem('ml_token_data'); } catch (e) {}
     try { sessionStorage.removeItem('ml_oauth_state'); } catch (e) {}
   }, []);
+  */
 
   React.useEffect(() => {
     async function initFromStorage(){
@@ -496,7 +497,8 @@ export default function App() {
                 <PageConfiguracoes />
               </ProtectedRoute>
             } />
-            <Route path="/ml/callback" element={<MLCallback />} />
+            {/* Mercado Livre integration disabled for now */}
+            {/* <Route path="/ml/callback" element={<MLCallback />} /> */}
             <Route path="/tabela-fipe" element={
               <ProtectedRoute>
                 <TabelaFIPE />

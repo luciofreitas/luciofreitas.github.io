@@ -2,14 +2,18 @@ import React, { useMemo, useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, ToggleCar } from '../components';
 import { AuthContext } from '../App';
-import * as mlService from '../services/mlService';
+// Mercado Livre integration disabled for now.
+// Kept commented so it can be re-enabled later.
+// import * as mlService from '../services/mlService';
 import '../styles/pages/page-Configuracoes.css';
 
 export default function PageConfiguracoes() {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuarioLogado: user, setUsuarioLogado } = useContext(AuthContext) || {};
-  const [mlStatus, setMlStatus] = useState(null);
+  // Mercado Livre integration disabled: keep state placeholders so the old UI/code can be restored.
+  const ML_INTEGRATION_ENABLED = false;
+  const [mlStatus, setMlStatus] = useState({ connected: false, expired: false, disabled: true });
   const [isConnecting, setIsConnecting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [profileNome, setProfileNome] = useState('');
@@ -93,36 +97,24 @@ export default function PageConfiguracoes() {
   }, [user?.id]);
 
   useEffect(() => {
-    let cancelled = false;
+    // Mercado Livre integration disabled:
+    // Previous logic (kept for later) used mlService.getServerConnectionStatus + ml_success URL param.
+    setMlStatus({ connected: false, expired: false, disabled: true });
+    setIsConnecting(false);
+    setShowSuccess(false);
 
-    (async () => {
-      try {
-        // Prefer server-side status (uses Supabase auth token; ML tokens stay on backend)
-        const authToken = user?.access_token;
-        const status = await mlService.getServerConnectionStatus({ authToken, userId: user?.id });
-        if (!cancelled) setMlStatus(status);
-      } catch (e) {
-        if (!cancelled) setMlStatus({ connected: false, expired: false });
-      }
-
-      // Check for success parameter in URL
+    // Optionally clear legacy ml_success/ml_error params so the page doesn't show stale banners.
+    try {
       const params = new URLSearchParams(location.search);
-      if (params.get('ml_success') === 'true') {
-        if (!cancelled) setShowSuccess(true);
-        // Refresh status after successful connection
-        try {
-          const authToken = user?.access_token;
-          const status = await mlService.getServerConnectionStatus({ authToken, userId: user?.id });
-          if (!cancelled) setMlStatus(status);
-        } catch (e) {}
-        setTimeout(() => { if (!cancelled) setShowSuccess(false); }, 5000);
+      if (params.has('ml_success') || params.has('ml_error')) {
         navigate('/configuracoes', { replace: true });
       }
-    })();
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
-    return () => { cancelled = true; };
-  }, [location, navigate, user]);
-
+  // Mercado Livre integration disabled: keep handlers commented for future.
+  /*
   const handleConnectML = async () => {
     try {
       if (!user || !user.id) {
@@ -152,6 +144,7 @@ export default function PageConfiguracoes() {
       alert('Erro ao desconectar. Tente novamente.');
     }
   };
+  */
 
   const handleSaveProfile = async (ev) => {
     if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
@@ -594,52 +587,63 @@ export default function PageConfiguracoes() {
                   </div>
                 </div>
 
-                {showSuccess && (
-                  <div className="ml-success-banner">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                    </svg>
-                    <span>Mercado Livre conectado com sucesso!</span>
-                  </div>
-                )}
-
-                <div className="integration-card">
-                  <div className="integration-info">
-                    <div className="integration-logo">ML</div>
-                    <div>
-                      <h3 className="integration-title">Mercado Livre</h3>
-                      <p className="integration-description">
-                        {mlStatus?.connected 
-                          ? mlStatus.expired 
-                            ? 'Conexão expirada - Reconecte para continuar'
-                            : 'Conta conectada e ativa'
-                          : 'Conecte sua conta para acessar funcionalidades adicionais'}
-                      </p>
-                      {mlStatus?.connected && mlStatus?.connectedAt && (
-                        <p className="integration-meta">
-                          Conectado em: {new Date(mlStatus.connectedAt).toLocaleDateString('pt-BR')}
+                {!ML_INTEGRATION_ENABLED ? (
+                  <div className="integration-card" style={{ opacity: 0.85 }}>
+                    <div className="integration-info">
+                      <div className="integration-logo">ML</div>
+                      <div>
+                        <h3 className="integration-title">Mercado Livre</h3>
+                        <p className="integration-description">
+                          Integração desativada no momento. Foco atual: Supabase + base local (JSON).
                         </p>
+                      </div>
+                    </div>
+                    <button className="integration-btn connect" disabled>
+                      Em breve
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Mercado Livre integration UI (kept for future)
+                    {showSuccess && (
+                      <div className="ml-success-banner">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                        </svg>
+                        <span>Mercado Livre conectado com sucesso!</span>
+                      </div>
+                    )}
+
+                    <div className="integration-card">
+                      <div className="integration-info">
+                        <div className="integration-logo">ML</div>
+                        <div>
+                          <h3 className="integration-title">Mercado Livre</h3>
+                          <p className="integration-description">
+                            {mlStatus?.connected 
+                              ? mlStatus.expired 
+                                ? 'Conexão expirada - Reconecte para continuar'
+                                : 'Conta conectada e ativa'
+                              : 'Conecte sua conta para acessar funcionalidades adicionais'}
+                          </p>
+                          {mlStatus?.connected && mlStatus?.connectedAt && (
+                            <p className="integration-meta">
+                              Conectado em: {new Date(mlStatus.connectedAt).toLocaleDateString('pt-BR')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {mlStatus?.connected ? (
+                        <button className="integration-btn disconnect" onClick={handleDisconnectML}>Desconectar</button>
+                      ) : (
+                        <button className="integration-btn connect" onClick={handleConnectML} disabled={isConnecting}>
+                          {isConnecting ? 'Conectando...' : 'Conectar'}
+                        </button>
                       )}
                     </div>
-                  </div>
-                  
-                  {mlStatus?.connected ? (
-                    <button 
-                      className="integration-btn disconnect"
-                      onClick={handleDisconnectML}
-                    >
-                      Desconectar
-                    </button>
-                  ) : (
-                    <button 
-                      className="integration-btn connect"
-                      onClick={handleConnectML}
-                      disabled={isConnecting}
-                    >
-                      {isConnecting ? 'Conectando...' : 'Conectar'}
-                    </button>
-                  )}
-                </div>
+                    */}
+                  </>
+                )}
               </section>
 
               {/* Placeholder para futuras configurações */}
