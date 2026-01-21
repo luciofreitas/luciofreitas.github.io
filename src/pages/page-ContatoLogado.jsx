@@ -54,42 +54,66 @@ export default function ContatoLogado() {
             Entre em contato conosco pelo formulário abaixo ou pelos canais oficiais.
           </p>
 
-          <ContatoForm requireAuth={true} user={usuarioLogado} onSubmit={handleSubmit} />            <div className="contato-buttons">
-              <button 
-                className="contato-btn contato-btn-whatsapp"
-                onClick={() => window.open('https://wa.me/5500000000000', '_blank')}
-                title="WhatsApp"
-              >
-                <FaWhatsapp />
-              </button>              
-              <button 
-                className="contato-btn contato-btn-instagram"
-                onClick={() => window.open('https://www.instagram.com/garagemsmartofc/', '_blank')}
-                title="Instagram"
-              >
-                <FaInstagram />
-              </button>
-            </div>
+          <ContatoForm requireAuth={true} user={usuarioLogado} onSubmit={handleSubmit} />
 
-            {/* Seção de Feedback */}
-            <div className="feedback-section">
-              <h3 className="feedback-title">Feedback sobre o Projeto</h3>
-              <p className="feedback-subtitle">
-                Sua opinião é muito importante! Conte-nos o que achou do projeto.
-              </p>
-              <form className="feedback-form" onSubmit={handleFeedbackSubmit}>
-                <textarea
-                  name="feedback"
-                  className="feedback-textarea"
-                  placeholder="Digite aqui seu feedback sobre o projeto..."
-                  rows="5"
-                  required
-                />
-                <button type="submit" className="feedback-submit-btn" disabled={submittingFeedback}>
-                  {submittingFeedback ? 'Enviando...' : 'Enviar Feedback'}
-                </button>
-              </form>
+          <div className="contact-channels-card" aria-label="Canais rápidos de contato">
+            <div className="contact-channels-title">Canais rápidos</div>
+            <div className="contact-channels-subtitle">Se preferir, fale com a gente por aqui:</div>
+            <div className="contact-channels-actions">
+              <a
+                className="contact-channel-btn is-whatsapp"
+                href="https://wa.me/5500000000000"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span className="contact-channel-icon" aria-hidden="true"><FaWhatsapp /></span>
+                <span className="contact-channel-text">
+                  <span className="contact-channel-label">WhatsApp</span>
+                  <span className="contact-channel-hint">Atendimento rápido</span>
+                </span>
+                <span className="contact-channel-arrow" aria-hidden="true">↗</span>
+              </a>
+
+              <a
+                className="contact-channel-btn is-instagram"
+                href="https://www.instagram.com/garagemsmartofc/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span className="contact-channel-icon" aria-hidden="true"><FaInstagram /></span>
+                <span className="contact-channel-text">
+                  <span className="contact-channel-label">Instagram</span>
+                  <span className="contact-channel-hint">Novidades e suporte</span>
+                </span>
+                <span className="contact-channel-arrow" aria-hidden="true">↗</span>
+              </a>
             </div>
+          </div>
+
+            {/* Feedback (opcional) */}
+            <details className="feedback-collapsible">
+              <summary className="feedback-summary">
+                Feedback (opcional)
+                <span className="feedback-summary-hint">Ajude a melhorar o app</span>
+              </summary>
+              <div className="feedback-panel">
+                <p className="feedback-subtitle">
+                  Esse campo é temporário e ajuda a ajustar o projeto. Se preferir, pode ignorar.
+                </p>
+                <form className="feedback-form" onSubmit={handleFeedbackSubmit}>
+                  <textarea
+                    name="feedback"
+                    className="feedback-textarea"
+                    placeholder="Escreva seu feedback aqui…"
+                    rows="4"
+                    required
+                  />
+                  <button type="submit" className="feedback-submit-btn" disabled={submittingFeedback}>
+                    {submittingFeedback ? 'Enviando…' : 'Enviar feedback'}
+                  </button>
+                </form>
+              </div>
+            </details>
   </div>
       </div>
     </>

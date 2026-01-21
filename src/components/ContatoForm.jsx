@@ -7,6 +7,7 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ nome: '', email: '', mensagem: '', ...initialValues });
   const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState({ type: '', message: '' });
   const saveTimer = useRef(null);
 
   const draftKey = () => `contato_rascunho_${user && user.id ? user.id : 'anon'}`;
@@ -48,6 +49,8 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
     const next = { ...formData, [name]: value };
     setFormData(next);
 
+    if (status.type) setStatus({ type: '', message: '' });
+
     // debounce save to localStorage
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
@@ -82,6 +85,7 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
+    setStatus({ type: '', message: '' });
     
     try {
       // Enviar email usando o serviço centralizado
@@ -106,7 +110,11 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
       }
 
       // Mensagem de sucesso
-      alert('✅ Mensagem enviada com sucesso! Em breve entraremos em contato.');
+      const successMessage = 'Mensagem enviada com sucesso! Em breve entraremos em contato.';
+      setStatus({ type: 'success', message: successMessage });
+      if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+        window.showToast(successMessage, 'success', 3500);
+      }
       console.log('✅ Email enviado para: suportegaragemsmart@gmail.com');
       
     } catch (err) {
@@ -114,19 +122,90 @@ function ContatoForm({ requireAuth = false, user = null, initialValues = {}, onR
       
       // Mensagem de erro amigável
       const errorMessage = EmailService.getErrorMessage(err);
-      alert(`Falha ao enviar a mensagem. ${errorMessage}`);
+      const msg = `Falha ao enviar a mensagem. ${errorMessage}`;
+      setStatus({ type: 'error', message: msg });
+      if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+        window.showToast(msg, 'error', 4500);
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <form className="contato-form-wrapper" onSubmit={handleSubmit}>
-      <input name="nome" className="contato-input" type="text" placeholder="Seu nome" value={formData.nome} onChange={handleChange} required />
-      <input name="email" className="contato-input" type="email" placeholder="Seu e-mail" value={formData.email} onChange={handleChange} required />
-      <textarea name="mensagem" className="contato-textarea" placeholder="Mensagem" rows={6} value={formData.mensagem} onChange={handleChange} required />
-      <button className="contato-submit" type="submit" disabled={submitting}>{submitting ? 'Enviando...' : 'Enviar Mensagem'}</button>
-    </form>
+    <div className="contato-form-card">
+      <div className="contato-form-header">
+        <div className="contato-form-title">Fale com a Garagem Smart</div>
+        <div className="contato-form-subtitle">
+          Suporte, dúvidas e sugestões. Resposta geralmente em até 1 dia útil.
+        </div>
+      </div>
+
+      <form className="contato-form-wrapper" onSubmit={handleSubmit}>
+        <div className="contato-field">
+          <label className="contato-label" htmlFor="contato-nome">Nome</label>
+          <input
+            id="contato-nome"
+            name="nome"
+            className="contato-input"
+            type="text"
+            placeholder="Ex: João Silva"
+            value={formData.nome}
+            onChange={handleChange}
+            required
+            autoComplete="name"
+          />
+        </div>
+
+        <div className="contato-field">
+          <label className="contato-label" htmlFor="contato-email">E-mail</label>
+          <input
+            id="contato-email"
+            name="email"
+            className="contato-input"
+            type="email"
+            placeholder="Ex: joao@email.com"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            autoComplete="email"
+          />
+        </div>
+
+        <div className="contato-field">
+          <label className="contato-label" htmlFor="contato-mensagem">Mensagem</label>
+          <textarea
+            id="contato-mensagem"
+            name="mensagem"
+            className="contato-textarea"
+            placeholder="Explique em detalhes para a gente te ajudar mais rápido…"
+            rows={6}
+            value={formData.mensagem}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        {status.message ? (
+          <div
+            className={`contato-status ${status.type === 'success' ? 'is-success' : status.type === 'error' ? 'is-error' : ''}`}
+            role={status.type === 'error' ? 'alert' : 'status'}
+            aria-live="polite"
+          >
+            {status.message}
+          </div>
+        ) : null}
+
+        <div className="contato-actions">
+          <button className="contato-submit" type="submit" disabled={submitting}>
+            {submitting ? 'Enviando…' : 'Enviar mensagem'}
+          </button>
+          <div className="contato-privacy">
+            Ao enviar, você concorda em ser contatado(a) por e-mail.
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }
 

@@ -1,20 +1,60 @@
 /* ContatoForm.css - Estilos específicos do componente de formulário de contato */
 
+.contato-form-card {
+  background: #FFFFFF;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  max-width: 40rem;
+  margin: 1.25rem auto 0 auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+.contato-form-header {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.contato-form-title {
+  color: #1e293b;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.contato-form-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
 .contato-form-wrapper {
-  margin-top: 1.25rem; /* slightly tighter spacing */
+  margin-top: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  align-items: center;
-  max-width: 35rem; /* limit form wrapper so inputs don't span full container */
-  margin-left: auto;
-  margin-right: auto;
+  align-items: stretch;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.contato-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.contato-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #172B4D;
 }
 
 .contato-input,
 .contato-textarea {
   width: 100%;
-  max-width: 30rem; /* reduced so inputs are visually more compact */
+  max-width: 100%;
   padding: 0.75rem;
   border-radius: 0.5rem;
   border: 0.062rem solid #d1d5db;
@@ -46,9 +86,8 @@
 }
 
 .contato-submit {
-  margin-top: 0.75rem;
-  min-width: 12.5rem; /* smaller button width */
-  width: auto;
+  min-width: 12.5rem;
+  width: fit-content;
   padding: 0.65rem 1.25rem;
   background: #0052CC;
   color: #fff;
@@ -63,15 +102,78 @@
   background: #003A99;
 }
 
+.contato-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.contato-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.contato-privacy {
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.contato-status {
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #172B4D;
+}
+
+.contato-status.is-success {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.contato-status.is-error {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.theme-dark .contato-form-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .contato-form-title {
+  color: #f8fafc;
+}
+
+.theme-dark .contato-form-subtitle,
+.theme-dark .contato-privacy {
+  color: #cbd5e1;
+}
+
+.theme-dark .contato-label {
+  color: #f8fafc;
+}
+
+.theme-dark .contato-input,
+.theme-dark .contato-textarea {
+  background: #334155;
+  border-color: #475569;
+  color: #f8fafc;
+}
+
+.theme-dark .contato-status {
+  border-color: #334155;
+  background: rgba(148, 163, 184, 0.08);
+  color: #f8fafc;
+}
+
 /* Responsividade */
 @media (max-width: 48rem) {
-  .contato-input,
-  .contato-textarea {
-    max-width: 100%;
-  }
-  
   .contato-submit {
     width: 100%;
-    max-width: 18.75rem;
   }
 }

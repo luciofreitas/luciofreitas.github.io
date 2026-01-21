@@ -144,6 +144,7 @@ export default function ProductDrawer({
   productId,
   initialTab = 'compat',
   selectedCarId,
+  selectedCarLabel,
 }) {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
@@ -420,11 +421,7 @@ export default function ProductDrawer({
                     </div>
                   ) : null}
                 </div>
-              ) : (
-                <div className="product-drawer-noimage">
-                  Sem imagem cadastrada para esta peça.
-                </div>
-              )}
+              ) : null}
 
               <div className="product-drawer-meta">
                 {productDetails?.categoria || productDetails?.category ? (
@@ -465,13 +462,13 @@ export default function ProductDrawer({
               </div>
 
               <div className="product-drawer-hint">
-                Dica: vá na aba <strong>Compatibilidade</strong> para ver os carros e registrar a manutenção.
+                Dica: vá na aba <strong>Compatibilidade</strong> para ver os veículos de referência e registrar a manutenção.
               </div>
             </div>
           ) : (
             <div className="product-drawer-compat">
               {applications.length > 0 ? (
-                <CompatibilityGrid applications={applications} usuarioLogado={usuarioLogado} />
+                <CompatibilityGrid applications={applications} usuarioLogado={usuarioLogado} activeCarLabel={selectedCarLabel} />
               ) : (
                 <div className="product-drawer-empty">
                   <p>Compatibilidade não disponível para esta peça.</p>
@@ -480,7 +477,7 @@ export default function ProductDrawer({
 
               {!selectedCarId ? (
                 <div className="product-drawer-warning">
-                  Selecione um carro no topo para associar a manutenção (opcional).
+                  Selecione um carro no topo para confirmar a compatibilidade com o seu veículo e registrar a manutenção (opcional).
                 </div>
               ) : null}
             </div>

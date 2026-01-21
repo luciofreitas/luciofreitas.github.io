@@ -34,7 +34,8 @@ function SearchForm({
   warningAno,
   warningFabricante,
   emptyFieldsWarning,
-  onCarroChange // NEW: callback to notify parent when car is selected
+  onCarroChange, // callback to notify parent when car is selected
+  onCarroLabelChange // callback to notify parent with car label (marca/modelo/ano)
 }) {
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
@@ -52,23 +53,13 @@ function SearchForm({
       } else {
         setCarros([]);
         setCarroSelecionado('');
+
+        if (onCarroChange) onCarroChange('');
+        if (onCarroLabelChange) onCarroLabelChange('');
       }
     };
     loadUserCars();
-  }, [usuarioLogado]);
-
-  // Auto-select default car (or first) to make the experience feel guided
-  useEffect(() => {
-    if (!usuarioLogado) return;
-    if (!Array.isArray(carros) || carros.length === 0) return;
-    if (carroSelecionado) return;
-
-    const defaultCar = carros.find(c => c && c.isDefault) || carros[0];
-    if (defaultCar && defaultCar.id) {
-      handleCarroChange(defaultCar.id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usuarioLogado, carros, carroSelecionado]);
+  }, [usuarioLogado, onCarroChange, onCarroLabelChange]);
 
   const carroAtivo = useMemo(() => {
     if (!Array.isArray(carros) || carros.length === 0) return null;
@@ -91,6 +82,9 @@ function SearchForm({
       if (onCarroChange) {
         onCarroChange(carId);
       }
+      if (onCarroLabelChange) {
+        onCarroLabelChange('');
+      }
       return;
     }
 
@@ -101,6 +95,12 @@ function SearchForm({
       setSelectedModelo(carro.modelo);
       // Converte ano para string, pois pode estar como número
       setSelectedAno(String(carro.ano));
+
+      if (onCarroLabelChange) {
+        onCarroLabelChange(`${carro.marca} ${carro.modelo} ${carro.ano}`);
+      }
+    } else if (onCarroLabelChange) {
+      onCarroLabelChange('');
     }
 
     // Notify parent component about car selection change *after* filters are set
@@ -121,7 +121,7 @@ function SearchForm({
                 {carroAtivo
                   ? `${carroAtivo.marca} ${carroAtivo.modelo} ${carroAtivo.ano}`
                   : (Array.isArray(carros) && carros.length > 0
-                    ? 'Selecione um carro para preencher Marca/Modelo/Ano'
+                    ? 'Busca geral (sem carro). Selecione um carro para preencher Marca/Modelo/Ano'
                     : 'Você ainda não cadastrou nenhum carro')}
               </div>
             </div>

@@ -34,6 +34,7 @@ export default function BuscarPeca() {
   
   // Track if user selected a specific car (to preserve filter values)
   const [carroSelecionadoId, setCarroSelecionadoId] = useState('');
+  const [carroSelecionadoLabel, setCarroSelecionadoLabel] = useState('');
   const [searchFormKey, setSearchFormKey] = useState(0);
 
   // Estados para mensagens de incompatibilidade
@@ -317,6 +318,7 @@ export default function BuscarPeca() {
     setSelectedAno('');
     setSelectedFabricante('');
     setCarroSelecionadoId('');
+    setCarroSelecionadoLabel('');
     setSearchFormKey((k) => k + 1);
     // Ao limpar, não voltar para o catálogo completo (performance)
     setPecas([]);
@@ -364,6 +366,7 @@ export default function BuscarPeca() {
               onSearch={handleSearch}
               onClear={handleClear}
               onCarroChange={setCarroSelecionadoId}
+              onCarroLabelChange={setCarroSelecionadoLabel}
               loading={loading}
               error={error}
               warningMarca={warningMarca}
@@ -393,6 +396,7 @@ export default function BuscarPeca() {
         productId={drawerProductId}
         initialTab={drawerInitialTab}
         selectedCarId={carroSelecionadoId}
+        selectedCarLabel={carroSelecionadoLabel}
       />
     </>
   );

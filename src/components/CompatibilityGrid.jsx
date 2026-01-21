@@ -15,7 +15,7 @@ function CompatibilityRow({ veiculo, anosList }) {
         {uniqueYears.length ? (
           <select
             className="compatibility-year-select"
-            aria-label={`Selecionar ano para ${veiculo}`}
+            aria-label={`Selecionar ano do veículo de referência para ${veiculo}`}
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
           >
@@ -31,14 +31,18 @@ function CompatibilityRow({ veiculo, anosList }) {
   );
 }
 
-function CompatibilityGrid({ applications, usuarioLogado }) {
-  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
-
+function CompatibilityGrid({ applications, usuarioLogado, activeCarLabel }) {
   return (
     <div className="compatibility-grid">
+      <div className="compatibility-grid-context" role="note">
+        {activeCarLabel
+          ? <>Compatível com: <strong>{activeCarLabel}</strong>. A lista abaixo mostra veículos de referência que usam a mesma peça/código.</>
+          : <>Lista de veículos de referência que usam a mesma peça/código.</>}
+      </div>
+
       <div className="compatibility-grid-header">
-        <div className="compatibility-header-vehicle"><strong>Carro</strong></div>
-        <div className="compatibility-header-years"><strong>Anos</strong></div>
+        <div className="compatibility-header-vehicle"><strong>Veículo (referência)</strong></div>
+        <div className="compatibility-header-years"><strong>Ano</strong></div>
       </div>
 
       {applications.map((app, idx) => {
