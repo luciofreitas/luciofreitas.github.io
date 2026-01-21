@@ -38,3 +38,7 @@ docs/*-debug.html
 */oauth-callback-debug.html
 scripts/create-parts-table.sql
 scripts/import-parts-to-supabase.js
+
+# Local backend logs
+backend/_server.out.log
+backend/_server.err.log
