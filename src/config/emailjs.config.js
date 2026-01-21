@@ -4,16 +4,16 @@
 
 export const EMAILJS_CONFIG = {
   // Credenciais vêm das variáveis de ambiente
-  PUBLIC_KEY: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '',
-  SERVICE_ID: import.meta.env.VITE_EMAILJS_SERVICE_ID || '',
+  PUBLIC_KEY: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || import.meta.env.EMAILJS_PUBLIC_KEY || '',
+  SERVICE_ID: import.meta.env.VITE_EMAILJS_SERVICE_ID || import.meta.env.EMAILJS_SERVICE_ID || '',
   
   // Template IDs
-  TEMPLATE_ID_CONTACT: import.meta.env.VITE_EMAILJS_TEMPLATE_CONTACT || '',
-  TEMPLATE_ID_WELCOME: import.meta.env.VITE_EMAILJS_TEMPLATE_WELCOME || '',
-  TEMPLATE_ID_RESET_PASSWORD: import.meta.env.VITE_EMAILJS_TEMPLATE_RESET || '',
+  TEMPLATE_ID_CONTACT: import.meta.env.VITE_EMAILJS_TEMPLATE_CONTACT || import.meta.env.EMAILJS_TEMPLATE_CONTACT || '',
+  TEMPLATE_ID_WELCOME: import.meta.env.VITE_EMAILJS_TEMPLATE_WELCOME || import.meta.env.EMAILJS_TEMPLATE_WELCOME || '',
+  TEMPLATE_ID_RESET_PASSWORD: import.meta.env.VITE_EMAILJS_TEMPLATE_RESET || import.meta.env.EMAILJS_TEMPLATE_RESET || '',
   
   // Template ID padrão (compatibilidade)
-  TEMPLATE_ID: import.meta.env.VITE_EMAILJS_TEMPLATE_CONTACT || '',
+  TEMPLATE_ID: import.meta.env.VITE_EMAILJS_TEMPLATE_CONTACT || import.meta.env.EMAILJS_TEMPLATE_CONTACT || '',
   
   // Email de destino
   DESTINATION_EMAIL: 'suportegaragemsmart@gmail.com'

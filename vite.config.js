@@ -7,6 +7,8 @@ export default defineConfig({
   // from a subpath), use a relative base so asset URLs don't start with '/'.
   // This prevents 404s for /assets/... when the site isn't at the domain root.
   base: './',
+  // Expose client-side env vars. Keep this list tight to avoid leaking unrelated env.
+  envPrefix: ['VITE_', 'EMAILJS_'],
   plugins: [react()],
   server: {
     port: 5174,
