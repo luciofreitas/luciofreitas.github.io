@@ -311,9 +311,11 @@ export default function Login() {
 
   useEffect(() => {
     // If we came back from a Google redirect, show a persistent loading indicator
+    let hasRedirectFlag = false;
     try {
       const flag = typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('__google_redirect_pending');
-      if (flag) {
+      hasRedirectFlag = !!flag;
+      if (hasRedirectFlag) {
         setRedirectPending(true);
         setGoogleLoading(true);
       }
@@ -353,28 +355,32 @@ export default function Login() {
     // Fallback: listen for auth state changes (some environments signal sign-in via onAuthStateChanged instead)
     // Attach listener asynchronously so we don't force-load Firebase on initial page load.
     let unsubscribe = () => {};
-    (async () => {
-      try {
-        const { auth, authMod } = await getFirebaseAuthHelpers();
-        if (auth && authMod && typeof authMod.onAuthStateChanged === 'function') {
-          unsubscribe = authMod.onAuthStateChanged(auth, async (user) => {
-            if (user) {
-              try { await processFirebaseUser(user); }
-              finally {
-                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
-                setRedirectPending(false);
-                try { setGoogleLoading(false); } catch (e) {}
+    // IMPORTANT: do not auto-log-in users on a normal /login page visit.
+    // We only attach this fallback listener when we *expect* a redirect flow.
+    if (hasRedirectFlag) {
+      (async () => {
+        try {
+          const { auth, authMod } = await getFirebaseAuthHelpers();
+          if (auth && authMod && typeof authMod.onAuthStateChanged === 'function') {
+            unsubscribe = authMod.onAuthStateChanged(auth, async (user) => {
+              if (user) {
+                try { await processFirebaseUser(user); }
+                finally {
+                  try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('__google_redirect_pending'); } catch (e) {}
+                  setRedirectPending(false);
+                  try { setGoogleLoading(false); } catch (e) {}
+                }
               }
-            }
-          });
-        } else {
-          console.warn('[page-Login] Firebase auth not configured; skipping onAuthStateChanged listener');
+            });
+          } else {
+            console.warn('[page-Login] Firebase auth not configured; skipping onAuthStateChanged listener');
+          }
+        } catch (e) {
+          console.warn('[page-Login] failed to attach onAuthStateChanged listener', e && e.message ? e.message : e);
+          unsubscribe = () => {};
         }
-      } catch (e) {
-        console.warn('[page-Login] failed to attach onAuthStateChanged listener', e && e.message ? e.message : e);
-        unsubscribe = () => {};
-      }
-    })();
+      })();
+    }
 
     return () => { try { unsubscribe && unsubscribe(); } catch (_) {} };
   }, [setUsuarioLogado, navigate]);
