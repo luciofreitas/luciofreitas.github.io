@@ -84,8 +84,24 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
 
   if (!isOpen) return null;
 
-  const hasImages = Array.isArray(productDetails?.imagens)
-    && productDetails.imagens.some((img) => typeof img === 'string' && img.trim());
+  const isRenderableImageUrl = (url) => {
+    const s = String(url ?? '').trim();
+    if (!s) return false;
+    if (s.startsWith('data:image/')) return true;
+    if (s.startsWith('http://') || s.startsWith('https://')) return true;
+    if (s.startsWith('/')) return true;
+    return false;
+  };
+
+  const images = Array.isArray(productDetails?.imagens)
+    ? productDetails.imagens
+      .filter((img) => typeof img === 'string')
+      .map((img) => img.trim())
+      .filter(isRenderableImageUrl)
+    : [];
+
+  const hasImages = images.length > 0;
+  const safeSelectedImage = Math.min(Math.max(selectedImage, 0), Math.max(images.length - 1, 0));
 
   return (
     <div className="product-modal-overlay" onClick={handleOverlayClick}>
@@ -115,19 +131,19 @@ function ProductDetailModal({ isOpen, onClose, productId, selectedCarId }) {
                 <div className="product-images">
                   <div className="main-image">
                     <img 
-                      src={productDetails.imagens?.[selectedImage] || PLACEHOLDER_SRC} 
+                      src={images[safeSelectedImage] || PLACEHOLDER_SRC} 
                       alt={productDetails?.nome || ''}
                       onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
                     />
                   </div>
-                  {productDetails.imagens && productDetails.imagens.length > 1 && (
+                  {images.length > 1 && (
                     <div className="image-thumbnails">
-                      {productDetails.imagens.map((img, index) => (
+                      {images.map((img, index) => (
                           <img 
                           key={index}
                           src={img}
                           alt={productDetails?.nome ? `${productDetails.nome} - ${index + 1}` : ''}
-                          className={selectedImage === index ? 'active' : ''}
+                          className={safeSelectedImage === index ? 'active' : ''}
                           onClick={() => setSelectedImage(index)}
                           onError={(e) => { e.target.src = PLACEHOLDER_SRC; }}
                         />

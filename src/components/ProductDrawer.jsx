@@ -297,8 +297,20 @@ export default function ProductDrawer({
 
   const title = productDetails?.nome || productDetails?.name || (loading ? 'Carregando…' : 'Detalhes');
 
+  const isRenderableImageUrl = (url) => {
+    const s = String(url ?? '').trim();
+    if (!s) return false;
+    if (s.startsWith('data:image/')) return true;
+    if (s.startsWith('http://') || s.startsWith('https://')) return true;
+    if (s.startsWith('/')) return true;
+    return false;
+  };
+
   const images = Array.isArray(productDetails?.imagens)
-    ? productDetails.imagens.filter((img) => typeof img === 'string' && img.trim())
+    ? productDetails.imagens
+      .filter((img) => typeof img === 'string')
+      .map((img) => img.trim())
+      .filter(isRenderableImageUrl)
     : [];
 
   const hasImages = images.length > 0;
