@@ -292,6 +292,19 @@ function LuzesDoPainel() {
     setFiltros({ busca: '', cor: '' });
   };
 
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => {
+      try {
+        el.focus({ preventScroll: true });
+      } catch {
+        // ignore
+      }
+    }, 200);
+  };
+
   const getPrioridadeColor = (prioridade) => {
     const cores = {
       'Alta': '#dc2626',
@@ -378,15 +391,24 @@ function LuzesDoPainel() {
     <>
       {usuarioLogado ? <Menu /> : <MenuLogin />}
       <div className="site-header-spacer"></div>
-      <div className="page-wrapper menu-page">
+      <div className="page-wrapper menu-page" id="topo" tabIndex={-1}>
         <div className="page-content">
           {/* Header com ícone */}
           <div className="luzes-header">
-            <div className="header-icon">⚠️</div>
             <h2 className="page-title">Luzes do Painel</h2>
             <div className="header-subtitle">
               <p>Entenda os avisos do seu veículo e saiba como agir quando as luzes do painel acenderem.</p>
               <p>Mantenha-se seguro e evite problemas maiores.</p>
+            </div>
+          </div>
+
+          {/* Atalhos (mobile) */}
+          <div className="luzes-nav" id="luzes-atalhos" tabIndex={-1} aria-label="Atalhos do guia">
+            <span className="luzes-nav-title">Navegar:</span>
+            <div className="luzes-nav-pills" role="navigation" aria-label="Seções do guia">
+              <button type="button" className="luzes-nav-pill" onClick={() => scrollToSection('filtros')}>Filtros</button>
+              <button type="button" className="luzes-nav-pill" onClick={() => scrollToSection('legenda')}>Legenda</button>
+              <button type="button" className="luzes-nav-pill" onClick={() => scrollToSection('resultados')}>Resultados</button>
             </div>
           </div>
 
@@ -404,7 +426,7 @@ function LuzesDoPainel() {
         ) : (
           <>
             {/* Filtros */}
-            <div className="filtros-section">
+            <div className="filtros-section" id="filtros" tabIndex={-1}>
               <div className="filtros-row">
                 <div className="filtro-group">
                   <label>Buscar:</label>
@@ -442,7 +464,7 @@ function LuzesDoPainel() {
             </div>
 
             {/* Legenda: mover para cima dos cards, logo abaixo do buscador */}
-            <div className="glossario-footer-section">
+            <div className="glossario-footer-section" id="legenda" tabIndex={-1}>
               <div className="info-section">
                 <h3>🎨 Legenda das Cores</h3>
                 <div className="cores-legend">
@@ -481,6 +503,17 @@ function LuzesDoPainel() {
               </div>
             </div>
 
+            <div className="luzes-section-actions">
+              <button
+                type="button"
+                className="luzes-top-btn"
+                onClick={() => scrollToSection('topo')}
+                aria-label="Voltar ao topo"
+              >
+                Topo
+              </button>
+            </div>
+
             <div className="resultados-info resultados-info--below-legend">
               {dadosFiltrados.length} luz(es) encontrada(s)
             </div>
@@ -490,7 +523,7 @@ function LuzesDoPainel() {
                 <p>Nenhuma luz encontrada com os filtros aplicados.</p>
               </div>
             ) : (
-              <div className="luzes-grid">
+              <div className="luzes-grid" id="resultados" tabIndex={-1}>
                 {dadosFiltrados.map((luz, index) => {
                   const hasStates = Array.isArray(luz.estados) && luz.estados.length > 0;
                   const defaultKey = hasStates ? (luz.estados[0] && luz.estados[0].key) : luz.cor;
@@ -504,6 +537,7 @@ function LuzesDoPainel() {
                   const causasAtivas = selectedState ? (selectedState.causas || luz.causas || []) : (luz.causas || []);
 
                   const isExpanded = expandedMap[mapKey];
+                  const contentId = `luz-content-${mapKey}`;
                   
                   const handleCardClick = (e) => {
                     // Don't toggle if clicking the indicator button
@@ -511,12 +545,30 @@ function LuzesDoPainel() {
                     setExpandedMap(prev => ({ ...prev, [mapKey]: !prev[mapKey] }));
                   };
 
+                  const handleHeaderKeyDown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      // Don't toggle if focus is inside the color indicator
+                      if (e.target.closest && e.target.closest('.cor-indicator')) return;
+                      setExpandedMap(prev => ({ ...prev, [mapKey]: !prev[mapKey] }));
+                    }
+                  };
+
                   return (
                   <div 
                     key={mapKey} 
                     className={`luz-card ${getCorClass(selectedColorToken)} ${isExpanded ? 'expanded' : 'collapsed'}`}
                   >
-                    <div className="luz-header" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
+                    <div
+                      className="luz-header"
+                      role="button"
+                      tabIndex={0}
+                      aria-expanded={!!isExpanded}
+                      aria-controls={contentId}
+                      onClick={handleCardClick}
+                      onKeyDown={handleHeaderKeyDown}
+                      style={{ cursor: 'pointer' }}
+                    >
                         {(() => {
                         // Color decisions come solely from the `luz.cor` token now.
                         const isRed = (String(luz.cor || '').toLowerCase() === 'vermelho');
@@ -573,7 +625,7 @@ function LuzesDoPainel() {
                                 const indicatorToken = selectedState ? selectedState.cor : (luz.cor || 'amarelo');
 
                                 const handleToggle = (e) => {
-                                  e.stopPropagation(); // prevent card click
+                                  if (e && typeof e.stopPropagation === 'function') e.stopPropagation(); // prevent card click
                                   if (!hasStates) return;
                                   const idx = luz.estados.findIndex(s => s.key === selectedKey);
                                   const next = luz.estados[(idx + 1) % luz.estados.length];
@@ -584,7 +636,7 @@ function LuzesDoPainel() {
                                 const onKeyDown = (e) => {
                                   if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    handleToggle();
+                                    handleToggle(e);
                                   }
                                 };
 
@@ -599,11 +651,13 @@ function LuzesDoPainel() {
                                   />
                                 );
                               })()}
+
+                              <span className={`luzes-expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="luz-content">
+                    <div className="luz-content" id={contentId}>
                       {(() => {
                         const hasStates = Array.isArray(luz.estados) && luz.estados.length > 0;
                         const defaultKey = hasStates ? (luz.estados[0] && luz.estados[0].key) : luz.cor;
@@ -648,6 +702,17 @@ function LuzesDoPainel() {
                 })}
               </div>
             )}
+
+            <div className="luzes-section-actions">
+              <button
+                type="button"
+                className="luzes-top-btn"
+                onClick={() => scrollToSection('topo')}
+                aria-label="Voltar ao topo"
+              >
+                Topo
+              </button>
+            </div>
 
             
           </>

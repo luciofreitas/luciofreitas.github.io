@@ -16,6 +16,24 @@ const PecasOriginaisVsCompativeis = () => {
     setExpandedCards(prev => ({ ...prev, [cardKey]: !prev[cardKey] }));
   };
 
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // scrollIntoView funciona mesmo quando quem rola não é o window
+    // (ex.: algum container com overflow).
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Ajuda leitores de tela a entenderem que mudou de contexto.
+    window.setTimeout(() => {
+      try {
+        el.focus({ preventScroll: true });
+      } catch {
+        // ignore
+      }
+    }, 200);
+  };
+
   const comparacaoData = {
     definicoes: {
       originais: {
@@ -273,15 +291,30 @@ const PecasOriginaisVsCompativeis = () => {
     ]
   };
 
+  const navSections = [
+    { id: 'definicoes', label: 'O que são?' },
+    { id: 'comparacao', label: 'Comparação' },
+    { id: 'quando-usar', label: 'Quando usar' },
+    { id: 'marcas', label: 'Marcas' },
+    { id: 'economia', label: 'Economia' },
+    { id: 'alertas', label: 'Alertas' },
+    { id: 'conclusao', label: 'Conclusão' }
+  ];
+
+  const comparisonCategories = ['todas', ...comparacaoData.comparacoes.map(c => c.categoria)];
+  const filteredComparacoes =
+    selectedCategory === 'todas'
+      ? comparacaoData.comparacoes
+      : comparacaoData.comparacoes.filter(c => c.categoria === selectedCategory);
+
   return (
-    <div className="pecas-page">
+    <div className="pecas-page" id="topo" tabIndex={-1}>
       {usuarioLogado ? <Menu /> : <MenuLogin />}
       <div className="site-header-spacer"></div>
       
       <div className="pecas-container">
         {/* Header */}
         <div className="pecas-header">
-          <div className="header-icon">⚙️</div>
           <h1>Peças Originais vs Compatíveis</h1>
           <p className="header-subtitle">
             Entenda as diferenças, vantagens e desvantagens de cada tipo de peça para tomar a melhor decisão
@@ -289,22 +322,56 @@ const PecasOriginaisVsCompativeis = () => {
           </p>
         </div>
 
+        {/* Atalhos (mobile) */}
+        <div className="pecas-nav" id="pecas-atalhos" tabIndex={-1} aria-label="Atalhos do guia">
+          <span className="pecas-nav-title">Navegar:</span>
+          <div className="pecas-nav-pills" role="navigation" aria-label="Seções do guia">
+            {navSections.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className="pecas-nav-pill"
+                onClick={() => scrollToSection(s.id)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Definições */}
-        <section className="pecas-definicoes">
+        <section className="pecas-definicoes" id="definicoes" tabIndex={-1}>
           <h2>O que são?</h2>
           <div className="definicoes-grid">
+            {(() => {
+              const isExpanded = !!expandedCards['def-original'];
+              const contentId = 'definicao-content-def-original';
+
+              return (
             <div 
               className={`definicao-card original ${expandedCards['def-original'] ? 'expanded' : 'collapsed'}`}
             >
               <div 
                 className="definicao-header"
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                aria-controls={contentId}
                 onClick={() => toggleCard('def-original')}
-                style={{ cursor: 'pointer' }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleCard('def-original');
+                  }
+                }}
               >
                 <div className="definicao-icon">{comparacaoData.definicoes.originais.icone}</div>
-                <h3>{comparacaoData.definicoes.originais.titulo}</h3>
+                <div className="definicao-title-row">
+                  <h3>{comparacaoData.definicoes.originais.titulo}</h3>
+                  <span className={`pecas-expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
+                </div>
               </div>
-              <div className="definicao-content">
+              <div className="definicao-content" id={contentId}>
                 <p className="definicao-texto">{comparacaoData.definicoes.originais.definicao}</p>
                 <h4>Características:</h4>
                 <ul>
@@ -314,19 +381,38 @@ const PecasOriginaisVsCompativeis = () => {
                 </ul>
               </div>
             </div>
+              );
+            })()}
 
+            {(() => {
+              const isExpanded = !!expandedCards['def-compativel'];
+              const contentId = 'definicao-content-def-compativel';
+
+              return (
             <div 
               className={`definicao-card compativel ${expandedCards['def-compativel'] ? 'expanded' : 'collapsed'}`}
             >
               <div 
                 className="definicao-header"
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                aria-controls={contentId}
                 onClick={() => toggleCard('def-compativel')}
-                style={{ cursor: 'pointer' }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleCard('def-compativel');
+                  }
+                }}
               >
                 <div className="definicao-icon">{comparacaoData.definicoes.compativeis.icone}</div>
-                <h3>{comparacaoData.definicoes.compativeis.titulo}</h3>
+                <div className="definicao-title-row">
+                  <h3>{comparacaoData.definicoes.compativeis.titulo}</h3>
+                  <span className={`pecas-expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
+                </div>
               </div>
-              <div className="definicao-content">
+              <div className="definicao-content" id={contentId}>
                 <p className="definicao-texto">{comparacaoData.definicoes.compativeis.definicao}</p>
                 <h4>Características:</h4>
                 <ul>
@@ -336,33 +422,74 @@ const PecasOriginaisVsCompativeis = () => {
                 </ul>
               </div>
             </div>
+              );
+            })()}
+          </div>
+
+          <div className="pecas-section-actions">
+            <button
+              type="button"
+              className="pecas-top-btn"
+              onClick={() => scrollToSection('topo')}
+              aria-label="Voltar ao topo"
+            >
+              Topo
+            </button>
           </div>
         </section>
 
         {/* Comparação Detalhada */}
-        <section className="pecas-comparacao">
+        <section className="pecas-comparacao" id="comparacao" tabIndex={-1}>
           <h2>Comparação Detalhada</h2>
           <p className="section-subtitle">
             Análise ponto a ponto para ajudar na sua decisão
           </p>
+
+          <div className="pecas-filter" role="tablist" aria-label="Filtrar categorias">
+            {comparisonCategories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className={`pecas-filter-pill ${selectedCategory === cat ? 'is-active' : ''}`}
+                onClick={() => setSelectedCategory(cat)}
+                role="tab"
+                aria-selected={selectedCategory === cat}
+              >
+                {cat === 'todas' ? 'Todas' : cat}
+              </button>
+            ))}
+          </div>
           
           <div className="comparacao-grid">
-            {comparacaoData.comparacoes.map((comp, index) => {
+            {filteredComparacoes.map((comp, index) => {
               const cardKey = `comp-${index}`;
               const isExpanded = expandedCards[cardKey];
+              const sidesId = `comparacao-sides-${cardKey}`;
               
               return (
               <div 
                 key={index} 
                 className={`comparacao-card ${isExpanded ? 'expanded' : 'collapsed'}`}
               >
-                <h3 
-                  className="comparacao-categoria"
+                <div
+                  className="comparacao-header"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-controls={sidesId}
                   onClick={() => toggleCard(cardKey)}
-                  style={{ cursor: 'pointer' }}
-                >{comp.categoria}</h3>
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleCard(cardKey);
+                    }
+                  }}
+                >
+                  <h3 className="comparacao-categoria">{comp.categoria}</h3>
+                  <span className={`pecas-expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
+                </div>
                 
-                <div className="comparacao-sides">
+                <div className="comparacao-sides" id={sidesId}>
                   <div className="side original">
                     <div className="side-header">
                       <span className="side-badge">Original</span>
@@ -393,16 +520,28 @@ const PecasOriginaisVsCompativeis = () => {
             );
             })}
           </div>
+
+          <div className="pecas-section-actions">
+            <button
+              type="button"
+              className="pecas-top-btn"
+              onClick={() => scrollToSection('topo')}
+              aria-label="Voltar ao topo"
+            >
+              Topo
+            </button>
+          </div>
         </section>
 
         {/* Quando Usar */}
-        <section className="pecas-quando-usar">
+        <section className="pecas-quando-usar" id="quando-usar" tabIndex={-1}>
           <h2>Quando Usar Cada Tipo?</h2>
           
           <div className="quando-grid">
             {comparacaoData.quandoUsar.map((guia, index) => {
               const cardKey = `quando-${index}`;
               const isExpanded = expandedCards[cardKey];
+              const listId = `quando-lista-${cardKey}`;
               
               return (
               <div 
@@ -411,13 +550,23 @@ const PecasOriginaisVsCompativeis = () => {
               >
                 <div 
                   className="quando-header"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-controls={listId}
                   onClick={() => toggleCard(cardKey)}
-                  style={{ cursor: 'pointer' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleCard(cardKey);
+                    }
+                  }}
                 >
                   <span className="quando-icon">{guia.icone}</span>
                   <h3>{guia.titulo}</h3>
+                  <span className={`pecas-expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
                 </div>
-                <ul className="quando-lista">
+                <ul className="quando-lista" id={listId}>
                   {guia.situacoes.map((situacao, idx) => (
                     <li key={idx}>
                       <span className="situacao-icone">{situacao.icone}</span>
@@ -433,10 +582,21 @@ const PecasOriginaisVsCompativeis = () => {
             );
             })}
           </div>
+
+          <div className="pecas-section-actions">
+            <button
+              type="button"
+              className="pecas-top-btn"
+              onClick={() => scrollToSection('topo')}
+              aria-label="Voltar ao topo"
+            >
+              Topo
+            </button>
+          </div>
         </section>
 
         {/* Marcas Renomadas */}
-        <section className="pecas-marcas">
+        <section className="pecas-marcas" id="marcas" tabIndex={-1}>
           <h2>Marcas Compatíveis Renomadas</h2>
           <p className="section-subtitle">
             Fabricantes de peças compatíveis com excelente reputação no mercado
@@ -446,6 +606,7 @@ const PecasOriginaisVsCompativeis = () => {
             {comparacaoData.marcasRenomadas.map((marca, index) => {
               const cardKey = `marca-${index}`;
               const isExpanded = expandedCards[cardKey];
+              const contentId = `marca-content-${cardKey}`;
               
               return (
               <div 
@@ -454,15 +615,25 @@ const PecasOriginaisVsCompativeis = () => {
               >
                 <div 
                   className="marca-header"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-controls={contentId}
                   onClick={() => toggleCard(cardKey)}
-                  style={{ cursor: 'pointer' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleCard(cardKey);
+                    }
+                  }}
                 >
                   <h3>{marca.nome}</h3>
                   <span className={`qualidade-badge ${marca.qualidade.toLowerCase()}`}>
                     {marca.qualidade}
                   </span>
+                  <span className={`pecas-expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
                 </div>
-                <p className="marca-especialidade">
+                <p className="marca-especialidade" id={contentId}>
                   <strong>Especialidade:</strong> {marca.especialidade}
                 </p>
                 <p className="marca-descricao">{marca.descricao}</p>
@@ -470,16 +641,28 @@ const PecasOriginaisVsCompativeis = () => {
             );
             })}
           </div>
+
+          <div className="pecas-section-actions">
+            <button
+              type="button"
+              className="pecas-top-btn"
+              onClick={() => scrollToSection('topo')}
+              aria-label="Voltar ao topo"
+            >
+              Topo
+            </button>
+          </div>
         </section>
 
         {/* Dicas de Economia */}
-        <section className="pecas-dicas-economia">
+        <section className="pecas-dicas-economia" id="economia" tabIndex={-1}>
           <h2>Dicas para Economizar</h2>
           
           <div className="dicas-economia-grid">
             {comparacaoData.dicasEconomia.map((dica, index) => {
               const cardKey = `economia-${index}`;
               const isExpanded = expandedCards[cardKey];
+              const contentId = `economia-content-${cardKey}`;
               
               return (
               <div 
@@ -488,38 +671,73 @@ const PecasOriginaisVsCompativeis = () => {
               >
                 <div 
                   className="dica-economia-header"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-controls={contentId}
                   onClick={() => toggleCard(cardKey)}
-                  style={{ cursor: 'pointer' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleCard(cardKey);
+                    }
+                  }}
                 >
                   <div className="dica-icon">{dica.icone}</div>
                   <h3>{dica.titulo}</h3>
+                  <span className={`pecas-expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
                 </div>
-                <p className="dica-economia-content">{dica.descricao}</p>
+                <p className="dica-economia-content" id={contentId}>{dica.descricao}</p>
               </div>
             );
             })}
           </div>
+
+          <div className="pecas-section-actions">
+            <button
+              type="button"
+              className="pecas-top-btn"
+              onClick={() => scrollToSection('topo')}
+              aria-label="Voltar ao topo"
+            >
+              Topo
+            </button>
+          </div>
         </section>
 
         {/* Alertas Importantes */}
-        <section className="pecas-alertas">
+        <section className="pecas-alertas" id="alertas" tabIndex={-1}>
           <h2>Alertas Importantes</h2>
           
           <div className="alertas-grid">
             {comparacaoData.alertas.map((alerta, index) => {
               const cardKey = `alerta-${index}`;
               const isExpanded = expandedCards[cardKey];
+              const listId = `alerta-lista-${cardKey}`;
               
               return (
               <div 
                 key={index} 
                 className={`alerta-card ${isExpanded ? 'expanded' : 'collapsed'}`}
               >
-                <h3 
+                <div
+                  className="alerta-header"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-controls={listId}
                   onClick={() => toggleCard(cardKey)}
-                  style={{ cursor: 'pointer' }}
-                >{alerta.titulo}</h3>
-                <ul>
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleCard(cardKey);
+                    }
+                  }}
+                >
+                  <h3>{alerta.titulo}</h3>
+                  <span className={`pecas-expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
+                </div>
+                <ul id={listId}>
                   {alerta.conteudo.map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}
@@ -528,10 +746,21 @@ const PecasOriginaisVsCompativeis = () => {
             );
             })}
           </div>
+
+          <div className="pecas-section-actions">
+            <button
+              type="button"
+              className="pecas-top-btn"
+              onClick={() => scrollToSection('topo')}
+              aria-label="Voltar ao topo"
+            >
+              Topo
+            </button>
+          </div>
         </section>
 
         {/* Conclusão */}
-        <section className="pecas-conclusao">
+        <section className="pecas-conclusao" id="conclusao" tabIndex={-1}>
           <div className="conclusao-card">
             <h2>Decisão Informada</h2>
             <div className="conclusao-content">
@@ -555,6 +784,17 @@ const PecasOriginaisVsCompativeis = () => {
                 valor ao veículo.
               </p>
             </div>
+          </div>
+
+          <div className="pecas-section-actions">
+            <button
+              type="button"
+              className="pecas-top-btn"
+              onClick={() => scrollToSection('topo')}
+              aria-label="Voltar ao topo"
+            >
+              Topo
+            </button>
           </div>
         </section>
 

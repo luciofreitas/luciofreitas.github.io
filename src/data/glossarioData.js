@@ -114,5 +114,32 @@ export const outrosGuias = [
     icone: '🔩',
     categoria: 'Diagnóstico',
     rota: '/pecas-originais-vs-compativeis'
+  },
+  {
+    id: 'freiosSemMisterio',
+    titulo: 'Freios sem Mistério',
+    subtitulo: 'Sinais, riscos e como decidir o que checar',
+    descricao: 'Entenda chiados, vibração, pedal e quando é risco — com checklist e peças relacionadas.',
+    icone: '🛑',
+    categoria: 'Diagnóstico',
+    rota: '/guias/freios-sem-misterio'
+  },
+  {
+    id: 'superaquecimento',
+    titulo: 'Carro Esquentando (Superaquecimento)',
+    subtitulo: 'O que fazer na hora e como achar a causa',
+    descricao: 'Passo a passo seguro, checklist com motor frio e mapa de causas comuns do arrefecimento.',
+    icone: '🌡️',
+    categoria: 'Diagnóstico',
+    rota: '/guias/superaquecimento'
+  },
+  {
+    id: 'bateriaAlternadorPartida',
+    titulo: 'Bateria, Alternador e Partida',
+    subtitulo: 'Quando é bateria, quando é carga e quando é fuga',
+    descricao: 'Diagnóstico prático com testes simples, sem “chute”, e o que pedir na oficina.',
+    icone: '🔋',
+    categoria: 'Diagnóstico',
+    rota: '/guias/bateria-alternador-partida'
   }
 ];

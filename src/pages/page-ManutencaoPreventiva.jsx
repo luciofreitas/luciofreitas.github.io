@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useMemo, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, MenuLogin } from '../components';
 import { AuthContext } from '../App';
@@ -12,6 +12,46 @@ const ManutencaoPreventiva = () => {
   // Track which cards are expanded (show content) vs collapsed (header only)
   const [expandedCards, setExpandedCards] = useState({});
 
+  const navSections = useMemo(
+    () => [
+      { id: 'cronograma', label: 'Cronograma' },
+      { id: 'dicas', label: 'Dicas' },
+      { id: 'custos', label: 'Custos' }
+    ],
+    []
+  );
+
+  const [activeSectionId, setActiveSectionId] = useState('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const scrollToShortcuts = () => {
+    const el = document.getElementById('guia-atalhos');
+    if (!el) {
+      scrollToSection('topo');
+      return;
+    }
+
+    // Ajuste simples para não “colar” embaixo do header/menu.
+    const headerOffset = 90;
+    const y = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+
+    // Ajuda leitores de tela a entenderem que mudou de contexto
+    window.setTimeout(() => {
+      try {
+        el.focus({ preventScroll: true });
+      } catch {
+        // ignore
+      }
+    }, 250);
+  };
+
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
@@ -19,6 +59,45 @@ const ManutencaoPreventiva = () => {
   const toggleCard = (cardKey) => {
     setExpandedCards(prev => ({ ...prev, [cardKey]: !prev[cardKey] }));
   };
+
+  useEffect(() => {
+    const onScroll = () => {
+      setShowBackToTop(window.scrollY > 500);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
+
+    const observed = navSections
+      .map(s => document.getElementById(s.id))
+      .filter(Boolean);
+
+    if (!observed.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // pick the most visible intersecting entry
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
+        if (visible[0]?.target?.id) setActiveSectionId(visible[0].target.id);
+      },
+      {
+        root: null,
+        // Consider "active" when the section header is around the middle of viewport
+        rootMargin: '-35% 0px -55% 0px',
+        threshold: [0.05, 0.1, 0.2, 0.35]
+      }
+    );
+
+    observed.forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, [navSections]);
 
   const manualData = {
     quilometragens: [
@@ -78,15 +157,6 @@ const ManutencaoPreventiva = () => {
         km: '60.000 km',
         itens: [
           { item: 'Troca da correia dentada (ou conforme manual do fabricante) — muitos fabricantes indicam ~60.000 km', prioridade: 'alta' },
-          { item: 'Troca de óleo do motor + filtro (conforme indicador)', prioridade: 'alta' },
-          { item: 'Troca do filtro de ar (se necessário)', prioridade: 'alta' },
-          { item: 'Substituição das pastilhas de freio (se necessário)', prioridade: 'alta' },
-          { item: 'Revisão completa da suspensão / verificação dos discos', prioridade: 'alta' }
-        ]
-      },
-      {
-        km: '60.000 km',
-        itens: [
           { item: 'Troca de óleo do motor', prioridade: 'alta' },
           { item: 'Troca do filtro de óleo', prioridade: 'alta' },
           { item: 'Troca do filtro de ar', prioridade: 'alta' },
@@ -197,13 +267,12 @@ const ManutencaoPreventiva = () => {
   };
 
   return (
-    <div className="manutencao-page">
+    <div className="manutencao-page" id="topo">
       {usuarioLogado ? <Menu /> : <MenuLogin />}
       <div className="site-header-spacer"></div>
       
       <div className="manutencao-container">
         <div className="manutencao-header">
-          <div className="header-icon">🔧</div>
           <h1>Guia de Manutenção Preventiva</h1>
           <p className="header-subtitle">
             Mantenha seu veículo sempre em perfeito estado seguindo este guia completo de manutenção preventiva.
@@ -211,29 +280,70 @@ const ManutencaoPreventiva = () => {
           </p>
         </div>
 
+        <div className="guia-nav" id="guia-atalhos" tabIndex={-1} aria-label="Atalhos do guia">
+          <div className="guia-nav-left">
+            <span className="guia-nav-title">Navegar:</span>
+            <div className="guia-nav-pills" role="navigation" aria-label="Seções do guia">
+              {navSections.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`guia-nav-pill ${activeSectionId === s.id ? 'is-active' : ''}`}
+                  onClick={() => scrollToSection(s.id)}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Introdução */}
         <section className="manutencao-intro">
           <div className="intro-card">
             <h2>Por que fazer manutenção preventiva?</h2>
             <div className="intro-benefits">
-              <div className="benefit-item">
-                <span className="benefit-icon">💰</span>
-                <h3>Economia</h3>
+              <div className="benefit-item is-economia">
+                <div className="benefit-head">
+                  <span className="benefit-badge" aria-hidden="true">💰</span>
+                  <div className="benefit-title">
+                    <h3>Economia</h3>
+                    <span className="benefit-kicker">Menos surpresas no bolso</span>
+                  </div>
+                </div>
                 <p>Prevenir é sempre mais barato que corrigir. Uma manutenção regular evita gastos maiores com reparos emergenciais.</p>
               </div>
-              <div className="benefit-item">
-                <span className="benefit-icon">🛡️</span>
-                <h3>Segurança</h3>
+
+              <div className="benefit-item is-seguranca">
+                <div className="benefit-head">
+                  <span className="benefit-badge" aria-hidden="true">🛡️</span>
+                  <div className="benefit-title">
+                    <h3>Segurança</h3>
+                    <span className="benefit-kicker">Mais confiança ao dirigir</span>
+                  </div>
+                </div>
                 <p>Veículo bem mantido oferece mais segurança para você e sua família, evitando falhas mecânicas em momentos críticos.</p>
               </div>
-              <div className="benefit-item">
-                <span className="benefit-icon">⏰</span>
-                <h3>Durabilidade</h3>
+
+              <div className="benefit-item is-durabilidade">
+                <div className="benefit-head">
+                  <span className="benefit-badge" aria-hidden="true">⏰</span>
+                  <div className="benefit-title">
+                    <h3>Durabilidade</h3>
+                    <span className="benefit-kicker">Mais vida útil e revenda</span>
+                  </div>
+                </div>
                 <p>Manutenção adequada prolonga significativamente a vida útil do veículo e mantém seu valor de revenda.</p>
               </div>
-              <div className="benefit-item">
-                <span className="benefit-icon">🚀</span>
-                <h3>Performance</h3>
+
+              <div className="benefit-item is-performance">
+                <div className="benefit-head">
+                  <span className="benefit-badge" aria-hidden="true">🚀</span>
+                  <div className="benefit-title">
+                    <h3>Performance</h3>
+                    <span className="benefit-kicker">Eficiência e conforto</span>
+                  </div>
+                </div>
                 <p>Motor e componentes bem cuidados mantêm a potência, eficiência e conforto originais do veículo.</p>
               </div>
             </div>
@@ -241,137 +351,202 @@ const ManutencaoPreventiva = () => {
         </section>
 
         {/* Cronograma de Manutenção */}
-        <section className="manutencao-cronograma">
+        <section className="manutencao-cronograma" id="cronograma">
           <h2>Cronograma de Manutenção por Quilometragem</h2>
-          <div className="section-description">
-            <p>Siga este cronograma baseado na quilometragem do seu veículo.</p>
-            <p>Os itens variam conforme o fabricante — sempre consulte o manual do proprietário do seu carro.</p>
-          </div>
-          
-          <div className="legenda-prioridades">
-            <h4>Legenda de Prioridades:</h4>
-            <div className="legenda-items">
-              <span className="legenda-item alta">
-                <span className="legenda-badge">ALTA</span> Essencial - não pode ser adiado
-              </span>
-              <span className="legenda-item media">
-                <span className="legenda-badge">MÉDIA</span> Importante - agende em breve
-              </span>
+          <div className="section-card">
+            <div className="section-description">
+              <p>Siga este cronograma baseado na quilometragem do seu veículo.</p>
+              <p>Os itens variam conforme o fabricante — sempre consulte o manual do proprietário do seu carro.</p>
             </div>
-            <div className="disclaimer">
-              <p>
-                ⚠️ <strong>Aviso:</strong> As prioridades são orientativas. Sempre consulte um profissional para avaliar a urgência real dos serviços.
-              </p>
-            </div>
-          </div>
-
-          <div className="cronograma-grid">
-            {manualData.quilometragens.map((etapa, index) => {
-              const cardKey = `card-${index}`;
-              const isExpanded = expandedCards[cardKey];
-              
-              return (
-              <div 
-                key={index} 
-                className={`cronograma-card ${isExpanded ? 'expanded' : 'collapsed'}`}
-              >
-                <div 
-                  className="cronograma-header"
-                  onClick={() => toggleCard(cardKey)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <h3>{etapa.km}</h3>
-                  <span className="itens-count">{etapa.itens.length} itens</span>
-                </div>
-                <ul className="cronograma-lista">
-                  {etapa.itens.map((item, idx) => {
-                    const prioridadeRaw = String(item.prioridade || '').trim();
-                    const prioridadeSlug = prioridadeRaw
-                      .normalize('NFKD')
-                      .replace(/\p{Diacritic}/gu, '')
-                      .replace(/[^a-zA-Z0-9]+/g, '-')
-                      .replace(/(^-|-$)/g, '')
-                      .toLowerCase();
-                    return (
-                      <li key={idx} className={`prioridade-${prioridadeSlug}`}>
-                        <span className="prioridade-badge">{prioridadeRaw}</span>
-                        {item.item}
-                      </li>
-                    );
-                  })}
-                </ul>
+            
+            <div className="legenda-prioridades">
+              <h4>Legenda de Prioridades:</h4>
+              <div className="legenda-items">
+                <span className="legenda-item alta">
+                  <span className="legenda-badge">ALTA</span> Essencial - não pode ser adiado
+                </span>
+                <span className="legenda-item media">
+                  <span className="legenda-badge">MÉDIA</span> Importante - agende em breve
+                </span>
               </div>
-            );
-            })}
+              <div className="disclaimer">
+                <p>
+                  ⚠️ <strong>Aviso:</strong> As prioridades são orientativas. Sempre consulte um profissional para avaliar a urgência real dos serviços.
+                </p>
+              </div>
+            </div>
+
+            <div className="cronograma-grid">
+              {manualData.quilometragens.map((etapa, index) => {
+                const cardKey = `card-${index}`;
+                const isExpanded = expandedCards[cardKey];
+                const listId = `cronograma-lista-${cardKey}`;
+
+                return (
+                <div 
+                  key={index} 
+                  className={`cronograma-card ${isExpanded ? 'expanded' : 'collapsed'}`}
+                >
+                  <div 
+                    className="cronograma-header"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    aria-controls={listId}
+                    onClick={() => toggleCard(cardKey)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleCard(cardKey);
+                      }
+                    }}
+                  >
+                    <h3>{etapa.km}</h3>
+                    <div className="cronograma-header-right">
+                      <span className="itens-count">{etapa.itens.length} itens</span>
+                      <span className={`expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
+                    </div>
+                  </div>
+                  <ul className="cronograma-lista" id={listId}>
+                    {etapa.itens.map((item, idx) => {
+                      const prioridadeRaw = String(item.prioridade || '').trim();
+                      const prioridadeSlug = prioridadeRaw
+                        .normalize('NFKD')
+                        .replace(/\p{Diacritic}/gu, '')
+                        .replace(/[^a-zA-Z0-9]+/g, '-')
+                        .replace(/(^-|-$)/g, '')
+                        .toLowerCase();
+                      return (
+                        <li key={idx} className={`prioridade-${prioridadeSlug}`}>
+                          <span className="prioridade-badge">{prioridadeRaw}</span>
+                          {item.item}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+              })}
+            </div>
+
+            <div className="section-actions">
+              <button
+                type="button"
+                className="to-shortcuts-btn"
+                onClick={() => scrollToSection('topo')}
+                aria-label="Voltar para o topo"
+              >
+                Topo
+              </button>
+            </div>
           </div>
 
           
         </section>
 
         {/* Dicas Práticas */}
-        <section className="manutencao-dicas">
+        <section className="manutencao-dicas" id="dicas">
           <h2>Dicas Práticas de Manutenção</h2>
-          
-          <div className="dicas-grid">
-            {manualData.dicasPraticas.map((dica, index) => {
-              const dicaKey = `dica-${index}`;
-              const isExpanded = expandedCards[dicaKey];
-              
-              return (
-              <div 
-                key={index} 
-                className={`dica-card ${isExpanded ? 'expanded' : 'collapsed'}`}
-              >
+
+          <div className="section-card">
+            <div className="dicas-grid">
+              {manualData.dicasPraticas.map((dica, index) => {
+                const dicaKey = `dica-${index}`;
+                const isExpanded = expandedCards[dicaKey];
+                const listId = `dica-lista-${dicaKey}`;
+                
+                return (
                 <div 
-                  className="dica-header"
-                  onClick={() => toggleCard(dicaKey)}
-                  style={{ cursor: 'pointer' }}
+                  key={index} 
+                  className={`dica-card ${isExpanded ? 'expanded' : 'collapsed'}`}
                 >
-                  <h3>{dica.titulo}</h3>
-                  <p className="dica-descricao">{dica.descricao}</p>
+                  <div 
+                    className="dica-header"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    aria-controls={listId}
+                    onClick={() => toggleCard(dicaKey)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleCard(dicaKey);
+                      }
+                    }}
+                  >
+                    <div className="dica-header-text">
+                      <h3>{dica.titulo}</h3>
+                      <p className="dica-descricao">{dica.descricao}</p>
+                    </div>
+                    <span className={`expand-indicator ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">▾</span>
+                  </div>
+                  <ul className="dica-lista" id={listId}>
+                    {dica.lista.map((item, idx) => (
+                      <li key={idx}>
+                        <span className="check-icon">✓</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="dica-lista">
-                  {dica.lista.map((item, idx) => (
-                    <li key={idx}>
-                      <span className="check-icon">✓</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-            })}
+              );
+              })}
+            </div>
+
+            <div className="section-actions">
+              <button
+                type="button"
+                className="to-shortcuts-btn"
+                onClick={() => scrollToSection('topo')}
+                aria-label="Voltar para o topo"
+              >
+                Topo
+              </button>
+            </div>
           </div>
         </section>
 
         {/* Custos de Referência */}
-        <section className="manutencao-custos">
+        <section className="manutencao-custos" id="custos">
           <h2>Custos Médios de Referência</h2>
-          <p className="section-description">
-            Valores aproximados para você planejar seu orçamento. Os preços variam conforme região, modelo do veículo e oficina.
-          </p>
-          
-          <div className="custos-tabela">
-            <div className="tabela-header">
-              <div className="col-servico">Serviço</div>
-              <div className="col-faixa">Faixa de Preço</div>
-              <div className="col-periodicidade">Periodicidade</div>
-            </div>
-            {manualData.custosReferencia.map((custo, index) => (
-              <div key={index} className="tabela-row">
-                <div className="col-servico">{custo.servico}</div>
-                <div className="col-faixa">{custo.faixa}</div>
-                <div className="col-periodicidade">{custo.periodicidade}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="custos-aviso">
-            <span className="aviso-icon">ℹ️</span>
-            <p>
-              Os valores são apenas referências e podem variar significativamente. Sempre solicite orçamentos
-              em diferentes oficinas e verifique a reputação antes de contratar o serviço.
+          <div className="section-card">
+            <p className="section-description">
+              Valores aproximados para você planejar seu orçamento. Os preços variam conforme região, modelo do veículo e oficina.
             </p>
+            
+            <div className="custos-tabela">
+              <div className="tabela-header">
+                <div className="col-servico">Serviço</div>
+                <div className="col-faixa">Faixa de Preço</div>
+                <div className="col-periodicidade">Periodicidade</div>
+              </div>
+              {manualData.custosReferencia.map((custo, index) => (
+                <div key={index} className="tabela-row">
+                  <div className="col-servico">{custo.servico}</div>
+                  <div className="col-faixa">{custo.faixa}</div>
+                  <div className="col-periodicidade">{custo.periodicidade}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="custos-aviso">
+              <span className="aviso-icon">ℹ️</span>
+              <p>
+                Os valores são apenas referências e podem variar significativamente. Sempre solicite orçamentos
+                em diferentes oficinas e verifique a reputação antes de contratar o serviço.
+              </p>
+            </div>
+
+            <div className="section-actions">
+              <button
+                type="button"
+                className="to-shortcuts-btn"
+                onClick={() => scrollToSection('topo')}
+                aria-label="Voltar para o topo"
+              >
+                Topo
+              </button>
+            </div>
           </div>
         </section>
 
@@ -407,6 +582,15 @@ const ManutencaoPreventiva = () => {
           </span>
         </div>
       </div>
+
+      <button
+        type="button"
+        className={`guia-back-to-top ${showBackToTop ? 'is-visible' : ''}`}
+        onClick={() => scrollToSection('topo')}
+        aria-label="Voltar ao topo"
+      >
+        ↑
+      </button>
     </div>
   );
 };

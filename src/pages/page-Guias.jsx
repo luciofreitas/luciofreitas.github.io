@@ -198,7 +198,6 @@ function PageGuias() {
               {guiasFixosFiltrados.map(guia => (
               <div key={guia.id} className="guia-card guia-oficial">
                 <div className="guia-header">
-                  <div className="guia-icone">{guia.icone}</div>
                   <div className="guia-categoria oficial">{guia.categoria}</div>
                 </div>
                 
@@ -246,7 +245,6 @@ function PageGuias() {
                 return (
                   <div key={guia.id} className={`guia-card guia-comunidade ${isOculto ? 'guia-oculto' : ''} ${(!isPro && !isAutor) ? 'locked' : ''}`}>
                     <div className="guia-header">
-                      <div className="guia-icone">📄</div>
                       <div className="guia-categoria comunidade">{guia.categoria || 'MECÂNICA GERAL'}</div>
                     </div>
 

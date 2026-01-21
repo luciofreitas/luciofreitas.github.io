@@ -31,6 +31,9 @@ const TabelaFIPE = lazy(() => import('./pages/page-TabelaFIPE'));
 const ManutencaoPreventiva = lazy(() => import('./pages/page-ManutencaoPreventiva'));
 const PecasOriginaisVsCompativeis = lazy(() => import('./pages/page-PecasOriginaisVsCompativeis'));
 const LuzesDoPainel = lazy(() => import('./pages/page-LuzesDoPainel'));
+const FreiosSemMisterio = lazy(() => import('./pages/page-FreiosSemMisterio'));
+const Superaquecimento = lazy(() => import('./pages/page-Superaquecimento'));
+const BateriaAlternadorPartida = lazy(() => import('./pages/page-BateriaAlternadorPartida'));
 const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'));
 const EsqueciSenha = lazy(() => import('./pages/page-EsqueciSenha'));
 const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
@@ -530,6 +533,9 @@ export default function App() {
             <Route path="/guias/luzes-do-painel" element={<LuzesDoPainel />} />
             <Route path="/guias/manutencao-preventiva" element={<ManutencaoPreventiva />} />
             <Route path="/guias/pecas-originais-vs-compativeis" element={<PecasOriginaisVsCompativeis />} />
+            <Route path="/guias/freios-sem-misterio" element={<FreiosSemMisterio />} />
+            <Route path="/guias/superaquecimento" element={<Superaquecimento />} />
+            <Route path="/guias/bateria-alternador-partida" element={<BateriaAlternadorPartida />} />
             {/* Route to view a specific guia using the `/guias/<slug>` path for compatibility */}
             <Route path="/guias/:guiaId" element={<PageVisualizarGuia />} />
             {/* Rota para visualizar guia específico */}
@@ -550,6 +556,9 @@ export default function App() {
             <Route path="/manutencao-preventiva" element={<ManutencaoPreventiva />} />
             <Route path="/pecas-originais-vs-compativeis" element={<PecasOriginaisVsCompativeis />} />
             <Route path="/luzes-do-painel" element={<LuzesDoPainel />} />
+            <Route path="/freios-sem-misterio" element={<FreiosSemMisterio />} />
+            <Route path="/superaquecimento" element={<Superaquecimento />} />
+            <Route path="/bateria-alternador-partida" element={<BateriaAlternadorPartida />} />
             <Route path="/historico-manutencao" element={
               <ProtectedRoute>
                 <HistoricoManutencao />

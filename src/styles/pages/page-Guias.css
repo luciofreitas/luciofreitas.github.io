@@ -423,7 +423,7 @@
 
 .guia-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: clamp(0.75rem, 2.5vw, 1rem); /* reduzido o padding */
   background: white;
