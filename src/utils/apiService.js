@@ -254,8 +254,94 @@ class ApiService {
   }
 
   async filtrarPecas(filtros) {
-  // filter called with provided filtros
-    // Try API first
+    // Try Supabase first (if configured)
+    try {
+      const mod = await import('../supabase');
+      const _supabase = mod.default || mod.supabase;
+      const isConfigured = mod.isConfigured;
+
+      if (_supabase && isConfigured && !_supabase._notConfigured) {
+        const pecaFiltro = (filtros.peca || filtros.categoria || '').toString().toLowerCase().trim();
+        let query = _supabase.from('parts').select('*');
+
+        if (filtros.grupo) {
+          query = query.eq('category', filtros.grupo);
+        }
+
+        if (pecaFiltro) {
+          // Case-insensitive exact-ish match (no wildcards)
+          query = query.ilike('name', pecaFiltro);
+        }
+
+        if (filtros.fabricante) {
+          query = query.ilike('manufacturer', `%${String(filtros.fabricante).toLowerCase()}%`);
+        }
+
+        const { data: partsData, error } = await query;
+
+        if (!error && Array.isArray(partsData)) {
+          let filtered = partsData;
+
+          // Apply the remaining filters client-side (applications shape may vary)
+          if (filtros.marca) {
+            filtered = filtered.filter(p =>
+              p.applications && Array.isArray(p.applications) && p.applications.some(app => {
+                if (typeof app === 'string') {
+                  return app.toLowerCase().includes(String(filtros.marca).toLowerCase());
+                }
+                if (app && typeof app === 'object') {
+                  const make = (app.make || '').toString().toLowerCase();
+                  return make.includes(String(filtros.marca).toLowerCase());
+                }
+                return false;
+              })
+            );
+          }
+
+          if (filtros.modelo) {
+            filtered = filtered.filter(p =>
+              p.applications && Array.isArray(p.applications) && p.applications.some(app => {
+                if (typeof app === 'string') {
+                  return app.toLowerCase().includes(String(filtros.modelo).toLowerCase());
+                }
+                if (app && typeof app === 'object') {
+                  const model = (app.model || '').toString().toLowerCase();
+                  return model.includes(String(filtros.modelo).toLowerCase());
+                }
+                return false;
+              })
+            );
+          }
+
+          if (filtros.ano) {
+            filtered = filtered.filter(p =>
+              p.applications && Array.isArray(p.applications) && p.applications.some(app => {
+                if (typeof app === 'string') {
+                  return app.includes(String(filtros.ano));
+                }
+                if (app && typeof app === 'object') {
+                  const year = (app.year || '').toString();
+                  return year.includes(String(filtros.ano));
+                }
+                return false;
+              })
+            );
+          }
+
+          // If Supabase is reachable and query succeeds, return its result even if empty.
+          // JSON fallback should only be used when Supabase is unavailable or errors.
+          return { pecas: filtered, total: filtered.length, source: 'supabase' };
+        }
+
+        if (error) {
+          console.warn('[apiService] Supabase filter error; falling back to local JSON:', error);
+        }
+      }
+    } catch (err) {
+      console.debug('Supabase client not available or failed to import:', err && err.message ? err.message : err);
+    }
+
+    // Try API (local/dev) next
     if (this.isLocal) {
       try {
         const response = await fetch('/api/pecas/filtrar', {
