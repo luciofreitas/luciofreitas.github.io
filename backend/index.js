@@ -1736,7 +1736,7 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
           if (names.indexOf('nome') >= 0) nameCol = 'nome';
           else if (names.indexOf('name') >= 0) nameCol = 'name';
         } catch (e) {
-          // ignore and fall back to previously-detected column
+          // ignore and fall back to previously-detected columns
         }
 
         // Try to find existing user by email first to avoid duplicates
@@ -1795,2053 +1795,279 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
   }
 });
 
-  // Webhook: receive Supabase Auth user update events and sync into Postgres users row
-  // Protect with SUPABASE_WEBHOOK_KEY (set in env) — header: X-SUPABASE-WEBHOOK-KEY
-  app.post('/api/auth/supabase-webhook', async (req, res) => {
-    try {
-      const providedKey = String(req.headers['x-supabase-webhook-key'] || req.headers['x-webhook-key'] || '');
-      if (!process.env.SUPABASE_WEBHOOK_KEY || providedKey !== String(process.env.SUPABASE_WEBHOOK_KEY)) {
-        return res.status(403).json({ error: 'forbidden' });
-      }
-
-      const payload = req.body || {};
-      // Supabase webhook payloads may wrap user under `user` or send the user object directly
-      const u = payload.user || payload;
-      const uid = u && (u.id || u.user_id || u.uid) ? (u.id || u.user_id || u.uid) : null;
-      if (!uid) return res.status(400).json({ error: 'user id required in payload' });
-
-      const email = u.email || (u.user_metadata && u.user_metadata.email) || null;
-      const meta = u.user_metadata || u.raw_user_meta_data || {};
-      const candidateName = (meta && (meta.name || meta.nome || meta.full_name)) || u.name || null;
-      const candidatePhoto = u.avatar_url || u.picture || meta.avatar_url || meta.picture || (u.raw_user_meta_data && (u.raw_user_meta_data.picture || u.raw_user_meta_data.avatar_url)) || null;
-      // phone candidates
-      const phoneCandidates = [];
-      if (u.phone) phoneCandidates.push(u.phone);
-      if (u.phone_number) phoneCandidates.push(u.phone_number);
-      if (meta && meta.phone) phoneCandidates.push(meta.phone);
-      if (meta && meta.celular) phoneCandidates.push(meta.celular);
-      if (u.raw_user_meta_data && u.raw_user_meta_data.phone) phoneCandidates.push(u.raw_user_meta_data.phone);
-      const foundPhone = phoneCandidates.find(p => p && String(p).trim());
-
-      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
-
-      // Re-detect columns in public.users
-      let nameCol = userNameColumn || 'name';
-      let names = [];
-      try {
-        const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
-        names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
-        if (names.indexOf('nome') >= 0) nameCol = 'nome';
-        else if (names.indexOf('name') >= 0) nameCol = 'name';
-        // detect updated timestamp column if present
-        var updatedCol = null;
-        const updatedCandidates = ['atualizado_em','updated_at','updatedat','updated','criado_em'];
-        const foundUpdated = names.find(n => updatedCandidates.indexOf(n) >= 0);
-        if (foundUpdated) updatedCol = foundUpdated;
-      } catch (e) {
-        names = [];
-      }
-
-      // Try to find a matching users row by auth_id (or id) first, then by email
-      let targetRow = null;
-      try {
-        const q = `SELECT id FROM users WHERE (auth_id = $1 OR id = $1) LIMIT 1`;
-        const r = await pgClient.query(q, [uid]);
-        if (r && r.rowCount > 0) targetRow = r.rows[0];
-      } catch (e) { /* ignore */ }
-
-      if (!targetRow && email) {
-        try {
-          const r2 = await pgClient.query('SELECT id FROM users WHERE lower(email) = lower($1) LIMIT 1', [String(email).trim().toLowerCase()]);
-          if (r2 && r2.rowCount > 0) targetRow = r2.rows[0];
-        } catch (e) { /* ignore */ }
-      }
-
-      if (!targetRow) {
-        // No existing row to sync to. Optionally auto-create a users row when the
-        // environment enables it (opt-in): SUPABASE_WEBHOOK_AUTO_CREATE=true
-        const autoCreate = String(process.env.SUPABASE_WEBHOOK_AUTO_CREATE || '').toLowerCase();
-        if (autoCreate === 'true' || autoCreate === '1') {
-          try {
-            const insertCols = [];
-            const insertVals = [];
-            const insertParams = [];
-            let pidx = 1;
-
-            if (names.length === 0 || names.indexOf('auth_id') >= 0) { insertCols.push('auth_id'); insertVals.push(`$${pidx++}`); insertParams.push(uid); }
-            if (email && (names.length === 0 || names.indexOf('email') >= 0)) { insertCols.push('email'); insertVals.push(`$${pidx++}`); insertParams.push(String(email).trim().toLowerCase()); }
-            if (candidateName && (names.length === 0 || names.indexOf(nameCol) >= 0)) { insertCols.push(nameCol); insertVals.push(`$${pidx++}`); insertParams.push(candidateName); }
-            if (candidatePhoto && (names.length === 0 || names.indexOf('photo_url') >= 0)) { insertCols.push('photo_url'); insertVals.push(`$${pidx++}`); insertParams.push(candidatePhoto); }
-            if (foundPhone && (names.length === 0 || names.indexOf('celular') >= 0 || names.indexOf('telefone') >= 0 || names.indexOf('phone') >= 0)) {
-              const phoneCol = (names.length === 0) ? 'celular' : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || 'celular');
-              insertCols.push(phoneCol); insertVals.push(`$${pidx++}`); insertParams.push(String(foundPhone).trim());
-            }
-
-            if (insertCols.length === 0) {
-              return res.json({ ok: true, message: 'no writable columns present to create' });
-            }
-
-            const insertSql = `INSERT INTO users (${insertCols.join(',')}) VALUES (${insertVals.join(',')}) RETURNING id`;
-            const created = await pgClient.query(insertSql, insertParams);
-            if (created && created.rowCount > 0) {
-              console.log('supabase-webhook: created users row', created.rows[0].id, 'for uid', uid);
-              return res.json({ ok: true, id: created.rows[0].id, created: true });
-            }
-          } catch (e) {
-            console.error('supabase-webhook: create failed', e && e.message ? e.message : e);
-            return res.status(500).json({ error: 'create failed' });
-          }
-        }
-
-        // No create requested or create not possible/failed — no-op
-        return res.json({ ok: true, message: 'no matching users row found to sync (no-op)' });
-      }
-
-      // Read current values to avoid overwriting existing user data
-      let current = null;
-      try {
-        const selCols = [];
-        selCols.push('id');
-        if (names.length === 0 || names.indexOf('auth_id') >= 0) selCols.push('auth_id');
-        if (names.length === 0 || names.indexOf(nameCol) >= 0) selCols.push(nameCol);
-        if (names.length === 0 || names.indexOf('photo_url') >= 0) selCols.push('photo_url');
-        // phone/email if present
-        if (names.length === 0 || names.indexOf('email') >= 0) selCols.push('email');
-        const phoneCol = (names.length === 0) ? null : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || null);
-        if (phoneCol) selCols.push(phoneCol);
-        if (updatedCol) selCols.push(updatedCol);
-        const curQ = `SELECT ${selCols.join(', ')} FROM users WHERE id = $1 LIMIT 1`;
-        const curR = await pgClient.query(curQ, [targetRow.id]);
-        if (curR && curR.rowCount > 0) current = curR.rows[0];
-      } catch (e) {
-        console.warn('supabase-webhook: could not read current user row, proceeding with cautious updates', e && e.message ? e.message : e);
-      }
-
-      // Honor optional force-sync env var to overwrite existing values when true
-      const forceSync = String(process.env.SUPABASE_WEBHOOK_FORCE_SYNC || '').toLowerCase() === 'true';
-
-      // Determine timestamps: Supabase update time vs current DB updated time (if available)
-      let supaUpdated = null;
-      try {
-        const cand = [u.updated_at, (u.user_metadata && u.user_metadata.updated_at), u.confirmed_at, u.last_sign_in_at, u.created_at, payload.event_at, payload.time];
-        for (const s of cand) {
-          if (!s) continue;
-          const d = new Date(s);
-          if (!isNaN(d)) { supaUpdated = d; break; }
-        }
-      } catch (e) { supaUpdated = null; }
-
-      let curUpdated = null;
-      try {
-        if (updatedCol && current && current[updatedCol]){
-          const d = new Date(current[updatedCol]); if (!isNaN(d)) curUpdated = d;
-        }
-      } catch (e) { curUpdated = null; }
-
-      // Build update set for detected columns but only when missing or empty to avoid overwriting
-      const updates = [];
-      const params = [];
-      let idx = 1;
-
-      // Ensure auth_id exists/updated if missing or forceSync
-      if ((names.length === 0 || names.indexOf('auth_id') >= 0) && (forceSync || !current || !current.auth_id || (supaUpdated && curUpdated && supaUpdated > curUpdated))) {
-        updates.push(`auth_id = $${idx++}`);
-        params.push(uid);
-      }
-
-      // Only set name if candidate present AND current name is missing/empty, or if forceSync
-      if (candidateName && (names.length === 0 || names.indexOf(nameCol) >= 0)) {
-        const curName = current && (current[nameCol] || current.name) ? String(current[nameCol] || current.name).trim() : '';
-        if (forceSync || !curName || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
-          updates.push(`${nameCol} = $${idx++}`);
-          params.push(candidateName);
-        }
-      }
-
-      // Only set photo if candidate present AND current photo is missing/empty, or if forceSync
-      if (candidatePhoto && (names.length === 0 || names.indexOf('photo_url') >= 0)) {
-        const curPhoto = current && current.photo_url ? String(current.photo_url).trim() : '';
-        if (forceSync || !curPhoto || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
-          updates.push(`photo_url = $${idx++}`);
-          params.push(candidatePhoto);
-        }
-      }
-
-      // Phone
-      if (foundPhone && (names.length === 0 || names.indexOf('celular') >= 0 || names.indexOf('telefone') >= 0 || names.indexOf('phone') >= 0)) {
-        const phoneColName = (names.length === 0) ? 'celular' : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || 'celular');
-        const curPhone = current && current[phoneColName] ? String(current[phoneColName]).trim() : '';
-        if (forceSync || !curPhone || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
-          updates.push(`${phoneColName} = $${idx++}`);
-          params.push(String(foundPhone).trim());
-        }
-      }
-
-      // Email: if forceSync or target row has no email, set it
-      if (email && (names.length === 0 || names.indexOf('email') >= 0)) {
-        const curEmail = current && current.email ? String(current.email).trim() : '';
-        if (forceSync || !curEmail || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
-          updates.push(`email = $${idx++}`);
-          params.push(String(email).trim().toLowerCase());
-        }
-      }
-
-      if (updates.length === 0) return res.json({ ok: true, message: 'no writable columns present to update (nothing to change)' });
-
-      // Finalize update SQL
-      const updateSql = `UPDATE users SET ${updates.join(', ')}, atualizado_em = now() WHERE id = $${idx}`;
-      params.push(targetRow.id);
-      try {
-        await pgClient.query(updateSql, params);
-      } catch (e) {
-        console.error('supabase-webhook: update failed', e && e.message ? e.message : e);
-        return res.status(500).json({ error: 'update failed' });
-      }
-
-      return res.json({ ok: true, id: targetRow.id });
-    } catch (err) {
-      console.error('supabase-webhook error:', err && err.stack ? err.stack : err);
-      return res.status(500).json({ error: 'internal' });
-    }
-  });
-
-// Simple password hashing helpers (PBKDF2) - stores as salt$hash
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const derived = crypto.pbkdf2Sync(String(password), salt, 100000, 64, 'sha512').toString('hex');
-  return `${salt}$${derived}`;
-}
-
-function verifyPassword(password, stored) {
-  if (!stored || typeof stored !== 'string') return false;
-  const parts = stored.split('$');
-  if (parts.length !== 2) return false;
-  const salt = parts[0];
-  const hash = parts[1];
-  const derived = crypto.pbkdf2Sync(String(password), salt, 100000, 64, 'sha512').toString('hex');
+// Webhook: receive Supabase Auth user update events and sync into Postgres users row
+// Protect with SUPABASE_WEBHOOK_KEY (set in env) — header: X-SUPABASE-WEBHOOK-KEY
+app.post('/api/auth/supabase-webhook', async (req, res) => {
   try {
-    return crypto.timingSafeEqual(Buffer.from(derived, 'hex'), Buffer.from(hash, 'hex'));
-  } catch (e) {
-    return false;
-  }
-}
+    const providedKey = String(req.headers['x-supabase-webhook-key'] || req.headers['x-webhook-key'] || '');
+    if (!process.env.SUPABASE_WEBHOOK_KEY || providedKey !== String(process.env.SUPABASE_WEBHOOK_KEY)) {
+      return res.status(403).json({ error: 'forbidden' });
+    }
 
-// --- Supabase REST fallback helpers (use when Postgres is not reachable) ---
-async function createUserRest({ nome, email, senha, is_pro = false, passwordColumn = null }){
-  if(!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase REST not configured');
-  const url = `${process.env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/users`;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const password_hash = hashPassword(senha);
-  const body = { email: String(email).trim().toLowerCase(), nome: nome || null, is_pro };
-  const col = passwordColumn || userPasswordColumn || 'password_hash';
-  body[col] = password_hash;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'apikey': key,
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(body)
-  });
-  const text = await res.text();
-  if(!res.ok){
-    // Try to parse JSON error if any
-    try{ const j = JSON.parse(text); throw new Error(JSON.stringify(j)); }catch(e){ throw new Error(`${res.status} ${text}`); }
-  }
-  // PostgREST returns an array with the created row
-  try{ const j = JSON.parse(text); return j[0]; }catch(e){ return null; }
-}
+    const payload = req.body || {};
+    // Supabase webhook payloads may wrap user under `user` or send the user object directly
+    const u = payload.user || payload;
+    const uid = u && (u.id || u.user_id || u.uid) ? (u.id || u.user_id || u.uid) : null;
+    if (!uid) return res.status(400).json({ error: 'user id required in payload' });
 
-async function loginUserRest(email, senha){
-  if(!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase REST not configured');
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const base = process.env.SUPABASE_URL.replace(/\/$/, '');
-  const q = `${base}/rest/v1/users?email=eq.${encodeURIComponent(String(email).trim().toLowerCase())}`;
-  const res = await fetch(q, { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } });
-  if(!res.ok) throw new Error(`Supabase REST query failed: ${res.status}`);
-  const rows = await res.json();
-  if(!rows || rows.length === 0) return null;
-  const u = rows[0];
-  const pwCol = userPasswordColumn || 'password_hash';
-  if(!u[pwCol]) return null;
-  if(!verifyPassword(senha, u[pwCol])) return null;
-  // Normalize fields to match existing API and include both 'name' and 'nome'
-  const displayName = ((u.nome || u.name) || '').trim();
-  const safe = {
-    id: u.id,
-    email: u.email,
-    name: displayName,
-    nome: displayName,
-    is_pro: u.is_pro || false,
-    pro_since: u.pro_since || null,
-    created_at: u.created_at || u.criado_em || null
-  };
-  // include photo if present in the row or in raw_user_meta_data
-  try {
-    if (u.photo_url) safe.photoURL = u.photo_url;
-    else if (u.avatar_url) safe.photoURL = u.avatar_url;
-    else if (u.raw_user_meta_data) {
-      try {
-        const raw = typeof u.raw_user_meta_data === 'string' ? JSON.parse(u.raw_user_meta_data) : u.raw_user_meta_data;
-        safe.photoURL = safe.photoURL || raw && (raw.picture || raw.avatar_url || raw.profile_image_url) || null;
-      } catch (e) { /* ignore parse errors */ }
-    }
-  } catch (e) { /* ignore */ }
-  // expose auth_id if present in the row (some schemas store it)
-  try {
-    if (u.auth_id) {
-      safe.auth_id = u.auth_id;
-      safe.providers = ['google'];
-    }
-    // If Supabase REST returned raw_user_meta_data with identities, detect google identity
-    if (!safe.providers && u.raw_user_meta_data) {
-      try {
-        const raw = typeof u.raw_user_meta_data === 'string' ? JSON.parse(u.raw_user_meta_data) : u.raw_user_meta_data;
-        if (raw && raw.identities && Array.isArray(raw.identities)) {
-          const hasGoogle = raw.identities.some(id => (id && (id.provider || id.provider_id || id.providerId) && String(id.provider || id.provider_id || id.providerId).toLowerCase().includes('google')));
-          if (hasGoogle) { safe.providers = ['google']; }
-        }
-      } catch (e) { /* ignore parse errors */ }
-    }
-  } catch (e) { /* ignore */ }
-  return safe;
-}
+    const email = u.email || (u.user_metadata && u.user_metadata.email) || null;
+    const meta = u.user_metadata || u.raw_user_meta_data || {};
+    const candidateName = (meta && (meta.name || meta.nome || meta.full_name)) || u.name || null;
+    const candidatePhoto = u.avatar_url || u.picture || meta.avatar_url || meta.picture || (u.raw_user_meta_data && (u.raw_user_meta_data.picture || u.raw_user_meta_data.avatar_url)) || null;
+    // phone candidates
+    const phoneCandidates = [];
+    if (u.phone) phoneCandidates.push(u.phone);
+    if (u.phone_number) phoneCandidates.push(u.phone_number);
+    if (meta && meta.phone) phoneCandidates.push(meta.phone);
+    if (meta && meta.celular) phoneCandidates.push(meta.celular);
+    if (u.raw_user_meta_data && u.raw_user_meta_data.phone) phoneCandidates.push(u.raw_user_meta_data.phone);
+    const foundPhone = phoneCandidates.find(p => p && String(p).trim());
 
-// Update user via Supabase REST fallback (use when Postgres is not reachable)
-async function updateUserRest({ id, nome, email, celular, novaSenha, passwordColumn = null }){
-  if(!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase REST not configured');
-  const base = process.env.SUPABASE_URL.replace(/\/$/, '');
-  const url = `${base}/rest/v1/users?id=eq.${encodeURIComponent(String(id))}`;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const body = {};
-  if (typeof email !== 'undefined') body.email = String(email).trim().toLowerCase();
-  if (typeof nome !== 'undefined') body.nome = nome;
-  if (typeof celular !== 'undefined') body.celular = celular;
-  if (novaSenha) {
-    const col = passwordColumn || userPasswordColumn || 'password_hash';
-    body[col] = hashPassword(novaSenha);
-  }
-  const res = await fetch(url, {
-    method: 'PATCH',
-    headers: {
-      'apikey': key,
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(body)
-  });
-  const text = await res.text();
-  if(!res.ok){
-    try{ const j = JSON.parse(text); throw new Error(JSON.stringify(j)); }catch(e){ throw new Error(`${res.status} ${text}`); }
-  }
-  try{ const j = JSON.parse(text); return j[0]; }catch(e){ return null; }
-}
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
 
-// Simple in-memory counter to track how often we fall back to Supabase REST
-let supabaseRestFallbackCount = 0;
-
-/**
- * Automatically detect and merge duplicate user accounts with the same email.
- * When a user logs in with password but doesn't have auth_id, check if there's
- * another account with the same email that has auth_id (OAuth account).
- * If found, merge the data and set auth_id on the password account.
- */
-async function autoLinkDuplicateAccounts(pgClient, email, passwordUserId) {
-  console.log(`auto-link: checking for duplicates for email=${email}, passwordUserId=${passwordUserId}`);
-  
-  try {
-    // Find all users with this email
-    const allUsersQuery = `
-      SELECT id, email, auth_id, criado_em, nome, photo_url 
-      FROM users 
-      WHERE LOWER(email) = LOWER($1) AND id != $2
-      ORDER BY auth_id IS NOT NULL DESC, criado_em ASC
-    `;
-    
-    const result = await pgClient.query(allUsersQuery, [email, passwordUserId]);
-    
-    if (result.rowCount === 0) {
-      console.log(`auto-link: no duplicates found for ${email}`);
-      return;
-    }
-    
-    // Find the OAuth account (the one with auth_id)
-    const oauthAccount = result.rows.find(u => u.auth_id);
-    if (!oauthAccount) {
-      console.log(`auto-link: no OAuth account found for ${email}`);
-      return;
-    }
-    
-    console.log(`auto-link: found OAuth account ${oauthAccount.id} with auth_id=${oauthAccount.auth_id}`);
-    
-    // Migrate cars from OAuth account to password account
-    const migrateCarsQuery = `
-      UPDATE cars 
-      SET user_id = $1, updated_at = now() 
-      WHERE user_id = $2
-    `;
-    
-    const carsMigrated = await pgClient.query(migrateCarsQuery, [passwordUserId, oauthAccount.id]);
-    console.log(`auto-link: migrated ${carsMigrated.rowCount} cars from ${oauthAccount.id} to ${passwordUserId}`);
-    
-    // Set auth_id on the password account
-    const linkQuery = `
-      UPDATE users 
-      SET auth_id = $1, photo_url = COALESCE(photo_url, $2), atualizado_em = now() 
-      WHERE id = $3
-    `;
-    
-    await pgClient.query(linkQuery, [oauthAccount.auth_id, oauthAccount.photo_url, passwordUserId]);
-    console.log(`auto-link: linked password account ${passwordUserId} to auth_id=${oauthAccount.auth_id}`);
-    
-    // Remove the empty OAuth account (but keep if it has non-migratable data)
-    const hasDataQuery = `
-      SELECT 
-        (SELECT COUNT(*) FROM cars WHERE user_id = $1) as cars_count,
-        (SELECT COUNT(*) FROM guias WHERE autor_email = $1) as guias_count,
-        (SELECT COUNT(*) FROM payments WHERE user_email = $2) as payments_count
-    `;
-    
-    const dataCheck = await pgClient.query(hasDataQuery, [oauthAccount.id, oauthAccount.email]);
-    const hasData = dataCheck.rows[0];
-    
-    if (hasData.cars_count === 0 && hasData.guias_count === 0 && hasData.payments_count === 0) {
-      await pgClient.query('DELETE FROM users WHERE id = $1', [oauthAccount.id]);
-      console.log(`auto-link: removed empty OAuth account ${oauthAccount.id}`);
-    } else {
-      console.log(`auto-link: kept OAuth account ${oauthAccount.id} (has non-migratable data)`);
-    }
-    
-    console.log(`auto-link: successfully merged accounts for ${email}`);
-    
-  } catch (error) {
-    console.error('auto-link error:', error);
-    throw error;
-  }
-}
-
-/**
- * Auto-link when OAuth user logs in but there's already a password account.
- * Migrate cars from password account to OAuth account and update auth_id.
- */
-async function autoLinkFromPasswordToOAuth(pgClient, email, oauthUserId, oauthAuthId) {
-  console.log(`auto-link-oauth: checking for password accounts for email=${email}, oauthUserId=${oauthUserId}`);
-  
-  try {
-    // Find password accounts (those without auth_id) with same email
-    const passwordAccountsQuery = `
-      SELECT id, email, auth_id, criado_em, nome 
-      FROM users 
-      WHERE LOWER(email) = LOWER($1) AND id != $2 AND auth_id IS NULL
-      ORDER BY criado_em ASC
-    `;
-    
-    const result = await pgClient.query(passwordAccountsQuery, [email, oauthUserId]);
-    
-    if (result.rowCount === 0) {
-      console.log(`auto-link-oauth: no password accounts found for ${email}`);
-      return;
-    }
-    
-    console.log(`auto-link-oauth: found ${result.rowCount} password accounts for ${email}`);
-    
-    // Migrate cars from all password accounts to OAuth account
-    for (const passwordAccount of result.rows) {
-      const migrateCarsQuery = `
-        UPDATE cars 
-        SET user_id = $1, updated_at = now() 
-        WHERE user_id = $2
-      `;
-      
-      const carsMigrated = await pgClient.query(migrateCarsQuery, [oauthUserId, passwordAccount.id]);
-      console.log(`auto-link-oauth: migrated ${carsMigrated.rowCount} cars from ${passwordAccount.id} to ${oauthUserId}`);
-      
-      // Remove the empty password account if it has no other data
-      const hasDataQuery = `
-        SELECT 
-          (SELECT COUNT(*) FROM cars WHERE user_id = $1) as cars_count,
-          (SELECT COUNT(*) FROM guias WHERE autor_email = $1) as guias_count,
-          (SELECT COUNT(*) FROM payments WHERE user_email = $2) as payments_count
-      `;
-      
-      const dataCheck = await pgClient.query(hasDataQuery, [passwordAccount.id, passwordAccount.email]);
-      const hasData = dataCheck.rows[0];
-      
-      if (hasData.cars_count === 0 && hasData.guias_count === 0 && hasData.payments_count === 0) {
-        await pgClient.query('DELETE FROM users WHERE id = $1', [passwordAccount.id]);
-        console.log(`auto-link-oauth: removed empty password account ${passwordAccount.id}`);
-      } else {
-        console.log(`auto-link-oauth: kept password account ${passwordAccount.id} (has non-migratable data)`);
-      }
-    }
-    
-    // Update OAuth account to ensure it has the correct auth_id
-    await pgClient.query('UPDATE users SET auth_id = $1 WHERE id = $2', [oauthAuthId, oauthUserId]);
-    console.log(`auto-link-oauth: ensured OAuth account ${oauthUserId} has auth_id=${oauthAuthId}`);
-    
-    console.log(`auto-link-oauth: successfully merged password accounts for ${email}`);
-    
-  } catch (error) {
-    console.error('auto-link-oauth error:', error);
-    throw error;
-  }
-}
-
-// Create user (try DB, fallback to csvData.users)
-app.post('/api/users', async (req, res) => {
-  const { nome, email, senha } = req.body || {};
-  if (!email || !senha) return res.status(400).json({ error: 'email and senha are required' });
-  const normalizedEmail = String(email).trim().toLowerCase();
-  const debugMode = isDebugRequest(req);
-  try {
-    if (pgClient) {
-      // HOTFIX: minimal INSERT to maximize compatibility across schemas.
-      // Insert only email, name and password hash. Avoid optional columns like created_at/is_pro/pro_since
-      const passwordHash = hashPassword(senha);
-      const q = `INSERT INTO users(email, ${userNameColumn}, ${userPasswordColumn}) VALUES($1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING id, email, ${userNameColumn} as name`;
-      try {
-        const r = await pgClient.query(q, [normalizedEmail, nome || null, passwordHash]);
-        if (r.rowCount > 0) return res.status(201).json(r.rows[0]);
-        const existing = await pgClient.query(`SELECT id, email, ${userNameColumn} as name FROM users WHERE email = $1`, [normalizedEmail]);
-        if (existing.rowCount > 0) return res.status(409).json({ error: 'user exists', user: existing.rows[0] });
-        return res.status(500).json({ error: 'could not create user' });
-      } catch (e) {
-        console.error('PG create user failed (hotfix):', e && e.stack ? e.stack : e);
-        // Let outer catch handle storing lastUserCreateError and returning appropriate response
-        throw e;
-      }
-    }
-    // If Postgres not available, try Supabase REST fallback if configured
-    if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
-      try{
-        const created = await createUserRest({ nome, email: normalizedEmail, senha, is_pro: false, passwordColumn: userPasswordColumn });
-        if(created) return res.status(201).json({ id: created.id, email: created.email, name: created.nome || created.name, is_pro: created.is_pro });
-      }catch(e){
-        console.warn('Supabase REST create user failed:', e && e.message ? e.message : e);
-        // fallthrough to CSV
-      }
-    }
-    // Fallback to CSV/local
-    const id = `local_${Date.now()}`;
-    const user = { id, email: normalizedEmail, nome: nome || '', senha: senha, is_pro: false, criado_em: new Date().toISOString() };
-    csvData.users = csvData.users || [];
-    csvData.users.push(user);
-    return res.status(201).json(user);
-  } catch (err) {
-    console.error('Error creating user:', err && err.stack ? err.stack : err);
-    // store for remote debugging via endpoint
-    // Debug storage disabled in production. To capture this error re-enable lastUserCreateError at the top.
-    // try { lastUserCreateError = { time: new Date().toISOString(), message: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null }; } catch(e){}
-    if (debugMode) {
-      // Return less-detailed error even when debugging to avoid leaking stack traces
-      return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err) });
-    }
-    return res.status(500).json({ error: 'internal error' });
-  }
-});
-
-// DEBUG: Add phone to user (temporary endpoint)
-app.post('/api/debug/add-phone/:id', async (req, res) => {
-  const { id } = req.params;
-  const { celular } = req.body;
-  
-  if (!pgClient) {
-    return res.status(503).json({ error: 'Database not available' });
-  }
-  
-  try {
-    const result = await pgClient.query(
-      `UPDATE users SET celular = $1, atualizado_em = now() WHERE (id = $2 OR auth_id = $2)`,
-      [celular, id]
-    );
-    
-    if (result.rowCount > 0) {
-      return res.json({ success: true, message: 'Phone added successfully' });
-    } else {
-      return res.status(404).json({ error: 'User not found' });
-    }
-  } catch (error) {
-    console.error('Error adding phone:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Get user profile data
-app.get('/api/users/:id', async (req, res) => {
-  console.log('🔍 GET /api/users/:id - ENDPOINT HIT');
-  const { id } = req.params;
-  
-  if (!pgClient) {
-    return res.status(503).json({ error: 'Database not available' });
-  }
-  
-  try {
-    // Debug: Try different queries to see what's in the database
-    console.log('🔍 DEBUG - Searching for user with ID:', id);
-    
-    // Test 1: Find by id
-    const r1 = await pgClient.query(`SELECT id, email, nome, auth_id, celular FROM users WHERE id = $1 LIMIT 1`, [id]);
-    console.log('🔍 DEBUG - Query by id:', { rowCount: r1.rowCount, rows: r1.rows });
-    
-    // Test 2: Find by auth_id
-    const r2 = await pgClient.query(`SELECT id, email, nome, auth_id, celular FROM users WHERE auth_id = $1 LIMIT 1`, [id]);
-    console.log('🔍 DEBUG - Query by auth_id:', { rowCount: r2.rowCount, rows: r2.rows });
-    
-    // Test 3: Find by email (to see if user exists at all)
-    const r3 = await pgClient.query(`SELECT id, email, nome, auth_id, celular FROM users WHERE email = 'luciodfp@gmail.com' LIMIT 1`);
-    console.log('🔍 DEBUG - Query by email:', { rowCount: r3.rowCount, rows: r3.rows });
-    
-    // Use whichever query found the user
-    const r = r1.rowCount > 0 ? r1 : (r2.rowCount > 0 ? r2 : r3);
-    
-    console.log('🔍 GET - Final query result:', {
-      rowCount: r.rowCount,
-      rows: r.rows
-    });
-    
-    if (r.rowCount === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    const row = r.rows[0];
-    const displayName = ((row.nome || '') + '').trim();
-    const phoneValue = row.celular || null;
-    
-    const userData = {
-      id: row.id,
-      auth_id: row.auth_id,
-      email: row.email,
-      name: displayName,
-      nome: displayName,
-      photoURL: row.photo_url || null,
-      is_pro: row.is_pro,
-      created_at: row.criado_em || null,
-      celular: phoneValue,
-      telefone: phoneValue,
-      phone: phoneValue
-    };
-    
-    console.log('🔍 GET - Sending user data:', userData);
-    return res.json({ success: true, user: userData });
-    
-  } catch (err) {
-    console.error('GET /api/users/:id error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Update user profile (sync to Postgres and to Supabase Auth when linked)
-app.put('/api/users/:id', async (req, res) => {
-  console.log('🔥 PUT /api/users/:id - ENDPOINT HIT');
-  const { id } = req.params;
-  const body = req.body || {};
-  const { nome, email, celular, novaSenha, photoURL } = body;
-  console.log('🔥 PUT - Received data:', { id, nome, email, celular, novaSenha: novaSenha ? '[HIDDEN]' : null, photoURL });
-  // If Postgres client is not available, attempt Supabase REST fallback before returning 503
-  if (!pgClient) {
-    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      try {
-        supabaseRestFallbackCount++;
-        console.warn('pgClient not available: attempting Supabase REST fallback (count=' + supabaseRestFallbackCount + ')');
-        const updated = await updateUserRest({ id, nome, email, celular, novaSenha, passwordColumn: userPasswordColumn });
-        if (updated) {
-          const displayName = ((updated.nome || updated.name) || '').trim();
-          const safe = { id: updated.id, email: updated.email, name: displayName, nome: displayName, photoURL: updated.photo_url || updated.avatar_url || null };
-          if (updated.auth_id) { safe.auth_id = updated.auth_id; safe.providers = ['google']; }
-          if (updated.celular) safe.celular = updated.celular;
-          console.log('Supabase REST fallback succeeded for user', id);
-          return res.json({ success: true, user: safe });
-        }
-        console.warn('Supabase REST update returned no row for id', id);
-        return res.status(500).json({ error: 'supabase-rest update failed' });
-      } catch (e) {
-        console.error('Supabase REST update failed:', e && e.message ? e.message : e);
-        return res.status(503).json({ error: 'pgClient not available' });
-      }
-    }
-    return res.status(503).json({ error: 'pgClient not available' });
-  }
-  
-  console.log('🔥 PUT - Using Postgres client');
-  try {
-    // Re-detect users table columns to avoid writing/returning non-existent columns
+    // Re-detect columns in public.users
     let nameCol = userNameColumn || 'name';
-    let names = [];
-    try {
-  const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
-      names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
-      if (names.indexOf('nome') >= 0) nameCol = 'nome';
-      else if (names.indexOf('name') >= 0) nameCol = 'name';
-    } catch (e) {
-      // if detection fails, fall back to previously-detected columns
-      names = [];
-    }
-
-    const updates = [];
-    const params = [];
-    let idx = 1;
-    // Only include columns that actually exist in the users table
-    if (email && (names.length === 0 || names.indexOf('email') >= 0)) { updates.push(`email = $${idx++}`); params.push(String(email).trim().toLowerCase()); }
-    if (nome && (names.length === 0 || names.indexOf(nameCol) >= 0)) { updates.push(`${nameCol} = $${idx++}`); params.push(nome); }
-    // phone column can be named celular, telefone, phone
-  const phoneCols = ['celular', 'telefone', 'phone'];
-  // Only pick a phone column if we successfully detected table columns; otherwise be conservative
-  const phoneColPresent = (names.length === 0) ? null : phoneCols.find(c => names.indexOf(c) >= 0);
-  if (typeof celular !== 'undefined' && phoneColPresent && names.indexOf(phoneColPresent) >= 0) { updates.push(`${phoneColPresent} = $${idx++}`); params.push(celular); }
-    if (typeof photoURL !== 'undefined' && (names.length === 0 || names.indexOf('photo_url') >= 0)) { updates.push(`photo_url = $${idx++}`); params.push(photoURL); }
-    if (novaSenha && (names.length === 0 || names.indexOf(userPasswordColumn) >= 0)) {
-      const hashed = hashPassword(novaSenha);
-      updates.push(`${userPasswordColumn} = $${idx++}`); params.push(hashed);
-    }
-    if (updates.length === 0) return res.status(400).json({ error: 'no writable fields found on users table for provided payload' });
-
-    // Build RETURNING columns dynamically based on detected columns
-    const returning = ['id'];
-    if (names.length === 0 || names.indexOf('email') >= 0) returning.push('email');
-    if (names.length === 0 || names.indexOf(nameCol) >= 0) returning.push(`${nameCol} as name`);
-    if (names.length === 0 || names.indexOf('photo_url') >= 0) returning.push('photo_url');
-    if (names.length === 0 || names.indexOf('auth_id') >= 0) returning.push('auth_id');
-  if (phoneColPresent && names.indexOf(phoneColPresent) >= 0) returning.push(`${phoneColPresent}`);
-    if (names.length === 0 || names.indexOf(userPasswordColumn) >= 0) returning.push(`${userPasswordColumn} as password_hash`);
-
-  // Execute update without RETURNING to avoid referencing optional columns that may not exist
-  // Accept both id and auth_id as identifier
-  const updateQ = `UPDATE users SET ${updates.join(', ')}, atualizado_em = now() WHERE (id = $${idx} OR auth_id = $${idx})`;
-  params.push(id);
-  
-  console.log('🔥 PUT - Executing UPDATE query:', updateQ);
-  console.log('🔥 PUT - Query params:', params);
-  
-  const updRes = await pgClient.query(updateQ, params);
-  console.log('🔥 PUT - UPDATE result:', { rowCount: updRes.rowCount });
-  if (updRes.rowCount === 0) return res.status(404).json({ error: 'not found' });
-
-  // Now fetch the canonical row using a safe SELECT that only includes columns that actually exist
-  // Re-read users table columns to avoid stale/misdetected schema info
-  try {
-  const cols2 = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
-    names = (cols2.rows || []).map(r => String(r.column_name).toLowerCase());
-    if (names.indexOf('nome') >= 0) nameCol = 'nome';
-    else if (names.indexOf('name') >= 0) nameCol = 'name';
-  } catch (e) {
-    // ignore and fall back to previously-detected names
-  }
-
-  const selectCols = ['id'];
-  if (names.length === 0 || names.indexOf('email') >= 0) selectCols.push('email');
-  if (names.length === 0 || names.indexOf(nameCol) >= 0) selectCols.push(`${nameCol} as name`);
-  if (names.length === 0 || names.indexOf('photo_url') >= 0) selectCols.push('photo_url');
-  if (names.length === 0 || names.indexOf('auth_id') >= 0) selectCols.push('auth_id');
-  if (names.length === 0 || names.indexOf(userPasswordColumn) >= 0) selectCols.push(`${userPasswordColumn} as password_hash`);
-  // include phone if present in schema
-  const phoneCandidates = ['celular','telefone','phone'];
-  const phoneCol = (names.length === 0) ? null : phoneCandidates.find(c => names.indexOf(c) >= 0) || null;
-  if (phoneCol) selectCols.push(phoneCol);
-
-  const selQ = `SELECT ${selectCols.join(', ')} FROM users WHERE (id = $1 OR auth_id = $1) LIMIT 1`;
-    // If caller requested debug, emit the exact SELECT so we can see which column name caused a failure
-    try {
-  const dbg = isDebugRequest(req);
-      if (dbg) console.warn('DEBUG /api/users/:id select:', selQ, 'params:', [id]);
-    } catch (e) { /* ignore logging errors */ }
-    let r;
-    try {
-      r = await pgClient.query(selQ, [id]);
-    } catch (e) {
-      // If a column referenced in selQ does not exist (race or mis-detected schema),
-      // retry with a minimal, safe select that only includes known core columns.
-      console.warn('Safe-select retry due to SELECT failure:', e && e.message ? e.message : e);
-      try {
-        const safeCols = [`id`, `email`, `${nameCol} as name`, `photo_url`];
-        if (userHasAuthId) safeCols.push('auth_id');
-        const safeQ = `SELECT ${safeCols.join(', ')} FROM users WHERE (id = $1 OR auth_id = $1) LIMIT 1`;
-        r = await pgClient.query(safeQ, [id]);
-      } catch (e2) {
-        // rethrow original error for outer handler
-        throw e;
-      }
-    }
-    if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
-    const row = r.rows[0];
-
-    // If the row has auth_id and we have Supabase admin credentials, propagate changes to Supabase
-    if (userHasAuthId && row.auth_id && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      try {
-        const { createClient } = require('@supabase/supabase-js');
-        const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
-        const updateData = {};
-        if (email) updateData.email = String(email).trim().toLowerCase();
-        if (novaSenha) updateData.password = novaSenha;
-        // user_metadata: preserve existing metadata keys and merge name/celular/avatar
-        const metadata = {};
-        if (nome) metadata.name = nome;
-        if (celular) metadata.celular = celular;
-        if (Object.keys(metadata).length) updateData.user_metadata = metadata;
-        // If we have a photoURL, try to set avatar fields too
-        if (photoURL) {
-          updateData.user_metadata = updateData.user_metadata || {};
-          updateData.user_metadata.avatar_url = photoURL;
-        }
-        if (Object.keys(updateData).length) {
-          try {
-            await supabaseAdmin.auth.admin.updateUserById(row.auth_id, updateData);
-            console.log('Synced updated profile to Supabase for auth_id', row.auth_id);
-          } catch (e) {
-            console.warn('Failed to update Supabase user during profile sync', e && e.message ? e.message : e);
-          }
-        }
-      } catch (e) {
-        console.warn('Profile sync to Supabase failed', e && e.message ? e.message : e);
-      }
-    }
-
-    // Normalize response for frontend
-    const displayName = ((row.name || '') + '').trim();
-    const safe = { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null };
-    if (row.auth_id) { safe.auth_id = row.auth_id; safe.providers = ['google']; }
-    // If Postgres does not have a phone/celular column but the user is linked to Supabase,
-    // try to fetch phone from Supabase admin user metadata so the frontend can display it.
-    try {
-      if (userHasAuthId && row.auth_id && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        const { createClient } = require('@supabase/supabase-js');
-        const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
-        try {
-          if (supabaseAdmin && supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.getUserById === 'function') {
-            const adminRes = await supabaseAdmin.auth.admin.getUserById(row.auth_id);
-            if (adminRes && adminRes.data && adminRes.data.user) {
-              const au = adminRes.data.user;
-              try {
-                const phoneCandidates = [];
-                if (au.phone) phoneCandidates.push(au.phone);
-                if (au.phone_number) phoneCandidates.push(au.phone_number);
-                if (au.user_metadata && au.user_metadata.phone) phoneCandidates.push(au.user_metadata.phone);
-                if (au.user_metadata && au.user_metadata.celular) phoneCandidates.push(au.user_metadata.celular);
-                if (au.raw_user_meta_data && au.raw_user_meta_data.phone) phoneCandidates.push(au.raw_user_meta_data.phone);
-                if (au.raw_user_meta_data && au.raw_user_meta_data.phone_number) phoneCandidates.push(au.raw_user_meta_data.phone_number);
-                if (au.raw_user_meta_data && au.raw_user_meta_data.celular) phoneCandidates.push(au.raw_user_meta_data.celular);
-                const foundPhone = phoneCandidates.find(p => p && String(p).trim());
-                if (foundPhone) safe.celular = String(foundPhone).trim();
-              } catch (e) { /* ignore phone extraction errors */ }
-            }
-          }
-        } catch (e) { /* ignore supabase admin read errors */ }
-      }
-    } catch (e) { /* ignore */ }
-    return res.json({ success: true, user: safe });
-  } catch (err) {
-    console.error('Profile update failed:', err && err.stack ? err.stack : err);
-    // If caller included X-Debug: true or X-Debug-Key: let-me-debug, return error details for local debugging
-  const debugMode = isDebugRequest(req);
-    if (debugMode) {
-      return res.status(500).json({ error: 'internal error', details: err && err.message ? err.message : String(err), stack: err && err.stack ? err.stack : null });
-    }
-    return res.status(500).json({ error: 'internal error' });
-  }
-});
-
-// Debug: read the last user create error (temporary) - disabled in production
-/*
-app.get('/api/debug/last-user-error', (req, res) => {
-  if (!lastUserCreateError) return res.status(404).json({ error: 'no error recorded' });
-  return res.json(lastUserCreateError);
-});
-*/
-
-// Atualiza o status Pro do usuário
-app.patch('/api/users/:id/pro', async (req, res) => {
-  const { id } = req.params;
-  const { is_pro } = req.body;
-  if (typeof is_pro === 'undefined') {
-    return res.status(400).json({ error: 'is_pro is required in body' });
-  }
-  if (!pgClient) {
-    return res.status(503).json({ error: 'Database not available' });
-  }
-  try {
-    // Detect column name for is_pro
     let names = [];
     try {
       const cols = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
       names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
-    } catch (e) { names = []; }
-    const isProCol = names.indexOf('is_pro') >= 0 ? 'is_pro' : (names.indexOf('ispro') >= 0 ? 'ispro' : null);
-    if (!isProCol) {
-      return res.status(500).json({ error: 'is_pro column not found in users table' });
+      if (names.indexOf('nome') >= 0) nameCol = 'nome';
+      else if (names.indexOf('name') >= 0) nameCol = 'name';
+      // detect updated timestamp column if present
+      var updatedCol = null;
+      const updatedCandidates = ['atualizado_em','updated_at','updatedat','updated','criado_em'];
+      const foundUpdated = names.find(n => updatedCandidates.indexOf(n) >= 0);
+      if (foundUpdated) updatedCol = foundUpdated;
+    } catch (e) {
+      names = [];
     }
-    const updRes = await pgClient.query(`UPDATE users SET ${isProCol} = $1, atualizado_em = now() WHERE id = $2 OR auth_id = $2 RETURNING id, email, ${isProCol}`, [is_pro, id]);
-    if (updRes.rowCount === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    return res.json({ success: true, user: updRes.rows[0] });
-  } catch (err) {
-    console.error('PATCH /api/users/:id/pro error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
-// Login endpoint
-app.post('/api/auth/login', async (req, res) => {
-  const { email, senha } = req.body || {};
-  if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
-  const normalizedEmail = String(email).trim().toLowerCase();
-  try {
-    if (pgClient) {
-      const selectCols = ['id', 'email', `${userNameColumn} as name`, `${userPasswordColumn} as password_hash`, 'photo_url'];
-      if (userHasIsPro) selectCols.push('is_pro');
-      if (userHasProSince) selectCols.push('pro_since');
-      if (userCreatedAtColumn) selectCols.push(userCreatedAtColumn + ' as created_at');
-        // If the users table includes an auth_id column, include it so the frontend
-        // can detect linked provider accounts (e.g. Google) after password login.
-        if (userHasAuthId) selectCols.push('auth_id');
-      const r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
-      if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
-  const u = r.rows[0];
-  if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
-  const displayName = ((u.name || u.nome) || '').trim();
-    const safe = { id: u.id, email: u.email, name: displayName, nome: displayName };
-      if (userHasIsPro) safe.is_pro = u.is_pro;
-      if (userHasProSince) safe.pro_since = u.pro_since;
-      if (userCreatedAtColumn) safe.created_at = u.created_at;
-        // Expose photo_url and auth_id so frontend can correlate this user with an
-        // external auth provider (e.g. Google) and display a consistent avatar.
-        if (u.photo_url) safe.photoURL = u.photo_url;
-        // Expose auth_id so frontend can correlate this user with an external auth provider
-        // and show connection settings (e.g. Google linked). Also provide a lightweight
-        // providers hint if auth_id is present.
-        if (userHasAuthId && u.auth_id) {
-          safe.auth_id = u.auth_id;
-          safe.providers = ['google'];
-        }
-        // If the row lacks a persisted photo_url but we have an auth_id (provider id),
-        // try to fetch provider avatar from Supabase admin and backfill the users.photo_url
-        // so future password logins display the same avatar as provider logins.
-        try {
-          if (userHasAuthId && u.auth_id && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-            try {
-              const { createClient } = require('@supabase/supabase-js');
-              const supabaseAdmin = createClient(process.env.SUPABASE_URL.replace(/\/$/, ''), process.env.SUPABASE_SERVICE_ROLE_KEY);
-              if (supabaseAdmin && supabaseAdmin.auth && supabaseAdmin.auth.admin && typeof supabaseAdmin.auth.admin.getUserById === 'function') {
-                const adminRes = await supabaseAdmin.auth.admin.getUserById(u.auth_id);
-                if (adminRes && adminRes.data && adminRes.data.user) {
-                  const au = adminRes.data.user;
-                  const candidate = (au.raw_user_meta_data && (au.raw_user_meta_data.picture || au.raw_user_meta_data.avatar_url)) || au.avatar_url || au.picture || null;
-                  // Try to extract a phone/celular from admin user metadata or raw_user_meta_data
-                  try {
-                    const phoneCandidates = [];
-                    if (au.phone) phoneCandidates.push(au.phone);
-                    if (au.phone_number) phoneCandidates.push(au.phone_number);
-                    if (au.user_metadata && au.user_metadata.phone) phoneCandidates.push(au.user_metadata.phone);
-                    if (au.user_metadata && au.user_metadata.celular) phoneCandidates.push(au.user_metadata.celular);
-                    if (au.raw_user_meta_data && au.raw_user_meta_data.phone) phoneCandidates.push(au.raw_user_meta_data.phone);
-                    if (au.raw_user_meta_data && au.raw_user_meta_data.phone_number) phoneCandidates.push(au.raw_user_meta_data.phone_number);
-                    if (au.raw_user_meta_data && au.raw_user_meta_data.celular) phoneCandidates.push(au.raw_user_meta_data.celular);
-                    const foundPhone = phoneCandidates.find(p => p && String(p).trim());
-                    if (foundPhone) safe.celular = String(foundPhone).trim();
-                  } catch (e) { /* ignore phone extraction errors */ }
-                  if (candidate) {
-                    safe.photoURL = candidate;
-                    try {
-                      await pgClient.query('UPDATE users SET photo_url = $1, atualizado_em = now() WHERE id = $2', [candidate, u.id]);
-                      console.log('Backfilled users.photo_url from Supabase admin for user', u.id);
-                    } catch (e) { /* ignore update failure */ }
-                  }
-                }
-              }
-            } catch (e) {
-              console.warn('login: supabase admin lookup for avatar failed', e && e.message ? e.message : e);
-            }
-          }
-        } catch (e) { /* ignore */ }
-        
-        // AUTO-LINK: Try to detect and link accounts with the same email
-        // If this password login is successful but the user doesn't have auth_id,
-        // check if there's another user with the same email that has auth_id
-        console.log(`🔍 DEBUG LOGIN: user=${u.id}, email=${normalizedEmail}, auth_id=${u.auth_id}, userHasAuthId=${userHasAuthId}`);
-        if (!u.auth_id && userHasAuthId) {
-          console.log(`🔄 AUTO-LINK: Attempting auto-link for ${normalizedEmail}`);
-          try {
-            await autoLinkDuplicateAccounts(pgClient, normalizedEmail, u.id);
-          } catch (e) {
-            console.warn('auto-link during login failed:', e && e.message ? e.message : e);
-            // don't fail the login, just log the error
-          }
-        } else {
-          console.log(`⏭️ AUTO-LINK: Skipping auto-link - auth_id=${u.auth_id}, userHasAuthId=${userHasAuthId}`);
-        }
-        
-      return res.json({ success: true, user: safe });
-    }
-    // Try Supabase REST fallback if configured
-    if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
-      try{
-        const origin = req.headers.origin || req.headers.referer || '-';
-        console.log(`[login] request origin=${origin} bodyKeys=${Object.keys(req.body||{}).join(',')}`);
-        const user = await loginUserRest(normalizedEmail, senha);
-        if(user) return res.json({ success: true, user });
-      }catch(e){
-        console.warn('Supabase REST login failed:', e && e.message ? e.message : e);
-        // fallthrough to CSV
-      }
-    }
-    // Fallback to CSV/local data
-    const users = (csvData.users || []).concat([]);
-    const found = users.find(x => String(x.email || '').trim().toLowerCase() === normalizedEmail && String(x.senha || '') === String(senha));
-  if (!found) return res.status(401).json({ error: 'invalid credentials' });
-  const displayNameCsv = ((found.nome || found.name) || '').trim();
-  return res.json({ success: true, user: { id: found.id, email: found.email, name: displayNameCsv, nome: displayNameCsv } });
-  } catch (err) {
-    console.error('Login error:', err.message);
-    return res.status(500).json({ error: 'internal error' });
-  }
-});
+    // Try to find a matching users row by auth_id (or id) first, then by email
+    let targetRow = null;
+    try {
+      const q = `SELECT id FROM users WHERE (auth_id = $1 OR id = $1) LIMIT 1`;
+      const r = await pgClient.query(q, [uid]);
+      if (r && r.rowCount > 0) targetRow = r.rows[0];
+    } catch (e) { /* ignore */ }
 
-// Verify current password (for profile password changes)
-app.post('/api/auth/verify-password', async (req, res) => {
-  const { email, senha } = req.body || {};
-  if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
-  const normalizedEmail = String(email).trim().toLowerCase();
-  try {
-    if (pgClient) {
-      const selectCols = [`${userPasswordColumn} as password_hash`];
-      const r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users WHERE lower(email) = $1`, [normalizedEmail]);
-      if (r.rowCount === 0) return res.status(401).json({ error: 'invalid credentials' });
-      const u = r.rows[0];
-      if (!u.password_hash || !verifyPassword(senha, u.password_hash)) return res.status(401).json({ error: 'invalid credentials' });
-      return res.json({ success: true });
-    }
-    // Try Supabase REST fallback if configured
-    if(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY){
-      try{
-        const user = await loginUserRest(normalizedEmail, senha);
-        if(user) return res.json({ success: true });
-      }catch(e){
-        console.warn('Supabase REST verify-password failed:', e && e.message ? e.message : e);
-      }
-    }
-    // Fallback CSV/local
-    const users = (csvData.users || []).concat([]);
-    const found = users.find(x => String(x.email || '').trim().toLowerCase() === normalizedEmail && String(x.senha || '') === String(senha));
-    if (!found) return res.status(401).json({ error: 'invalid credentials' });
-    return res.json({ success: true });
-  } catch (err) {
-    console.error('Verify password error:', err && err.message ? err.message : err);
-    return res.status(500).json({ error: 'internal error' });
-  }
-});
-
-// Link an existing site account (email+senha) to an OAuth/Supabase auth id.
-// Expected: frontend includes Authorization: Bearer <supabase_access_token> representing the OAuth login
-// and body { email, senha } where email is the existing account email on the site.
-// Behavior: verify the supabase token, verify the provided senha against the users row
-// and update users.auth_id = <supabaseUser.id>. Falls back to Supabase REST when Postgres is not available.
-app.post('/api/auth/link-account', async (req, res) => {
-  try {
-    const { email, senha } = req.body || {};
-    if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
-    // Try to obtain a provider identity from the Authorization header.
-    // Prefer Supabase token first, then fallback to Firebase ID token when available.
-    let supaUser = await getSupabaseUserFromReq(req);
-    // Lazy-init Firebase Admin if present in env to support Firebase ID token verification
-    tryInitFirebaseAdmin();
-    if (!supaUser && firebaseAdmin) {
+    if (!targetRow && email) {
       try {
-        const authHeader = req.headers.authorization || '';
-        const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-        if (idToken) {
-          try {
-            const decoded = await firebaseAdmin.auth().verifyIdToken(idToken);
-            if (decoded && decoded.uid) {
-              supaUser = { id: decoded.uid, email: decoded.email || null, provider: 'firebase' };
-            }
-          } catch (e) {
-            // ignore Firebase verify errors here; we'll handle missing provider below
-          }
-        }
+        const r2 = await pgClient.query('SELECT id FROM users WHERE lower(email) = lower($1) LIMIT 1', [String(email).trim().toLowerCase()]);
+        if (r2 && r2.rowCount > 0) targetRow = r2.rows[0];
       } catch (e) { /* ignore */ }
     }
-    if (!supaUser || !supaUser.id) return res.status(401).json({ error: 'invalid or missing provider access token' });
-    const supaId = supaUser.id;
-    // Normalize emails
-    const providerEmail = supaUser.email ? String(supaUser.email).trim().toLowerCase() : null;
-    const requestedEmail = String(email).trim().toLowerCase();
-    // The email we will actually attempt to link (may be the requestedEmail or auto-switched to providerEmail)
-    let normalizedEmail = requestedEmail;
 
-    // If provider token contains an email that differs from the provided email, try a secure auto-match:
-    //  - If a local account exists for the provider email, verify the provided senha against that account.
-    //  - If password verifies, link that account (providerEmail) instead of the requestedEmail.
-    // This keeps the flow secure (requires knowledge of the local password) while avoiding manual copy/paste mistakes.
-    if (providerEmail && providerEmail !== requestedEmail) {
-      try { pushLinkAudit({ stage: 'provider-email-mismatch', requestedEmail, providerEmail }); } catch(e){}
-      // First: if the caller supplied the password for the requestedEmail, allow linking the provider to that requestedEmail
-      // (user proved ownership by providing the local password). If that verifies, we'll continue with normalizedEmail = requestedEmail.
-      if (pgClient) {
+    if (!targetRow) {
+      // No existing row to sync to. Optionally auto-create a users row when the
+      // environment enables it (opt-in): SUPABASE_WEBHOOK_AUTO_CREATE=true
+      const autoCreate = String(process.env.SUPABASE_WEBHOOK_AUTO_CREATE || '').toLowerCase();
+      if (autoCreate === 'true' || autoCreate === '1') {
         try {
-          const selReq = await pgClient.query(`SELECT id, email, ${userPasswordColumn} as password_hash, auth_id FROM users WHERE lower(email) = $1 LIMIT 1`, [requestedEmail]);
-          if (selReq.rowCount > 0) {
-            const reqRow = selReq.rows[0];
-            if (reqRow.password_hash && verifyPassword(senha, reqRow.password_hash)) {
-              // Password matches the requestedEmail account: proceed to link that account
-              normalizedEmail = requestedEmail;
-              pushLinkAudit({ stage: 'requested-email-password-match', requestedEmail, providerEmail, userId: reqRow.id });
-              // skip provider-email auto-match logic
-            }
+          const insertCols = [];
+          const insertVals = [];
+          const insertParams = [];
+          let pidx = 1;
+
+          if (names.length === 0 || names.indexOf('auth_id') >= 0) { insertCols.push('auth_id'); insertVals.push(`$${pidx++}`); insertParams.push(uid); }
+          if (email && (names.length === 0 || names.indexOf('email') >= 0)) { insertCols.push('email'); insertVals.push(`$${pidx++}`); insertParams.push(String(email).trim().toLowerCase()); }
+          if (candidateName && (names.length === 0 || names.indexOf(nameCol) >= 0)) { insertCols.push(nameCol); insertVals.push(`$${pidx++}`); insertParams.push(candidateName); }
+          if (candidatePhoto && (names.length === 0 || names.indexOf('photo_url') >= 0)) { insertCols.push('photo_url'); insertVals.push(`$${pidx++}`); insertParams.push(candidatePhoto); }
+          if (foundPhone && (names.length === 0 || names.indexOf('celular') >= 0 || names.indexOf('telefone') >= 0 || names.indexOf('phone') >= 0)) {
+            const phoneCol = (names.length === 0) ? 'celular' : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || 'celular');
+            insertCols.push(phoneCol); insertVals.push(`$${pidx++}`); insertParams.push(String(foundPhone).trim());
+          }
+
+          if (insertCols.length === 0) {
+            return res.json({ ok: true, message: 'no writable columns present to create' });
+          }
+
+          const insertSql = `INSERT INTO users (${insertCols.join(',')}) VALUES (${insertVals.join(',')}) RETURNING id`;
+          const created = await pgClient.query(insertSql, insertParams);
+          if (created && created.rowCount > 0) {
+            console.log('supabase-webhook: created users row', created.rows[0].id, 'for uid', uid);
+            return res.json({ ok: true, id: created.rows[0].id, created: true });
           }
         } catch (e) {
-          console.error('link-account: requested-email verify pg error', e && e.message ? e.message : e);
-          pushLinkAudit({ stage: 'requested-email-pg-exception', requestedEmail, error: e && e.message ? e.message : String(e) });
-          return res.status(500).json({ error: 'internal error' });
-        }
-      } else if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        try {
-          const matchedReq = await loginUserRest(requestedEmail, senha);
-          if (matchedReq) {
-            normalizedEmail = requestedEmail;
-            pushLinkAudit({ stage: 'requested-email-password-match-rest', requestedEmail, providerEmail, userId: matchedReq.id });
-          }
-        } catch (e) {
-          console.error('link-account: requested-email auto-verify rest error', e && e.message ? e.message : e);
-          pushLinkAudit({ stage: 'requested-email-rest-exception', requestedEmail, error: e && e.message ? e.message : String(e) });
-          return res.status(500).json({ error: 'internal error' });
+          console.error('supabase-webhook: create failed', e && e.message ? e.message : e);
+          return res.status(500).json({ error: 'create failed' });
         }
       }
 
-      // If normalizedEmail is still the requestedEmail and password matched above, skip provider-email auto-match.
-      if (normalizedEmail !== requestedEmail) {
-        // If Postgres is available, check the providerEmail account and verify provided senha against it
-        if (pgClient) {
-          try {
-            const selProv = await pgClient.query(`SELECT id, email, ${userPasswordColumn} as password_hash, auth_id FROM users WHERE lower(email) = $1 LIMIT 1`, [providerEmail]);
-            if (selProv.rowCount === 0) {
-              pushLinkAudit({ stage: 'provider-email-no-local', providerEmail, requestedEmail });
-              return res.status(400).json({ error: 'provider token email does not match provided email', providerEmail });
-            }
-            const provRow = selProv.rows[0];
-            if (!provRow.password_hash || !verifyPassword(senha, provRow.password_hash)) {
-              pushLinkAudit({ stage: 'provider-email-password-mismatch', providerEmail, requestedEmail, userId: provRow.id });
-              return res.status(401).json({ error: 'invalid credentials for account matching provider email', providerEmail });
-            }
-            // Password matches the account that owns the provider email: switch to that account and continue
-            normalizedEmail = providerEmail;
-            pushLinkAudit({ stage: 'provider-email-auto-match', providerEmail, requestedEmail, userId: provRow.id });
-          } catch (e) {
-            console.error('link-account: provider-email auto-match pg error', e && e.message ? e.message : e);
-            pushLinkAudit({ stage: 'provider-email-pg-exception', providerEmail, error: e && e.message ? e.message : String(e) });
-            return res.status(500).json({ error: 'internal error' });
-          }
-        } else if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-          // Use Supabase REST fallback to validate credentials for providerEmail
-          try {
-            const matched = await loginUserRest(providerEmail, senha);
-            if (!matched) {
-              pushLinkAudit({ stage: 'provider-email-rest-no-match', providerEmail, requestedEmail });
-              return res.status(401).json({ error: 'invalid credentials for account matching provider email', providerEmail });
-            }
-            normalizedEmail = providerEmail;
-            pushLinkAudit({ stage: 'provider-email-auto-match-rest', providerEmail, requestedEmail, userId: matched.id });
-          } catch (e) {
-            console.error('link-account: provider-email auto-match rest error', e && e.message ? e.message : e);
-            pushLinkAudit({ stage: 'provider-email-rest-exception', providerEmail, error: e && e.message ? e.message : String(e) });
-            return res.status(500).json({ error: 'internal error' });
-          }
-        } else {
-          // No DB available to validate the provider email account -> cannot safely auto-match
-          pushLinkAudit({ stage: 'provider-email-mismatch-no-db', providerEmail, requestedEmail });
-          return res.status(400).json({ error: 'provider token email does not match provided email' });
-        }
+      // No create requested or create not possible/failed — no-op
+      return res.json({ ok: true, message: 'no matching users row found to sync (no-op)' });
+    }
+
+    // Read current values to avoid overwriting existing user data
+    let current = null;
+    try {
+      const selCols = [];
+      selCols.push('id');
+      if (names.length === 0 || names.indexOf('auth_id') >= 0) selCols.push('auth_id');
+      if (names.length === 0 || names.indexOf(nameCol) >= 0) selCols.push(nameCol);
+      if (names.length === 0 || names.indexOf('photo_url') >= 0) selCols.push('photo_url');
+      // phone/email if present
+      if (names.length === 0 || names.indexOf('email') >= 0) selCols.push('email');
+      const phoneCol = (names.length === 0) ? null : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || null);
+      if (phoneCol) selCols.push(phoneCol);
+      if (updatedCol) selCols.push(updatedCol);
+      const curQ = `SELECT ${selCols.join(', ')} FROM users WHERE id = $1 LIMIT 1`;
+      const curR = await pgClient.query(curQ, [targetRow.id]);
+      if (curR && curR.rowCount > 0) current = curR.rows[0];
+    } catch (e) {
+      console.warn('supabase-webhook: could not read current user row, proceeding with cautious updates', e && e.message ? e.message : e);
+    }
+
+    // Honor optional force-sync env var to overwrite existing values when true
+    const forceSync = String(process.env.SUPABASE_WEBHOOK_FORCE_SYNC || '').toLowerCase() === 'true';
+
+    // Determine timestamps: Supabase update time vs current DB updated time (if available)
+    let supaUpdated = null;
+    try {
+      const cand = [u.updated_at, (u.user_metadata && u.user_metadata.updated_at), u.confirmed_at, u.last_sign_in_at, u.created_at, payload.event_at, payload.time];
+      for (const s of cand) {
+        if (!s) continue;
+        const d = new Date(s);
+        if (!isNaN(d)) { supaUpdated = d; break; }
+      }
+    } catch (e) { supaUpdated = null; }
+
+    let curUpdated = null;
+    try {
+      if (updatedCol && current && current[updatedCol]){
+        const d = new Date(current[updatedCol]); if (!isNaN(d)) curUpdated = d;
+      }
+    } catch (e) { curUpdated = null; }
+
+    // Build update set for detected columns but only when missing or empty to avoid overwriting
+    const updates = [];
+    const params = [];
+    let idx = 1;
+
+    // Ensure auth_id exists/updated if missing or forceSync
+    if ((names.length === 0 || names.indexOf('auth_id') >= 0) && (forceSync || !current || !current.auth_id || (supaUpdated && curUpdated && supaUpdated > curUpdated))) {
+      updates.push(`auth_id = $${idx++}`);
+      params.push(uid);
+    }
+
+    // Only set name if candidate present AND current name is missing/empty, or if forceSync
+    if (candidateName && (names.length === 0 || names.indexOf(nameCol) >= 0)) {
+      const curName = current && (current[nameCol] || current.name) ? String(current[nameCol] || current.name).trim() : '';
+      if (forceSync || !curName || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
+        updates.push(`${nameCol} = $${idx++}`);
+        params.push(candidateName);
       }
     }
 
-  console.info(`link-account: request for email=${String(email).toLowerCase()} providerId=${supaUser && supaUser.id ? supaUser.id : '<none>'} pgClient=${!!pgClient}`);
-  // record audit
-  try { pushLinkAudit({ stage: 'received', email: String(email).toLowerCase(), providerId: supaUser && supaUser.id ? supaUser.id : null, pgClient: !!pgClient }); } catch(e){}
-    // If Postgres is available, verify password and set auth_id there.
-    if (pgClient) {
-      try {
-        // select password hash and id and current auth_id
-        const sel = await pgClient.query(`SELECT id, email, ${userPasswordColumn} as password_hash, auth_id FROM users WHERE lower(email) = $1 LIMIT 1`, [normalizedEmail]);
-        if (sel.rowCount === 0) {
-          pushLinkAudit({ stage: 'pg-no-local', email: normalizedEmail });
-          return res.status(404).json({ error: 'no local account with provided email' });
-        }
-        const row = sel.rows[0];
-        if (!row.password_hash || !verifyPassword(senha, row.password_hash)) {
-          pushLinkAudit({ stage: 'pg-invalid-credentials', email: normalizedEmail, userId: row && row.id ? row.id : null });
-          return res.status(401).json({ error: 'invalid credentials' });
-        }
-        if (row.auth_id && String(row.auth_id) !== String(supaId)) {
-          console.warn(`link-account: conflict - existing auth_id=${row.auth_id} for user=${row.id}`);
-          pushLinkAudit({ stage: 'pg-conflict', email: normalizedEmail, userId: row.id, existingAuthId: row.auth_id });
-          return res.status(409).json({ error: 'account already linked to different auth id' });
-        }
-        // all good: set auth_id
-        try {
-          await pgClient.query('UPDATE users SET auth_id = $1, atualizado_em = now() WHERE id = $2', [supaId, row.id]);
-        } catch (e) {
-          console.warn('link-account: failed to update users.auth_id', e && e.message ? e.message : e);
-          pushLinkAudit({ stage: 'pg-update-failed', email: normalizedEmail, userId: row.id, error: e && e.message ? e.message : String(e) });
-          return res.status(500).json({ error: 'failed to link account' });
-        }
-        console.log(`link-account: linked local user ${row.id} to provider id ${supaId}`);
-        pushLinkAudit({ stage: 'pg-success', email: normalizedEmail, userId: row.id, linkedTo: supaId });
-        return res.json({ success: true, id: row.id, linkedTo: supaId });
-      } catch (e) {
-        console.error('link-account error (pg):', e && e.message ? e.message : e);
-        pushLinkAudit({ stage: 'pg-exception', email: normalizedEmail, error: e && e.message ? e.message : String(e) });
-        return res.status(500).json({ error: 'internal error' });
+    // Only set photo if candidate present AND current photo is missing/empty, or if forceSync
+    if (candidatePhoto && (names.length === 0 || names.indexOf('photo_url') >= 0)) {
+      const curPhoto = current && current.photo_url ? String(current.photo_url).trim() : '';
+      if (forceSync || !curPhoto || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
+        updates.push(`photo_url = $${idx++}`);
+        params.push(candidatePhoto);
       }
     }
 
-    // If Postgres is not available, try Supabase REST fallback: verify password via loginUserRest and then PATCH user row to set auth_id
-    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      try {
-        console.info('link-account: pgClient not available, attempting Supabase REST fallback');
-        const matched = await loginUserRest(normalizedEmail, senha);
-        if (!matched) {
-          console.info('link-account: REST fallback did not find matching user or password invalid');
-          pushLinkAudit({ stage: 'rest-no-match', email: normalizedEmail });
-          return res.status(401).json({ error: 'invalid credentials' });
-        }
-        // matched contains id (row id). Update via REST
-        try {
-          const updated = await updateUserRest({ id: matched.id, nome: undefined, email: undefined, celular: undefined, novaSenha: undefined, passwordColumn: userPasswordColumn });
-          // updateUserRest doesn't currently support auth_id set; perform direct REST PATCH for auth_id
-        } catch (e) {
-          // ignore: we'll attempt explicit PATCH below
-        }
-        // PATCH to set auth_id using PostgREST
-        const base = process.env.SUPABASE_URL.replace(/\/$/, '');
-        const url = `${base}/rest/v1/users?id=eq.${encodeURIComponent(String(matched.id))}`;
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        const patchBody = { auth_id: supaId };
-  console.info('link-account: attempting REST PATCH to set auth_id for users.id=', matched.id);
-  pushLinkAudit({ stage: 'rest-patch', email: normalizedEmail, usersId: matched.id, providerId: supaId });
-        const resp = await fetch(url, {
-          method: 'PATCH',
-          headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-          body: JSON.stringify(patchBody)
-        });
-        const text = await resp.text();
-        if (!resp.ok) {
-          try { const j = JSON.parse(text); console.warn('link-account REST patch failed:', j); pushLinkAudit({ stage: 'rest-patch-failed', email: normalizedEmail, usersId: matched.id, status: resp.status, body: j }); } catch(e) { console.warn('link-account REST patch failed, status', resp.status, 'text', text); pushLinkAudit({ stage: 'rest-patch-failed', email: normalizedEmail, usersId: matched.id, status: resp.status, body: text }); }
-          return res.status(500).json({ error: 'failed to link via REST' });
-        }
-        try { const j = JSON.parse(text); console.info('link-account REST patch succeeded', j && j[0] ? j[0].id : matched.id); pushLinkAudit({ stage: 'rest-success', email: normalizedEmail, usersId: matched.id, updatedRow: j && j[0] ? j[0] : null }); return res.json({ success: true, id: matched.id, linkedTo: supaId, updatedRow: j[0] }); } catch(e) { console.info('link-account REST patch succeeded for id', matched.id); pushLinkAudit({ stage: 'rest-success', email: normalizedEmail, usersId: matched.id }); return res.json({ success: true, id: matched.id, linkedTo: supaId }); }
-      } catch (e) {
-        console.error('link-account REST fallback failed:', e && e.message ? e.message : e);
-        pushLinkAudit({ stage: 'rest-exception', email: normalizedEmail, error: e && e.message ? e.message : String(e) });
-        return res.status(500).json({ error: 'internal error' });
+    // Phone
+    if (foundPhone && (names.length === 0 || names.indexOf('celular') >= 0 || names.indexOf('telefone') >= 0 || names.indexOf('phone') >= 0)) {
+      const phoneColName = (names.length === 0) ? 'celular' : (['celular','telefone','phone'].find(c => names.indexOf(c) >= 0) || 'celular');
+      const curPhone = current && current[phoneColName] ? String(current[phoneColName]).trim() : '';
+      if (forceSync || !curPhone || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
+        updates.push(`${phoneColName} = $${idx++}`);
+        params.push(String(foundPhone).trim());
       }
     }
 
-    return res.status(503).json({ error: 'no database available to perform link' });
+    // Email: if forceSync or target row has no email, set it
+    if (email && (names.length === 0 || names.indexOf('email') >= 0)) {
+      const curEmail = current && current.email ? String(current.email).trim() : '';
+      if (forceSync || !curEmail || (supaUpdated && curUpdated && supaUpdated > curUpdated)) {
+        updates.push(`email = $${idx++}`);
+        params.push(String(email).trim().toLowerCase());
+      }
+    }
+
+    if (updates.length === 0) return res.json({ ok: true, message: 'no writable columns present to update (nothing to change)' });
+
+    // Finalize update SQL
+    const updateSql = `UPDATE users SET ${updates.join(', ')}, atualizado_em = now() WHERE id = $${idx}`;
+    params.push(targetRow.id);
+    try {
+      await pgClient.query(updateSql, params);
+    } catch (e) {
+      console.error('supabase-webhook: update failed', e && e.message ? e.message : e);
+      return res.status(500).json({ error: 'update failed' });
+    }
+
+    return res.json({ ok: true, id: targetRow.id });
   } catch (err) {
-    console.error('link-account unexpected error:', err && err.stack ? err.stack : err);
-    return res.status(500).json({ error: 'internal error' });
+    console.error('supabase-webhook error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ error: 'internal' });
   }
 });
 
-// ============ NOVOS ENDPOINTS PARA MIGRAÇÃO DB ============
-
-// Endpoints de Guias
-app.get('/api/guias', async (req, res) => {
-  if(pgClient){
-    try{
-      const result = await pgClient.query('SELECT * FROM guias WHERE status = $1 ORDER BY criado_em DESC', ['ativo']);
-      // Map snake_case DB columns to camelCase keys expected by frontend
-      const mapped = result.rows.map(row => {
-        const r = snakeToCamelKeys(row);
-        // also normalize nested JSON fields if any (keep as-is for now)
-        return r;
-      });
-      return res.json(mapped);
-    }catch(err){ console.error('PG query failed /api/guias:', err.message); }
-  }
-  // Fallback para JSON local
-  const guiasPath = path.join(__dirname, '..', 'data', 'guias.json');
-  if(fs.existsSync(guiasPath)){
-    const guias = JSON.parse(fs.readFileSync(guiasPath, 'utf8'));
-    return res.json(guias);
-  }
-  res.json([]);
-});
-
-// Note: temporary debug endpoints removed. Use normal /api/guias and server logs for diagnosis.
-
-app.post('/api/guias', async (req, res) => {
-  const guia = req.body;
-  // Log minimal info about incoming payload (avoid writing debug files in production)
+// Endpoint para validar token de redefinição de senha
+app.get('/api/validate-reset-token', async (req, res) => {
   try {
-    console.info('Received POST /api/guias id=%s autor=%s', guia && guia.id ? guia.id : '(no-id)', guia && guia.autorEmail ? guia.autorEmail : '(no-author)');
-  } catch(e) { console.warn('Failed to log incoming guia payload:', e && e.message ? e.message : e); }
-  if(pgClient){
-    try{
-      const id = guia.id || `guia_${Date.now()}`;
-      const insertSql = `INSERT INTO guias(id, autor_email, titulo, descricao, categoria, conteudo, imagem, criado_em, atualizado_em, status)
-         VALUES($1, $2, $3, $4, $5, $6, $7, now(), now(), $8) RETURNING *`;
-      const result = await pgClient.query(insertSql, [id, guia.autorEmail, guia.titulo, guia.descricao, guia.categoria, guia.conteudo, guia.imagem || null, guia.status || 'ativo']);
-      const created = result.rows && result.rows[0] ? snakeToCamelKeys(result.rows[0]) : { id };
-      return res.json({ success: true, id, guia: created });
-    }catch(err){ 
-      console.error('Error creating guia:', err.message); 
-      return res.status(500).json({ error: err.message }); 
-    }
-  }
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-// Debug logs file endpoint removed.
-
-app.put('/api/guias/:id', async (req, res) => {
-  const { id } = req.params;
-  const guia = req.body;
-  if(pgClient){
-    try{
-      await pgClient.query(
-        `UPDATE guias SET titulo=$1, descricao=$2, categoria=$3, conteudo=$4, imagem=$5, atualizado_em=now() WHERE id=$6`,
-        [guia.titulo, guia.descricao, guia.categoria, guia.conteudo, guia.imagem, id]
-      );
-      return res.json({ success: true });
-    }catch(err){ 
-      console.error('Error updating guia:', err.message); 
-      return res.status(500).json({ error: err.message }); 
-    }
-  }
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-app.delete('/api/guias/:id', async (req, res) => {
-  const { id } = req.params;
-  if(pgClient){
-    try{
-      await pgClient.query('UPDATE guias SET status=$1 WHERE id=$2', ['inativo', id]);
-      return res.json({ success: true });
-    }catch(err){ 
-      console.error('Error deleting guia:', err.message); 
-      return res.status(500).json({ error: err.message }); 
-    }
-  }
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-// Adicionar avaliação a um guia: aceita { userEmail, rating }
-app.post('/api/guias/:id/ratings', async (req, res) => {
-  const { id } = req.params;
-  const { userEmail, rating } = req.body || {};
-  if (!userEmail || typeof rating !== 'number') {
-    return res.status(400).json({ error: 'userEmail and numeric rating are required' });
-  }
-
-  if (pgClient) {
-    try {
-      // Prefer normalized storage: insert/update into guia_ratings table
-      const upsertSql = `
-        INSERT INTO guia_ratings (guia_id, user_email, rating, comment, created_at)
-        VALUES ($1, $2, $3, $4, now())
-        ON CONFLICT (guia_id, user_email) DO UPDATE SET rating = EXCLUDED.rating, comment = EXCLUDED.comment, created_at = now()
-        RETURNING *
-      `;
-      await pgClient.query(upsertSql, [id, userEmail, rating, null]);
-
-      // Return aggregate info (total count and average) and optionally guia info
-      const agg = await pgClient.query('SELECT COUNT(*)::int AS total, COALESCE(AVG(rating)::numeric, 0) AS average FROM guia_ratings WHERE guia_id = $1', [id]);
-      const total = agg.rows[0] ? agg.rows[0].total : 0;
-      const average = agg.rows[0] ? Number(agg.rows[0].average) : 0;
-      return res.json({ success: true, guiaId: id, ratings: { total, average } });
-    } catch (err) {
-      console.error('Error adding rating to guia:', err && err.message ? err.message : err);
-      return res.status(500).json({ error: err && err.message ? err.message : String(err) });
-    }
-  }
-
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-// Alternative ratings endpoint that accepts guiaId in the request body.
-// Some clients (or older frontends) may POST to /api/guias/ratings with { guiaId, userEmail, rating }.
-app.post('/api/guias/ratings', async (req, res) => {
-  const { guiaId, userEmail, rating } = req.body || {};
-  if (!guiaId || !userEmail || typeof rating !== 'number') {
-    return res.status(400).json({ error: 'guiaId, userEmail and numeric rating are required' });
-  }
-
-  // Reuse same logic as the path-based handler
-  if (pgClient) {
-    try {
-      const result = await pgClient.query('SELECT ratings FROM guias WHERE id = $1', [guiaId]);
-      const existing = result && result.rows && result.rows[0] ? result.rows[0].ratings || [] : [];
-      const filtered = (existing || []).filter(r => String(r.userEmail || '').toLowerCase() !== String(userEmail).toLowerCase());
-      const novo = { userEmail, rating, timestamp: new Date().toISOString() };
-      filtered.push(novo);
-      const upd = await pgClient.query('UPDATE guias SET ratings = $1 WHERE id = $2 RETURNING *', [JSON.stringify(filtered), guiaId]);
-      const updated = upd && upd.rows && upd.rows[0] ? snakeToCamelKeys(upd.rows[0]) : null;
-      return res.json({ success: true, guia: updated });
-    } catch (err) {
-      console.error('Error adding rating to guia (body-based):', err && err.message ? err.message : err);
-      return res.status(500).json({ error: err && err.message ? err.message : String(err) });
-    }
-  }
-
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-// TEMP DEBUG: check DB connection and quick guias sampling
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/api/debug/check-guia-db', async (req, res) => {
-    try {
-      const status = { pgClient: !!pgClient };
-      if (!pgClient) return res.json({ ...status, msg: 'pgClient not available' });
-
-      const countRes = await pgClient.query('SELECT count(*) as cnt FROM guias');
-      const cnt = countRes && countRes.rows && countRes.rows[0] ? Number(countRes.rows[0].cnt) : null;
-      const sample = await pgClient.query('SELECT id, autor_email, titulo, status, criado_em FROM guias ORDER BY criado_em DESC LIMIT 10');
-      return res.json({ ...status, count: cnt, sample: sample.rows });
-    } catch (err) {
-      console.error('debug check-guia-db failed:', err && err.message ? err.message : err);
-      return res.status(500).json({ error: err && err.message ? err.message : String(err) });
-    }
-  });
-}
-
-// Temporary debug: return user row for given email (safe only for local/dev).
-// SOLUÇÃO DEFINITIVA - Corrige TODOS os problemas de sincronização
-app.post('/api/debug/fix-sync-now', async (req, res) => {
-  try {
-    const results = { 
-      fixes: [],
-      errors: [],
-      finalState: {},
-      success: false
-    };
-    
-    // 1. CORRIGIR NOME - Atualizar para capitalizado no banco
-    if (pgClient) {
-      try {
-        const nameFixQuery = `
-          UPDATE users 
-          SET nome = 'Lúcio Freitas', atualizado_em = now()
-          WHERE LOWER(email) = 'luciodfp@gmail.com'
-        `;
-        const nameFixResult = await pgClient.query(nameFixQuery);
-        results.fixes.push(`Nome corrigido para ${nameFixResult.rowCount} usuário(s)`);
-      } catch (e) {
-        results.errors.push('Erro ao corrigir nome: ' + e.message);
-      }
-      
-      // 2. GARANTIR INTEGRIDADE DOS CARROS
-      try {
-        // Verificar se há carros órfãos ou duplicados
-        const carIntegrityQuery = `
-          SELECT 
-            (SELECT COUNT(*) FROM cars WHERE user_id = 'BpIVI83MOqfqEJdCgDKYSjDpNZr1') as main_user_cars,
-            (SELECT COUNT(*) FROM cars c WHERE NOT EXISTS (SELECT 1 FROM users u WHERE u.id = c.user_id)) as orphan_cars,
-            (SELECT COUNT(DISTINCT user_id) FROM cars) as unique_car_owners
-        `;
-        const integrityResult = await pgClient.query(carIntegrityQuery);
-        const integrity = integrityResult.rows[0];
-        
-        results.finalState = {
-          mainUserCars: integrity.main_user_cars,
-          orphanCars: integrity.orphan_cars,
-          uniqueCarOwners: integrity.unique_car_owners
-        };
-        
-        // Se não há carros no usuário principal, mas há carros órfãos, migrar todos
-        if (integrity.main_user_cars === '0' && integrity.orphan_cars > 0) {
-          const migrateOrphansQuery = `
-            UPDATE cars 
-            SET user_id = 'BpIVI83MOqfqEJdCgDKYSjDpNZr1'
-            WHERE user_id NOT IN (SELECT id FROM users)
-          `;
-          const migrateResult = await pgClient.query(migrateOrphansQuery);
-          results.fixes.push(`${migrateResult.rowCount} carros órfãos migrados`);
-        }
-        
-        results.fixes.push('Integridade dos carros verificada');
-      } catch (e) {
-        results.errors.push('Erro ao verificar carros: ' + e.message);
-      }
-    } else {
-      results.errors.push('PostgreSQL não disponível');
-    }
-    
-    // 3. FORÇAR CACHE REFRESH (limpar possíveis caches do frontend)
-    results.cacheRefresh = {
-      timestamp: Date.now(),
-      instructions: 'Execute localStorage.clear() no console do navegador'
-    };
-    
-    results.success = results.errors.length === 0;
-    return res.json(results);
-    
-  } catch (error) {
-    return res.status(500).json({ 
-      error: error.message,
-      success: false 
-    });
-  }
-});
-
-// Debug endpoint to check all cars in database
-app.get('/api/debug/all-cars', async (req, res) => {
-  try {
+    const token = req.query && req.query.token ? String(req.query.token).trim() : null;
+    if (!token) return res.status(400).json({ error: 'token required' });
     if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
-    
-    const result = await pgClient.query(`
-      SELECT c.*, u.email as user_email, u.nome as user_name
-      FROM cars c 
-      LEFT JOIN users u ON c.user_id = u.id
-      ORDER BY c.created_at DESC
-    `);
-    
-    return res.json({ 
-      cars: result.rows,
-      total: result.rowCount 
-    });
-  } catch (err) {
-    console.error('Debug all-cars error:', err);
-    return res.status(500).json({ error: err.message });
+    const q = `SELECT * FROM reset_password_tokens WHERE token = $1 LIMIT 1`;
+    const r = await pgClient.query(q, [token]);
+    if (r.rowCount === 0) return res.status(400).json({ error: 'invalid token' });
+    const info = r.rows[0];
+    if (info.used) return res.status(400).json({ error: 'token already used' });
+    if (new Date(info.expires_at) < new Date()) return res.status(400).json({ error: 'token expired' });
+    return res.json({ ok: true, email: info.email });
+  } catch (e) {
+    console.error('/api/validate-reset-token failed', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
   }
 });
 
-// Debug endpoint to check duplicate users
-app.get('/api/debug/users-by-email', async (req, res) => {
+// Aceita POST também para validar token de redefinição de senha
+app.post('/api/validate-reset-token', async (req, res) => {
   try {
-    const email = req.query.email && String(req.query.email).trim();
-    if (!email) return res.status(400).json({ error: 'email query required' });
+    const token = req.body && req.body.token ? String(req.body.token).trim() : null;
+    if (!token) return res.status(400).json({ error: 'token required' });
     if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
-    
-    const result = await pgClient.query(`
-      SELECT id, email, auth_id, criado_em, nome,
-             (SELECT COUNT(*) FROM cars WHERE user_id = users.id) as car_count
-      FROM users 
-      WHERE LOWER(email) = LOWER($1)
-      ORDER BY auth_id IS NOT NULL DESC, criado_em ASC
-    `, [email]);
-    
-    return res.json({ 
-      email, 
-      users: result.rows,
-      total: result.rowCount 
-    });
-  } catch (err) {
-    console.error('Debug users-by-email error:', err);
-    return res.status(500).json({ error: err.message });
-  }
-});
-
-// Use: GET /api/debug/user-by-email?email=seu@exemplo.com
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/api/debug/user-by-email', async (req, res) => {
-    try {
-      const email = req.query.email && String(req.query.email).trim();
-      if (!email) return res.status(400).json({ error: 'email query required' });
-      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
-      const cols = ['id', 'email', 'photo_url'];
-      if (userHasAuthId) cols.push('auth_id');
-      // Detect optional phone column (celular, telefone, phone) and include it if present
-      try {
-        const colsInfo = await pgClient.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
-        const names = (colsInfo.rows || []).map(r => String(r.column_name).toLowerCase());
-        const phoneCandidates = ['celular', 'telefone', 'phone'];
-        const phoneCol = phoneCandidates.find(c => names.indexOf(c) >= 0) || null;
-        if (phoneCol) cols.push(phoneCol);
-      } catch (e) { /* ignore detection errors */ }
-      cols.push(userPasswordColumn + ' as password_hash');
-      const q = `SELECT ${cols.join(', ')} FROM users WHERE lower(email) = lower($1) LIMIT 1`;
-      const r = await pgClient.query(q, [email]);
-      if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
-      const row = r.rows[0];
-      return res.json({ ok: true, row });
-    } catch (e) {
-      console.error('/api/debug/user-by-email failed', e && e.message ? e.message : e);
-      return res.status(500).json({ error: 'internal' });
-    }
-  });
-
-  // Dev-only: generate a temporary reset token and a temporary password for an email.
-  // Returns the token and tempPassword in the response (for local development only).
-  // Use: POST /api/debug/dev-generate-reset  { email: '...' }
-  app.post('/api/debug/dev-generate-reset', async (req, res) => {
-    try {
-      if (!isDebugRequest(req)) return res.status(403).json({ error: 'forbidden' });
-      const email = req.body && req.body.email ? String(req.body.email).trim().toLowerCase() : null;
-      if (!email) return res.status(400).json({ error: 'email required' });
-      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
-      const cols = ['id', 'email'];
-      const q = `SELECT ${cols.join(', ')} FROM users WHERE lower(email) = lower($1) LIMIT 1`;
-      const r = await pgClient.query(q, [email]);
-      if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
-      const row = r.rows[0];
-      const token = crypto.randomBytes(16).toString('hex');
-      const tempPassword = crypto.randomBytes(6).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0,10) || 'devTemp1';
-      // Expiração em 15 minutos
-      const expiresAt = new Date(Date.now() + (1000 * 60 * 15));
-      // Salva o token no banco
-      const insertQ = `INSERT INTO reset_password_tokens (user_id, email, token, expires_at, used, created_at) VALUES ($1, $2, $3, $4, false, NOW()) RETURNING id`;
-      await pgClient.query(insertQ, [row.id, row.email, token, expiresAt]);
-      return res.json({ ok: true, token, tempPassword, expiresAt });
-    } catch (e) {
-      console.error('/api/debug/dev-generate-reset failed', e && e.message ? e.message : e);
-      return res.status(500).json({ error: 'internal' });
-    }
-  });
-
-  // Public endpoint to reset password using a token (works in dev when token was generated).
-  // Use: POST /api/auth/reset-password { token: '...', novaSenha: '...' }
-  app.post('/api/auth/reset-password', async (req, res) => {
-    try {
-      const token = req.body && req.body.token ? String(req.body.token).trim() : null;
-      const novaSenha = req.body && req.body.novaSenha ? String(req.body.novaSenha) : null;
-      if (!token || !novaSenha) return res.status(400).json({ error: 'token and novaSenha required' });
-      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
-      // Busca o token no banco
-      const q = `SELECT * FROM reset_password_tokens WHERE token = $1 LIMIT 1`;
-      const r = await pgClient.query(q, [token]);
-      if (r.rowCount === 0) return res.status(400).json({ error: 'invalid token' });
-      const info = r.rows[0];
-      if (info.used) return res.status(400).json({ error: 'token already used' });
-      if (new Date(info.expires_at) < new Date()) return res.status(400).json({ error: 'token expired' });
-      const userId = info.user_id;
-      if (!userId) return res.status(400).json({ error: 'invalid token payload' });
-      // Atualiza a senha do usuário
-      try {
-        const hashed = hashPassword(novaSenha);
-        const col = userPasswordColumn || 'password_hash';
-        const upd = `UPDATE users SET ${col} = $1, atualizado_em = now() WHERE id = $2 RETURNING id, email`;
-        const r2 = await pgClient.query(upd, [hashed, userId]);
-        if (r2.rowCount === 0) return res.status(404).json({ error: 'not found' });
-        // Marca o token como usado
-        await pgClient.query(`UPDATE reset_password_tokens SET used = true WHERE id = $1`, [info.id]);
-        return res.json({ ok: true, id: r2.rows[0].id, email: r2.rows[0].email });
-      } catch (e) {
-        console.error('/api/auth/reset-password failed', e && e.message ? e.message : e);
-        return res.status(500).json({ error: 'internal' });
-      }
-    } catch (e) {
-      console.error('/api/auth/reset-password outer failed', e && e.message ? e.message : e);
-      return res.status(500).json({ error: 'internal' });
-    }
-  });
-}
-
-// Temporary debug helper: echo headers and body when X-Debug-Key is provided.
-// This endpoint is intentionally minimal and should be removed after diagnosis.
-if (process.env.NODE_ENV !== 'production') {
-  app.post('/api/debug/echo-headers', (req, res) => {
-    try {
-      const key = String(req.headers['x-debug-key'] || '');
-      if (key !== 'let-me-debug') return res.status(403).json({ error: 'forbidden' });
-      // Return headers and parsed JSON body for debugging
-      return res.json({ headers: req.headers, body: req.body });
-    } catch (e) {
-      return res.status(500).json({ error: 'internal' });
-    }
-  });
-}
-
-// Debug: check DB connectivity from the running backend.
-// This endpoint is disabled in production unless ALLOW_DEBUG=true is set in env.
-app.get('/api/debug/check-db-conn', async (req, res) => {
-  try {
-    if (process.env.NODE_ENV === 'production' && String(process.env.ALLOW_DEBUG || '').toLowerCase() !== 'true') {
-      return res.status(403).json({ error: 'debug disabled in production' });
-    }
-    const dns = require('dns');
-    const net = require('net');
-    const url = process.env.DATABASE_URL || '';
-    let host = req.query.host || null;
-    let port = req.query.port || 5432;
-    if (!host) {
-      // parse from DATABASE_URL: postgres://user:pass@host:port/db
-      try {
-        const m = String(url).match(/@([^:\/]+)(?::(\d+))?/);
-        if (m) { host = m[1]; if (m[2]) port = parseInt(m[2], 10); }
-      } catch (e) { /* ignore */ }
-    }
-    if (!host) return res.status(400).json({ error: 'no host available to test' });
-
-    // Resolve DNS
-    const resolve = await new Promise((resolveP) => {
-      dns.lookup(host, { all: true }, (err, addresses) => {
-        if (err) return resolveP({ ok: false, error: String(err) });
-        return resolveP({ ok: true, addresses });
-      });
-    });
-
-    // Attempt TCP connect with timeout
-    const connectResult = await new Promise((resolveP) => {
-      const socket = new net.Socket();
-      let done = false;
-      const tid = setTimeout(() => {
-        if (done) return;
-        done = true;
-        try { socket.destroy(); } catch (e) {}
-        resolveP({ ok: false, error: 'timeout' });
-      }, 4000);
-      socket.once('error', (err) => {
-        if (done) return;
-        done = true; clearTimeout(tid);
-        resolveP({ ok: false, error: String(err && err.code ? err.code : err) });
-      });
-      socket.connect({ host, port: Number(port) }, () => {
-        if (done) return;
-        done = true; clearTimeout(tid);
-        try { socket.end(); } catch (e) {}
-        resolveP({ ok: true });
-      });
-    });
-
-    return res.json({ host, port: Number(port), resolve, connect: connectResult, pgClientAlive: !!pgClient });
+    const q = `SELECT * FROM reset_password_tokens WHERE token = $1 LIMIT 1`;
+    const r = await pgClient.query(q, [token]);
+    if (r.rowCount === 0) return res.status(400).json({ error: 'invalid token' });
+    const info = r.rows[0];
+    if (info.used) return res.status(400).json({ error: 'token already used' });
+    if (new Date(info.expires_at) < new Date()) return res.status(400).json({ error: 'token expired' });
+    return res.json({ ok: true, email: info.email });
   } catch (e) {
-    return res.status(500).json({ error: String(e) });
+    console.error('/api/validate-reset-token (POST) failed', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
   }
 });
 
-// Endpoints de Carros do Usuário - VERSÃO AUTOMÁTICA
-
-// NOVO ENDPOINT COMPLETAMENTE AUTOMÁTICO
-app.get('/api/users/:userId/cars-auto', async (req, res) => {
-  const { userId } = req.params;
-  console.log(`🚗 FULLY-AUTO SEARCH: userId=${userId}`);
-  
-  if(pgClient){
-    try{
-      // BUSCA 100% AUTOMÁTICA - Pega TODOS os carros relacionados sem verificações manuais
-      const autoQuery = `
-        WITH user_data AS (
-          -- Pega todos os dados do usuário solicitado
-          SELECT id, email, auth_id FROM users 
-          WHERE id = $1 OR auth_id = $1 
-          LIMIT 1
-        ),
-        related_users AS (
-          -- Encontra TODOS os usuários relacionados (mesmo email)
-          SELECT DISTINCT u.id, u.email, u.auth_id 
-          FROM users u, user_data ud
-          WHERE u.id = ud.id 
-             OR u.auth_id = ud.id
-             OR u.id = ud.auth_id
-             OR u.auth_id = ud.auth_id
-             OR (u.email IS NOT NULL AND ud.email IS NOT NULL AND LOWER(u.email) = LOWER(ud.email))
-        ),
-        all_possible_cars AS (
-          -- Busca carros por QUALQUER critério automaticamente
-          SELECT DISTINCT c.* FROM cars c
-          WHERE c.user_id IN (SELECT id FROM related_users)
-             OR c.user_id IN (SELECT auth_id FROM related_users WHERE auth_id IS NOT NULL)
-             OR c.user_id = $1  -- Busca direta também
-        )
-        SELECT * FROM all_possible_cars ORDER BY created_at DESC
-      `;
-      
-      const result = await pgClient.query(autoQuery, [userId]);
-      console.log(`🚗 FULLY-AUTO: Found ${result.rowCount} cars completely automatically`);
-      
-      return res.json(result.rows);
-      
-    } catch(err) {
-      console.error('❌ Fully-auto search failed:', err.message);
-      console.error('❌ Full error:', err);
-      console.error('❌ Stack:', err.stack);
-      return res.json([]); // Nunca falha - sempre retorna resultado
-    }
-  }
-  
-  console.log('⚠️ pgClient not available, returning empty array');
-  return res.json([]);
-});
-
-app.get('/api/users/:userId/cars', async (req, res) => {
-  const { userId } = req.params;
-  console.log(`🚗 AUTO-UNIFIED SEARCH: userId=${userId}`);
-  
-  if(pgClient){
-    try{
-      // BUSCA AUTOMÁTICA UNIFICADA - Uma única query que pega TODOS os carros
-      const unifiedQuery = `
-        WITH user_variants AS (
-          SELECT DISTINCT u.id as user_id, u.email, u.auth_id
-          FROM users u
-          WHERE u.id = $1 OR u.auth_id = $1 
-             OR (u.email IS NOT NULL AND LOWER(u.email) = (
-                 SELECT LOWER(email) FROM users 
-                 WHERE (id = $1 OR auth_id = $1) AND email IS NOT NULL
-                 LIMIT 1
-               ))
-        ),
-        all_cars AS (
-          SELECT DISTINCT c.*
-          FROM cars c
-          JOIN user_variants uv ON (c.user_id = uv.user_id OR c.user_id = uv.auth_id)
-          
-          UNION
-          
-          SELECT DISTINCT c.*
-          FROM cars c
-          WHERE c.user_id IN (
-            SELECT u2.id FROM users u2
-            JOIN user_variants uv ON LOWER(u2.email) = LOWER(uv.email)
-            WHERE uv.email IS NOT NULL
-          )
-        )
-        SELECT * FROM all_cars ORDER BY created_at DESC
-      `;
-      
-      const result = await pgClient.query(unifiedQuery, [userId]);
-      console.log(`🚗 AUTO-UNIFIED: Found ${result.rowCount} cars automatically`);
-      
-      // Query unificada já buscou por TODOS os critérios automaticamente
-      if (result.rowCount === 0) {
-        console.log(`🔍 NO CARS: Trying alternative searches for userId=${userId}`);
-        
-        // Busca unificada automática já executou todos os critérios
-        
-        // Try 2: Search by email (find all cars for users with same email)
-        try {
-          const emailResult = await pgClient.query(`
-            SELECT c.* FROM cars c 
-            JOIN users u1 ON c.user_id = u1.id 
-            WHERE LOWER(u1.email) = (SELECT LOWER(email) FROM users WHERE id = $1 OR auth_id = $1 LIMIT 1)
-            ORDER BY c.created_at DESC
-          `, [userId]);
-          console.log(`� EMAIL SEARCH: Found ${emailResult.rowCount} cars`);
-          if (emailResult.rowCount > 0) return res.json(emailResult.rows);
-        } catch (e) {
-          console.warn('Email search failed:', e.message);
-        }
-      }
-      
-      return res.json(result.rows);
-    }catch(err){ 
-      // Log full error (stack when available) to aid debugging in production
-      try { console.error('PG query failed /api/users/:userId/cars:', err && (err.stack || err.message || JSON.stringify(err))); } catch(e) { console.error('PG query failed and error logging also failed'); }
-      return res.status(500).json({ error: err && (err.message || String(err)) });
-    }
-  }
-  console.log(`🚗 GET CARS: No pgClient, returning empty array`);
-  res.json([]);
-});
-
-// ENDPOINT AUTOMÁTICO PARA ADICIONAR CARROS
-app.post('/api/users/:userId/cars-auto', async (req, res) => {
-  const { userId } = req.params;
-  const car = req.body;
-  console.log(`🚗 AUTO-ADD CAR: userId=${userId}, car=`, JSON.stringify(car));
-  
-  if(pgClient){
-    try{
-      // Adiciona carro automaticamente sem verificações complexas
-      // Generate unique ID for the car
-      const carId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-      
-      // Convert ano to integer if it's a string
-      const anoValue = car.year || car.ano;
-      const anoInt = anoValue ? parseInt(anoValue, 10) : null;
-      
-      console.log(`🚗 Attempting INSERT: id=${carId}, user_id=${userId}, marca=${car.brand || car.marca}, modelo=${car.model || car.modelo}, ano=${anoInt}`);
-      
-      const result = await pgClient.query(
-        'INSERT INTO cars (id, user_id, marca, modelo, ano, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *',
-        [carId, userId, car.brand || car.marca, car.model || car.modelo, anoInt]
-      );
-      
-      console.log(`🚗 AUTO-ADDED: Car added successfully`, result.rows[0]);
-      return res.json(result.rows[0]);
-      
-    } catch(err) {
-      console.error('Auto-add car failed:', err.message);
-      console.error('Full error:', err);
-      return res.status(500).json({ error: 'Failed to add car automatically', details: err.message });
-    }
-  }
-  
-  console.error('🚗 AUTO-ADD FAILED: pgClient not available');
-  return res.status(503).json({ error: 'Database not available' });
-});
-
-app.post('/api/users/:userId/cars', async (req, res) => {
-  const { userId } = req.params;
-  const car = req.body;
-  // If Authorization header present, verify token and ensure token user id matches userId
+// Endpoint de produção para solicitar redefinição de senha
+app.post('/api/auth/request-password-reset', async (req, res) => {
   try {
-    const tokenUser = await getSupabaseUserFromReq(req);
-    if (req.headers.authorization && !tokenUser) return res.status(401).json({ error: 'invalid token' });
-    if (tokenUser && tokenUser.id !== userId) return res.status(403).json({ error: 'forbidden' });
+    const email = req.body && req.body.email ? String(req.body.email).trim().toLowerCase() : null;
+    if (!email) return res.status(400).json({ error: 'email required' });
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    // Buscar usuário
+    const q = `SELECT id, email FROM users WHERE lower(email) = lower($1) LIMIT 1`;
+    const r = await pgClient.query(q, [email]);
+    if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+    const row = r.rows[0];
+    // Gerar token
+    const token = crypto.randomBytes(16).toString('hex');
+    const expiresAt = new Date(Date.now() + (1000 * 60 * 15)); // 15 minutos
+    // Salvar no banco
+    await pgClient.query(
+      `INSERT INTO reset_password_tokens (user_id, email, token, expires_at, used, created_at) VALUES ($1, $2, $3, $4, false, NOW())`,
+      [row.id, row.email, token, expiresAt]
+    );
+    // Retornar token para o frontend montar o link e enviar o e-mail
+    return res.json({ ok: true, token, expiresAt });
   } catch (e) {
-    console.warn('auth check failed for POST /api/users/:userId/cars', e && e.message ? e.message : e);
+    console.error('/api/auth/request-password-reset failed', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
   }
-  if(pgClient){
-    try{
-      const id = car.id || `car_${Date.now()}`;
-      await pgClient.query(
-        `INSERT INTO cars(id, user_id, marca, modelo, ano, dados, created_at)
-         VALUES($1, $2, $3, $4, $5, $6, now())`,
-        [id, userId, car.marca, car.modelo, car.ano, JSON.stringify(car)]
-      );
-      return res.json({ success: true, id });
-    }catch(err){ 
-      console.error('Error creating car:', err.message); 
-      return res.status(500).json({ error: err.message }); 
-    }
-  }
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-app.put('/api/users/:userId/cars', async (req, res) => {
-  const { userId } = req.params;
-  const { cars } = req.body;
-  try {
-    const tokenUser = await getSupabaseUserFromReq(req);
-    if (req.headers.authorization && !tokenUser) return res.status(401).json({ error: 'invalid token' });
-    if (tokenUser && tokenUser.id !== userId) return res.status(403).json({ error: 'forbidden' });
-  } catch (e) {
-    console.warn('auth check failed for PUT /api/users/:userId/cars', e && e.message ? e.message : e);
-  }
-  if(pgClient){
-    try{
-      // Deletar carros antigos e inserir novos (batch update simplificado)
-      await pgClient.query('DELETE FROM cars WHERE user_id = $1', [userId]);
-      for(const car of cars){
-        const id = car.id || `car_${Date.now()}_${Math.random()}`;
-        await pgClient.query(
-          `INSERT INTO cars(id, user_id, marca, modelo, ano, dados)
-           VALUES($1, $2, $3, $4, $5, $6)`,
-          [id, userId, car.marca, car.modelo, car.ano, JSON.stringify(car)]
-        );
-      }
-      return res.json({ success: true });
-    }catch(err){ 
-      console.error('Error updating cars:', err.message); 
-      return res.status(500).json({ error: err.message }); 
-    }
-  }
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-// ENDPOINT AUTOMÁTICO PARA DELETAR CARROS
-app.delete('/api/users/:userId/cars-auto/:carId', async (req, res) => {
-  const { userId, carId } = req.params;
-  console.log(`🗑️ AUTO-DELETE CAR: userId=${userId}, carId=${carId}`);
-  
-  if(pgClient){
-    try{
-      // EXCLUSÃO AUTOMÁTICA UNIFICADA - deleta o carro independente de onde estiver
-      const deleteQuery = `
-        WITH user_variants AS (
-          -- Encontra todas as variantes do usuário
-          SELECT DISTINCT u.id as user_id, u.email, u.auth_id
-          FROM users u
-          WHERE u.id = $1 OR u.auth_id = $1 
-             OR (u.email IS NOT NULL AND LOWER(u.email) = (
-                 SELECT LOWER(email) FROM users 
-                 WHERE (id = $1 OR auth_id = $1) AND email IS NOT NULL
-                 LIMIT 1
-               ))
-        )
-        DELETE FROM cars 
-        WHERE id = $2 
-          AND (user_id IN (SELECT user_id FROM user_variants) 
-               OR user_id IN (SELECT auth_id FROM user_variants WHERE auth_id IS NOT NULL)
-               OR user_id = $1)
-        RETURNING id
-      `;
-      
-      const result = await pgClient.query(deleteQuery, [userId, carId]);
-      console.log(`🗑️ AUTO-DELETE: Removed ${result.rowCount} cars automatically`);
-      
-      return res.json({ success: true, deletedCount: result.rowCount });
-      
-    }catch(err){ 
-      console.error('Auto-delete car failed:', err.message);
-      return res.status(500).json({ error: 'Failed to delete car automatically' });
-    }
-  }
-  
-  return res.status(503).json({ error: 'Database not available' });
-});
-
-app.delete('/api/users/:userId/cars/:carId', async (req, res) => {
-  const { userId, carId } = req.params;
-  try {
-    const tokenUser = await getSupabaseUserFromReq(req);
-    if (req.headers.authorization && !tokenUser) return res.status(401).json({ error: 'invalid token' });
-    if (tokenUser && tokenUser.id !== userId) return res.status(403).json({ error: 'forbidden' });
-  } catch (e) {
-    console.warn('auth check failed for DELETE /api/users/:userId/cars/:carId', e && e.message ? e.message : e);
-  }
-  if(pgClient){
-    try{
-      await pgClient.query('DELETE FROM cars WHERE id = $1 AND user_id = $2', [carId, userId]);
-      return res.json({ success: true });
-    }catch(err){ 
-      console.error('Error deleting car:', err.message); 
-      return res.status(500).json({ error: err.message }); 
-    }
-  }
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-// Endpoints de Pagamentos
-app.post('/api/payments', async (req, res) => {
-  const payment = req.body;
-  if(pgClient){
-    try{
-      const result = await pgClient.query(
-        `INSERT INTO payments(user_email, amount, currency, date, card_last4, status, metadata)
-         VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-        [
-          payment.userEmail, 
-          payment.amount, 
-          payment.currency || 'BRL', 
-          payment.date || new Date(), 
-          payment.cardLast4,
-          payment.status || 'completed',
-          JSON.stringify(payment.metadata || {})
-        ]
-      );
-      return res.json({ success: true, id: result.rows[0].id });
-    }catch(err){ 
-      console.error('Error creating payment:', err.message); 
-      return res.status(500).json({ error: err.message }); 
-    }
-  }
-  return res.status(500).json({ error: 'Database not available' });
-});
-
-app.get('/api/users/:userEmail/payments', async (req, res) => {
-  const { userEmail } = req.params;
-  if(pgClient){
-    try{
-      const result = await pgClient.query(
-        'SELECT * FROM payments WHERE user_email = $1 ORDER BY date DESC', 
-        [userEmail]
-      );
-      return res.json(result.rows);
-    }catch(err){ console.error('PG query failed /api/users/:userEmail/payments:', err.message); }
-  }
-  res.json([]);
-});
-
-// Express JSON error handler (catch any thrown errors in routes)
-app.use((err, req, res, next) => {
-  console.error('Unhandled express error:', err && err.stack ? err.stack : err);
-  if(res.headersSent) return next(err);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
-
-// process-level handlers to avoid silent crashes
-process.on('uncaughtException', (err) => {
-  console.error('uncaughtException:', err && err.stack ? err.stack : err);
-  // do not exit immediately in development; clear pgClient to avoid reuse
-  try { pgClient = null; } catch(e){}
-});
-process.on('unhandledRejection', (reason) => {
-  console.error('unhandledRejection:', reason);
-  try { pgClient = null; } catch(e){}
 });
 
 // Start server immediately (do not wait for Postgres) so Render can detect the open port.
@@ -3898,9 +2124,10 @@ const PORT = process.env.PORT || 3001;
       }
     }
   }catch(e){/* ignore */}
+  // Fim do bloco assíncrono principal
 })();
 
-// Serve frontend build (if exists) - place after app.listen to ensure APIs are registered first
+// Serve frontend build (if exists) - place after app.listen para garantir que APIs sejam registradas primeiro
 try{
   const distPath = path.join(__dirname, '..', 'dist');
   if (fs.existsSync(distPath)){

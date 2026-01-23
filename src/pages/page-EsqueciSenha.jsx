@@ -3,6 +3,7 @@ import { Menu, MenuLogin } from '../components';
 import { Link } from 'react-router-dom';
 import EmailService from '../services/emailService';
 import { AuthContext } from '../App';
+import { requestPasswordReset } from '../services/resetPasswordService';
 // Lazy-import supabase only when needed to avoid increasing initial bundle size
 import '../styles/pages/page-EsqueciSenha.css';
 
@@ -31,77 +32,26 @@ export default function EsqueciSenha() {
 
     try {
       const emailTrimmed = email.toLowerCase().trim();
-      console.log('Email processado:', emailTrimmed);
-
-      // SOLUÇÃO ALTERNATIVA: Tentar buscar sem filtro e filtrar no JavaScript
-      let _supabase = null;
-      try { const mod = await import('../supabase'); _supabase = mod.default || mod.supabase; } catch (e) { _supabase = null; }
-      if (!_supabase) {
-        throw new Error('Supabase não configurado ou indisponível');
-      }
-      const { data: allUsers, error: allError } = await _supabase
-        .from('users')
-        .select('id, nome, email, auth_id');
-
-      console.log('Todos os usuários:', allUsers, 'Erro:', allError);
-
-      if (allError) {
-        console.error('Erro ao buscar usuários:', allError);
-        throw new Error('Erro ao acessar o banco de dados.');
-      }
-
-      // Filtrar manualmente no JavaScript
-      const userData = allUsers?.find(user => user.email?.toLowerCase() === emailTrimmed);
-
-      console.log('Usuário encontrado:', userData);
-
-      if (!userData) {
-        console.warn('Usuário não encontrado na tabela users:', emailTrimmed);
-        setError('Email não encontrado. Verifique e tente novamente.');
+      // Solicita token ao backend
+      const result = await requestPasswordReset(emailTrimmed);
+      if (!result.ok) {
+        setError(result.error || 'Email não encontrado. Verifique e tente novamente.');
         setLoading(false);
         return;
       }
-
-      // Gerar token único para recuperação
-      const resetToken = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
-      
-      // Detectar ambiente (localhost ou produção)
-      const baseUrl = isLocalhost ? window.location.origin : 'https://www.garagemsmart.com.br';
-      const resetLink = `${baseUrl}/#/redefinir-senha?token=${resetToken}&email=${encodeURIComponent(emailTrimmed)}`;
-
-      console.log('Link de recuperação gerado:', resetLink);
-      setDebugResetLink(resetLink);
-
-      // Salvar token no localStorage (temporário - expira em 1 hora)
-      const tokenData = {
-        email: emailTrimmed,
-        token: resetToken,
-        expiresAt: Date.now() + (60 * 60 * 1000) // 1 hora
-      };
-      localStorage.setItem(`reset_token_${emailTrimmed}`, JSON.stringify(tokenData));
-
-      // Enviar email APENAS via EmailJS
-      console.log('Enviando email via EmailJS...');
+      // Monta o link de redefinição
+      const baseUrl = window.location.origin;
+      const resetLink = `${baseUrl}/#/redefinir-senha?token=${result.token}&email=${encodeURIComponent(emailTrimmed)}`;
+      // Envia email via EmailJS
       await EmailService.sendPasswordResetEmail({
-        nome: userData.nome || 'Usuário',
+        nome: emailTrimmed,
         email: emailTrimmed,
-        userId: userData.id,
         resetLink: resetLink
       });
-
-      console.log('Email enviado com sucesso!');
-      setEmailEnviado(true);
       setMessage(`✅ Email de recuperação enviado para ${emailTrimmed}. Verifique sua caixa de entrada e spam.`);
-      
+      setEmailEnviado(true);
     } catch (err) {
-      console.error('Erro ao solicitar recuperação de senha:', err);
-      // Show EmailJS error details when available
-      try {
-        const msg = EmailService.getErrorMessage(err);
-        setError(msg || 'Erro ao enviar email de recuperação. Tente novamente mais tarde.');
-      } catch (e) {
-        setError('Erro ao enviar email de recuperação. Tente novamente mais tarde.');
-      }
+      setError('Erro ao solicitar recuperação de senha. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }
