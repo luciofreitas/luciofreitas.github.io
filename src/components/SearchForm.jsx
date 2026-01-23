@@ -131,7 +131,6 @@ function SearchForm({
         <div className="search-form-car-selector">
           <div className="search-form-car-header">
             <div>
-              <div className="search-form-car-title">Carro ativo</div>
               <div className="search-form-car-subtitle">
                 {carrosLoading
                   ? <span className="search-form-loading">Carregando carros...</span>
@@ -151,9 +150,7 @@ function SearchForm({
             </button>
           </div>
 
-          {carrosLoading ? (
-            <div className="search-form-car-loading">Carregando carros...</div>
-          ) : Array.isArray(carros) && carros.length > 0 ? (
+          {Array.isArray(carros) && carros.length > 0 && !carrosLoading ? (
             <CustomDropdown
               options={[
                 { value: '', label: '-- Busca geral (sem carro) --' },
@@ -167,11 +164,11 @@ function SearchForm({
               placeholder="Selecionar carro"
               searchable
             />
-          ) : (
+          ) : !carrosLoading ? (
             <div className="search-form-car-empty">
               Cadastre um carro para deixar a busca mais rápida e precisa.
             </div>
-          )}
+          ) : null}
         </div>
       )}
 
