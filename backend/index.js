@@ -170,19 +170,6 @@ function pushLinkAudit(entry) {
   } catch (err) { /* ignore audit push failures */ }
 }
 
-// Temporary in-memory password reset tokens (debug only)
-// Map token -> { email, tempPassword, expiresAt }
-const debugResetTokens = new Map();
-function pushDebugResetToken(token, info) {
-  try {
-    debugResetTokens.set(token, info);
-    // Clean expired entries (simple sweep)
-    const now = Date.now();
-    for (const [k, v] of debugResetTokens.entries()) {
-      if (v && v.expiresAt && v.expiresAt < now) debugResetTokens.delete(k);
-    }
-  } catch (e) { /* ignore */ }
-}
 
 // Helper to fetch remote URL bytes. Try to use node-fetch if installed, otherwise fallback to https.
 async function fetchUrlBytes(url) {
@@ -3391,8 +3378,11 @@ if (process.env.NODE_ENV !== 'production') {
       const row = r.rows[0];
       const token = crypto.randomBytes(16).toString('hex');
       const tempPassword = crypto.randomBytes(6).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0,10) || 'devTemp1';
-      const expiresAt = Date.now() + (1000 * 60 * 15); // 15 minutes
-      pushDebugResetToken(token, { email: row.email, tempPassword, expiresAt, id: row.id });
+      // Expiração em 15 minutos
+      const expiresAt = new Date(Date.now() + (1000 * 60 * 15));
+      // Salva o token no banco
+      const insertQ = `INSERT INTO reset_password_tokens (user_id, email, token, expires_at, used, created_at) VALUES ($1, $2, $3, $4, false, NOW()) RETURNING id`;
+      await pgClient.query(insertQ, [row.id, row.email, token, expiresAt]);
       return res.json({ ok: true, token, tempPassword, expiresAt });
     } catch (e) {
       console.error('/api/debug/dev-generate-reset failed', e && e.message ? e.message : e);
@@ -3407,33 +3397,26 @@ if (process.env.NODE_ENV !== 'production') {
       const token = req.body && req.body.token ? String(req.body.token).trim() : null;
       const novaSenha = req.body && req.body.novaSenha ? String(req.body.novaSenha) : null;
       if (!token || !novaSenha) return res.status(400).json({ error: 'token and novaSenha required' });
-      const info = debugResetTokens.get(token);
-      if (!info) return res.status(400).json({ error: 'invalid token' });
-      if (info.expiresAt < Date.now()) { debugResetTokens.delete(token); return res.status(400).json({ error: 'token expired' }); }
-      // Find user by id if present
-      const userId = info.id;
+      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+      // Busca o token no banco
+      const q = `SELECT * FROM reset_password_tokens WHERE token = $1 LIMIT 1`;
+      const r = await pgClient.query(q, [token]);
+      if (r.rowCount === 0) return res.status(400).json({ error: 'invalid token' });
+      const info = r.rows[0];
+      if (info.used) return res.status(400).json({ error: 'token already used' });
+      if (new Date(info.expires_at) < new Date()) return res.status(400).json({ error: 'token expired' });
+      const userId = info.user_id;
       if (!userId) return res.status(400).json({ error: 'invalid token payload' });
-      // Update password either via Postgres or Supabase REST fallback
+      // Atualiza a senha do usuário
       try {
-        if (pgClient) {
-          const hashed = hashPassword(novaSenha);
-          const col = userPasswordColumn || 'password_hash';
-          const upd = `UPDATE users SET ${col} = $1, atualizado_em = now() WHERE id = $2 RETURNING id, email`;
-          const r = await pgClient.query(upd, [hashed, userId]);
-          if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
-          debugResetTokens.delete(token);
-          return res.json({ ok: true, id: r.rows[0].id, email: r.rows[0].email });
-        } else {
-          // Supabase REST fallback
-          try {
-            const updated = await updateUserRest({ id: userId, novaSenha });
-            debugResetTokens.delete(token);
-            return res.json({ ok: true, id: updated && updated.id, email: updated && updated.email });
-          } catch (e) {
-            console.error('reset-password updateUserRest failed', e && e.message ? e.message : e);
-            return res.status(500).json({ error: 'update failed' });
-          }
-        }
+        const hashed = hashPassword(novaSenha);
+        const col = userPasswordColumn || 'password_hash';
+        const upd = `UPDATE users SET ${col} = $1, atualizado_em = now() WHERE id = $2 RETURNING id, email`;
+        const r2 = await pgClient.query(upd, [hashed, userId]);
+        if (r2.rowCount === 0) return res.status(404).json({ error: 'not found' });
+        // Marca o token como usado
+        await pgClient.query(`UPDATE reset_password_tokens SET used = true WHERE id = $1`, [info.id]);
+        return res.json({ ok: true, id: r2.rows[0].id, email: r2.rows[0].email });
       } catch (e) {
         console.error('/api/auth/reset-password failed', e && e.message ? e.message : e);
         return res.status(500).json({ error: 'internal' });
