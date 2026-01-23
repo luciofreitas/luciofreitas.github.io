@@ -22,16 +22,25 @@ export function sortDropdownOptionsPtBr(options) {
 
   const head = [];
   const rest = [];
+  const outros = [];
 
   for (const opt of options) {
     const value = opt?.value;
+    const label = (opt?.label || '').toString().toLowerCase();
+    // Empty options stay at the top
     if (value === '' || value === null || value === undefined) {
       head.push(opt);
+    } else if (
+      (typeof value === 'string' && value.trim().toLowerCase() === 'outro') ||
+      label === 'outro'
+    ) {
+      outros.push(opt);
     } else {
       rest.push(opt);
     }
   }
 
   rest.sort((a, b) => comparePtBr(a?.label, b?.label));
-  return [...head, ...rest];
+  // 'Outro' always last
+  return [...head, ...rest, ...outros];
 }

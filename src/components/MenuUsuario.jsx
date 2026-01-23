@@ -160,7 +160,7 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onCon
               <div className="dropdown-user-subtitle">Assinante Pro</div>
             )}
           </div>
-          <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button>
+          {/* <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button> */}
           <button className="dropdown-item" onClick={() => { setOpen(false); onMeusCarros(); }}>Meus Carros</button>
           <button className="dropdown-item" onClick={() => { setOpen(false); onPro(); }}>Versão Pro</button>
           {typeof onConfiguracoes === 'function' && (

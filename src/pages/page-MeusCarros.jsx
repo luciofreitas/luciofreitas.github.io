@@ -201,9 +201,15 @@ export default function MeusCarros() {
                       required
                     >
                       <option value="">Selecione a marca</option>
-                      {[...brandList].sort(comparePtBr).map(brand => (
-                        <option key={brand} value={brand}>{brand}</option>
-                      ))}
+                      {(() => {
+                        // Always move 'Outro' to the end
+                        const sorted = [...brandList].sort(comparePtBr);
+                        const outros = sorted.filter(b => b.toLowerCase() === 'outro');
+                        const rest = sorted.filter(b => b.toLowerCase() !== 'outro');
+                        return [...rest, ...outros].map(brand => (
+                          <option key={brand} value={brand}>{brand}</option>
+                        ));
+                      })()}
                     </select>
                   </div>
                   <div className="form-field">
@@ -216,10 +222,18 @@ export default function MeusCarros() {
                       required
                     >
                       <option value="">Selecione o modelo</option>
-                      {[...modelosDisponiveis].sort(comparePtBr).map(model => (
-                        <option key={model} value={model}>{model}</option>
-                      ))}
-                      <option value="Outro">Outro (digitar manualmente)</option>
+                      {(() => {
+                        // Always move 'Outro' to the end
+                        const sorted = [...modelosDisponiveis].sort(comparePtBr);
+                        const outros = sorted.filter(m => m && m.toLowerCase() === 'outro');
+                        const rest = sorted.filter(m => !m || m.toLowerCase() !== 'outro');
+                        return [
+                          ...rest.map(model => (
+                            <option key={model} value={model}>{model}</option>
+                          )),
+                          <option key="Outro" value="Outro">Outro (digitar manualmente)</option>
+                        ];
+                      })()}
                     </select>
                   </div>
                 </div>

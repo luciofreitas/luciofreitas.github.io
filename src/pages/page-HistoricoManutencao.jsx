@@ -508,11 +508,20 @@ export default function HistoricoManutencao() {
                         required
                         className="historico-input"
                       >
-                        {[{ value: 'corretiva', label: 'Corretiva' }, { value: 'outro', label: 'Outro' }, { value: 'preventiva', label: 'Preventiva' }]
-                          .sort((a, b) => comparePtBr(a.label, b.label))
-                          .map((opt) => (
+                        {(() => {
+                          // Always move 'Outro' to the end
+                          const opts = [
+                            { value: 'corretiva', label: 'Corretiva' },
+                            { value: 'outro', label: 'Outro' },
+                            { value: 'preventiva', label: 'Preventiva' }
+                          ];
+                          const sorted = opts.sort((a, b) => comparePtBr(a.label, b.label));
+                          const outros = sorted.filter(opt => (opt.value || '').toLowerCase() === 'outro' || (opt.label || '').toLowerCase() === 'outro');
+                          const rest = sorted.filter(opt => (opt.value || '').toLowerCase() !== 'outro' && (opt.label || '').toLowerCase() !== 'outro');
+                          return [...rest, ...outros].map(opt => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
+                          ));
+                        })()}
                       </select>
                     </div>
                   </div>
