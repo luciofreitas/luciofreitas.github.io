@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useContext } from 'react';
+import { validateResetToken } from '../services/resetPasswordService';
 import { Menu, MenuLogin } from '../components';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
@@ -34,8 +35,8 @@ export default function RedefinirSenha() {
   }, [passwordChecklist]);
 
   useEffect(() => {
-    // Verificar se há um token de recuperação válido
-    const checkRecoveryToken = () => {
+    // Verificar se há um token de recuperação válido via backend
+    const checkRecoveryToken = async () => {
       try {
         // Extrair parâmetros da URL
         const params = new URLSearchParams(window.location.hash.split('?')[1]);
@@ -49,24 +50,12 @@ export default function RedefinirSenha() {
           return;
         }
 
-        // Verificar token no localStorage
-        const storedData = localStorage.getItem(`reset_token_${email}`);
-        
-        if (!storedData) {
-          setError('Link de recuperação inválido ou expirado. Solicite um novo link.');
+        // Validar token no backend
+        const result = await validateResetToken(token, email);
+        if (!result.valid) {
+          setError(result.error || 'Link de recuperação inválido ou expirado. Solicite um novo link.');
           setValidToken(false);
           setCheckingToken(false);
-          return;
-        }
-
-        const tokenData = JSON.parse(storedData);
-
-        // Verificar se o token é válido e não expirou
-        if (tokenData.token !== token || Date.now() > tokenData.expiresAt) {
-          setError('Link de recuperação expirado. Solicite um novo link.');
-          setValidToken(false);
-          setCheckingToken(false);
-          localStorage.removeItem(`reset_token_${email}`);
           return;
         }
 
@@ -74,7 +63,6 @@ export default function RedefinirSenha() {
         setUserEmail(email);
         setValidToken(true);
         setCheckingToken(false);
-
       } catch (err) {
         console.error('Erro ao verificar token:', err);
         setError('Erro ao validar link de recuperação.');
