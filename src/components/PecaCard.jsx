@@ -91,14 +91,7 @@ function PecaCard({ peca, onViewCompatibility, onViewDetails }) {
           </a>
         )}
         
-        {/* Botão Ver Compatibilidade */}
-        <button 
-          className={`peca-card-compat-btn ${!usuarioLogado ? 'btn-blocked' : ''}`}
-          onClick={() => usuarioLogado && onViewCompatibility(peca)}
-          disabled={!usuarioLogado}
-        >
-          Ver compatibilidade
-        </button>
+
         
         {/* Botão Ver Ficha Completa - only for non-ML products or if logged in */}
         {(!isMLProduct || usuarioLogado) && (

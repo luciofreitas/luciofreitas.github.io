@@ -5,6 +5,7 @@ import CustomDropdown from './CustomDropdown';
 import SmallLoadingModal from './SmallLoadingModal';
 import { AuthContext } from '../App';
 import { getCars } from '../services/carService';
+import { guiasService } from '../services/guiasService';
 
 function SearchForm({
   selectedGrupo,
@@ -40,25 +41,39 @@ function SearchForm({
   const { usuarioLogado } = useContext(AuthContext) || {};
   const navigate = useNavigate();
   const [carros, setCarros] = useState([]);
+  const [carrosLoading, setCarrosLoading] = useState(true);
+  const [guias, setGuias] = useState([]);
+  const [guiasLoading, setGuiasLoading] = useState(true);
   const [carroSelecionado, setCarroSelecionado] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Carrega carros do usuário quando logado
+  // Carrega carros e guias do usuário em paralelo
   useEffect(() => {
-    const loadUserCars = async () => {
-      if (usuarioLogado) {
-        const userId = usuarioLogado.id || usuarioLogado.email;
-        const userCars = await getCars(userId);
-        setCarros(userCars);
-      } else {
-        setCarros([]);
-        setCarroSelecionado('');
-
-        if (onCarroChange) onCarroChange('');
-        if (onCarroLabelChange) onCarroLabelChange('');
+    let mounted = true;
+    setCarrosLoading(true);
+    setGuiasLoading(true);
+    const userId = usuarioLogado ? (usuarioLogado.id || usuarioLogado.email) : null;
+    if (!userId) {
+      setCarros([]);
+      setGuias([]);
+      setCarrosLoading(false);
+      setGuiasLoading(false);
+      setCarroSelecionado('');
+      if (onCarroChange) onCarroChange('');
+      if (onCarroLabelChange) onCarroLabelChange('');
+      return;
+    }
+    Promise.all([
+      getCars(userId).then(cars => { if (mounted) setCarros(cars); }),
+      guiasService.getVisibleGuias(usuarioLogado.email).then(guias => { if (mounted) setGuias(guias); })
+    ]).finally(() => {
+      if (mounted) {
+        setCarrosLoading(false);
+        setGuiasLoading(false);
       }
-    };
-    loadUserCars();
+    });
+    return () => { mounted = false; };
   }, [usuarioLogado, onCarroChange, onCarroLabelChange]);
 
   const carroAtivo = useMemo(() => {
@@ -118,11 +133,13 @@ function SearchForm({
             <div>
               <div className="search-form-car-title">Carro ativo</div>
               <div className="search-form-car-subtitle">
-                {carroAtivo
-                  ? `${carroAtivo.marca} ${carroAtivo.modelo} ${carroAtivo.ano}`
-                  : (Array.isArray(carros) && carros.length > 0
-                    ? 'Busca geral (sem carro). Selecione um carro para preencher Marca/Modelo/Ano'
-                    : 'Você ainda não cadastrou nenhum carro')}
+                {carrosLoading
+                  ? <span className="search-form-loading">Carregando carros...</span>
+                  : carroAtivo
+                    ? `${carroAtivo.marca} ${carroAtivo.modelo} ${carroAtivo.ano}`
+                    : (Array.isArray(carros) && carros.length > 0
+                      ? 'Busca geral (sem carro). Selecione um carro para preencher Marca/Modelo/Ano'
+                      : 'Você ainda não cadastrou nenhum carro')}
               </div>
             </div>
             <button
@@ -134,7 +151,9 @@ function SearchForm({
             </button>
           </div>
 
-          {Array.isArray(carros) && carros.length > 0 ? (
+          {carrosLoading ? (
+            <div className="search-form-car-loading">Carregando carros...</div>
+          ) : Array.isArray(carros) && carros.length > 0 ? (
             <CustomDropdown
               options={[
                 { value: '', label: '-- Busca geral (sem carro) --' },
@@ -185,13 +204,13 @@ function SearchForm({
           type="button"
           className="search-form-advanced-btn"
           onClick={() => setShowAdvanced((v) => !v)}
-          aria-expanded={showAdvanced || !carroSelecionado}
+          aria-expanded={showAdvanced}
         >
-          {showAdvanced || !carroSelecionado ? 'Ocultar filtros avançados' : 'Filtros avançados'}
+          {showAdvanced ? 'Ocultar filtros avançados' : 'Filtros avançados'}
         </button>
       </div>
 
-      {(showAdvanced || !carroSelecionado) && (
+      {showAdvanced && (
         <>
           <div className="search-form-row">
             <div className="search-form-field">
