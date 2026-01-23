@@ -71,12 +71,16 @@ function StartupEnforcer() {
     if (ranRef.current) return;
     ranRef.current = true;
 
+    // Allowlist: routes that should NOT be redirected to /inicio
+    const bypassRedirectRoutes = ['/redefinir-senha', '/esqueci-senha'];
+    const isBypassRoute = location && bypassRedirectRoutes.includes(location.pathname);
+
     // Run only once per browser-tab session (sessionStorage persists across refresh)
     // so the user doesn't get logged out on every page reload.
     try {
       if (sessionStorage.getItem('gs_startup_enforced') === '1') {
-        // still ensure /inicio is the first page for the session
-        if (location && location.pathname !== '/inicio') {
+        // still ensure /inicio is the first page for the session, unless on bypass route
+        if (location && location.pathname !== '/inicio' && !isBypassRoute) {
           navigate('/inicio', { replace: true });
         }
         return;
@@ -126,7 +130,8 @@ function StartupEnforcer() {
       }
     })();
 
-    if (location && location.pathname !== '/inicio') {
+    // Only redirect to /inicio if not on a bypass route
+    if (location && location.pathname !== '/inicio' && !isBypassRoute) {
       navigate('/inicio', { replace: true });
     }
   }, [navigate, location]);
