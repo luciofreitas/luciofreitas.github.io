@@ -198,7 +198,7 @@ function Menu() {
     <header ref={headerRef} className="site-header menu-login">
       <div className="menu-login-root menu-responsive">
         {/* Use the shared Logo component (restored) */}
-        <Logo />
+        <Logo usuarioLogado={usuarioLogado} />
 
   {/* Mobile hamburger button - replicate MenuUsuario structure */}
   <div className="user-menu-root">

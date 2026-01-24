@@ -5,11 +5,17 @@ import './Logo.css';
 const Logo = ({ className = '', onClick, ...props }) => {
   const navigate = useNavigate();
 
+  // Recebe usuarioLogado como prop
+  const { usuarioLogado } = props;
   const handleClick = () => {
     if (onClick) {
       onClick();
     } else {
-      navigate('/');
+      if (usuarioLogado) {
+        navigate('/buscar-pecas');
+      } else {
+        navigate('/inicio');
+      }
     }
   };
 
