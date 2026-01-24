@@ -145,24 +145,22 @@ class ApiService {
   }
 
   async getPecasMeta() {
-    // Prefer a lightweight static meta file to keep the initial load fast.
-    // It contains only lists (grupos/pecas/fabricantes) instead of the full catalog.
+    // Buscar metadados diretamente do backend
     try {
-      const response = await fetch('/data/parts_meta.json');
+      const response = await fetch('/api/pecas/meta');
       if (response.ok) {
         const meta = await response.json();
         return {
           grupos: meta.grupos || [],
           pecas: meta.pecas || [],
           fabricantes: meta.fabricantes || [],
-          // optional lists (may be absent)
           marcas: meta.marcas || [],
           modelos: meta.modelos || [],
           anos: meta.anos || [],
         };
       }
     } catch (e) {
-      // ignore and try Supabase next
+      // fallback para Supabase/local se necessário
     }
 
     // Try Supabase next (runtime-config or env must provide credentials)

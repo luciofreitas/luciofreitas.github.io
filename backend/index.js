@@ -727,29 +727,53 @@ app.get('/api/pecas/anos', (req, res) => res.json({ anos: extract_years() }));
 app.get('/api/pecas/fabricantes', (req, res) => res.json({ fabricantes: get_unique('manufacturer') }));
 
 // Aggregated metadata endpoint used by the frontend
-app.get('/api/pecas/meta', (req, res) => {
-  try{
+app.get('/api/pecas/meta', async (req, res) => {
+  try {
     console.log('Building /api/pecas/meta response...');
-    const grupos = get_unique('category');
-    console.log('  grupos:', grupos.length);
-    const marcas = extract_brands();
-    console.log('  marcas:', marcas.length);
-    const modelos = extract_models();
-    console.log('  modelos:', modelos.length);
-    const anos = extract_years();
-    console.log('  anos:', anos.length);
-    const fabricantes = get_unique('manufacturer');
-    console.log('  fabricantes:', fabricantes.length);
-    
+    // Tenta buscar do Supabase primeiro
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    let pecas = [];
+    let grupos = [];
+    let fabricantes = [];
+    let marcas = [];
+    let modelos = [];
+    let anos = [];
+    let supabaseOk = false;
+    if (supabaseUrl && supabaseKey) {
+      try {
+        const { createClient } = require('@supabase/supabase-js');
+        const supabase = createClient(supabaseUrl.replace(/\/$/, ''), supabaseKey);
+        const { data: partsData, error } = await supabase.from('parts').select('name,category,manufacturer');
+        if (!error && partsData && Array.isArray(partsData)) {
+          pecas = partsData.filter(p => p.name && p.category);
+          grupos = [...new Set(partsData.map(p => p.category).filter(Boolean))].sort();
+          fabricantes = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
+          supabaseOk = true;
+        }
+      } catch (e) {
+        console.warn('Supabase fetch failed:', e && e.message ? e.message : e);
+      }
+    }
+    // Fallback para PARTS_DB local
+    if (!supabaseOk) {
+      pecas = PARTS_DB.filter(p => p.name && p.category);
+      grupos = get_unique('category');
+      fabricantes = get_unique('manufacturer');
+    }
+    // Os outros campos podem ser extraídos localmente
+    marcas = extract_brands ? extract_brands() : [];
+    modelos = extract_models ? extract_models() : [];
+    anos = extract_years ? extract_years() : [];
     return res.json({
       grupos,
-      pecas: PARTS_DB,
+      pecas,
       marcas,
       modelos,
       anos,
       fabricantes
     });
-  }catch(err){
+  } catch (err) {
     console.error('Failed to build /api/pecas/meta:', err && err.message ? err.message : err);
     console.error('Stack:', err.stack);
     return res.status(500).json({ grupos: [], pecas: [], marcas: [], modelos: [], anos: [], fabricantes: [] });

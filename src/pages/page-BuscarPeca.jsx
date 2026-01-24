@@ -84,10 +84,15 @@ export default function BuscarPeca() {
   // para evitar carregar todas as peças no início (ganho de performance).
 
   // Filtrar opções de dropdown baseado nas seleções atuais
+  // Agora espera que todasPecas seja uma lista de objetos { name, category }
   const getFilteredPecas = () => {
-    // Meta já vem como lista de nomes; não filtramos por grupo aqui
-    // para evitar depender de um índice completo de peças.
-    return Array.isArray(todasPecas) ? todasPecas : [];
+    if (!Array.isArray(todasPecas) || !todasPecas.length) return [];
+    if (!selectedGrupo) {
+      // Mostra todas as peças únicas
+      return [...new Set(todasPecas.map(p => p.name).filter(Boolean))];
+    }
+    // Filtra peças pelo grupo selecionado
+    return [...new Set(todasPecas.filter(p => p && p.category === selectedGrupo).map(p => p.name).filter(Boolean))];
   };
 
   const getFilteredFabricantes = () => {
