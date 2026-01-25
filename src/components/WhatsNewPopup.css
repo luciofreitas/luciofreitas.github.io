@@ -31,6 +31,10 @@
 .modal-overlay.whatsnew-overlay {
   align-items: center;
   padding: 1rem;
+  /* Override global modal rule (top: 4.5rem !important) to ensure visibility on mobile */
+  top: 0 !important;
+  /* Keep above fixed headers/menus on mobile */
+  z-index: var(--z-modal) !important;
 }
 
 /* Override global `.compat-modal` sizing so this popup is REALLY a small square */
@@ -185,7 +189,7 @@
   }
 
   .compat-modal.whatsnew-modal {
-    transform: translateY(-8vh);
+    transform: none;
   }
 }
 
