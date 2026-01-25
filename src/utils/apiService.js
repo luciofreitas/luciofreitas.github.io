@@ -176,7 +176,9 @@ class ApiService {
   async getPecasMeta() {
     // Buscar metadados diretamente do backend
     try {
-      const response = await fetch('/api/pecas/meta');
+      const base = this.getBaseUrl ? this.getBaseUrl() : '';
+      const url = (base ? `${base}` : '') + '/api/pecas/meta';
+      const response = await fetch(url);
       if (response.ok) {
         const meta = await response.json();
         return {

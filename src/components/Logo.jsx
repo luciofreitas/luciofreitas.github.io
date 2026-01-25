@@ -2,11 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Logo.css';
 
-const Logo = ({ className = '', onClick, ...props }) => {
+const Logo = ({ className = '', onClick, usuarioLogado, ...rest }) => {
   const navigate = useNavigate();
-
-  // Recebe usuarioLogado como prop
-  const { usuarioLogado } = props;
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -24,7 +21,7 @@ const Logo = ({ className = '', onClick, ...props }) => {
       <div 
         className={`logo-container ${className}`}
         onClick={handleClick}
-        {...props}
+        {...rest}
       >
           <img 
             src="/images/logo.png" 
