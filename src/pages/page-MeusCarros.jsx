@@ -15,6 +15,7 @@ export default function MeusCarros() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingCarId, setEditingCarId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   
   // Formulário
   const [marca, setMarca] = useState('');
@@ -22,10 +23,22 @@ export default function MeusCarros() {
   const [modeloCustom, setModeloCustom] = useState(''); // Para quando selecionar "Outro"
   const [modelosDisponiveis, setModelosDisponiveis] = useState([]);
   const [ano, setAno] = useState('');
+  const [anoModelo, setAnoModelo] = useState('');
   const [placa, setPlaca] = useState('');
   const [chassi, setChassi] = useState('');
   const [cor, setCor] = useState('');
   const [motor, setMotor] = useState('');
+  const [motorCodigo, setMotorCodigo] = useState('');
+  const [cilindrada, setCilindrada] = useState('');
+  const [potenciaCv, setPotenciaCv] = useState('');
+  const [combustivel, setCombustivel] = useState('');
+  const [cambio, setCambio] = useState('');
+  const [versao, setVersao] = useState('');
+  const [km, setKm] = useState('');
+  const [tracao, setTracao] = useState('');
+  const [carroceria, setCarroceria] = useState('');
+  const [uf, setUf] = useState('');
+  const [renavam, setRenavam] = useState('');
   const [observacoes, setObservacoes] = useState('');
 
   useEffect(() => {
@@ -64,14 +77,27 @@ export default function MeusCarros() {
     setModeloCustom('');
     setModelosDisponiveis([]);
     setAno('');
+    setAnoModelo('');
     setPlaca('');
     setChassi('');
     setCor('');
     setMotor('');
+    setMotorCodigo('');
+    setCilindrada('');
+    setPotenciaCv('');
+    setCombustivel('');
+    setCambio('');
+    setVersao('');
+    setKm('');
+    setTracao('');
+    setCarroceria('');
+    setUf('');
+    setRenavam('');
     setObservacoes('');
     setIsEditing(false);
     setEditingCarId(null);
     setShowForm(false);
+    setShowAdvanced(false);
   };
 
   const normalizeVin = (value) => {
@@ -163,6 +189,22 @@ export default function MeusCarros() {
     }
   };
 
+  const normalizeRenavam = (value) => {
+    try {
+      return String(value || '').replace(/\D/g, '').slice(0, 11);
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const maskSensitive = (value, { keepLast = 3 } = {}) => {
+    const s = String(value || '');
+    if (!s) return '';
+    const last = s.slice(-keepLast);
+    const masked = '•'.repeat(Math.max(0, s.length - keepLast));
+    return `${masked}${last}`;
+  };
+
   // Handler para mudança de marca
   const handleMarcaChange = (e) => {
     const novaMarca = e.target.value;
@@ -200,14 +242,35 @@ export default function MeusCarros() {
       }
       return;
     }
+
+    const renavamNorm = normalizeRenavam(renavam);
+    if (renavamNorm && renavamNorm.length !== 11) {
+      if (window.showToast) {
+        window.showToast('Renavam inválido. Deve ter 11 dígitos.', 'error', 4000);
+      }
+      return;
+    }
+
     const carData = {
       marca: marca.trim(),
       modelo: modeloFinal.trim(),
       ano: ano.trim(),
+      anoModelo: anoModelo.trim(),
       placa: placa.trim().toUpperCase(),
       chassi: chassiNorm,
       cor: cor.trim(),
       motor: motor.trim(),
+      motorCodigo: motorCodigo.trim(),
+      cilindrada: cilindrada.trim(),
+      potenciaCv: potenciaCv.trim(),
+      combustivel: combustivel.trim(),
+      cambio: cambio.trim(),
+      versao: versao.trim(),
+      km: km.toString().trim(),
+      tracao: tracao.trim(),
+      carroceria: carroceria.trim(),
+      uf: uf.trim(),
+      renavam: renavamNorm,
       observacoes: observacoes.trim()
     };
 
@@ -231,14 +294,29 @@ export default function MeusCarros() {
     setMarca(car.marca);
     setModelo(car.modelo);
     setAno(car.ano);
+    setAnoModelo(car.anoModelo || '');
     setPlaca(car.placa || '');
     setChassi(car.chassi || '');
     setCor(car.cor || '');
     setMotor(car.motor || '');
+    setMotorCodigo(car.motorCodigo || '');
+    setCilindrada(car.cilindrada || '');
+    setPotenciaCv(car.potenciaCv || '');
+    setCombustivel(car.combustivel || '');
+    setCambio(car.cambio || '');
+    setVersao(car.versao || '');
+    setKm(car.km || '');
+    setTracao(car.tracao || '');
+    setCarroceria(car.carroceria || '');
+    setUf(car.uf || '');
+    setRenavam(car.renavam || '');
     setObservacoes(car.observacoes || '');
     setIsEditing(true);
     setEditingCarId(car.id);
     setShowForm(true);
+    setShowAdvanced(Boolean(
+      car.chassi || car.motor || car.versao || car.combustivel || car.cambio || car.km || car.anoModelo || car.uf || car.renavam || car.tracao || car.carroceria || car.motorCodigo || car.cilindrada || car.potenciaCv
+    ));
   };
 
   const handleDelete = async (carId) => {
@@ -373,6 +451,17 @@ export default function MeusCarros() {
                     />
                   </div>
                   <div className="form-field">
+                    <label htmlFor="anoModelo">Ano/Modelo</label>
+                    <input
+                      type="text"
+                      id="anoModelo"
+                      value={anoModelo}
+                      onChange={(e) => setAnoModelo(e.target.value)}
+                      placeholder="Ex: 2021"
+                      maxLength="4"
+                    />
+                  </div>
+                  <div className="form-field">
                     <label htmlFor="placa">Placa</label>
                     <input
                       type="text"
@@ -385,57 +474,225 @@ export default function MeusCarros() {
                   </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-field">
-                    <label htmlFor="chassi">Chassi (VIN)</label>
-                    <input
-                      type="text"
-                      id="chassi"
-                      value={chassi}
-                      onChange={(e) => setChassi(normalizeVin(e.target.value))}
-                      placeholder="17 caracteres"
-                      maxLength="17"
-                      autoCapitalize="characters"
-                      autoCorrect="off"
-                      spellCheck={false}
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label htmlFor="motor">Motor</label>
-                    <input
-                      type="text"
-                      id="motor"
-                      value={motor}
-                      onChange={(e) => setMotor(e.target.value)}
-                      placeholder="Ex: 2.0 Flex"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-actions" style={{ marginTop: 0 }}>
+                <div className="search-form-advanced-row" style={{ marginTop: 8, marginBottom: 8 }}>
                   <button
                     type="button"
-                    className="btn-cancel"
-                    onClick={handleAutoFillByVin}
-                    disabled={!chassi}
-                    title="Preenche marca/modelo/ano/motor quando disponível (beta)"
+                    className="search-form-advanced-btn"
+                    onClick={() => setShowAdvanced(v => !v)}
+                    aria-expanded={showAdvanced}
                   >
-                    Preencher pelo chassi (beta)
+                    {showAdvanced ? 'Ocultar informações avançadas' : 'Informações avançadas'}
                   </button>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-field">
-                    <label htmlFor="cor">Cor</label>
-                    <input
-                      type="text"
-                      id="cor"
-                      value={cor}
-                      onChange={(e) => setCor(e.target.value)}
-                      placeholder="Ex: Prata"
-                    />
-                  </div>
-                </div>
+                {showAdvanced && (
+                  <>
+                    <div className="form-row">
+                      <div className="form-field">
+                        <label htmlFor="versao">Versão/Trim</label>
+                        <input
+                          type="text"
+                          id="versao"
+                          value={versao}
+                          onChange={(e) => setVersao(e.target.value)}
+                          placeholder="Ex: LTZ, Comfortline"
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="carroceria">Carroceria</label>
+                        <select
+                          id="carroceria"
+                          value={carroceria}
+                          onChange={(e) => setCarroceria(e.target.value)}
+                        >
+                          <option value="">Selecionar</option>
+                          <option value="Hatch">Hatch</option>
+                          <option value="Sedã">Sedã</option>
+                          <option value="SUV">SUV</option>
+                          <option value="Picape">Picape</option>
+                          <option value="Perua">Perua</option>
+                          <option value="Minivan">Minivan</option>
+                          <option value="Van">Van</option>
+                          <option value="Outro">Outro</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-field">
+                        <label htmlFor="combustivel">Combustível</label>
+                        <select
+                          id="combustivel"
+                          value={combustivel}
+                          onChange={(e) => setCombustivel(e.target.value)}
+                        >
+                          <option value="">Selecionar</option>
+                          <option value="Flex">Flex</option>
+                          <option value="Gasolina">Gasolina</option>
+                          <option value="Etanol">Etanol</option>
+                          <option value="Diesel">Diesel</option>
+                          <option value="GNV">GNV</option>
+                          <option value="Híbrido">Híbrido</option>
+                          <option value="Elétrico">Elétrico</option>
+                          <option value="Outro">Outro</option>
+                        </select>
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="cambio">Câmbio</label>
+                        <select
+                          id="cambio"
+                          value={cambio}
+                          onChange={(e) => setCambio(e.target.value)}
+                        >
+                          <option value="">Selecionar</option>
+                          <option value="Manual">Manual</option>
+                          <option value="Automático">Automático</option>
+                          <option value="CVT">CVT</option>
+                          <option value="Automatizado">Automatizado</option>
+                          <option value="Outro">Outro</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-field">
+                        <label htmlFor="motor">Motor</label>
+                        <input
+                          type="text"
+                          id="motor"
+                          value={motor}
+                          onChange={(e) => setMotor(e.target.value)}
+                          placeholder="Ex: 2.0 Flex"
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="motorCodigo">Código do motor</label>
+                        <input
+                          type="text"
+                          id="motorCodigo"
+                          value={motorCodigo}
+                          onChange={(e) => setMotorCodigo(e.target.value)}
+                          placeholder="Ex: EA111"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-field">
+                        <label htmlFor="cilindrada">Cilindrada</label>
+                        <input
+                          type="text"
+                          id="cilindrada"
+                          value={cilindrada}
+                          onChange={(e) => setCilindrada(e.target.value)}
+                          placeholder="Ex: 1.0, 1.6, 2.0"
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="potenciaCv">Potência (cv)</label>
+                        <input
+                          type="text"
+                          id="potenciaCv"
+                          value={potenciaCv}
+                          onChange={(e) => setPotenciaCv(e.target.value)}
+                          placeholder="Ex: 116"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-field">
+                        <label htmlFor="km">Quilometragem</label>
+                        <input
+                          type="text"
+                          id="km"
+                          value={km}
+                          onChange={(e) => setKm(e.target.value.replace(/\D/g, ''))}
+                          placeholder="Ex: 85000"
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="tracao">Tração</label>
+                        <select
+                          id="tracao"
+                          value={tracao}
+                          onChange={(e) => setTracao(e.target.value)}
+                        >
+                          <option value="">Selecionar</option>
+                          <option value="4x2">4x2</option>
+                          <option value="4x4">4x4</option>
+                          <option value="AWD">AWD</option>
+                          <option value="FWD">FWD</option>
+                          <option value="RWD">RWD</option>
+                          <option value="Outro">Outro</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-field">
+                        <label htmlFor="uf">UF</label>
+                        <select id="uf" value={uf} onChange={(e) => setUf(e.target.value)}>
+                          <option value="">Selecionar</option>
+                          {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="renavam">Renavam</label>
+                        <input
+                          type="text"
+                          id="renavam"
+                          value={renavam}
+                          onChange={(e) => setRenavam(normalizeRenavam(e.target.value))}
+                          placeholder="11 dígitos"
+                          maxLength="11"
+                          inputMode="numeric"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-field">
+                        <label htmlFor="chassi">Chassi (VIN)</label>
+                        <input
+                          type="text"
+                          id="chassi"
+                          value={chassi}
+                          onChange={(e) => setChassi(normalizeVin(e.target.value))}
+                          placeholder="17 caracteres"
+                          maxLength="17"
+                          autoCapitalize="characters"
+                          autoCorrect="off"
+                          spellCheck={false}
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="cor">Cor</label>
+                        <input
+                          type="text"
+                          id="cor"
+                          value={cor}
+                          onChange={(e) => setCor(e.target.value)}
+                          placeholder="Ex: Prata"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-actions" style={{ marginTop: 0 }}>
+                      <button
+                        type="button"
+                        className="btn-cancel"
+                        onClick={handleAutoFillByVin}
+                        disabled={!chassi}
+                        title="Preenche marca/modelo/ano/motor quando disponível (beta)"
+                      >
+                        Preencher pelo chassi (beta)
+                      </button>
+                    </div>
+                  </>
+                )}
 
                 <div className="form-field">
                   <label htmlFor="observacoes">Observações</label>
@@ -475,14 +732,24 @@ export default function MeusCarros() {
                       <div className="default-badge">⭐ Padrão</div>
                     )}
                     <div className="car-header">
-                      <h4 className="car-title">{car.marca} {car.modelo}</h4>
-                      <span className="car-year">{car.ano}</span>
+                      <h4 className="car-title">{car.marca} {car.modelo}{car.versao ? ` ${car.versao}` : ''}</h4>
+                      <span className="car-year">{car.ano}{car.anoModelo ? `/${car.anoModelo}` : ''}</span>
                     </div>
                     <div className="car-details">
                       {car.placa && <p className="car-info"><strong>Placa:</strong> {car.placa}</p>}
                       {car.chassi && <p className="car-info"><strong>Chassi:</strong> {car.chassi}</p>}
+                      {car.combustivel && <p className="car-info"><strong>Combustível:</strong> {car.combustivel}</p>}
+                      {car.cambio && <p className="car-info"><strong>Câmbio:</strong> {car.cambio}</p>}
                       {car.cor && <p className="car-info"><strong>Cor:</strong> {car.cor}</p>}
                       {car.motor && <p className="car-info"><strong>Motor:</strong> {car.motor}</p>}
+                      {car.motorCodigo && <p className="car-info"><strong>Cód. motor:</strong> {car.motorCodigo}</p>}
+                      {car.cilindrada && <p className="car-info"><strong>Cilindrada:</strong> {car.cilindrada}</p>}
+                      {car.potenciaCv && <p className="car-info"><strong>Potência:</strong> {car.potenciaCv} cv</p>}
+                      {car.km && <p className="car-info"><strong>KM:</strong> {car.km}</p>}
+                      {car.tracao && <p className="car-info"><strong>Tração:</strong> {car.tracao}</p>}
+                      {car.carroceria && <p className="car-info"><strong>Carroceria:</strong> {car.carroceria}</p>}
+                      {car.uf && <p className="car-info"><strong>UF:</strong> {car.uf}</p>}
+                      {car.renavam && <p className="car-info"><strong>Renavam:</strong> {maskSensitive(car.renavam, { keepLast: 3 })}</p>}
                       {car.observacoes && <p className="car-info"><strong>Obs:</strong> {car.observacoes}</p>}
                     </div>
                     <div className="car-actions">
