@@ -111,12 +111,6 @@ export default function BuscarPeca() {
     if (selectedGrupo) {
       filtered = filtered.filter(p => p && p.category === selectedGrupo);
     }
-    if (selectedCategoria) {
-      filtered = filtered.filter(p => p && p.name === selectedCategoria);
-    }
-    if (selectedFabricante) {
-      filtered = filtered.filter(p => p && p.manufacturer === selectedFabricante);
-    }
     
     const modelosSet = new Set();
     const marcaLower = selectedMarca.toLowerCase();
@@ -160,12 +154,6 @@ export default function BuscarPeca() {
     let filtered = todasPecas;
     if (selectedGrupo) {
       filtered = filtered.filter(p => p && p.category === selectedGrupo);
-    }
-    if (selectedCategoria) {
-      filtered = filtered.filter(p => p && p.name === selectedCategoria);
-    }
-    if (selectedFabricante) {
-      filtered = filtered.filter(p => p && p.manufacturer === selectedFabricante);
     }
     
     const anosSet = new Set();
