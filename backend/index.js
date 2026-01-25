@@ -1176,6 +1176,67 @@ app.get('/api/fitments', async (req, res) => { if(pgClient){ try{ const r = awai
 app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM equivalences'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/equivalences:', err.message);} } res.json(csvData.equivalences); });
 app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs that use 'nome' or 'name' for the user's display name */ const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, pro_since, created_at FROM users"); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
 
+function normalizeVin(v) {
+  try {
+    return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
+  } catch (e) {
+    return '';
+  }
+}
+
+function isValidVin(v) {
+  const vin = normalizeVin(v);
+  return /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);
+}
+
+// VIN/Chassi decoder (baseline). Uses NHTSA VPIC which is best for US-market vehicles.
+app.get('/api/vin/decode/:vin', async (req, res) => {
+  const vin = normalizeVin(req.params.vin);
+  if (!vin) return res.status(400).json({ ok: false, error: 'vin required' });
+  if (!isValidVin(vin)) return res.status(400).json({ ok: false, error: 'invalid vin' });
+
+  try {
+    const nf = require('node-fetch');
+    const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${encodeURIComponent(vin)}?format=json`;
+    const r = await nf(url, { method: 'GET', redirect: 'follow', timeout: 15000, headers: { 'User-Agent': 'GaragemSmart-VIN/1.0' } });
+    if (!r.ok) return res.status(502).json({ ok: false, error: `decoder status ${r.status}` });
+    const payload = await r.json();
+    const results = Array.isArray(payload && payload.Results) ? payload.Results : [];
+    const get = (name) => {
+      const row = results.find(x => x && String(x.Variable || '').toLowerCase() === String(name).toLowerCase());
+      const val = row && row.Value != null ? String(row.Value) : '';
+      return val && val !== 'Not Applicable' && val !== '0' ? val : '';
+    };
+
+    const make = get('Make');
+    const model = get('Model');
+    const year = get('Model Year');
+    const engineModel = get('Engine Model');
+    const cylinders = get('Engine Number of Cylinders');
+    const displacementL = get('Displacement (L)');
+    const fuel = get('Fuel Type - Primary');
+    const bodyClass = get('Body Class');
+
+    const engineParts = [engineModel, displacementL ? `${displacementL}L` : '', cylinders ? `${cylinders}cyl` : '', fuel].filter(Boolean);
+    const engine = engineParts.join(' ').trim();
+
+    return res.json({
+      ok: true,
+      vin,
+      decoded: {
+        make,
+        model,
+        year,
+        bodyClass,
+        engine,
+      }
+    });
+  } catch (e) {
+    console.error('VIN decode failed:', e && e.message ? e.message : e);
+    return res.status(502).json({ ok: false, error: 'vin decode failed' });
+  }
+});
+
 function shapeCarRow(row){
   const dados = row && row.dados && typeof row.dados === 'object' ? row.dados : null;
   return {

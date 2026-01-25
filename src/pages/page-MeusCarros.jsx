@@ -23,7 +23,9 @@ export default function MeusCarros() {
   const [modelosDisponiveis, setModelosDisponiveis] = useState([]);
   const [ano, setAno] = useState('');
   const [placa, setPlaca] = useState('');
+  const [chassi, setChassi] = useState('');
   const [cor, setCor] = useState('');
+  const [motor, setMotor] = useState('');
   const [observacoes, setObservacoes] = useState('');
 
   useEffect(() => {
@@ -63,11 +65,102 @@ export default function MeusCarros() {
     setModelosDisponiveis([]);
     setAno('');
     setPlaca('');
+    setChassi('');
     setCor('');
+    setMotor('');
     setObservacoes('');
     setIsEditing(false);
     setEditingCarId(null);
     setShowForm(false);
+  };
+
+  const normalizeVin = (value) => {
+    try {
+      return String(value || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .trim();
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const isValidVin = (vin) => {
+    const v = normalizeVin(vin);
+    // VIN padrão: 17 caracteres, sem I/O/Q
+    return /^[A-HJ-NPR-Z0-9]{17}$/.test(v);
+  };
+
+  const getApiBase = () => {
+    try {
+      if (typeof window !== 'undefined' && window.__API_BASE) return window.__API_BASE;
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return `${window.location.protocol}//${window.location.hostname}:3001`;
+      }
+    } catch (e) {
+      // ignore
+    }
+    return '';
+  };
+
+  const findBrandInList = (make) => {
+    if (!make) return '';
+    const wanted = String(make).trim().toLowerCase();
+    if (!wanted) return '';
+    const found = (Array.isArray(brandList) ? brandList : []).find(b => String(b).trim().toLowerCase() === wanted);
+    return found || '';
+  };
+
+  const handleAutoFillByVin = async () => {
+    const vin = normalizeVin(chassi);
+    if (!vin) {
+      if (window.showToast) window.showToast('Digite o chassi (VIN) para buscar', 'error', 3000);
+      return;
+    }
+    if (!isValidVin(vin)) {
+      if (window.showToast) window.showToast('Chassi (VIN) inválido. Use 17 caracteres (sem I/O/Q).', 'error', 4000);
+      return;
+    }
+
+    try {
+      const baseUrl = getApiBase();
+      const url = `${baseUrl}/api/vin/decode/${encodeURIComponent(vin)}`;
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(`HTTP ${resp.status}: ${txt}`);
+      }
+      const data = await resp.json();
+      if (!data || !data.ok) {
+        throw new Error(data && data.error ? data.error : 'Falha ao decodificar chassi');
+      }
+
+      const decoded = data.decoded || {};
+      const make = decoded.make || '';
+      const model = decoded.model || '';
+      const year = decoded.year || '';
+      const engine = decoded.engine || '';
+
+      // Marca/modelo: tentar casar com lista; se não, usar "Outro" e preencher manualmente.
+      const brandInList = findBrandInList(make);
+      if (brandInList) {
+        setMarca(brandInList);
+        // tenta setar modelo direto; se não existir na lista, usuário ajusta
+        if (model) setModelo(model);
+      } else if (make || model) {
+        setMarca('Outro');
+        setModelo('Outro');
+        setModeloCustom(model ? String(model) : '');
+      }
+
+      if (year) setAno(String(year));
+      if (engine) setMotor(String(engine));
+
+      if (window.showToast) window.showToast('Dados preenchidos pelo chassi (quando disponível).', 'success', 3000);
+    } catch (err) {
+      console.warn('VIN decode failed:', err);
+      if (window.showToast) window.showToast('Não foi possível buscar dados pelo chassi agora.', 'error', 3500);
+    }
   };
 
   // Handler para mudança de marca
@@ -100,12 +193,21 @@ export default function MeusCarros() {
     }
 
     const userId = usuarioLogado.id || usuarioLogado.email;
+    const chassiNorm = normalizeVin(chassi);
+    if (chassiNorm && !isValidVin(chassiNorm)) {
+      if (window.showToast) {
+        window.showToast('Chassi (VIN) inválido. Use 17 caracteres (sem I/O/Q).', 'error', 4000);
+      }
+      return;
+    }
     const carData = {
       marca: marca.trim(),
       modelo: modeloFinal.trim(),
       ano: ano.trim(),
       placa: placa.trim().toUpperCase(),
+      chassi: chassiNorm,
       cor: cor.trim(),
+      motor: motor.trim(),
       observacoes: observacoes.trim()
     };
 
@@ -130,7 +232,9 @@ export default function MeusCarros() {
     setModelo(car.modelo);
     setAno(car.ano);
     setPlaca(car.placa || '');
+    setChassi(car.chassi || '');
     setCor(car.cor || '');
+    setMotor(car.motor || '');
     setObservacoes(car.observacoes || '');
     setIsEditing(true);
     setEditingCarId(car.id);
@@ -283,6 +387,45 @@ export default function MeusCarros() {
 
                 <div className="form-row">
                   <div className="form-field">
+                    <label htmlFor="chassi">Chassi (VIN)</label>
+                    <input
+                      type="text"
+                      id="chassi"
+                      value={chassi}
+                      onChange={(e) => setChassi(normalizeVin(e.target.value))}
+                      placeholder="17 caracteres"
+                      maxLength="17"
+                      autoCapitalize="characters"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="motor">Motor</label>
+                    <input
+                      type="text"
+                      id="motor"
+                      value={motor}
+                      onChange={(e) => setMotor(e.target.value)}
+                      placeholder="Ex: 2.0 Flex"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-actions" style={{ marginTop: 0 }}>
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={handleAutoFillByVin}
+                    disabled={!chassi}
+                    title="Preenche marca/modelo/ano/motor quando disponível (beta)"
+                  >
+                    Preencher pelo chassi (beta)
+                  </button>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-field">
                     <label htmlFor="cor">Cor</label>
                     <input
                       type="text"
@@ -337,7 +480,9 @@ export default function MeusCarros() {
                     </div>
                     <div className="car-details">
                       {car.placa && <p className="car-info"><strong>Placa:</strong> {car.placa}</p>}
+                      {car.chassi && <p className="car-info"><strong>Chassi:</strong> {car.chassi}</p>}
                       {car.cor && <p className="car-info"><strong>Cor:</strong> {car.cor}</p>}
+                      {car.motor && <p className="car-info"><strong>Motor:</strong> {car.motor}</p>}
                       {car.observacoes && <p className="car-info"><strong>Obs:</strong> {car.observacoes}</p>}
                     </div>
                     <div className="car-actions">
