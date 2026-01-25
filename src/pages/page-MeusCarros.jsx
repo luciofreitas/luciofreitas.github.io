@@ -167,6 +167,69 @@ export default function MeusCarros() {
       const year = decoded.year || '';
       const engine = decoded.engine || '';
 
+      const fuelPrimary = decoded.fuelPrimary || '';
+      const bodyClass = decoded.bodyClass || '';
+      const driveType = decoded.driveType || '';
+      const transmissionStyle = decoded.transmissionStyle || '';
+      const displacementL = decoded.displacementL || '';
+      const enginePowerKw = decoded.enginePowerKw || '';
+      const enginePowerHp = decoded.enginePowerHp || '';
+      const trim = decoded.trim || '';
+      const series = decoded.series || '';
+
+      const mapFuelToPtBr = (fuel) => {
+        const f = String(fuel || '').toLowerCase();
+        if (!f) return '';
+        if (f.includes('flex')) return 'Flex';
+        if (f.includes('flexible fuel')) return 'Flex';
+        if (f.includes('ethanol')) return 'Etanol';
+        if (f.includes('gasoline') || f.includes('petrol')) return 'Gasolina';
+        if (f.includes('diesel')) return 'Diesel';
+        if (f.includes('hybrid')) return 'Híbrido';
+        if (f.includes('electric')) return 'Elétrico';
+        if (f.includes('cng') || f.includes('natural gas')) return 'GNV';
+        return 'Outro';
+      };
+
+      const mapBodyClass = (bc) => {
+        const b = String(bc || '').toLowerCase();
+        if (!b) return '';
+        if (b.includes('sport utility') || b.includes('suv') || b.includes('multi-purpose')) return 'SUV';
+        if (b.includes('hatch')) return 'Hatch';
+        if (b.includes('sedan') || b.includes('saloon')) return 'Sedã';
+        if (b.includes('pickup') || b.includes('pick-up')) return 'Picape';
+        if (b.includes('station wagon') || b.includes('wagon')) return 'Perua';
+        if (b.includes('minivan')) return 'Minivan';
+        if (b.includes('van')) return 'Van';
+        return 'Outro';
+      };
+
+      const mapTransmission = (ts) => {
+        const t = String(ts || '').toLowerCase();
+        if (!t) return '';
+        if (t.includes('cvt')) return 'CVT';
+        if (t.includes('manual')) return 'Manual';
+        if (t.includes('automated manual') || t.includes('amt')) return 'Automatizado';
+        if (t.includes('automatic')) return 'Automático';
+        return 'Outro';
+      };
+
+      const mapDriveType = (dt) => {
+        const d = String(dt || '').toLowerCase();
+        if (!d) return '';
+        if (d.includes('all-wheel') || d.includes('awd')) return 'AWD';
+        if (d.includes('front-wheel') || d.includes('fwd')) return 'FWD';
+        if (d.includes('rear-wheel') || d.includes('rwd')) return 'RWD';
+        if (d.includes('4wd') || d.includes('4x4') || d.includes('four-wheel')) return '4x4';
+        return 'Outro';
+      };
+
+      const maybeSet = (setter, currentValue, nextValue) => {
+        if (currentValue) return;
+        if (!nextValue) return;
+        setter(nextValue);
+      };
+
       // Marca/modelo: tentar casar com lista; se não, usar "Outro" e preencher manualmente.
       const brandInList = findBrandInList(make);
       if (brandInList) {
@@ -181,6 +244,29 @@ export default function MeusCarros() {
 
       if (year) setAno(String(year));
       if (engine) setMotor(String(engine));
+
+      // Advanced fields (best-effort). Only fill if empty.
+      maybeSet(setCombustivel, combustivel, mapFuelToPtBr(fuelPrimary));
+      maybeSet(setCarroceria, carroceria, mapBodyClass(bodyClass));
+      maybeSet(setCambio, cambio, mapTransmission(transmissionStyle));
+      maybeSet(setTracao, tracao, mapDriveType(driveType));
+      maybeSet(setCilindrada, cilindrada, displacementL ? String(displacementL) : '');
+
+      const powerKw = Number(String(enginePowerKw || '').replace(',', '.'));
+      const powerHp = Number(String(enginePowerHp || '').replace(',', '.'));
+      if (!potenciaCv) {
+        if (Number.isFinite(powerKw) && powerKw > 0) {
+          const cv = Math.round(powerKw * 1.35962);
+          setPotenciaCv(String(cv));
+        } else if (Number.isFinite(powerHp) && powerHp > 0) {
+          setPotenciaCv(String(Math.round(powerHp)));
+        }
+      }
+
+      if (!versao) {
+        const v = String(trim || series || '').trim();
+        if (v) setVersao(v);
+      }
 
       if (window.showToast) window.showToast('Dados preenchidos pelo chassi (quando disponível).', 'success', 3000);
     } catch (err) {

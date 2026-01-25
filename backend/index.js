@@ -1217,6 +1217,15 @@ app.get('/api/vin/decode/:vin', async (req, res) => {
     const fuel = get('Fuel Type - Primary');
     const bodyClass = get('Body Class');
 
+    const driveType = get('Drive Type');
+    const transmissionStyle = get('Transmission Style');
+    const transmissionSpeeds = get('Transmission Speeds');
+    const trim = get('Trim');
+    const series = get('Series');
+
+    const enginePowerKw = get('Engine Power (kW)');
+    const enginePowerHp = get('Engine Power (hp)');
+
     const engineParts = [engineModel, displacementL ? `${displacementL}L` : '', cylinders ? `${cylinders}cyl` : '', fuel].filter(Boolean);
     const engine = engineParts.join(' ').trim();
 
@@ -1229,6 +1238,16 @@ app.get('/api/vin/decode/:vin', async (req, res) => {
         year,
         bodyClass,
         engine,
+        fuelPrimary: fuel,
+        driveType,
+        transmissionStyle,
+        transmissionSpeeds,
+        displacementL,
+        cylinders,
+        enginePowerKw,
+        enginePowerHp,
+        trim,
+        series,
       }
     });
   } catch (e) {
