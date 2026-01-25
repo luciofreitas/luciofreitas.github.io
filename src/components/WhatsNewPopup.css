@@ -1,0 +1,142 @@
+.whatsnew-modal {
+  /* Card-like look (similar vibe to guia cards) */
+  background: var(--bg-white);
+  border: 0.062rem solid var(--form-border);
+  border-left: 0.25rem solid var(--color-primary);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Only for this popup: center nicely and add safe padding on small screens */
+.modal-overlay.whatsnew-overlay {
+  align-items: center;
+  padding: 1rem;
+}
+
+/* Override global `.compat-modal` sizing so this popup is REALLY a small square */
+.compat-modal.whatsnew-modal {
+  /* Responsivo (principalmente no mobile): quadrado limitado por viewport */
+  --whatsnew-preferred: clamp(11.5rem, 52vw, 15rem);
+  --whatsnew-max: min(calc(100vw - 2rem), calc(100vh - 10rem));
+  --whatsnew-size: min(var(--whatsnew-preferred), var(--whatsnew-max));
+
+  width: var(--whatsnew-size) !important;
+  height: var(--whatsnew-size) !important;
+  max-width: var(--whatsnew-size) !important;
+  max-height: var(--whatsnew-size) !important;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.whatsnew-title {
+  font-size: 1rem;
+  letter-spacing: 0.2px;
+  color: var(--color-primary);
+}
+
+
+
+.whatsnew-body {
+  /* Fill remaining space in the square */
+  flex: 1;
+  min-height: 0;
+  padding: 0.25rem 0.6rem 0.55rem;
+  overflow: auto;
+  overflow-x: hidden;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Remove the global scroll-shadow pseudo element for this tiny popup */
+.compat-modal.whatsnew-modal .app-compat-body::after {
+  content: none;
+  display: none;
+}
+
+.whatsnew-text {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.25;
+  font-weight: 600;
+  text-align: left;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  width: 100%;
+}
+
+.whatsnew-sub {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.whatsnew-highlight {
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-top: 0.65rem;
+}
+
+/* Compact header just for this popup */
+.whatsnew-modal .app-compat-header {
+  padding: 0.35rem 0.45rem;
+  background: transparent;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  margin: 0;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.whatsnew-modal .app-compat-title-wrapper {
+  background: transparent;
+}
+
+.whatsnew-modal .app-compat-title {
+  color: var(--color-primary);
+}
+
+.whatsnew-modal .app-compat-close {
+  padding: 0.25rem;
+  border-radius: 0.4rem;
+}
+
+.theme-dark .whatsnew-modal {
+  background: rgba(17, 24, 39, 0.86);
+  border-color: rgba(226, 232, 240, 0.14);
+  border-left-color: rgba(96, 165, 250, 0.95);
+}
+
+.theme-dark .whatsnew-modal .app-compat-header {
+  border-bottom-color: rgba(226, 232, 240, 0.12);
+  background: transparent;
+}
+
+@media (max-width: 30rem) {
+  .modal-overlay.whatsnew-overlay {
+    /* Mobile: centered vertically, nudged up to sit over the blue container */
+    align-items: center;
+    padding: 0.75rem;
+  }
+
+  .compat-modal.whatsnew-modal {
+    transform: translateY(-8vh);
+  }
+}
+
+.theme-dark .whatsnew-modal .app-compat-title {
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.theme-dark .whatsnew-sub {
+  color: rgba(226, 232, 240, 0.82);
+}
+
+.theme-dark .whatsnew-highlight {
+  color: rgba(96, 165, 250, 0.95);
+}

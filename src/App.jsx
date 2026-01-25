@@ -40,6 +40,7 @@ const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
 // Mercado Livre integration disabled for now.
 // const MLCallback = lazy(() => import('./pages/page-MLCallback'));
 import { ThemeToggle } from './components';
+import WhatsNewPopup from './components/WhatsNewPopup';
 import './styles/App.css';
 import './styles/CustomDropdown.css';
 
@@ -503,6 +504,9 @@ export default function App() {
           <StartupEnforcer />
           <div className="app">
             <ThemeToggle />
+
+            {/* Startup "Novidades" Popup */}
+            <WhatsNewPopup disabled={showExpiryWarning} />
             
             {/* Pro Expiry Warning Popup */}
             {showExpiryWarning && (
