@@ -80,8 +80,37 @@ class ApiService {
   }
 
   async fetchWithFallback(apiPath, fallbackData = null) {
-  // Try API first (backend quando disponível)
-  const fullUrl = this.getBaseUrl() + apiPath;
+    // Detecta produção estática (ex: GitHub Pages, Vercel, etc.)
+    const isStaticProd =
+      typeof window !== 'undefined' &&
+      !isLikelyDevHostname(window.location.hostname) &&
+      (
+        window.location.hostname.endsWith('github.io') ||
+        window.location.hostname === 'garagemsmart.com.br' ||
+        window.location.hostname.endsWith('vercel.app') ||
+        window.location.hostname.endsWith('onrender.com')
+      );
+
+    // Se for produção estática, sempre usa fallback JSON local
+    if (isStaticProd) {
+      const jsonPath = this.getJsonFallbackPath(apiPath);
+      if (jsonPath) {
+        try {
+          const response = await fetch(jsonPath);
+          if (response.ok) {
+            return await response.json();
+          }
+        } catch (error) {
+          console.warn(`JSON fallback failed for ${apiPath}:`, error);
+        }
+      }
+      // Se não houver fallback, retorna vazio ou fallbackData
+      if (fallbackData) return fallbackData;
+      return { data: [], message: 'No data available' };
+    }
+
+    // Try API first (backend quando disponível)
+    const fullUrl = this.getBaseUrl() + apiPath;
     try {
       const response = await fetch(fullUrl);
       if (response.ok) {
@@ -91,7 +120,7 @@ class ApiService {
       console.warn(`API call failed for ${fullUrl}, falling back to local data:`, error);
     }
 
-    // Fallback to local JSON data for GitHub Pages
+    // Fallback to local JSON data
     if (fallbackData) {
       return fallbackData;
     }

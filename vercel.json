@@ -3,5 +3,10 @@
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": null
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/pecas/meta", "destination": "/data/parts_meta.json" },
+    { "source": "/api/luzes-painel", "destination": "/data/luzes_painel.json" },
+    { "source": "/api/pecas/todas", "destination": "/data/parts_db.json" }
+  ]
 }
