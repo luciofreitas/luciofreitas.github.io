@@ -99,7 +99,7 @@ export default function WhatsNewPopup({ disabled = false }) {
       >
         <div className="app-compat-header">
           <div className="app-compat-title-wrapper">
-            <span className="app-compat-title whatsnew-title">Novidades</span>
+            <span className="app-compat-title whatsnew-title">Atenção</span>
           </div>
           <button className="app-compat-close" aria-label="Fechar" onClick={handleClose}>
             ✕
@@ -108,7 +108,6 @@ export default function WhatsNewPopup({ disabled = false }) {
 
         <div className="app-compat-body whatsnew-body">
           <p className="whatsnew-text">
-            <span className="whatsnew-sub">Refinando e lançando atualizações.</span>
             <span className="whatsnew-highlight">Novidades em breve!</span>
           </p>
         </div>
