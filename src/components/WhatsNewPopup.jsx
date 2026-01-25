@@ -113,11 +113,11 @@ export default function WhatsNewPopup({ disabled = false }) {
         className="compat-modal whatsnew-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Aviso"
+        aria-label="Novidades"
       >
         <div className="app-compat-header">
           <div className="app-compat-title-wrapper">
-            <span className="app-compat-title whatsnew-title">Atenção</span>
+            <span className="app-compat-title whatsnew-title">Novidades em breve</span>
           </div>
           <button className="app-compat-close" aria-label="Fechar" onClick={handleClose}>
             ✕
@@ -125,9 +125,7 @@ export default function WhatsNewPopup({ disabled = false }) {
         </div>
 
         <div className="app-compat-body whatsnew-body">
-          <p className="whatsnew-text">
-            <span className="whatsnew-highlight">Novidades em breve!</span>
-          </p>
+          <p className="whatsnew-text">Estamos trabalhando sempre para te atender da melhor maneira possivel.</p>
         </div>
       </div>
     </div>
