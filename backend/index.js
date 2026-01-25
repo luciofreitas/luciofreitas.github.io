@@ -2199,4 +2199,22 @@ try{
       }
     });
   }
-}catch(e){ console.warn('Could not serve dist folder:', e && e.message ? e.message : e); }
+
+// Mock endpoint: /api/users/:userId/cars-auto
+app.get('/api/users/:userId/cars-auto', (req, res) => {
+  // Retorna um array mock de carros para o usuário
+  res.json([
+    { id: 1, modelo: 'Fiat Uno', ano: 2010, placa: 'ABC-1234' },
+    { id: 2, modelo: 'VW Gol', ano: 2015, placa: 'XYZ-5678' }
+  ]);
+});
+
+// Mock endpoint: /api/guias/:id
+app.get('/api/guias/:id', (req, res) => {
+  // Retorna um guia mock
+  res.json({
+    id: req.params.id,
+    titulo: 'Guia Exemplo',
+    conteudo: 'Conteúdo do guia de exemplo.'
+  });
+});
