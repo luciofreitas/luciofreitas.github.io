@@ -1,3 +1,15 @@
+// Mock endpoint: /api/guias (lista)
+app.get('/api/guias', (req, res) => {
+  res.json([
+    { id: 1, titulo: 'Guia 1', conteudo: 'Conteúdo do guia 1.' },
+    { id: 2, titulo: 'Guia 2', conteudo: 'Conteúdo do guia 2.' }
+  ]);
+});
+
+// Mock endpoint: /api/runtime-config
+app.get('/api/runtime-config', (req, res) => {
+  res.json({});
+});
 const path = require('path');
 // Ensure backend loads its own .env file even if started from the repository root
 require('dotenv').config({ path: path.join(__dirname, '.env') });
