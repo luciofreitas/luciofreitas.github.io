@@ -97,7 +97,7 @@
   text-justify: inter-word;
   hyphens: auto;
   text-wrap: pretty;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   display: block;
   width: 100%;
 }
@@ -191,6 +191,25 @@
 
   .compat-modal.whatsnew-modal {
     transform: none;
+    /* Give the content more breathing room on small screens */
+    --whatsnew-preferred: clamp(15.25rem, 86vw, 21.5rem);
+    --whatsnew-max-h: calc(100vh - 8rem);
+  }
+
+  .whatsnew-body {
+    padding: 0.5rem 0.9rem 0.85rem;
+  }
+
+  .whatsnew-text {
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+}
+
+/* Very small phones: avoid ugly spacing from justification */
+@media (max-width: 23.75rem) {
+  .whatsnew-text {
+    text-align: left;
   }
 }
 

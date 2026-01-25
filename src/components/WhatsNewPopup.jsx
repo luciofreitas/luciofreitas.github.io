@@ -125,7 +125,7 @@ export default function WhatsNewPopup({ disabled = false }) {
         </div>
 
         <div className="app-compat-body whatsnew-body">
-          <p className="whatsnew-text">Estamos trabalhando sempre para te atender da melhor maneira possivel.</p>
+          <p className="whatsnew-text" lang="pt-BR">Estamos trabalhando sempre para te atender da melhor maneira possivel</p>
         </div>
       </div>
     </div>
