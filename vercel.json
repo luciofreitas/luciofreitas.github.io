@@ -9,5 +9,8 @@
     { "source": "/api/luzes-painel", "destination": "/data/luzes_painel.json" },
     { "source": "/api/pecas/todas", "destination": "/data/parts_db.json" },
     { "source": "/api/guias", "destination": "/data/guias.json" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
