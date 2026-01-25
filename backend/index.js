@@ -1,15 +1,3 @@
-// Mock endpoint: /api/guias (lista)
-app.get('/api/guias', (req, res) => {
-  res.json([
-    { id: 1, titulo: 'Guia 1', conteudo: 'Conteúdo do guia 1.' },
-    { id: 2, titulo: 'Guia 2', conteudo: 'Conteúdo do guia 2.' }
-  ]);
-});
-
-// Mock endpoint: /api/runtime-config
-app.get('/api/runtime-config', (req, res) => {
-  res.json({});
-});
 const path = require('path');
 // Ensure backend loads its own .env file even if started from the repository root
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -29,6 +17,8 @@ const app = express();
 
 // Mercado Livre OAuth routes
 const mercadoLivreRoutes = require('./routes/mercadolivre');
+// Guias API routes
+const { router: guiasRoutes, setPgClientGetter: setGuiasPgClientGetter } = require('./routes/guias');
 // Lightweight health check used by PaaS (Render) to detect readiness quickly.
 // Keep this as the very first route so the platform can probe the process
 // even if other initialization (DB connect) is still in progress.
@@ -130,6 +120,31 @@ app.use(express.json({ verify: function (req, res, buf, encoding) {
 
 // Mount Mercado Livre OAuth routes
 app.use('/api/ml', mercadoLivreRoutes);
+
+// Runtime configuration endpoint consumed by the frontend.
+// IMPORTANT: only return whitelisted values (no secrets).
+app.get('/api/runtime-config', (req, res) => {
+  try {
+    const whitelist = [
+      'SUPABASE_URL',
+      'SUPABASE_ANON_KEY',
+      'FIREBASE_API_KEY',
+      'FIREBASE_AUTH_DOMAIN',
+      'API_URL',
+      'EMAILJS_PUBLIC_KEY'
+    ];
+    const out = {};
+    for (const k of whitelist) {
+      if (Object.prototype.hasOwnProperty.call(process.env, k)) out[k] = process.env[k];
+    }
+    return res.json(out);
+  } catch (e) {
+    return res.json({});
+  }
+});
+
+// Mount Guias API routes
+app.use('/api/guias', guiasRoutes);
 
 // Simple request logger to help debug missing routes / 404s in dev
 app.use((req, res, next) => {
@@ -308,6 +323,8 @@ let lastUserCreateError = null;
 
 // Attempt Postgres connection if environment variables provided
 let pgClient = null;
+// Make the guias router able to query Postgres when available.
+try { setGuiasPgClientGetter(() => pgClient); } catch (e) { /* ignore */ }
 // Which column stores the user's human name in the users table. Some DBs/schemas use 'name', others 'nome'.
 // Which column stores the user's human name in the users table. Some DBs/schemas use 'name', others 'nome'.
 let userNameColumn = 'name';
@@ -1158,6 +1175,109 @@ app.get('/api/luzes-painel', (req, res) => {
 app.get('/api/fitments', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM fitments'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/fitments:', err.message);} } res.json(csvData.fitments); });
 app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM equivalences'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/equivalences:', err.message);} } res.json(csvData.equivalences); });
 app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs that use 'nome' or 'name' for the user's display name */ const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, pro_since, created_at FROM users"); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
+
+function shapeCarRow(row){
+  const dados = row && row.dados && typeof row.dados === 'object' ? row.dados : null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    marca: row.marca,
+    modelo: row.modelo,
+    ano: row.ano,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    ...(dados || {})
+  };
+}
+
+// Carros do usuário (tabela `cars` do Postgres). Mantém compatibilidade com o frontend (`cars-auto`).
+app.get('/api/users/:userId/cars-auto', async (req, res) => {
+  const userId = String(req.params.userId || '');
+  if (!userId) return res.json([]);
+  if (!pgClient) return res.json([]);
+  try {
+    const r = await pgClient.query('SELECT * FROM cars WHERE user_id = $1 ORDER BY updated_at DESC NULLS LAST, created_at DESC', [userId]);
+    return res.json((r.rows || []).map(shapeCarRow));
+  } catch (e) {
+    console.error('PG query failed /api/users/:userId/cars-auto:', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.post('/api/users/:userId/cars-auto', async (req, res) => {
+  const userId = String(req.params.userId || '');
+  if (!userId) return res.status(400).json({ error: 'userId required' });
+  if (!pgClient) return res.status(503).json({ error: 'database not available' });
+
+  const body = req.body || {};
+  const marca = body.marca || body.brand || body.fabricante;
+  const modelo = body.modelo || body.model;
+  const ano = (body.ano !== undefined && body.ano !== null && body.ano !== '') ? Number(body.ano) : null;
+  if (!marca || !modelo) return res.status(400).json({ error: 'marca and modelo are required' });
+
+  const id = body.id || `car_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  const { marca: _m, modelo: _mo, ano: _a, brand: _b, model: _mm, fabricante: _f, ...rest } = body;
+  const dados = Object.keys(rest || {}).length ? rest : null;
+
+  try {
+    const r = await pgClient.query(
+      'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, now(), now()) RETURNING *',
+      [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, dados]
+    );
+    const row = r && r.rows && r.rows[0] ? r.rows[0] : null;
+    return res.json(row ? shapeCarRow(row) : { id, userId, marca, modelo, ano });
+  } catch (e) {
+    console.error('PG insert failed /api/users/:userId/cars-auto:', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.delete('/api/users/:userId/cars-auto/:carId', async (req, res) => {
+  const userId = String(req.params.userId || '');
+  const carId = String(req.params.carId || '');
+  if (!userId || !carId) return res.status(400).json({ error: 'userId and carId required' });
+  if (!pgClient) return res.status(503).json({ error: 'database not available' });
+  try {
+    const r = await pgClient.query('DELETE FROM cars WHERE user_id = $1 AND id = $2', [userId, carId]);
+    return res.json({ ok: true, deleted: r && typeof r.rowCount === 'number' ? r.rowCount : 0 });
+  } catch (e) {
+    console.error('PG delete failed /api/users/:userId/cars-auto/:carId:', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+// Bulk replace (used by saveCars). Accepts { cars: [...] }.
+app.put('/api/users/:userId/cars', async (req, res) => {
+  const userId = String(req.params.userId || '');
+  const cars = (req.body && Array.isArray(req.body.cars)) ? req.body.cars : null;
+  if (!userId) return res.status(400).json({ error: 'userId required' });
+  if (!cars) return res.status(400).json({ error: 'cars array required' });
+  if (!pgClient) return res.status(503).json({ error: 'database not available' });
+  try {
+    await pgClient.query('BEGIN');
+    await pgClient.query('DELETE FROM cars WHERE user_id = $1', [userId]);
+    for (const c of cars) {
+      const body = c || {};
+      const marca = body.marca || body.brand || body.fabricante;
+      const modelo = body.modelo || body.model;
+      const ano = (body.ano !== undefined && body.ano !== null && body.ano !== '') ? Number(body.ano) : null;
+      if (!marca || !modelo) continue;
+      const id = body.id || `car_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+      const { marca: _m, modelo: _mo, ano: _a, brand: _b, model: _mm, fabricante: _f, ...rest } = body;
+      const dados = Object.keys(rest || {}).length ? rest : null;
+      await pgClient.query(
+        'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, now(), now())',
+        [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, dados]
+      );
+    }
+    await pgClient.query('COMMIT');
+    return res.json({ ok: true });
+  } catch (e) {
+    try { await pgClient.query('ROLLBACK'); } catch (e2) { /* ignore */ }
+    console.error('PG bulk replace failed /api/users/:userId/cars:', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
 
 // Temporary debug endpoint: report users table columns and runtime detection
 if (process.env.NODE_ENV !== 'production') {
@@ -2212,21 +2332,10 @@ try{
     });
   }
 
-// Mock endpoint: /api/users/:userId/cars-auto
-app.get('/api/users/:userId/cars-auto', (req, res) => {
-  // Retorna um array mock de carros para o usuário
-  res.json([
-    { id: 1, modelo: 'Fiat Uno', ano: 2010, placa: 'ABC-1234' },
-    { id: 2, modelo: 'VW Gol', ano: 2015, placa: 'XYZ-5678' }
-  ]);
-});
+}catch(e){
+  try {
+    console.warn('Failed to serve static frontend build:', e && e.message ? e.message : e);
+  } catch (e2) { /* ignore */ }
+}
 
-// Mock endpoint: /api/guias/:id
-app.get('/api/guias/:id', (req, res) => {
-  // Retorna um guia mock
-  res.json({
-    id: req.params.id,
-    titulo: 'Guia Exemplo',
-    conteudo: 'Conteúdo do guia de exemplo.'
-  });
-});
+// NOTE: keep all API routes above the SPA fallback (app.get('*'))

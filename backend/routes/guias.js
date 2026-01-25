@@ -31,12 +31,53 @@ router.get('/', async (req, res) => {
     }catch(err){ console.error('PG query failed /api/guias:', err && err.message ? err.message : err); }
   }
 
-  const guiasPath = path.join(__dirname, '..', 'data', 'guias.json');
-  if(fs.existsSync(guiasPath)){
-    const guias = JSON.parse(fs.readFileSync(guiasPath, 'utf8'));
-    return res.json(guias);
+  const candidates = [
+    path.join(__dirname, '..', 'data', 'guias.json'),
+    // Repo root: public/data/guias.json
+    path.join(__dirname, '..', '..', 'public', 'data', 'guias.json'),
+  ];
+  for (const guiasPath of candidates) {
+    if (fs.existsSync(guiasPath)) {
+      const guias = JSON.parse(fs.readFileSync(guiasPath, 'utf8'));
+      return res.json(guias);
+    }
   }
   res.json([]);
+});
+
+// GET /api/guias/:id
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  const pgClient = getPgClient();
+  if (pgClient) {
+    try {
+      const result = await pgClient.query('SELECT * FROM guias WHERE id = $1', [id]);
+      if (!result.rows || !result.rows.length) return res.status(404).json({ error: 'not found' });
+      return res.json(snakeToCamelKeys(result.rows[0]));
+    } catch (err) {
+      console.error('PG query failed /api/guias/:id:', err && err.message ? err.message : err);
+    }
+  }
+
+  const candidates = [
+    path.join(__dirname, '..', 'data', 'guias.json'),
+    path.join(__dirname, '..', '..', 'public', 'data', 'guias.json'),
+  ];
+  for (const guiasPath of candidates) {
+    if (fs.existsSync(guiasPath)) {
+      try {
+        const guias = JSON.parse(fs.readFileSync(guiasPath, 'utf8'));
+        const found = (Array.isArray(guias) ? guias : []).find(g => String(g.id) === String(id));
+        if (!found) return res.status(404).json({ error: 'not found' });
+        return res.json(found);
+      } catch (e) {
+        console.error('Failed to read guias fallback JSON:', e && e.message ? e.message : e);
+        break;
+      }
+    }
+  }
+
+  return res.status(404).json({ error: 'not found' });
 });
 
 // POST /api/guias
