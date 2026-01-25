@@ -8,9 +8,8 @@
     { "source": "/api/pecas/meta", "destination": "/data/parts_meta.json" },
     { "source": "/api/luzes-painel", "destination": "/data/luzes_painel.json" },
     { "source": "/api/pecas/todas", "destination": "/data/parts_db.json" },
-    { "source": "/api/guias", "destination": "/data/guias.json" }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "source": "/api/guias", "destination": "/data/guias.json" },
+
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -145,8 +145,8 @@ class ApiService {
   getJsonFallbackPath(apiPath) {
     const pathMap = {
       '/api/glossario-dashboard': null,
-      '/api/luzes-painel': '/data/luzes_painel.json',
-      '/api/pecas/meta': '/data/parts_meta.json',
+      '/api/luzes-painel': './data/luzes_painel.json',
+      '/api/pecas/meta': './data/parts_meta.json',
     };
     return pathMap[apiPath] || null;
   }
@@ -175,7 +175,7 @@ class ApiService {
 
   async getPecasMeta() {
     const buildMetaFromPartsDb = async () => {
-      const response = await fetch('/data/parts_db.json');
+      const response = await fetch('./data/parts_db.json');
       if (!response.ok) throw new Error(`Failed to load /data/parts_db.json: ${response.status}`);
       const partsData = await response.json();
 
@@ -411,7 +411,7 @@ class ApiService {
     }
     // Fallback: filter local data
     try {
-      const response = await fetch('/data/parts_db.json');
+      const response = await fetch('./data/parts_db.json');
   if (response.ok) {
   const partsData = await response.json();
   let filtered = partsData;
@@ -501,7 +501,7 @@ class ApiService {
     // Fallback: find in local detailed data first, then basic data
       try {
         // Try detailed data first
-        const detailedResponse = await fetch('/data/parts_detailed.json');
+        const detailedResponse = await fetch('./data/parts_detailed.json');
         if (detailedResponse.ok) {
         const detailedData = await detailedResponse.json();
         const detailedPiece = detailedData.find(p => {
@@ -512,7 +512,7 @@ class ApiService {
       }
       
       // Fallback to basic data if not found in detailed
-      const response = await fetch('/data/parts_db.json');
+      const response = await fetch('./data/parts_db.json');
       if (response.ok) {
   const partsData = await response.json();
   const piece = partsData.find(p => p.id === id || p.id === parseInt(id) || p.id === String(id));
