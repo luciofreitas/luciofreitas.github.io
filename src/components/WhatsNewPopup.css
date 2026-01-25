@@ -114,10 +114,10 @@
   margin-bottom: 0;
   align-self: center;
   text-align: center;
-  padding: 0.32rem 0.55rem;
-  border-radius: 9999px;
-  background: rgba(0, 107, 143, 0.10);
-  border: 1px solid rgba(0, 107, 143, 0.18);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
 }
 
 /* Compact header just for this popup */
@@ -203,6 +203,6 @@
 
 .theme-dark .whatsnew-highlight {
   color: rgba(96, 165, 250, 0.95);
-  background: rgba(96, 165, 250, 0.16);
-  border-color: rgba(96, 165, 250, 0.22);
+  background: transparent;
+  border-color: transparent;
 }
