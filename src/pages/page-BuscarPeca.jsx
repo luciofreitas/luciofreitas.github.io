@@ -80,19 +80,41 @@ export default function BuscarPeca() {
     return () => window.removeEventListener('app-refresh', onRefresh);
   }, []);
 
+  // When the group changes, ensure the selected "Peça" still belongs to it.
+  useEffect(() => {
+    if (!selectedGrupo) return;
+    if (!selectedCategoria) return;
+    const allowed = getFilteredPecas();
+    if (Array.isArray(allowed) && allowed.length && !allowed.includes(selectedCategoria)) {
+      setSelectedCategoria('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGrupo]);
+
   // Observação: removemos a validação de compatibilidade baseada no catálogo completo
   // para evitar carregar todas as peças no início (ganho de performance).
 
   // Filtrar opções de dropdown baseado nas seleções atuais
-  // Agora espera que todasPecas seja uma lista de objetos { name, category }
+  // Espera `todasPecas` como lista de objetos { name, category }.
+  // (Mantém fallback caso venha como lista de strings em algum cenário antigo.)
   const getFilteredPecas = () => {
     if (!Array.isArray(todasPecas) || !todasPecas.length) return [];
+
+    const first = todasPecas[0];
+    const isStringList = typeof first === 'string';
+
+    // Legacy fallback: cannot filter by group without category mapping.
+    if (isStringList) {
+      return [...new Set(todasPecas.map(p => String(p)).filter(Boolean))];
+    }
+
+    const asObjects = todasPecas.filter(p => p && typeof p === 'object');
     if (!selectedGrupo) {
       // Mostra todas as peças únicas
-      return [...new Set(todasPecas.map(p => p.name).filter(Boolean))];
+      return [...new Set(asObjects.map(p => p.name).filter(Boolean))];
     }
     // Filtra peças pelo grupo selecionado
-    return [...new Set(todasPecas.filter(p => p && p.category === selectedGrupo).map(p => p.name).filter(Boolean))];
+    return [...new Set(asObjects.filter(p => p.category === selectedGrupo).map(p => p.name).filter(Boolean))];
   };
 
   const getFilteredFabricantes = () => {

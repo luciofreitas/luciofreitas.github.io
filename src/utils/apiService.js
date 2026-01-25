@@ -205,7 +205,12 @@ class ApiService {
           if (!error && partsData && Array.isArray(partsData)) {
             return {
               grupos: [...new Set(partsData.map(p => p.category).filter(Boolean))].sort(),
-              pecas: [...new Set(partsData.map(p => p.name).filter(Boolean))].sort(),
+              // Keep category for filtering "Peça" by "Grupo" in the UI
+              pecas: partsData.filter(p => p && p.name && p.category).map(p => ({
+                name: p.name,
+                category: p.category,
+                manufacturer: p.manufacturer
+              })),
               fabricantes: [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort(),
               marcas: [],
               modelos: [],
@@ -256,9 +261,22 @@ class ApiService {
           }
         });
 
+        // Keep category for filtering "Peça" by "Grupo" in the UI
+        const pairSet = new Set();
+        const pecas = [];
+        for (const p of (Array.isArray(partsData) ? partsData : [])) {
+          const name = p && p.name ? String(p.name) : '';
+          const category = p && p.category ? String(p.category) : '';
+          if (!name || !category) continue;
+          const key = `${category}||${name}`;
+          if (pairSet.has(key)) continue;
+          pairSet.add(key);
+          pecas.push({ name, category, manufacturer: p.manufacturer });
+        }
+
         return {
           grupos,
-          pecas: [...new Set(partsData.map(p => p && p.name).filter(Boolean))].sort(),
+          pecas,
           marcas: [...todasMarcasVeiculos].sort(),
           modelos: [...modelos].sort(),
           anos: [...anos].sort(),
