@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import useFocusTrap from '../hooks/useFocusTrap';
 import './WhatsNewPopup.css';
 
@@ -17,6 +18,7 @@ export default function WhatsNewPopup({ disabled = false }) {
   const modalRef = useRef(null);
   const openedOnceRef = useRef(false);
   const [open, setOpen] = useState(false);
+  const location = useLocation();
 
   useFocusTrap(open, modalRef);
 
@@ -28,7 +30,23 @@ export default function WhatsNewPopup({ disabled = false }) {
     openedOnceRef.current = true;
 
     const href = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : '';
-    const forceShow = /[?&#]whatsnew=1\b/i.test(href);
+
+    const isInicio = (location && location.pathname === '/inicio');
+
+    let isReload = false;
+    try {
+      const navEntry = performance && typeof performance.getEntriesByType === 'function'
+        ? performance.getEntriesByType('navigation')[0]
+        : null;
+      if (navEntry && navEntry.type) isReload = navEntry.type === 'reload';
+      // Fallback (deprecated, but still works in some browsers)
+      // 1 = TYPE_RELOAD
+      if (!isReload && performance && performance.navigation && performance.navigation.type === 1) isReload = true;
+    } catch {
+      // ignore
+    }
+
+    const forceShow = /[?&#]whatsnew=1\b/i.test(href) || (isInicio && isReload);
 
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -39,7 +57,7 @@ export default function WhatsNewPopup({ disabled = false }) {
     }
 
     setOpen(true);
-  }, [disabled]);
+  }, [disabled, location]);
 
   useEffect(() => {
     if (!open) return undefined;
