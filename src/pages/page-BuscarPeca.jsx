@@ -55,6 +55,16 @@ export default function BuscarPeca() {
       try {
         const data = await apiService.getPecasMeta();
   // metadata loaded
+
+        try {
+          const p0 = (data && Array.isArray(data.pecas) && data.pecas.length) ? data.pecas[0] : null;
+          console.info('[BuscarPeca] meta loaded', {
+            grupos: Array.isArray(data?.grupos) ? data.grupos.length : 0,
+            pecas: Array.isArray(data?.pecas) ? data.pecas.length : 0,
+            pecasType: p0 ? typeof p0 : 'none',
+            pecaKeys: (p0 && typeof p0 === 'object') ? Object.keys(p0).slice(0, 8) : []
+          });
+        } catch (e) { /* ignore */ }
         
         setGrupos(data.grupos || []);
         setTodasPecas(data.pecas || []);

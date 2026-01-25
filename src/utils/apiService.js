@@ -174,6 +174,61 @@ class ApiService {
   }
 
   async getPecasMeta() {
+    const buildMetaFromPartsDb = async () => {
+      const response = await fetch('/data/parts_db.json');
+      if (!response.ok) throw new Error(`Failed to load /data/parts_db.json: ${response.status}`);
+      const partsData = await response.json();
+
+      const grupos = [...new Set((partsData || []).map(p => p && p.category).filter(Boolean))].sort();
+      const fabricantes = [...new Set((partsData || []).map(p => p && p.manufacturer).filter(Boolean))].sort();
+
+      const pairSet = new Set();
+      const pecas = [];
+      for (const p of (Array.isArray(partsData) ? partsData : [])) {
+        const name = p && p.name ? String(p.name) : '';
+        const category = p && p.category ? String(p.category) : '';
+        if (!name || !category) continue;
+        const key = `${category}||${name}`;
+        if (pairSet.has(key)) continue;
+        pairSet.add(key);
+        pecas.push({ name, category, manufacturer: p.manufacturer });
+      }
+
+      const modelos = new Set();
+      const anos = new Set();
+      const todasMarcasVeiculos = new Set();
+      (Array.isArray(partsData) ? partsData : []).forEach(part => {
+        if (part && part.applications && Array.isArray(part.applications)) {
+          part.applications.forEach(app => {
+            if (typeof app === 'string') {
+              const parts = app.trim().split(/\s+/);
+              if (parts.length >= 2) {
+                const marca = parts[0];
+                const modelo = parts[1];
+                todasMarcasVeiculos.add(marca);
+                modelos.add(`${marca} ${modelo}`);
+                const yearsMatch = app.match(/\b(19|20)\d{2}\b/g);
+                if (yearsMatch) yearsMatch.forEach(year => anos.add(year));
+              }
+            } else if (typeof app === 'object') {
+              if (app.model) modelos.add(app.model);
+              if (app.year) anos.add(app.year);
+              if (app.make) todasMarcasVeiculos.add(app.make);
+            }
+          });
+        }
+      });
+
+      return {
+        grupos,
+        pecas,
+        marcas: [...todasMarcasVeiculos].sort(),
+        modelos: [...modelos].sort(),
+        anos: [...anos].sort(),
+        fabricantes
+      };
+    };
+
     // Buscar metadados diretamente do backend
     try {
       const base = this.getBaseUrl ? this.getBaseUrl() : '';
@@ -228,68 +283,24 @@ class ApiService {
       console.debug('Supabase client not available or failed to import:', err && err.message ? err.message : err);
     }
 
-    // Last resort: fallback to the full local JSON (heavier)
+    // Last resort: build from the full local JSON (heavier)
     try {
-      const response = await fetch('/data/parts_db.json');
-      if (response.ok) {
-        const partsData = await response.json();
-
-        const grupos = [...new Set(partsData.map(p => p.category).filter(Boolean))].sort();
-        const fabricantes = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
-
-        const modelos = new Set();
-        const anos = new Set();
-        const todasMarcasVeiculos = new Set();
-
-        partsData.forEach(part => {
-          if (part.applications && Array.isArray(part.applications)) {
-            part.applications.forEach(app => {
-              if (typeof app === 'string') {
-                const parts = app.trim().split(/\s+/);
-                if (parts.length >= 2) {
-                  const marca = parts[0];
-                  const modelo = parts[1];
-                  todasMarcasVeiculos.add(marca);
-                  modelos.add(`${marca} ${modelo}`);
-                  const yearsMatch = app.match(/\b(19|20)\d{2}\b/g);
-                  if (yearsMatch) yearsMatch.forEach(year => anos.add(year));
-                }
-              } else if (typeof app === 'object') {
-                if (app.model) modelos.add(app.model);
-                if (app.year) anos.add(app.year);
-                if (app.make) todasMarcasVeiculos.add(app.make);
-              }
-            });
-          }
-        });
-
-        // Keep category for filtering "Peça" by "Grupo" in the UI
-        const pairSet = new Set();
-        const pecas = [];
-        for (const p of (Array.isArray(partsData) ? partsData : [])) {
-          const name = p && p.name ? String(p.name) : '';
-          const category = p && p.category ? String(p.category) : '';
-          if (!name || !category) continue;
-          const key = `${category}||${name}`;
-          if (pairSet.has(key)) continue;
-          pairSet.add(key);
-          pecas.push({ name, category, manufacturer: p.manufacturer });
-        }
-
-        return {
-          grupos,
-          pecas,
-          marcas: [...todasMarcasVeiculos].sort(),
-          modelos: [...modelos].sort(),
-          anos: [...anos].sort(),
-          fabricantes
-        };
-      }
+      return await buildMetaFromPartsDb();
     } catch (error) {
-      console.warn('Error loading parts_db.json:', error);
+      console.warn('Error building meta from /data/parts_db.json:', error);
     }
 
-    return this.fetchWithFallback('/api/pecas/meta');
+    // Final fallback: static parts_meta.json (may not contain group mapping). If it returns
+    // a string list of "pecas", try to enrich it with category info from parts_db.json.
+    const meta = await this.fetchWithFallback('/api/pecas/meta');
+    try {
+      if (meta && Array.isArray(meta.pecas) && meta.pecas.length && typeof meta.pecas[0] === 'string') {
+        return await buildMetaFromPartsDb();
+      }
+    } catch (e) {
+      // ignore and return what we have
+    }
+    return meta;
   }
 
   async filtrarPecas(filtros) {
