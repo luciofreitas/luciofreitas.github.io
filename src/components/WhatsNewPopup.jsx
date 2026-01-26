@@ -3,8 +3,13 @@ import { useLocation } from 'react-router-dom';
 import useFocusTrap from '../hooks/useFocusTrap';
 import './WhatsNewPopup.css';
 
-const WHATS_NEW_VERSION = '2026-01-25-cards';
+const WHATS_NEW_VERSION = '2026-01-26-whatsnew-json';
 const LS_KEY = 'gs_whatsnew_dismissed';
+
+const FALLBACK_CONTENT = {
+  title: 'Novidades em breve',
+  text: 'Estamos trabalhando sempre para te atender da melhor maneira possivel'
+};
 
 function safeJsonParse(value) {
   try {
@@ -14,10 +19,44 @@ function safeJsonParse(value) {
   }
 }
 
+async function loadWhatsNewConfig() {
+  try {
+    const res = await fetch(`/data/whats_new.json?v=${encodeURIComponent(WHATS_NEW_VERSION)}`, {
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || typeof data !== 'object') return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeConfig(data) {
+  const id = (data && typeof data.id === 'string') ? data.id.trim() : '';
+  const active = Boolean(data && data.active);
+  const title = (data && typeof data.title === 'string' && data.title.trim()) ? data.title.trim() : 'Novidades';
+  const items = Array.isArray(data && data.items) ? data.items : [];
+
+  const normalizedItems = items
+    .filter((it) => it && typeof it === 'object')
+    .map((it) => ({
+      tag: (typeof it.tag === 'string' && it.tag.trim()) ? it.tag.trim() : '',
+      title: (typeof it.title === 'string' && it.title.trim()) ? it.title.trim() : '',
+      text: (typeof it.text === 'string' && it.text.trim()) ? it.text.trim() : ''
+    }))
+    .filter((it) => it.title || it.text);
+
+  return { id, active, title, items: normalizedItems };
+}
+
 export default function WhatsNewPopup({ disabled = false }) {
   const modalRef = useRef(null);
   const openedOnceRef = useRef(false);
   const [open, setOpen] = useState(false);
+  const [config, setConfig] = useState(null);
+  const [dismissVersion, setDismissVersion] = useState(WHATS_NEW_VERSION);
   const location = useLocation();
 
   useFocusTrap(open, modalRef);
@@ -29,34 +68,42 @@ export default function WhatsNewPopup({ disabled = false }) {
     if (openedOnceRef.current) return;
     openedOnceRef.current = true;
 
-    const href = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : '';
+    const maybeOpen = async () => {
+      const href = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : '';
+      const isInicio = (location && location.pathname === '/inicio');
 
-    const isInicio = (location && location.pathname === '/inicio');
+      let isReload = false;
+      try {
+        const navEntry = performance && typeof performance.getEntriesByType === 'function'
+          ? performance.getEntriesByType('navigation')[0]
+          : null;
+        if (navEntry && navEntry.type) isReload = navEntry.type === 'reload';
+        // Fallback (deprecated, but still works in some browsers)
+        // 1 = TYPE_RELOAD
+        if (!isReload && performance && performance.navigation && performance.navigation.type === 1) isReload = true;
+      } catch {
+        // ignore
+      }
 
-    let isReload = false;
-    try {
-      const navEntry = performance && typeof performance.getEntriesByType === 'function'
-        ? performance.getEntriesByType('navigation')[0]
-        : null;
-      if (navEntry && navEntry.type) isReload = navEntry.type === 'reload';
-      // Fallback (deprecated, but still works in some browsers)
-      // 1 = TYPE_RELOAD
-      if (!isReload && performance && performance.navigation && performance.navigation.type === 1) isReload = true;
-    } catch {
-      // ignore
-    }
+      const forceShow = /[?&#]whatsnew=1\b/i.test(href) || (isInicio && isReload);
 
-    const forceShow = /[?&#]whatsnew=1\b/i.test(href) || (isInicio && isReload);
+      const loaded = normalizeConfig(await loadWhatsNewConfig());
+      const versionKey = (loaded && loaded.id) ? loaded.id : WHATS_NEW_VERSION;
+      setConfig(loaded);
+      setDismissVersion(versionKey);
 
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      const data = safeJsonParse(raw);
-      if (!forceShow && data && data.version === WHATS_NEW_VERSION) return;
-    } catch {
-      // ignore
-    }
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        const stored = safeJsonParse(raw);
+        if (!forceShow && stored && stored.version === versionKey) return;
+      } catch {
+        // ignore
+      }
 
-    setOpen(true);
+      setOpen(true);
+    };
+
+    maybeOpen();
   }, [disabled, location]);
 
   useEffect(() => {
@@ -86,7 +133,7 @@ export default function WhatsNewPopup({ disabled = false }) {
     try {
       localStorage.setItem(
         LS_KEY,
-        JSON.stringify({ version: WHATS_NEW_VERSION, dismissedAt: new Date().toISOString() })
+        JSON.stringify({ version: dismissVersion, dismissedAt: new Date().toISOString() })
       );
     } catch {
       // ignore
@@ -106,6 +153,9 @@ export default function WhatsNewPopup({ disabled = false }) {
 
   if (!open || disabled) return null;
 
+  const hasItems = Boolean(config && config.active && Array.isArray(config.items) && config.items.length);
+  const headerTitle = hasItems ? (config.title || 'Novidades') : FALLBACK_CONTENT.title;
+
   return (
     <div className="modal-overlay whatsnew-overlay" onClick={handleOverlayClick}>
       <div
@@ -117,7 +167,7 @@ export default function WhatsNewPopup({ disabled = false }) {
       >
         <div className="app-compat-header">
           <div className="app-compat-title-wrapper">
-            <span className="app-compat-title whatsnew-title">Novidades em breve</span>
+            <span className="app-compat-title whatsnew-title">{headerTitle}</span>
           </div>
           <button className="app-compat-close" aria-label="Fechar" onClick={handleClose}>
             ✕
@@ -125,7 +175,21 @@ export default function WhatsNewPopup({ disabled = false }) {
         </div>
 
         <div className="app-compat-body whatsnew-body">
-          <p className="whatsnew-text" lang="pt-BR">Estamos trabalhando sempre para te atender da melhor maneira possivel</p>
+          {hasItems ? (
+            <div className="whatsnew-list" aria-label="Lista de novidades">
+              {config.items.map((item, idx) => (
+                <div className="whatsnew-item" key={`${idx}-${item.title || item.text}`}> 
+                  <div className="whatsnew-item-header">
+                    <div className="whatsnew-item-title">{item.title}</div>
+                    {item.tag ? <div className="whatsnew-badge">{item.tag}</div> : null}
+                  </div>
+                  {item.text ? <p className="whatsnew-text whatsnew-item-text" lang="pt-BR">{item.text}</p> : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="whatsnew-text" lang="pt-BR">{FALLBACK_CONTENT.text}</p>
+          )}
         </div>
       </div>
     </div>

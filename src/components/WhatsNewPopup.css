@@ -71,7 +71,7 @@
   flex: 0 0 auto;
   min-height: 0;
   padding: 0.25rem 0.6rem 0.2rem;
-  overflow: visible;
+  overflow-y: auto;
   overflow-x: hidden;
   max-height: none;
   display: flex;
@@ -79,6 +79,52 @@
   justify-content: flex-start;
   position: relative;
   z-index: 1;
+}
+
+.whatsnew-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.whatsnew-item {
+  padding: 0.45rem 0.55rem;
+  border: 0.062rem solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.whatsnew-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.whatsnew-item-title {
+  font-weight: 900;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.whatsnew-badge {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 107, 143, 0.35);
+  background: rgba(0, 107, 143, 0.10);
+  color: #006B8F;
+  white-space: nowrap;
+}
+
+.whatsnew-item-text {
+  font-size: 0.88rem;
+  line-height: 1.35;
+  font-weight: 600;
+  text-align: left;
 }
 
 /* Remove the global scroll-shadow pseudo element for this tiny popup */
@@ -173,6 +219,17 @@
   background: rgba(17, 24, 39, 0.86);
   border-color: rgba(226, 232, 240, 0.14);
   border-left-color: rgba(96, 165, 250, 0.95);
+}
+
+.theme-dark .whatsnew-item {
+  background: rgba(15, 23, 42, 0.35);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.theme-dark .whatsnew-badge {
+  border-color: rgba(96, 165, 250, 0.35);
+  background: rgba(96, 165, 250, 0.12);
+  color: rgba(191, 219, 254, 0.95);
 }
 
 .theme-dark .whatsnew-modal::before {
