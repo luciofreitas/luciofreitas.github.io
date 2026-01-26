@@ -51,6 +51,37 @@ function normalizeConfig(data) {
   return { id, active, title, items: normalizedItems };
 }
 
+function renderTextNoBreakParentheses(text) {
+  const value = String(text || '');
+  if (!value) return null;
+
+  // Wrap each parenthesized group in a no-wrap span so it won't split across lines.
+  // Example: (ex: "filtro de ar") stays together.
+  const re = /\([^)]*\)/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  while ((match = re.exec(value)) !== null) {
+    const start = match.index;
+    const end = start + match[0].length;
+    if (start > lastIndex) {
+      parts.push(value.slice(lastIndex, start));
+    }
+    parts.push(
+      <span className="whatsnew-nobr" key={`p-${key++}`}>{match[0]}</span>
+    );
+    lastIndex = end;
+  }
+
+  if (lastIndex < value.length) {
+    parts.push(value.slice(lastIndex));
+  }
+
+  return parts;
+}
+
 export default function WhatsNewPopup({ disabled = false }) {
   const modalRef = useRef(null);
   const openedOnceRef = useRef(false);
@@ -153,8 +184,10 @@ export default function WhatsNewPopup({ disabled = false }) {
 
   if (!open || disabled) return null;
 
-  const hasItems = Boolean(config && config.active && Array.isArray(config.items) && config.items.length);
-  const headerTitle = hasItems ? (config.title || 'Novidades') : FALLBACK_CONTENT.title;
+  const allItems = (config && config.active && Array.isArray(config.items)) ? config.items : [];
+  const items = allItems.filter((it) => String(it?.tag || '').trim().toLowerCase() === 'novo');
+  const hasItems = Boolean(items.length);
+  const headerTitle = hasItems ? (config?.title || 'Novidades') : FALLBACK_CONTENT.title;
 
   return (
     <div className="modal-overlay whatsnew-overlay" onClick={handleOverlayClick}>
@@ -177,13 +210,17 @@ export default function WhatsNewPopup({ disabled = false }) {
         <div className="app-compat-body whatsnew-body">
           {hasItems ? (
             <div className="whatsnew-list" aria-label="Lista de novidades">
-              {config.items.map((item, idx) => (
-                <div className="whatsnew-item" key={`${idx}-${item.title || item.text}`}> 
+              {items.map((item, idx) => (
+                <div className="whatsnew-item" key={`${idx}-${item.title || item.text}`}>
                   <div className="whatsnew-item-header">
                     <div className="whatsnew-item-title">{item.title}</div>
                     {item.tag ? <div className="whatsnew-badge">{item.tag}</div> : null}
                   </div>
-                  {item.text ? <p className="whatsnew-text whatsnew-item-text" lang="pt-BR">{item.text}</p> : null}
+                  {item.text ? (
+                    <p className="whatsnew-text whatsnew-item-text" lang="pt-BR">
+                      {renderTextNoBreakParentheses(item.text)}
+                    </p>
+                  ) : null}
                 </div>
               ))}
             </div>

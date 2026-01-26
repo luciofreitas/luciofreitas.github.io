@@ -128,6 +128,10 @@
   text-align: left;
 }
 
+.whatsnew-nobr {
+  white-space: nowrap;
+}
+
 /* Remove the global scroll-shadow pseudo element for this tiny popup */
 .compat-modal.whatsnew-modal .app-compat-body::after {
   content: none;
