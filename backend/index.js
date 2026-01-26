@@ -1809,7 +1809,9 @@ app.post('/api/users/:userId/cars-auto', async (req, res) => {
     const uid = String(userId || '');
     const hasKey = !!getCarsChassiKey();
     const len = rawChassi ? String(rawChassi).length : 0;
-    console.log('cars-auto:create', { user: uid ? `${uid.slice(0, 6)}…` : '', hasChassi: !!rawChassi, chassiLen: len, carsHasChassiEnc, hasKey, willEncrypt, encProduced: !!enc });
+    const b = body || {};
+    const hasChassiKey = Object.prototype.hasOwnProperty.call(b, 'chassi') || Object.prototype.hasOwnProperty.call(b, 'vin') || Object.prototype.hasOwnProperty.call(b, 'VIN') || Object.prototype.hasOwnProperty.call(b, 'chassis');
+    console.log('cars-auto:create', { user: uid ? `${uid.slice(0, 6)}…` : '', hasChassiKey, hasChassi: !!rawChassi, chassiLen: len, carsHasChassiEnc, hasKey, willEncrypt, encProduced: !!enc });
   } catch (e) { /* ignore */ }
   // If encryption isn't available, preserve legacy behavior by storing plaintext in JSONB.
   // Only remove plaintext from JSONB when encryption actually happens.
