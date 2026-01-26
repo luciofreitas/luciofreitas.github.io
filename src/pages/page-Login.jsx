@@ -560,7 +560,12 @@ export default function Login() {
         navigate('/buscar-pecas');
         return;
       } catch (err) {
-        console.warn('Login flow failed, falling back to local users', err && err.message);
+        const msg = err && err.message ? String(err.message) : '';
+        console.warn('Login flow failed, falling back to local users', msg);
+        // If Supabase is not configured on this origin, provide a clearer message.
+        if (msg && msg.toLowerCase().includes('supabase client not configured')) {
+          setError('Login não configurado neste domínio. Configure SUPABASE_URL e SUPABASE_ANON_KEY no Render (Runtime Config).');
+        }
       }
 
       // Fallback to existing local lookup
