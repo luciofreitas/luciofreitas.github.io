@@ -33,6 +33,86 @@
   margin: 1.25rem auto 0 auto;
 }
 
+.buscarpeca-ai {
+  max-width: 50rem;
+  margin: 0.75rem auto 1rem auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.9rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 4px 8px rgba(0, 0, 0, 0.03);
+}
+
+.buscarpeca-ai-title {
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 0.95rem;
+  margin: 0 0 0.6rem 0;
+}
+
+.buscarpeca-ai-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.buscarpeca-ai-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.buscarpeca-ai-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.buscarpeca-ai-btn {
+  border: none;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.buscarpeca-ai-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.buscarpeca-ai-error {
+  margin-top: 0.6rem;
+  color: #b91c1c;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.buscarpeca-ai-questions {
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.buscarpeca-ai-questions-title {
+  font-weight: 800;
+  color: #334155;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+.buscarpeca-ai-questions ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: #475569;
+}
+
 .buscarpeca-results-header {
   display: flex;
   align-items: baseline;
@@ -118,4 +198,38 @@
 
 .theme-dark .buscarpeca-results-count {
   color: #94a3b8;
+}
+
+.theme-dark .buscarpeca-ai {
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.theme-dark .buscarpeca-ai-title {
+  color: #e5e7eb;
+}
+
+.theme-dark .buscarpeca-ai-input {
+  background: rgba(15, 23, 42, 0.55);
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.theme-dark .buscarpeca-ai-input:focus {
+  border-color: rgba(59, 130, 246, 0.8);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.theme-dark .buscarpeca-ai-btn {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.theme-dark .buscarpeca-ai-questions-title {
+  color: #cbd5e1;
+}
+
+.theme-dark .buscarpeca-ai-questions ul {
+  color: #cbd5e1;
 }

@@ -64,6 +64,7 @@ class ApiService {
       this.extractApplicationsFromMLProduct = this.extractApplicationsFromMLProduct.bind(this);
       this.buildMLSearchQuery = this.buildMLSearchQuery.bind(this);
       this.buscarPecasML = this.buscarPecasML.bind(this);
+      this.suggestFiltersAI = this.suggestFiltersAI.bind(this);
     } catch (e) {
       // ignore
     }
@@ -74,8 +75,70 @@ class ApiService {
       const self = this;
       this.convertMLProductToPeca = (...args) => ApiService.prototype.convertMLProductToPeca.apply(self, args);
       this.extractApplicationsFromMLProduct = (...args) => ApiService.prototype.extractApplicationsFromMLProduct.apply(self, args);
+      this.suggestFiltersAI = (...args) => ApiService.prototype.suggestFiltersAI.apply(self, args);
     } catch (e) {
       // ignore
+    }
+  }
+
+  isStaticProd() {
+    try {
+      if (typeof window === 'undefined') return false;
+      const host = window.location && window.location.hostname ? window.location.hostname : '';
+      if (isLikelyDevHostname(host)) return false;
+      return (
+        host.endsWith('github.io') ||
+        host === 'garagemsmart.com.br' ||
+        host.endsWith('vercel.app') ||
+        host.endsWith('onrender.com')
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async suggestFiltersAI({ query, context } = {}) {
+    const q = String(query || '').trim();
+
+    // In static production builds, the backend may not be reachable.
+    if (this.isStaticProd()) {
+      return {
+        filters: {},
+        questions: ['Sugestão por IA requer o backend ativo (não disponível nesta versão estática).'],
+        confidence: 0
+      };
+    }
+
+    const base = this.getBaseUrl ? this.getBaseUrl() : '';
+    if (!base) {
+      return {
+        filters: {},
+        questions: ['Backend não detectado. Inicie o servidor para usar a sugestão por IA.'],
+        confidence: 0
+      };
+    }
+
+    try {
+      const resp = await fetch(`${base}/api/ai/suggest-filters`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: q, context: context || {} })
+      });
+      const data = await resp.json().catch(() => null);
+      if (!resp.ok) {
+        const msg = (data && (data.error || data.message)) ? (data.error || data.message) : `HTTP ${resp.status}`;
+        throw new Error(msg);
+      }
+      return data || { filters: {}, questions: [], confidence: 0 };
+    } catch (e) {
+      console.warn('[apiService] suggestFiltersAI failed:', e && e.message ? e.message : e);
+      return {
+        filters: {},
+        questions: ['Não foi possível acessar a IA agora. Verifique se o backend está rodando.'],
+        confidence: 0
+      };
     }
   }
 

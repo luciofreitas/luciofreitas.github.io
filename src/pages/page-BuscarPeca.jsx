@@ -44,6 +44,12 @@ export default function BuscarPeca() {
   const [warningFabricante, setWarningFabricante] = useState('');
   const [emptyFieldsWarning, setEmptyFieldsWarning] = useState('');
 
+  // AI helper (MVP): free text -> structured filters
+  const [aiQuery, setAiQuery] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiQuestions, setAiQuestions] = useState([]);
+  const [aiError, setAiError] = useState('');
+
   // drawer state (preferred over modals)
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerProductId, setDrawerProductId] = useState(null);
@@ -249,13 +255,22 @@ export default function BuscarPeca() {
     setDrawerOpen(true);
   };
 
-  const runSearch = async ({ validateNonEmpty = true } = {}) => {
+  const runSearch = async ({ validateNonEmpty = true, overrideFilters = null } = {}) => {
     // Limpar mensagem de campos vazios ao tentar buscar
     setEmptyFieldsWarning('');
 
     // Para performance: não buscar se isso implicar carregar o catálogo inteiro.
     // Exigimos pelo menos um filtro "estruturante" (grupo/peça/fabricante).
-    const temFiltroEstruturante = Boolean(selectedGrupo || selectedCategoria || selectedFabricante);
+    const filtrosEfetivos = {
+      grupo: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'grupo') ? overrideFilters.grupo : selectedGrupo,
+      categoria: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'categoria') ? overrideFilters.categoria : selectedCategoria,
+      marca: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'marca') ? overrideFilters.marca : selectedMarca,
+      modelo: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'modelo') ? overrideFilters.modelo : selectedModelo,
+      ano: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'ano') ? overrideFilters.ano : selectedAno,
+      fabricante: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'fabricante') ? overrideFilters.fabricante : selectedFabricante
+    };
+
+    const temFiltroEstruturante = Boolean(filtrosEfetivos.grupo || filtrosEfetivos.categoria || filtrosEfetivos.fabricante);
 
     if (!temFiltroEstruturante) {
       if (validateNonEmpty) {
@@ -274,14 +289,7 @@ export default function BuscarPeca() {
 
     setLoading(true);
     setError('');
-    const filtros = {
-      grupo: selectedGrupo,
-      categoria: selectedCategoria,
-      marca: selectedMarca,
-      modelo: selectedModelo,
-      ano: selectedAno,
-      fabricante: selectedFabricante
-    };
+    const filtros = filtrosEfetivos;
 
     try {
       const data = await apiService.buscarPecasML(filtros);
@@ -315,6 +323,71 @@ export default function BuscarPeca() {
   const handleSearch = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     await runSearch({ validateNonEmpty: true });
+  };
+
+  const applyAiSuggestions = async () => {
+    setAiError('');
+    setAiQuestions([]);
+
+    const q = String(aiQuery || '').trim();
+    if (!q) {
+      setAiError('Digite o que você precisa para eu sugerir os filtros.');
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const context = {
+        marca: selectedMarca,
+        modelo: selectedModelo,
+        ano: selectedAno,
+        carroSelecionadoId
+      };
+
+      const result = await apiService.suggestFiltersAI({ query: q, context });
+      const suggested = (result && result.filters) ? result.filters : {};
+
+      const nextGrupo = suggested.grupo || '';
+      const nextCategoria = suggested.categoria || '';
+      const nextFabricante = suggested.fabricante || '';
+
+      // Apply suggested structural filters to UI
+      if (nextGrupo) setSelectedGrupo(nextGrupo);
+      if (nextCategoria) setSelectedCategoria(nextCategoria);
+      if (nextFabricante) setSelectedFabricante(nextFabricante);
+
+      // If user is in general search mode (no saved car selected), allow AI to fill missing vehicle year.
+      if (!carroSelecionadoId) {
+        if (!selectedAno && suggested.ano) setSelectedAno(String(suggested.ano));
+        if (!selectedMarca && suggested.marca) setSelectedMarca(String(suggested.marca));
+        if (!selectedModelo && suggested.modelo) setSelectedModelo(String(suggested.modelo));
+      }
+
+      const hasStructural = Boolean(nextGrupo || nextCategoria || nextFabricante);
+      const qs = Array.isArray(result?.questions) ? result.questions : [];
+      if (!hasStructural) {
+        if (qs.length) setAiQuestions(qs);
+        else setAiQuestions(['Não consegui identificar Grupo/Peça/Fabricante. Tente ser mais específico.']);
+        return;
+      }
+
+      // Trigger search using effective (override) filters to avoid React async state timing.
+      await runSearch({
+        validateNonEmpty: true,
+        overrideFilters: {
+          grupo: nextGrupo || selectedGrupo,
+          categoria: nextCategoria || selectedCategoria,
+          fabricante: nextFabricante || selectedFabricante,
+          marca: suggested.marca || selectedMarca,
+          modelo: suggested.modelo || selectedModelo,
+          ano: suggested.ano || selectedAno
+        }
+      });
+    } catch (e) {
+      setAiError(e && e.message ? e.message : 'Erro ao sugerir filtros');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   // Auto-filter when a car is selected
@@ -353,6 +426,9 @@ export default function BuscarPeca() {
     setWarningAno('');
     setWarningFabricante('');
     setEmptyFieldsWarning('');
+    setAiQuery('');
+    setAiQuestions([]);
+    setAiError('');
   };
 
   return (
@@ -367,6 +443,45 @@ export default function BuscarPeca() {
               <p className="page-subtitle">
                 Escolha seu carro e a peça. O catálogo mostra opções compatíveis e alternativas.
               </p>
+
+              <div className="buscarpeca-ai">
+                <div className="buscarpeca-ai-title">Sugestão por IA (beta)</div>
+                <div className="buscarpeca-ai-row">
+                  <input
+                    type="text"
+                    className="buscarpeca-ai-input"
+                    placeholder='Ex: "pastilha dianteira", "filtro de óleo", "amortecedor traseiro"'
+                    value={aiQuery}
+                    onChange={(e) => setAiQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyAiSuggestions();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="buscarpeca-ai-btn"
+                    onClick={applyAiSuggestions}
+                    disabled={aiLoading}
+                  >
+                    {aiLoading ? 'Analisando...' : 'Aplicar'}
+                  </button>
+                </div>
+
+                {aiError ? <div className="buscarpeca-ai-error">{aiError}</div> : null}
+                {Array.isArray(aiQuestions) && aiQuestions.length > 0 ? (
+                  <div className="buscarpeca-ai-questions">
+                    <div className="buscarpeca-ai-questions-title">Perguntas rápidas</div>
+                    <ul>
+                      {aiQuestions.map((q, idx) => (
+                        <li key={`${idx}-${q}`}>{q}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
 
             <SearchForm
               key={searchFormKey}

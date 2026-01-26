@@ -809,6 +809,234 @@ app.get('/api/pecas/meta', async (req, res) => {
   }
 });
 
+// --- MVP AI endpoint: suggest structured filters from free text ---
+// Contract: POST /api/ai/suggest-filters { query: string, context?: { marca?, modelo?, ano?, carroSelecionadoId? } }
+// Response: { filters: { grupo?, categoria?, fabricante?, marca?, modelo?, ano? }, questions: string[], confidence: number }
+function stripDiacritics(s) {
+  try {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  } catch (e) {
+    return String(s || '');
+  }
+}
+
+function normalizeText(s) {
+  const t = stripDiacritics(String(s || '')).toLowerCase();
+  return t
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function tokenize(s) {
+  const t = normalizeText(s);
+  if (!t) return [];
+  return t.split(' ').filter(Boolean);
+}
+
+function buildUniqueCandidates(values) {
+  const out = [];
+  const seen = new Set();
+  for (const v of (Array.isArray(values) ? values : [])) {
+    const raw = String(v || '').trim();
+    if (!raw) continue;
+    const key = raw.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ value: raw, norm: normalizeText(raw) });
+  }
+  return out;
+}
+
+function scoreCandidate(queryNorm, queryTokens, cand) {
+  if (!cand || !cand.norm) return 0;
+  if (!queryNorm) return 0;
+  // Strong signal: substring match
+  if (queryNorm.includes(cand.norm)) {
+    return 1000 + Math.min(200, cand.norm.length);
+  }
+  // Token overlap
+  const candTokens = cand.norm.split(' ').filter(Boolean);
+  if (!candTokens.length) return 0;
+  let common = 0;
+  const qset = new Set(queryTokens);
+  for (const ct of candTokens) {
+    if (qset.has(ct)) common++;
+  }
+  if (!common) return 0;
+  const overlap = common / candTokens.length;
+  return Math.round(overlap * 100);
+}
+
+function findBestMatch(query, candidates) {
+  const queryNorm = normalizeText(query);
+  const queryTokens = tokenize(queryNorm);
+  let best = null;
+  let bestScore = 0;
+  for (const cand of (Array.isArray(candidates) ? candidates : [])) {
+    const s = scoreCandidate(queryNorm, queryTokens, cand);
+    if (s > bestScore) {
+      bestScore = s;
+      best = cand;
+    }
+  }
+  return { best, score: bestScore };
+}
+
+function extractFirstYear(text) {
+  const m = String(text || '').match(/\b(19|20)\d{2}\b/);
+  return m ? String(m[0]) : '';
+}
+
+// Lightweight domain rules (keywords -> hints). We still resolve to actual catalog values via matching.
+const AI_RULES = [
+  { keywords: ['pastilha', 'pastilhas'], grupoHint: 'Freios', pecaHint: 'Pastilha' },
+  { keywords: ['disco', 'discos'], grupoHint: 'Freios', pecaHint: 'Disco' },
+  { keywords: ['filtro', 'filtros'], grupoHint: 'Filtros', pecaHint: 'Filtro' },
+  { keywords: ['oleo', 'óleo'], grupoHint: 'Filtros', pecaHint: 'Óleo' },
+  { keywords: ['amortecedor', 'amortecedores'], grupoHint: 'Suspensão', pecaHint: 'Amortecedor' },
+  { keywords: ['embreagem'], grupoHint: 'Embreagem', pecaHint: 'Embreagem' },
+  { keywords: ['vela', 'velas'], grupoHint: 'Ignição', pecaHint: 'Vela' },
+  { keywords: ['bateria'], grupoHint: 'Elétrica', pecaHint: 'Bateria' },
+  { keywords: ['correia', 'correias'], grupoHint: 'Motor', pecaHint: 'Correia' },
+];
+
+let AI_CANDIDATES_CACHE = null;
+let AI_CANDIDATES_CACHE_SIZE = 0;
+function getAiCandidates() {
+  const size = Array.isArray(PARTS_DB) ? PARTS_DB.length : 0;
+  if (AI_CANDIDATES_CACHE && AI_CANDIDATES_CACHE_SIZE === size) return AI_CANDIDATES_CACHE;
+
+  const grupos = buildUniqueCandidates((PARTS_DB || []).map(p => p && p.category).filter(Boolean));
+  const fabricantes = buildUniqueCandidates((PARTS_DB || []).map(p => p && p.manufacturer).filter(Boolean));
+  const pecas = buildUniqueCandidates((PARTS_DB || []).map(p => p && p.name).filter(Boolean));
+  // Vehicle candidates are derived from applications strings.
+  // They are used only to assist users filling vehicle filters when they type a phrase
+  // like "meu carro é um Fiat Uno".
+  const marcas = buildUniqueCandidates(extract_brands());
+  const modelos = buildUniqueCandidates(extract_models());
+
+  AI_CANDIDATES_CACHE = { grupos, fabricantes, pecas, marcas, modelos };
+  AI_CANDIDATES_CACHE_SIZE = size;
+  return AI_CANDIDATES_CACHE;
+}
+
+app.post('/api/ai/suggest-filters', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const query = String(body.query || '').trim();
+    const context = (body && typeof body.context === 'object' && body.context) ? body.context : {};
+    const debug = isDebugRequest(req);
+
+    if (!query) {
+      return res.json({
+        filters: {
+          marca: context.marca || '',
+          modelo: context.modelo || '',
+          ano: context.ano || ''
+        },
+        questions: ['Digite o que você precisa (ex: "pastilha de freio dianteira").'],
+        confidence: 0
+      });
+    }
+
+    const { grupos, fabricantes, pecas, marcas, modelos } = getAiCandidates();
+    const qNorm = normalizeText(query);
+    const qTokens = tokenize(qNorm);
+
+    // 1) Apply rules to get hints
+    let grupoHint = '';
+    let pecaHint = '';
+    for (const rule of AI_RULES) {
+      const hit = (rule.keywords || []).some(k => qTokens.includes(normalizeText(k)) || qNorm.includes(normalizeText(k)));
+      if (hit) {
+        grupoHint = rule.grupoHint || grupoHint;
+        pecaHint = rule.pecaHint || pecaHint;
+        break;
+      }
+    }
+
+    // Extra refinement for common "Filtro de X" phrases.
+    // The generic "Filtro" hint is often too broad to match an exact part name.
+    const hasFiltroToken = qTokens.includes('filtro') || qTokens.includes('filtros');
+    if (hasFiltroToken) {
+      if (!grupoHint) grupoHint = 'Filtros';
+      if (qTokens.includes('oleo') || qTokens.includes('óleo')) pecaHint = 'Filtro de Óleo';
+      else if (qTokens.includes('ar') && qTokens.includes('condicionado')) pecaHint = 'Filtro de Ar Condicionado';
+      else if (qTokens.includes('cabine')) pecaHint = 'Filtro de Cabine';
+      else if (qTokens.includes('combustivel') || qTokens.includes('combustível')) pecaHint = 'Filtro de Combustível';
+      else if (qTokens.includes('ar')) pecaHint = 'Filtro de Ar';
+    }
+
+    // 2) Resolve best matches from catalog values
+    const grupoMatch = grupoHint ? findBestMatch(grupoHint, grupos) : findBestMatch(query, grupos);
+    const pecaMatch = pecaHint ? findBestMatch(pecaHint, pecas) : findBestMatch(query, pecas);
+    const fabMatch = findBestMatch(query, fabricantes);
+
+    // Vehicle (marca/modelo): best-effort extraction from query.
+    // NOTE: we do not override explicit context values coming from the UI.
+    const marcaMatch = findBestMatch(query, marcas);
+    const modeloMatch = findBestMatch(query, modelos);
+
+    // 3) Build filters, preferring context for vehicle fields
+    const anoFromQuery = extractFirstYear(query);
+    const marcaFromQuery = (!context.marca && marcaMatch.best && marcaMatch.score >= 90) ? marcaMatch.best.value : '';
+    const modeloFromQuery = (!context.modelo && modeloMatch.best && modeloMatch.score >= 90) ? modeloMatch.best.value : '';
+    const filters = {
+      grupo: grupoMatch.best && grupoMatch.score >= 80 ? grupoMatch.best.value : '',
+      categoria: pecaMatch.best && pecaMatch.score >= 80 ? pecaMatch.best.value : '',
+      fabricante: fabMatch.best && fabMatch.score >= 90 ? fabMatch.best.value : '',
+      marca: context.marca || marcaFromQuery || '',
+      modelo: context.modelo || modeloFromQuery || '',
+      ano: context.ano || (anoFromQuery || '')
+    };
+
+    // If user typed an explicit year, keep it even if context has none.
+    if (!filters.ano && anoFromQuery) filters.ano = anoFromQuery;
+
+    // 4) Ensure we have at least one structural filter (grupo/peça/fabricante)
+    const hasStructural = Boolean(filters.grupo || filters.categoria || filters.fabricante);
+
+    const questions = [];
+    if (!hasStructural) {
+      questions.push('Qual peça você procura? (ex: pastilha, filtro de óleo, amortecedor)');
+      questions.push('Se preferir, selecione um Grupo, Peça ou Fabricante para eu filtrar.');
+    }
+
+    // 5) Confidence heuristic
+    const bestStructuralScore = Math.max(
+      filters.grupo ? grupoMatch.score : 0,
+      filters.categoria ? pecaMatch.score : 0,
+      filters.fabricante ? fabMatch.score : 0
+    );
+    const confidence = hasStructural ? Math.max(0.3, Math.min(1, bestStructuralScore / 100)) : 0.15;
+
+    const payload = { filters, questions, confidence };
+    if (debug) {
+      payload.debug = {
+        query,
+        queryNorm: qNorm,
+        hints: { grupoHint, pecaHint },
+        matches: {
+          grupo: grupoMatch,
+          categoria: pecaMatch,
+          fabricante: fabMatch,
+          marca: marcaMatch,
+          modelo: modeloMatch
+        }
+      };
+    }
+    return res.json(payload);
+  } catch (e) {
+    console.error('Failed /api/ai/suggest-filters:', e && e.message ? e.message : e);
+    return res.status(500).json({
+      filters: {},
+      questions: ['Não foi possível sugerir filtros agora. Tente novamente.'],
+      confidence: 0
+    });
+  }
+});
+
 // Debug endpoint to check data source
 app.get('/api/debug/datasource', async (req, res) => {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
