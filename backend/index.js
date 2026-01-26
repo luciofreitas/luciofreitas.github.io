@@ -1804,6 +1804,13 @@ app.post('/api/users/:userId/cars-auto', async (req, res) => {
   const canEncrypt = carsHasChassiEnc && !!getCarsChassiKey();
   const enc = canEncrypt ? encryptChassiToColumns(rawChassi) : null;
   const willEncrypt = canEncrypt && !!enc;
+  // Safe diagnostics (no VIN content). Helps verify the client is actually sending chassi.
+  try {
+    const uid = String(userId || '');
+    const hasKey = !!getCarsChassiKey();
+    const len = rawChassi ? String(rawChassi).length : 0;
+    console.log('cars-auto:create', { user: uid ? `${uid.slice(0, 6)}…` : '', hasChassi: !!rawChassi, chassiLen: len, carsHasChassiEnc, hasKey, willEncrypt, encProduced: !!enc });
+  } catch (e) { /* ignore */ }
   // If encryption isn't available, preserve legacy behavior by storing plaintext in JSONB.
   // Only remove plaintext from JSONB when encryption actually happens.
   const dadosWithChassi = (!willEncrypt && rawChassi)
@@ -1851,7 +1858,11 @@ app.put('/api/users/:userId/cars', async (req, res) => {
   try {
     await pgClient.query('BEGIN');
     await pgClient.query('DELETE FROM cars WHERE user_id = $1', [userId]);
+    let diagTotal = 0;
+    let diagWithChassi = 0;
+    let diagEncrypted = 0;
     for (const c of cars) {
+      diagTotal++;
       const body = c || {};
       const marca = body.marca || body.brand || body.fabricante;
       const modelo = body.modelo || body.model;
@@ -1865,6 +1876,8 @@ app.put('/api/users/:userId/cars', async (req, res) => {
       const canEncrypt = carsHasChassiEnc && !!getCarsChassiKey();
       const enc = canEncrypt ? encryptChassiToColumns(rawChassi) : null;
       const willEncrypt = canEncrypt && !!enc;
+      if (rawChassi) diagWithChassi++;
+      if (willEncrypt) diagEncrypted++;
       const dadosWithChassi = (!willEncrypt && rawChassi)
         ? ({ ...(dadosBase || {}), chassi: normalizeVin(rawChassi) || String(rawChassi) })
         : dadosBase;
@@ -1878,6 +1891,11 @@ app.put('/api/users/:userId/cars', async (req, res) => {
         : [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, safeDados];
       await pgClient.query(sql, params);
     }
+    try {
+      const uid = String(userId || '');
+      const hasKey = !!getCarsChassiKey();
+      console.log('cars:bulkReplace', { user: uid ? `${uid.slice(0, 6)}…` : '', total: diagTotal, withChassi: diagWithChassi, encrypted: diagEncrypted, carsHasChassiEnc, hasKey });
+    } catch (e) { /* ignore */ }
     await pgClient.query('COMMIT');
     return res.json({ ok: true });
   } catch (e) {
