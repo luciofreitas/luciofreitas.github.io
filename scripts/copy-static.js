@@ -114,3 +114,40 @@ try {
     console.log('Stamped deploy-timestamp into', indexPath, ts);
   }
 } catch (e) { console.warn('Failed to stamp deploy-timestamp into dist/index.html', e && e.message ? e.message : e); }
+
+// Prune expired whats_new items from the built output so old "novidades" disappear automatically.
+// This edits ONLY the built file in dist/, not the source file in public/.
+try {
+  const whatsNewDistPath = path.join(dist, 'data', 'whats_new.json');
+  if (fs.existsSync(whatsNewDistPath)) {
+    const raw = fs.readFileSync(whatsNewDistPath, 'utf8');
+    const parsed = JSON.parse(raw);
+
+    const now = Date.now();
+    const DEFAULT_TTL_DAYS = 30;
+    const ttlMs = (days) => days * 24 * 60 * 60 * 1000;
+
+    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items)) {
+      const before = parsed.items.length;
+      parsed.items = parsed.items.filter((item) => {
+        if (!item || typeof item !== 'object') return false;
+        const dateStr = typeof item.date === 'string' ? item.date.trim() : '';
+        if (!dateStr) return true; // keep items without date (backward-compatible)
+
+        const d = new Date(dateStr);
+        if (Number.isNaN(d.getTime())) return true; // keep if invalid date
+
+        const days = Number.isFinite(item.ttlDays) && item.ttlDays > 0 ? Math.floor(item.ttlDays) : DEFAULT_TTL_DAYS;
+        return (now - d.getTime()) <= ttlMs(days);
+      });
+
+      const after = parsed.items.length;
+      if (after !== before) {
+        fs.writeFileSync(whatsNewDistPath, JSON.stringify(parsed, null, 2) + '\n', 'utf8');
+        console.log('Pruned whats_new items in', whatsNewDistPath, `(${before} -> ${after})`);
+      }
+    }
+  }
+} catch (e) {
+  console.warn('Failed to prune dist/data/whats_new.json', e && e.message ? e.message : e);
+}

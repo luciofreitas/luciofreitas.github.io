@@ -1,5 +1,5 @@
 {
-  "id": "2026-01-26-ia-beta",
+  "id": "2026-01-26-ia-e-meu-carro",
   "active": true,
   "title": "Novidades",
   "items": [
@@ -8,6 +8,12 @@
       "tag": "Novo",
       "title": "IA (beta) em Buscar Peças",
       "text": "Agora você pode digitar em linguagem natural (ex: \"filtro de ar\") e receber sugestões de filtros. Se faltar o carro (marca/modelo/ano), o sistema faz perguntas rápidas para completar."
+    },
+    {
+      "date": "2026-01-26",
+      "tag": "Novo",
+      "title": "Meu Carro: novos campos",
+      "text": "Ao cadastrar um carro em Meu Carro, há novos itens para preencher. Quanto mais completo, melhor para buscas e sugestões."
     }
   ]
 }
