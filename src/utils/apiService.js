@@ -288,7 +288,9 @@ class ApiService {
         marcas: [...todasMarcasVeiculos].sort(),
         modelos: [...modelos].sort(),
         anos: [...anos].sort(),
-        fabricantes
+        fabricantes,
+        motores: [],
+        versoes: []
       };
     };
 
@@ -306,6 +308,8 @@ class ApiService {
           marcas: meta.marcas || [],
           modelos: meta.modelos || [],
           anos: meta.anos || [],
+          motores: meta.motores || [],
+          versoes: meta.versoes || [],
         };
       }
     } catch (e) {
@@ -323,6 +327,44 @@ class ApiService {
           // Fetch only the columns needed to build dropdown lists.
           const { data: partsData, error } = await _supabase.from('parts').select('category,name,manufacturer');
           if (!error && partsData && Array.isArray(partsData)) {
+            // Optional: heuristic hint dropdowns (bounded)
+            let motores = [];
+            let versoes = [];
+            try {
+              const limit = 5000;
+              const motorSet = new Set();
+              const versaoSet = new Set();
+
+              const { data: motorRows, error: motorErr } = await _supabase
+                .from('parts')
+                .select('fit_motor_hint')
+                .not('fit_motor_hint', 'is', null)
+                .limit(limit);
+              if (!motorErr && Array.isArray(motorRows)) {
+                for (const r of motorRows) {
+                  const m = r && r.fit_motor_hint ? String(r.fit_motor_hint).trim() : '';
+                  if (m) motorSet.add(m);
+                }
+              }
+
+              const { data: versaoRows, error: versaoErr } = await _supabase
+                .from('parts')
+                .select('fit_versao_hint')
+                .not('fit_versao_hint', 'is', null)
+                .limit(limit);
+              if (!versaoErr && Array.isArray(versaoRows)) {
+                for (const r of versaoRows) {
+                  const v = r && r.fit_versao_hint ? String(r.fit_versao_hint).trim() : '';
+                  if (v) versaoSet.add(v);
+                }
+              }
+
+              motores = Array.from(motorSet).sort();
+              versoes = Array.from(versaoSet).sort();
+            } catch (e) {
+              // ignore (columns might not exist)
+            }
+
             return {
               grupos: [...new Set(partsData.map(p => p.category).filter(Boolean))].sort(),
               // Keep category for filtering "Peça" by "Grupo" in the UI
@@ -334,7 +376,9 @@ class ApiService {
               fabricantes: [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort(),
               marcas: [],
               modelos: [],
-              anos: []
+              anos: [],
+              motores,
+              versoes
             };
           }
           if (error) console.warn('Supabase returned error for parts:', error);
@@ -367,6 +411,76 @@ class ApiService {
   }
 
   async filtrarPecas(filtros) {
+    const normalizeForSearch = (s) => {
+      try {
+        return String(s || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{Diacritic}/gu, '')
+          .trim();
+      } catch (e) {
+        return String(s || '').toLowerCase().trim();
+      }
+    };
+
+    const qMarca = normalizeForSearch(filtros?.marca);
+    const qModelo = normalizeForSearch(filtros?.modelo);
+    const qAno = normalizeForSearch(filtros?.ano);
+    const qMotor = normalizeForSearch(filtros?.motor);
+    const qVersao = normalizeForSearch(filtros?.versao);
+    const qCombustivel = normalizeForSearch(filtros?.combustivel);
+    const qCambio = normalizeForSearch(filtros?.cambio);
+    const qCarroceria = normalizeForSearch(filtros?.carroceria);
+
+    const matchOptional = (appValue, q) => {
+      if (!q) return true;
+      if (appValue === undefined || appValue === null || String(appValue).trim() === '') return true; // permissive when data missing
+      return normalizeForSearch(appValue).includes(q);
+    };
+
+    const getFirst = (obj, keys) => {
+      if (!obj || typeof obj !== 'object') return null;
+      for (const k of keys) {
+        if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') return obj[k];
+      }
+      return null;
+    };
+
+    const matchesApplication = (app) => {
+      if (!app) return false;
+      if (typeof app === 'string') {
+        const s = normalizeForSearch(app);
+        if (qMarca && !s.includes(qMarca)) return false;
+        if (qModelo && !s.includes(qModelo)) return false;
+        if (qAno && !s.includes(qAno)) return false;
+        // Advanced fields are not reliably parsable from free-form strings -> don't exclude
+        return true;
+      }
+      if (typeof app === 'object') {
+        const make = normalizeForSearch(getFirst(app, ['make', 'marca', 'brand']));
+        const model = normalizeForSearch(getFirst(app, ['model', 'modelo']));
+        const year = normalizeForSearch(getFirst(app, ['year', 'ano']));
+        if (qMarca && (!make || !make.includes(qMarca))) return false;
+        if (qModelo && (!model || !model.includes(qModelo))) return false;
+        if (qAno && (!year || !year.includes(qAno))) return false;
+
+        const motor = getFirst(app, ['motor', 'engine']);
+        const versao = getFirst(app, ['versao', 'trim', 'version']);
+        const combustivel = getFirst(app, ['combustivel', 'fuel', 'fuel_type']);
+        const cambio = getFirst(app, ['cambio', 'transmission', 'gearbox']);
+        const carroceria = getFirst(app, ['carroceria', 'body', 'body_type']);
+
+        if (!matchOptional(motor, qMotor)) return false;
+        if (!matchOptional(versao, qVersao)) return false;
+        if (!matchOptional(combustivel, qCombustivel)) return false;
+        if (!matchOptional(cambio, qCambio)) return false;
+        if (!matchOptional(carroceria, qCarroceria)) return false;
+
+        return true;
+      }
+      return false;
+    };
+
     // Try Supabase first (if configured)
     try {
       const mod = await import('../supabase');
@@ -395,50 +509,44 @@ class ApiService {
         if (!error && Array.isArray(partsData)) {
           let filtered = partsData;
 
-          // Apply the remaining filters client-side (applications shape may vary)
-          if (filtros.marca) {
+          // Apply vehicle filters client-side (applications shape may vary)
+          if (qMarca || qModelo || qAno || qMotor || qVersao || qCombustivel || qCambio || qCarroceria) {
             filtered = filtered.filter(p =>
-              p.applications && Array.isArray(p.applications) && p.applications.some(app => {
-                if (typeof app === 'string') {
-                  return app.toLowerCase().includes(String(filtros.marca).toLowerCase());
-                }
-                if (app && typeof app === 'object') {
-                  const make = (app.make || '').toString().toLowerCase();
-                  return make.includes(String(filtros.marca).toLowerCase());
-                }
-                return false;
-              })
+              p.applications && Array.isArray(p.applications) && p.applications.some(matchesApplication)
             );
           }
 
-          if (filtros.modelo) {
-            filtered = filtered.filter(p =>
-              p.applications && Array.isArray(p.applications) && p.applications.some(app => {
-                if (typeof app === 'string') {
-                  return app.toLowerCase().includes(String(filtros.modelo).toLowerCase());
-                }
-                if (app && typeof app === 'object') {
-                  const model = (app.model || '').toString().toLowerCase();
-                  return model.includes(String(filtros.modelo).toLowerCase());
-                }
-                return false;
-              })
-            );
-          }
+          // Apply heuristic hint filters on the part itself (permissive when hint missing)
+          if (qMotor || qVersao || qCombustivel || qCambio || qCarroceria) {
+            const matchHint = (hintValue, q) => {
+              if (!q) return true;
+              if (hintValue === undefined || hintValue === null || String(hintValue).trim() === '') return true;
+              return normalizeForSearch(hintValue).includes(q);
+            };
 
-          if (filtros.ano) {
-            filtered = filtered.filter(p =>
-              p.applications && Array.isArray(p.applications) && p.applications.some(app => {
-                if (typeof app === 'string') {
-                  return app.includes(String(filtros.ano));
-                }
-                if (app && typeof app === 'object') {
-                  const year = (app.year || '').toString();
-                  return year.includes(String(filtros.ano));
-                }
-                return false;
-              })
-            );
+            filtered = filtered.filter(p => {
+              if (!matchHint(p.fit_motor_hint, qMotor)) return false;
+              if (!matchHint(p.fit_versao_hint, qVersao)) return false;
+              if (!matchHint(p.fit_combustivel_hint, qCombustivel)) return false;
+              if (!matchHint(p.fit_cambio_hint, qCambio)) return false;
+              if (!matchHint(p.fit_carroceria_hint, qCarroceria)) return false;
+              return true;
+            });
+
+            const scorePart = (p) => {
+              let score = 0;
+              if (qMotor && p.fit_motor_hint && normalizeForSearch(p.fit_motor_hint).includes(qMotor)) score += 2;
+              if (qVersao && p.fit_versao_hint && normalizeForSearch(p.fit_versao_hint).includes(qVersao)) score += 2;
+              if (qCombustivel && p.fit_combustivel_hint && normalizeForSearch(p.fit_combustivel_hint).includes(qCombustivel)) score += 1;
+              if (qCambio && p.fit_cambio_hint && normalizeForSearch(p.fit_cambio_hint).includes(qCambio)) score += 1;
+              if (qCarroceria && p.fit_carroceria_hint && normalizeForSearch(p.fit_carroceria_hint).includes(qCarroceria)) score += 1;
+              return score;
+            };
+
+            filtered = filtered
+              .map((p, idx) => ({ p, idx, s: scorePart(p) }))
+              .sort((a, b) => (b.s - a.s) || (a.idx - b.idx))
+              .map(x => x.p);
           }
 
           // If Supabase is reachable and query succeeds, return its result even if empty.
@@ -505,6 +613,9 @@ class ApiService {
               if (typeof app === 'string') {
                 return app.toLowerCase().includes(filtros.marca.toLowerCase());
               }
+              if (app && typeof app === 'object') {
+                return matchesApplication(app);
+              }
               return false;
             })
           );
@@ -514,6 +625,9 @@ class ApiService {
             p.applications && p.applications.some(app => {
               if (typeof app === 'string') {
                 return app.toLowerCase().includes(filtros.modelo.toLowerCase());
+              }
+              if (app && typeof app === 'object') {
+                return matchesApplication(app);
               }
               return false;
             })
@@ -525,8 +639,18 @@ class ApiService {
               if (typeof app === 'string') {
                 return app.includes(filtros.ano);
               }
+              if (app && typeof app === 'object') {
+                return matchesApplication(app);
+              }
               return false;
             })
+          );
+        }
+
+        // Advanced vehicle filters: only apply when we can interpret structured applications.
+        if (qMotor || qVersao || qCombustivel || qCambio || qCarroceria) {
+          filtered = filtered.filter(p =>
+            p.applications && Array.isArray(p.applications) && p.applications.some(matchesApplication)
           );
         }
         if (filtros.fabricante) {

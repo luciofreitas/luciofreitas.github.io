@@ -20,6 +20,18 @@ function SearchForm({
   setSelectedAno,
   selectedFabricante,
   setSelectedFabricante,
+  selectedMotor,
+  setSelectedMotor,
+  selectedVersao,
+  setSelectedVersao,
+  selectedCombustivel,
+  setSelectedCombustivel,
+  selectedCambio,
+  setSelectedCambio,
+  selectedCarroceria,
+  setSelectedCarroceria,
+  motores,
+  versoes,
   grupos,
   todasPecas,
   marcas,
@@ -82,12 +94,27 @@ function SearchForm({
     return carros.find(c => c && c.id === carroSelecionado) || null;
   }, [carros, carroSelecionado]);
 
+  const motorOptions = useMemo(() => {
+    const base = Array.isArray(motores) ? motores.filter(Boolean).map(String) : [];
+    const set = new Set(base);
+    if (selectedMotor && !set.has(String(selectedMotor))) set.add(String(selectedMotor));
+    return [{ value: '', label: '' }, ...Array.from(set).sort().map(v => ({ value: v, label: v }))];
+  }, [motores, selectedMotor]);
+
+  const versaoOptions = useMemo(() => {
+    const base = Array.isArray(versoes) ? versoes.filter(Boolean).map(String) : [];
+    const set = new Set(base);
+    if (selectedVersao && !set.has(String(selectedVersao))) set.add(String(selectedVersao));
+    return [{ value: '', label: '' }, ...Array.from(set).sort().map(v => ({ value: v, label: v }))];
+  }, [versoes, selectedVersao]);
+
   // Quando seleciona um carro, preenche os campos
   const handleCarroChange = (carId) => {
     setCarroSelecionado(carId);
 
-    // Hide advanced filters when a car context is chosen; users can still open them.
-    if (carId) setShowAdvanced(false);
+    // When a car context is chosen, auto-open advanced filters so the user can see
+    // extra vehicle fields (motor/versão/combustível/câmbio/carroceria).
+    if (carId) setShowAdvanced(true);
     
     if (!carId) {
       // Se desmarcou, não faz nada (permite busca geral)
@@ -110,6 +137,12 @@ function SearchForm({
       setSelectedModelo(carro.modelo);
       // Converte ano para string, pois pode estar como número
       setSelectedAno(String(carro.ano));
+
+      if (setSelectedMotor) setSelectedMotor(carro.motor ? String(carro.motor) : '');
+      if (setSelectedVersao) setSelectedVersao(carro.versao ? String(carro.versao) : '');
+      if (setSelectedCombustivel) setSelectedCombustivel(carro.combustivel ? String(carro.combustivel) : '');
+      if (setSelectedCambio) setSelectedCambio(carro.cambio ? String(carro.cambio) : '');
+      if (setSelectedCarroceria) setSelectedCarroceria(carro.carroceria ? String(carro.carroceria) : '');
 
       if (onCarroLabelChange) {
         onCarroLabelChange(`${carro.marca} ${carro.modelo} ${carro.ano}`);
@@ -196,6 +229,47 @@ function SearchForm({
         </div>
       </div>
 
+      {/* Veículo (sempre visível) */}
+      <div className="search-form-row">
+        <div className="search-form-field">
+          <label htmlFor="marca">Marca</label>
+          <CustomDropdown
+            options={[{ value: '', label: '' }, ...marcas.map(m => ({ value: m, label: m }))]}
+            value={selectedMarca}
+            onChange={setSelectedMarca}
+            placeholder=""
+            searchable
+            allowCustomValue
+          />
+        </div>
+        <div className="search-form-field">
+          <label htmlFor="modelo">Modelo</label>
+          <CustomDropdown
+            options={[{ value: '', label: '' }, ...modelos.map(m => ({ value: m, label: m }))]}
+            value={selectedModelo}
+            onChange={setSelectedModelo}
+            placeholder=""
+            searchable
+            allowCustomValue
+          />
+        </div>
+      </div>
+
+      <div className="search-form-row">
+        <div className="search-form-field">
+          <label htmlFor="ano">Ano</label>
+          <CustomDropdown
+            options={[{ value: '', label: '' }, ...anos.map(a => ({ value: a, label: a }))]}
+            value={selectedAno}
+            onChange={setSelectedAno}
+            placeholder=""
+            searchable
+            allowCustomValue
+          />
+        </div>
+        <div className="search-form-field" />
+      </div>
+
       <div className="search-form-advanced-row">
         <button
           type="button"
@@ -211,22 +285,32 @@ function SearchForm({
         <>
           <div className="search-form-row">
             <div className="search-form-field">
-              <label htmlFor="marca">Marca</label>
+              <label htmlFor="fabricante">Fabricante</label>
               <CustomDropdown
-                options={[{ value: '', label: '' }, ...marcas.map(m => ({ value: m, label: m }))]}
-                value={selectedMarca}
-                onChange={setSelectedMarca}
+                options={[{ value: '', label: 'Todos' }, ...fabricantes.map(f => ({ value: f, label: f }))]}
+                value={selectedFabricante}
+                onChange={setSelectedFabricante}
                 placeholder=""
                 searchable
-                allowCustomValue
               />
             </div>
             <div className="search-form-field">
-              <label htmlFor="modelo">Modelo</label>
+              <label htmlFor="carroceria">Carroceria</label>
               <CustomDropdown
-                options={[{ value: '', label: '' }, ...modelos.map(m => ({ value: m, label: m }))]}
-                value={selectedModelo}
-                onChange={setSelectedModelo}
+                options={[
+                  { value: '', label: '' },
+                  { value: 'Hatch', label: 'Hatch' },
+                  { value: 'Sedan', label: 'Sedan' },
+                  { value: 'SUV', label: 'SUV' },
+                  { value: 'Picape', label: 'Picape' },
+                  { value: 'Perua', label: 'Perua' },
+                  { value: 'Minivan', label: 'Minivan' },
+                  { value: 'Van', label: 'Van' },
+                  { value: 'Cupê', label: 'Cupê' },
+                  { value: 'Conversível', label: 'Conversível' },
+                ]}
+                value={selectedCarroceria || ''}
+                onChange={setSelectedCarroceria}
                 placeholder=""
                 searchable
                 allowCustomValue
@@ -236,24 +320,65 @@ function SearchForm({
 
           <div className="search-form-row">
             <div className="search-form-field">
-              <label htmlFor="ano">Ano</label>
+              <label htmlFor="motor">Motor</label>
               <CustomDropdown
-                options={[{ value: '', label: '' }, ...anos.map(a => ({ value: a, label: a }))]}
-                value={selectedAno}
-                onChange={setSelectedAno}
+                options={motorOptions}
+                value={selectedMotor || ''}
+                onChange={setSelectedMotor}
                 placeholder=""
                 searchable
                 allowCustomValue
               />
             </div>
             <div className="search-form-field">
-              <label htmlFor="fabricante">Fabricante</label>
+              <label htmlFor="versao">Versão</label>
               <CustomDropdown
-                options={[{ value: '', label: 'Todos' }, ...fabricantes.map(f => ({ value: f, label: f }))]}
-                value={selectedFabricante}
-                onChange={setSelectedFabricante}
+                options={versaoOptions}
+                value={selectedVersao || ''}
+                onChange={setSelectedVersao}
                 placeholder=""
                 searchable
+                allowCustomValue
+              />
+            </div>
+          </div>
+
+          <div className="search-form-row">
+            <div className="search-form-field">
+              <label htmlFor="combustivel">Combustível</label>
+              <CustomDropdown
+                options={[
+                  { value: '', label: '' },
+                  { value: 'Flex', label: 'Flex' },
+                  { value: 'Gasolina', label: 'Gasolina' },
+                  { value: 'Etanol', label: 'Etanol' },
+                  { value: 'Diesel', label: 'Diesel' },
+                  { value: 'GNV', label: 'GNV' },
+                  { value: 'Elétrico', label: 'Elétrico' },
+                  { value: 'Híbrido', label: 'Híbrido' },
+                ]}
+                value={selectedCombustivel || ''}
+                onChange={setSelectedCombustivel}
+                placeholder=""
+                searchable
+                allowCustomValue
+              />
+            </div>
+            <div className="search-form-field">
+              <label htmlFor="cambio">Câmbio</label>
+              <CustomDropdown
+                options={[
+                  { value: '', label: '' },
+                  { value: 'Manual', label: 'Manual' },
+                  { value: 'Automático', label: 'Automático' },
+                  { value: 'CVT', label: 'CVT' },
+                  { value: 'Automatizado', label: 'Automatizado' },
+                ]}
+                value={selectedCambio || ''}
+                onChange={setSelectedCambio}
+                placeholder=""
+                searchable
+                allowCustomValue
               />
             </div>
           </div>

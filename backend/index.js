@@ -768,6 +768,8 @@ app.get('/api/pecas/meta', async (req, res) => {
     let marcas = [];
     let modelos = [];
     let anos = [];
+    let motores = [];
+    let versoes = [];
     let supabaseOk = false;
     if (supabaseUrl && supabaseKey) {
       try {
@@ -779,6 +781,49 @@ app.get('/api/pecas/meta', async (req, res) => {
           grupos = [...new Set(partsData.map(p => p.category).filter(Boolean))].sort();
           fabricantes = [...new Set(partsData.map(p => p.manufacturer).filter(Boolean))].sort();
           supabaseOk = true;
+
+          // Optional: build dropdown suggestions for motor/versao from heuristic hint columns.
+          // Keep it bounded to avoid huge payloads.
+          try {
+            const limit = 5000;
+            const motorSet = new Set();
+            const versaoSet = new Set();
+
+            const { data: motorRows, error: motorErr } = await supabase
+              .from('parts')
+              .select('fit_motor_hint')
+              .not('fit_motor_hint', 'is', null)
+              .limit(limit);
+
+            if (!motorErr && Array.isArray(motorRows)) {
+              for (const r of motorRows) {
+                const m = r && r.fit_motor_hint ? String(r.fit_motor_hint).trim() : '';
+                if (m) motorSet.add(m);
+              }
+            } else if (motorErr) {
+              console.warn('Supabase motor hint column not available for meta:', motorErr && motorErr.message ? motorErr.message : motorErr);
+            }
+
+            const { data: versaoRows, error: versaoErr } = await supabase
+              .from('parts')
+              .select('fit_versao_hint')
+              .not('fit_versao_hint', 'is', null)
+              .limit(limit);
+
+            if (!versaoErr && Array.isArray(versaoRows)) {
+              for (const r of versaoRows) {
+                const v = r && r.fit_versao_hint ? String(r.fit_versao_hint).trim() : '';
+                if (v) versaoSet.add(v);
+              }
+            } else if (versaoErr) {
+              console.warn('Supabase versao hint column not available for meta:', versaoErr && versaoErr.message ? versaoErr.message : versaoErr);
+            }
+
+            motores = Array.from(motorSet).sort();
+            versoes = Array.from(versaoSet).sort();
+          } catch (e) {
+            console.warn('Failed to build motor/versao meta from hints:', e && e.message ? e.message : e);
+          }
         }
       } catch (e) {
         console.warn('Supabase fetch failed:', e && e.message ? e.message : e);
@@ -800,12 +845,14 @@ app.get('/api/pecas/meta', async (req, res) => {
       marcas,
       modelos,
       anos,
-      fabricantes
+      fabricantes,
+      motores,
+      versoes
     });
   } catch (err) {
     console.error('Failed to build /api/pecas/meta:', err && err.message ? err.message : err);
     console.error('Stack:', err.stack);
-    return res.status(500).json({ grupos: [], pecas: [], marcas: [], modelos: [], anos: [], fabricantes: [] });
+    return res.status(500).json({ grupos: [], pecas: [], marcas: [], modelos: [], anos: [], fabricantes: [], motores: [], versoes: [] });
   }
 });
 
@@ -1093,14 +1140,25 @@ app.post('/api/pecas/filtrar', async (req, res) => {
     const modelo = (data.modelo || '').toLowerCase();
     const ano = (data.ano || '').toLowerCase();
     const fabricante = (data.fabricante || '').toLowerCase();
+    const motor = (data.motor || '').toLowerCase();
+    const versao = (data.versao || '').toLowerCase();
+    const combustivel = (data.combustivel || '').toLowerCase();
+    const cambio = (data.cambio || '').toLowerCase();
+    const carroceria = (data.carroceria || '').toLowerCase();
     
     console.log('🔍 /api/pecas/filtrar recebido:', { 
       original: data, 
-      lowercase: { categoria, peca, marca, modelo, ano, fabricante } 
+      lowercase: { categoria, peca, marca, modelo, ano, fabricante, motor, versao, combustivel, cambio, carroceria } 
     });
     
     // Se nenhum filtro foi fornecido, retorna todas as peças
-    const hasFilters = [categoria, peca, marca, modelo, ano, fabricante].some(v=>v && v.length);
+    const hasFilters = [categoria, peca, marca, modelo, ano, fabricante, motor, versao, combustivel, cambio, carroceria].some(v=>v && v.length);
+
+    const matchOptional = (appValue, q) => {
+      if (!q) return true;
+      if (appValue === undefined || appValue === null || String(appValue).trim() === '') return true; // permissive
+      return String(appValue).toLowerCase().includes(q);
+    };
     
     // Try Supabase first
     try {
@@ -1166,6 +1224,39 @@ app.post('/api/pecas/filtrar', async (req, res) => {
               });
             });
           }
+
+          // Apply heuristic fitment hint filters (permissive when hint missing)
+          if (motor || versao || combustivel || cambio || carroceria) {
+            const matchHint = (hintValue, q) => {
+              if (!q) return true;
+              if (hintValue === undefined || hintValue === null || String(hintValue).trim() === '') return true;
+              return String(hintValue).toLowerCase().includes(q);
+            };
+
+            filtered = filtered.filter(part => {
+              if (!matchHint(part.fit_motor_hint, motor)) return false;
+              if (!matchHint(part.fit_versao_hint, versao)) return false;
+              if (!matchHint(part.fit_combustivel_hint, combustivel)) return false;
+              if (!matchHint(part.fit_cambio_hint, cambio)) return false;
+              if (!matchHint(part.fit_carroceria_hint, carroceria)) return false;
+              return true;
+            });
+
+            // Sort by best hint match (ranking), without excluding missing hints.
+            const scorePart = (part) => {
+              let score = 0;
+              if (motor && part.fit_motor_hint && String(part.fit_motor_hint).toLowerCase().includes(motor)) score += 2;
+              if (versao && part.fit_versao_hint && String(part.fit_versao_hint).toLowerCase().includes(versao)) score += 2;
+              if (combustivel && part.fit_combustivel_hint && String(part.fit_combustivel_hint).toLowerCase().includes(combustivel)) score += 1;
+              if (cambio && part.fit_cambio_hint && String(part.fit_cambio_hint).toLowerCase().includes(cambio)) score += 1;
+              if (carroceria && part.fit_carroceria_hint && String(part.fit_carroceria_hint).toLowerCase().includes(carroceria)) score += 1;
+              return score;
+            };
+            filtered = filtered
+              .map((p, idx) => ({ p, idx, s: scorePart(p) }))
+              .sort((a, b) => (b.s - a.s) || (a.idx - b.idx))
+              .map(x => x.p);
+          }
           
           console.log(`✅ Supabase filtrar: ${filtered.length} peças encontradas`);
           return res.json({ pecas: filtered, total: filtered.length });
@@ -1222,6 +1313,32 @@ app.post('/api/pecas/filtrar', async (req, res) => {
         found = true; break;
       }
       if(!found) return false;
+    }
+
+    // Advanced fields: only enforce when structured application objects carry those fields.
+    if (motor || versao || combustivel || cambio || carroceria) {
+      const apps = part.applications || [];
+      let found = false;
+      for (const app of apps) {
+        if (typeof app !== 'object' || !app) {
+          // Free-form strings: don't exclude (we can't reliably parse)
+          found = true;
+          break;
+        }
+        const appMotor = app.motor || app.engine;
+        const appVersao = app.versao || app.trim || app.version;
+        const appCombustivel = app.combustivel || app.fuel || app.fuel_type;
+        const appCambio = app.cambio || app.transmission || app.gearbox;
+        const appCarroceria = app.carroceria || app.body || app.body_type;
+        if (!matchOptional(appMotor, motor)) continue;
+        if (!matchOptional(appVersao, versao)) continue;
+        if (!matchOptional(appCombustivel, combustivel)) continue;
+        if (!matchOptional(appCambio, cambio)) continue;
+        if (!matchOptional(appCarroceria, carroceria)) continue;
+        found = true;
+        break;
+      }
+      if (!found) return false;
     }
     return true;
   }

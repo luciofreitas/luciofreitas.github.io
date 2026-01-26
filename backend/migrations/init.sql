@@ -49,6 +49,10 @@ CREATE TABLE IF NOT EXISTS applications (
   ano_inicio INT,
   ano_fim INT,
   motor TEXT,
+  versao TEXT,
+  combustivel TEXT,
+  cambio TEXT,
+  carroceria TEXT,
   observacoes TEXT,
   created_at TIMESTAMP DEFAULT now()
 );

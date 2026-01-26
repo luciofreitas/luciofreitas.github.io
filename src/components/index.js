@@ -32,3 +32,4 @@ export { default as Toast } from './Toast';
 export { default as ToggleCar } from './ToggleCar';
 export { default as TooltipPortal } from './TooltipPortal';
 export { default as WhatsAppButton } from './WhatsAppButton';
+export { default as WhatsNewPopup } from './WhatsNewPopup';

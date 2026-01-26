@@ -21,6 +21,17 @@ export default function BuscarPeca() {
   const [selectedAno, setSelectedAno] = useState('');
   const [selectedFabricante, setSelectedFabricante] = useState('');
 
+  // advanced vehicle attributes (optional)
+  const [selectedMotor, setSelectedMotor] = useState('');
+  const [selectedVersao, setSelectedVersao] = useState('');
+  const [selectedCombustivel, setSelectedCombustivel] = useState('');
+  const [selectedCambio, setSelectedCambio] = useState('');
+  const [selectedCarroceria, setSelectedCarroceria] = useState('');
+
+  // dropdown options for advanced fields (built from Supabase hint columns)
+  const [motores, setMotores] = useState([]);
+  const [versoes, setVersoes] = useState([]);
+
   const [grupos, setGrupos] = useState([]);
   // Lista de nomes de peças (para dropdown). Não carregamos o catálogo completo no início.
   const [todasPecas, setTodasPecas] = useState([]);
@@ -78,6 +89,8 @@ export default function BuscarPeca() {
         setModelos(data.modelos || []);
         setAnos(data.anos || []);
         setFabricantes(data.fabricantes || []);
+        setMotores(data.motores || []);
+        setVersoes(data.versoes || []);
         
         // states initialized from metadata
 
@@ -267,7 +280,12 @@ export default function BuscarPeca() {
       marca: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'marca') ? overrideFilters.marca : selectedMarca,
       modelo: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'modelo') ? overrideFilters.modelo : selectedModelo,
       ano: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'ano') ? overrideFilters.ano : selectedAno,
-      fabricante: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'fabricante') ? overrideFilters.fabricante : selectedFabricante
+      fabricante: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'fabricante') ? overrideFilters.fabricante : selectedFabricante,
+      motor: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'motor') ? overrideFilters.motor : selectedMotor,
+      versao: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'versao') ? overrideFilters.versao : selectedVersao,
+      combustivel: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'combustivel') ? overrideFilters.combustivel : selectedCombustivel,
+      cambio: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'cambio') ? overrideFilters.cambio : selectedCambio,
+      carroceria: overrideFilters && Object.prototype.hasOwnProperty.call(overrideFilters, 'carroceria') ? overrideFilters.carroceria : selectedCarroceria
     };
 
     const temFiltroEstruturante = Boolean(filtrosEfetivos.grupo || filtrosEfetivos.categoria || filtrosEfetivos.fabricante);
@@ -303,6 +321,11 @@ export default function BuscarPeca() {
         if (filtros.marca) filtrosAtivos.push(`Marca: ${filtros.marca}`);
         if (filtros.modelo) filtrosAtivos.push(`Modelo: ${filtros.modelo}`);
         if (filtros.ano) filtrosAtivos.push(`Ano: ${filtros.ano}`);
+        if (filtros.motor) filtrosAtivos.push(`Motor: ${filtros.motor}`);
+        if (filtros.versao) filtrosAtivos.push(`Versão: ${filtros.versao}`);
+        if (filtros.combustivel) filtrosAtivos.push(`Combustível: ${filtros.combustivel}`);
+        if (filtros.cambio) filtrosAtivos.push(`Câmbio: ${filtros.cambio}`);
+        if (filtros.carroceria) filtrosAtivos.push(`Carroceria: ${filtros.carroceria}`);
         if (filtros.grupo) filtrosAtivos.push(`Grupo: ${filtros.grupo}`);
         if (filtros.categoria) filtrosAtivos.push(`Peça: ${filtros.categoria}`);
         if (filtros.fabricante) filtrosAtivos.push(`Fabricante: ${filtros.fabricante}`);
@@ -383,7 +406,12 @@ export default function BuscarPeca() {
           fabricante: nextFabricante || selectedFabricante,
           marca: suggested.marca || selectedMarca,
           modelo: suggested.modelo || selectedModelo,
-          ano: suggested.ano || selectedAno
+          ano: suggested.ano || selectedAno,
+          motor: selectedMotor,
+          versao: selectedVersao,
+          combustivel: selectedCombustivel,
+          cambio: selectedCambio,
+          carroceria: selectedCarroceria
         }
       });
     } catch (e) {
@@ -418,6 +446,11 @@ export default function BuscarPeca() {
     setSelectedModelo('');
     setSelectedAno('');
     setSelectedFabricante('');
+    setSelectedMotor('');
+    setSelectedVersao('');
+    setSelectedCombustivel('');
+    setSelectedCambio('');
+    setSelectedCarroceria('');
     setCarroSelecionadoId('');
     setCarroSelecionadoLabel('');
     setSearchFormKey((k) => k + 1);
@@ -500,6 +533,18 @@ export default function BuscarPeca() {
               setSelectedAno={setSelectedAno}
               selectedFabricante={selectedFabricante}
               setSelectedFabricante={setSelectedFabricante}
+              selectedMotor={selectedMotor}
+              setSelectedMotor={setSelectedMotor}
+              selectedVersao={selectedVersao}
+              setSelectedVersao={setSelectedVersao}
+              selectedCombustivel={selectedCombustivel}
+              setSelectedCombustivel={setSelectedCombustivel}
+              selectedCambio={selectedCambio}
+              setSelectedCambio={setSelectedCambio}
+              selectedCarroceria={selectedCarroceria}
+              setSelectedCarroceria={setSelectedCarroceria}
+              motores={motores}
+              versoes={versoes}
               grupos={grupos}
               todasPecas={getFilteredPecas()}
               marcas={getFilteredMarcas()}
