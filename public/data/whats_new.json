@@ -4,6 +4,7 @@
   "title": "Novidades",
   "items": [
     {
+      "date": "2026-01-26",
       "tag": "Novo",
       "title": "IA (beta) em Buscar Peças",
       "text": "Agora você pode digitar em linguagem natural (ex: \"filtro de ar\") e receber sugestões de filtros. Se faltar o carro (marca/modelo/ano), o sistema faz perguntas rápidas para completar."

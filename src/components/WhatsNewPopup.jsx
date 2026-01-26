@@ -5,6 +5,7 @@ import './WhatsNewPopup.css';
 
 const WHATS_NEW_VERSION = '2026-01-26-whatsnew-json';
 const LS_KEY = 'gs_whatsnew_dismissed';
+const DEFAULT_ITEM_TTL_DAYS = 30;
 
 const FALLBACK_CONTENT = {
   title: 'Novidades em breve',
@@ -44,11 +45,31 @@ function normalizeConfig(data) {
     .map((it) => ({
       tag: (typeof it.tag === 'string' && it.tag.trim()) ? it.tag.trim() : '',
       title: (typeof it.title === 'string' && it.title.trim()) ? it.title.trim() : '',
-      text: (typeof it.text === 'string' && it.text.trim()) ? it.text.trim() : ''
+      text: (typeof it.text === 'string' && it.text.trim()) ? it.text.trim() : '',
+      date: (typeof it.date === 'string' && it.date.trim()) ? it.date.trim() : '',
+      ttlDays: (Number.isFinite(it.ttlDays) && it.ttlDays > 0) ? Math.floor(it.ttlDays) : null
     }))
     .filter((it) => it.title || it.text);
 
   return { id, active, title, items: normalizedItems };
+}
+
+function parseMaybeDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  // Invalid Date check
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+}
+
+function isItemStillNew(item, now = new Date()) {
+  const ttlDays = Number.isFinite(item?.ttlDays) ? item.ttlDays : DEFAULT_ITEM_TTL_DAYS;
+  const date = parseMaybeDate(item?.date);
+  // Backward-compatible: if no date is provided, keep showing the item.
+  if (!date) return true;
+  const ageMs = now.getTime() - date.getTime();
+  const ttlMs = ttlDays * 24 * 60 * 60 * 1000;
+  return ageMs <= ttlMs;
 }
 
 function renderTextNoBreakParentheses(text) {
@@ -185,7 +206,10 @@ export default function WhatsNewPopup({ disabled = false }) {
   if (!open || disabled) return null;
 
   const allItems = (config && config.active && Array.isArray(config.items)) ? config.items : [];
-  const items = allItems.filter((it) => String(it?.tag || '').trim().toLowerCase() === 'novo');
+  const now = new Date();
+  const items = allItems
+    .filter((it) => String(it?.tag || '').trim().toLowerCase() === 'novo')
+    .filter((it) => isItemStillNew(it, now));
   const hasItems = Boolean(items.length);
   const headerTitle = hasItems ? (config?.title || 'Novidades') : FALLBACK_CONTENT.title;
 
