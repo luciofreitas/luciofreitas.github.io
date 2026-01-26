@@ -95,9 +95,13 @@
   font-weight: 600;
   text-align: justify;
   text-justify: inter-word;
-  hyphens: auto;
-  text-wrap: pretty;
-  overflow-wrap: break-word;
+  /* Never break words like "aten-der" on narrow screens */
+  -webkit-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+  word-wrap: normal;
   display: block;
   width: 100%;
 }
