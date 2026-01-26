@@ -22,6 +22,25 @@ try { console.time('[app-timing] module-load'); } catch(e){}
     const cfg = await loadRuntimeConfig();
     if (typeof window !== 'undefined') window.__RUNTIME_CONFIG__ = cfg;
     try { ensureGlossarioColors(); } catch (e) { /* ignore on non-browser env */ }
+
+    // If the runtime config provides an API_URL and the index.html injector didn't
+    // set window.__API_BASE, use it as the base for API calls.
+    // This is especially important for static hosts (e.g. GitHub Pages) where
+    // relative `/api/...` calls would otherwise hit the static origin and fail.
+    try {
+      if (typeof window !== 'undefined') {
+        if (!window.__API_BASE && cfg && cfg.API_URL) {
+          const host = window.location && window.location.hostname ? window.location.hostname : '';
+          const isLocalHost = host === 'localhost' || host === '127.0.0.1';
+          if (!isLocalHost) {
+            window.__API_BASE = String(cfg.API_URL).trim();
+            if (window.__API_BASE) console.log('[runtime] API base set from runtime config', window.__API_BASE);
+          }
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
   } catch (e) {
     // If runtime config fails, we still proceed — loadRuntimeConfig already
     // provides safe fallbacks to import.meta.env.
