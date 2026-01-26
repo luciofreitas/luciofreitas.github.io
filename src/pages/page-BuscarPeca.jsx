@@ -365,6 +365,9 @@ export default function BuscarPeca() {
 
       const hasStructural = Boolean(nextGrupo || nextCategoria || nextFabricante);
       const qs = Array.isArray(result?.questions) ? result.questions : [];
+
+      // Always show backend follow-up questions (if any), even when we can run a search.
+      if (qs.length) setAiQuestions(qs);
       if (!hasStructural) {
         if (qs.length) setAiQuestions(qs);
         else setAiQuestions(['Não consegui identificar Grupo/Peça/Fabricante. Tente ser mais específico.']);

@@ -1003,6 +1003,29 @@ app.post('/api/ai/suggest-filters', async (req, res) => {
       questions.push('Se preferir, selecione um Grupo, Peça ou Fabricante para eu filtrar.');
     }
 
+    // If we already identified the part/group but still have no vehicle context,
+    // proactively ask for marca/modelo/ano to improve compatibility accuracy.
+    const hasVehicleContext = Boolean(
+      context && (
+        context.carroSelecionadoId ||
+        (context.marca && String(context.marca).trim()) ||
+        (context.modelo && String(context.modelo).trim()) ||
+        (context.ano && String(context.ano).trim())
+      )
+    );
+    if (!hasVehicleContext) {
+      const hasMarca = Boolean(filters.marca && String(filters.marca).trim());
+      const hasModelo = Boolean(filters.modelo && String(filters.modelo).trim());
+      const hasAno = Boolean(filters.ano && String(filters.ano).trim());
+
+      if (!hasMarca && !hasModelo && !hasAno) {
+        questions.push('Qual é o seu carro (marca, modelo e ano)?');
+        questions.push('Ex: "Fiat Uno 2014" ou selecione em "Meus Carros".');
+      } else if ((hasMarca || hasModelo) && !hasAno) {
+        questions.push('Qual é o ano do carro? (ex: 2014)');
+      }
+    }
+
     // 5) Confidence heuristic
     const bestStructuralScore = Math.max(
       filters.grupo ? grupoMatch.score : 0,
