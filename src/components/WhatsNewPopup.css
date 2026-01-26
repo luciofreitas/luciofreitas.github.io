@@ -100,7 +100,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
+}
+
+.whatsnew-item-sep {
+  height: 1px;
+  width: 100%;
+  background: rgba(148, 163, 184, 0.45);
+  margin: 0.35rem 0 0.35rem;
 }
 
 .whatsnew-item-title {

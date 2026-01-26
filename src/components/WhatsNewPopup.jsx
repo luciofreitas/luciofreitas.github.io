@@ -216,6 +216,7 @@ export default function WhatsNewPopup({ disabled = false }) {
                     <div className="whatsnew-item-title">{item.title}</div>
                     {item.tag ? <div className="whatsnew-badge">{item.tag}</div> : null}
                   </div>
+                  {item.text ? <div className="whatsnew-item-sep" aria-hidden="true" /> : null}
                   {item.text ? (
                     <p className="whatsnew-text whatsnew-item-text" lang="pt-BR">
                       {renderTextNoBreakParentheses(item.text)}
