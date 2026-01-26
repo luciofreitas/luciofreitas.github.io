@@ -2864,6 +2864,14 @@ const PORT = process.env.PORT || 3001;
     if (process.env.DATABASE_URL) console.log('ENV CHECK: DATABASE_URL_PREFIX=' + String(process.env.DATABASE_URL).slice(0,12));
     console.log('ENV CHECK: PGSSLMODE=' + (process.env.PGSSLMODE || process.env.PGSSLMODE || process.env.PGSSL || 'null'));
     console.log('ENV CHECK: SUPABASE_SERVICE_ROLE_KEY_PRESENT=' + (!!process.env.SUPABASE_SERVICE_ROLE_KEY));
+    const chassiKey = process.env.CARS_CHASSI_ENCRYPTION_KEY;
+    console.log('ENV CHECK: CARS_CHASSI_ENCRYPTION_KEY_PRESENT=' + (!!chassiKey));
+    if (chassiKey) {
+      const trimmed = String(chassiKey).trim();
+      const isHex64 = /^[0-9a-fA-F]{64}$/.test(trimmed);
+      console.log('ENV CHECK: CARS_CHASSI_ENCRYPTION_KEY_FORMAT=' + (isHex64 ? 'hex64' : 'non-hex'));
+      console.log('ENV CHECK: CARS_CHASSI_ENCRYPTION_KEY_LEN=' + trimmed.length);
+    }
     console.log('ENV CHECK: NODE_TLS_REJECT_UNAUTHORIZED=' + (process.env.NODE_TLS_REJECT_UNAUTHORIZED || 'null'));
   } catch(e) {
     console.warn('ENV CHECK failed:', e && e.message ? e.message : e);
