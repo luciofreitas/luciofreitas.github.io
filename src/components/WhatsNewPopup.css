@@ -40,7 +40,8 @@
 /* Override global `.compat-modal` sizing so this popup is REALLY a small square */
 .compat-modal.whatsnew-modal {
   /* Responsivo (principalmente no mobile): quadrado limitado por viewport */
-  --whatsnew-preferred: clamp(11.5rem, 52vw, 15rem);
+  /* Wider by default so the list items read comfortably */
+  --whatsnew-preferred: clamp(18rem, 60vw, 26rem);
   --whatsnew-max-w: calc(100vw - 2rem);
   --whatsnew-max-h: calc(100vh - 10rem);
   --whatsnew-max: min(var(--whatsnew-max-w), var(--whatsnew-max-h));
@@ -253,7 +254,7 @@
   .compat-modal.whatsnew-modal {
     transform: none;
     /* Give the content more breathing room on small screens */
-    --whatsnew-preferred: clamp(15.25rem, 86vw, 21.5rem);
+    --whatsnew-preferred: clamp(17rem, 92vw, 23rem);
     --whatsnew-max-h: calc(100vh - 8rem);
   }
 

@@ -1,5 +1,5 @@
 {
-  "id": "2026-01-26-novidades-lista",
+  "id": "2026-01-26-ia-beta",
   "active": true,
   "title": "Novidades",
   "items": [
@@ -7,16 +7,6 @@
       "tag": "Novo",
       "title": "IA (beta) em Buscar Peças",
       "text": "Agora você pode digitar em linguagem natural (ex: \"filtro de ar\") e receber sugestões de filtros. Se faltar o carro (marca/modelo/ano), o sistema faz perguntas rápidas para completar."
-    },
-    {
-      "tag": "Melhoria",
-      "title": "Layout mais alinhado",
-      "text": "A caixa de sugestão por IA foi alinhada com o formulário e ficou responsiva em diferentes resoluções."
-    },
-    {
-      "tag": "Correção",
-      "title": "Texto sem quebra no meio",
-      "text": "O popup não quebra mais palavras no meio (ex: \"aten-der\") em telas pequenas."
     }
   ]
 }
