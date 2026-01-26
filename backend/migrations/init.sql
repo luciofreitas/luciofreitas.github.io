@@ -68,12 +68,16 @@ CREATE TABLE IF NOT EXISTS cars (
   marca TEXT NOT NULL,
   modelo TEXT NOT NULL,
   ano INT,
+  chassi_enc TEXT,
+  chassi_last4 TEXT,
+  chassi_hash TEXT,
   dados JSONB,
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_cars_user ON cars(user_id);
+CREATE INDEX IF NOT EXISTS idx_cars_chassi_hash ON cars(chassi_hash);
 
 -- Tabela de guias
 CREATE TABLE IF NOT EXISTS guias (

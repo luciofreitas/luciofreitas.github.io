@@ -26,6 +26,11 @@ cd backend
    PGUSER=postgres
    PGPASSWORD=postgres
    PGDATABASE=pecas_db
+
+   # (Opcional, recomendado) Criptografia em repouso do VIN/Chassi em `cars`
+   # 32 bytes. Aceita hex (64 chars) ou base64 (32 bytes).
+   # Ex (Node): node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   CARS_CHASSI_ENCRYPTION_KEY=...32_bytes...
    ```
 
 3. Levantar PostgreSQL:

@@ -336,6 +336,11 @@ let userHasAuthId = false;
 let userCreatedAtColumn = null;
 let userHasIsPro = false;
 let userHasProSince = false;
+
+// Cars schema capability detection (some DBs may not yet have the encryption columns)
+let carsHasChassiEnc = false;
+let carsHasChassiHash = false;
+let carsHasChassiLast4 = false;
 // Try to build a pg Client config from common env vars. Support DATABASE_URL or individual PG* vars.
 function buildPgConfig(){
   if(process.env.DATABASE_URL) {
@@ -571,6 +576,19 @@ async function tryConnectPg(){
   console.log('Detected users name column:', userNameColumn, 'password column:', userPasswordColumn, 'createdAt:', userCreatedAtColumn, 'hasIsPro:', userHasIsPro, 'hasProSince:', userHasProSince);
     } catch (e) {
       console.warn('Could not detect users table columns:', e && e.message ? e.message : e);
+    }
+
+    // detect whether cars table has the encryption columns
+    try {
+      const cols = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name='cars' AND table_schema='public'");
+      const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+      carsHasChassiEnc = names.indexOf('chassi_enc') >= 0;
+      carsHasChassiHash = names.indexOf('chassi_hash') >= 0;
+      carsHasChassiLast4 = names.indexOf('chassi_last4') >= 0;
+      console.log('Detected cars chassi columns:', { chassi_enc: carsHasChassiEnc, chassi_hash: carsHasChassiHash, chassi_last4: carsHasChassiLast4 });
+    } catch (e) {
+      // If cars table doesn't exist in this DB/schema, keep defaults.
+      console.warn('Could not detect cars table columns:', e && e.message ? e.message : e);
     }
   return pool;
   }catch(err){
@@ -1552,6 +1570,83 @@ function normalizeVin(v) {
   }
 }
 
+let _carsChassiKeyWarned = false;
+function getCarsChassiKey(){
+  const raw = process.env.CARS_CHASSI_ENCRYPTION_KEY || '';
+  if (!raw) return null;
+  const s = String(raw).trim();
+  try {
+    // hex (64 chars => 32 bytes)
+    if (/^[0-9a-fA-F]{64}$/.test(s)) return Buffer.from(s, 'hex');
+
+    // base64 (44 chars for 32 bytes, but allow other valid lengths)
+    if (/^[A-Za-z0-9+/=]+$/.test(s)) {
+      const b = Buffer.from(s, 'base64');
+      if (b.length === 32) return b;
+    }
+
+    // fallback: treat as utf8, but require 32 bytes
+    const b = Buffer.from(s, 'utf8');
+    if (b.length === 32) return b;
+  } catch (e) {
+    // fall through
+  }
+
+  if (!_carsChassiKeyWarned) {
+    _carsChassiKeyWarned = true;
+    console.warn('CARS_CHASSI_ENCRYPTION_KEY invalid (expected 32 bytes; use hex/base64). Chassi encryption disabled.');
+  }
+  return null;
+}
+
+function stripChassiFromDados(dados){
+  if (!dados || typeof dados !== 'object') return null;
+  const copy = { ...dados };
+  delete copy.chassi;
+  delete copy.vin;
+  delete copy.VIN;
+  delete copy.chassis;
+  return Object.keys(copy).length ? copy : null;
+}
+
+function encryptChassiToColumns(rawChassi){
+  const key = getCarsChassiKey();
+  const vin = normalizeVin(rawChassi);
+  if (!key || !vin) return null;
+
+  // AES-256-GCM
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const ciphertext = Buffer.concat([cipher.update(vin, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+
+  const packed = Buffer.concat([iv, tag, ciphertext]).toString('base64');
+  const enc = `v1:${packed}`;
+  const last4 = vin.slice(-4);
+  const hash = crypto.createHmac('sha256', key).update(vin, 'utf8').digest('hex');
+  return { enc, last4, hash, vin };
+}
+
+function decryptChassiFromColumn(encValue){
+  const key = getCarsChassiKey();
+  if (!key || !encValue) return '';
+  try {
+    const s = String(encValue);
+    if (!s.startsWith('v1:')) return '';
+    const buf = Buffer.from(s.slice(3), 'base64');
+    if (buf.length < 12 + 16 + 1) return '';
+    const iv = buf.subarray(0, 12);
+    const tag = buf.subarray(12, 28);
+    const ciphertext = buf.subarray(28);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(tag);
+    const plain = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8');
+    return normalizeVin(plain);
+  } catch (e) {
+    return '';
+  }
+}
+
 function isValidVin(v) {
   const vin = normalizeVin(v);
   return /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);
@@ -1626,7 +1721,7 @@ app.get('/api/vin/decode/:vin', async (req, res) => {
 
 function shapeCarRow(row){
   const dados = row && row.dados && typeof row.dados === 'object' ? row.dados : null;
-  return {
+  const shaped = {
     id: row.id,
     userId: row.user_id,
     marca: row.marca,
@@ -1636,6 +1731,14 @@ function shapeCarRow(row){
     updatedAt: row.updated_at,
     ...(dados || {})
   };
+
+  // Prefer encrypted-at-rest storage when available.
+  try {
+    const decrypted = row && row.chassi_enc ? decryptChassiFromColumn(row.chassi_enc) : '';
+    if (decrypted) shaped.chassi = decrypted;
+  } catch (e) { /* ignore */ }
+
+  return shaped;
 }
 
 // Carros do usuário (tabela `cars` do Postgres). Mantém compatibilidade com o frontend (`cars-auto`).
@@ -1645,6 +1748,36 @@ app.get('/api/users/:userId/cars-auto', async (req, res) => {
   if (!pgClient) return res.json([]);
   try {
     const r = await pgClient.query('SELECT * FROM cars WHERE user_id = $1 ORDER BY updated_at DESC NULLS LAST, created_at DESC', [userId]);
+
+    // Lazy-migrate legacy plaintext chassi from JSONB into encrypted columns (best-effort).
+    try {
+      const key = getCarsChassiKey();
+      if (key && carsHasChassiEnc && (r.rows || []).length) {
+        for (const row of (r.rows || [])) {
+          if (!row || row.chassi_enc) continue;
+          const dados = row.dados && typeof row.dados === 'object' ? row.dados : null;
+          const legacyChassi = dados && (dados.chassi || dados.vin || dados.VIN || dados.chassis) ? (dados.chassi || dados.vin || dados.VIN || dados.chassis) : '';
+          const enc = encryptChassiToColumns(legacyChassi);
+          if (!enc) continue;
+          const newDados = stripChassiFromDados(dados);
+          try {
+            await pgClient.query(
+              'UPDATE cars SET chassi_enc = $1, chassi_hash = $2, chassi_last4 = $3, dados = $4, updated_at = now() WHERE user_id = $5 AND id = $6',
+              [enc.enc, enc.hash, enc.last4, newDados, userId, row.id]
+            );
+            row.chassi_enc = enc.enc;
+            row.chassi_hash = enc.hash;
+            row.chassi_last4 = enc.last4;
+            row.dados = newDados;
+          } catch (e) {
+            // best-effort only
+          }
+        }
+      }
+    } catch (e) {
+      // ignore migration errors
+    }
+
     return res.json((r.rows || []).map(shapeCarRow));
   } catch (e) {
     console.error('PG query failed /api/users/:userId/cars-auto:', e && e.message ? e.message : e);
@@ -1664,14 +1797,27 @@ app.post('/api/users/:userId/cars-auto', async (req, res) => {
   if (!marca || !modelo) return res.status(400).json({ error: 'marca and modelo are required' });
 
   const id = body.id || `car_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-  const { marca: _m, modelo: _mo, ano: _a, brand: _b, model: _mm, fabricante: _f, ...rest } = body;
-  const dados = Object.keys(rest || {}).length ? rest : null;
+  const rawChassi = body.chassi || body.vin || body.VIN || body.chassis || '';
+  const { marca: _m, modelo: _mo, ano: _a, brand: _b, model: _mm, fabricante: _f, chassi: _c, vin: _v, VIN: _V, chassis: _cs, ...rest } = body;
+  const dadosBase = Object.keys(rest || {}).length ? rest : null;
+
+  const canEncrypt = carsHasChassiEnc && !!getCarsChassiKey();
+  const enc = canEncrypt ? encryptChassiToColumns(rawChassi) : null;
+  // If encryption isn't available, preserve legacy behavior by storing plaintext in JSONB.
+  // Only remove plaintext from JSONB when encryption is enabled.
+  const dadosWithChassi = (!canEncrypt && rawChassi)
+    ? ({ ...(dadosBase || {}), chassi: normalizeVin(rawChassi) || String(rawChassi) })
+    : dadosBase;
+  const safeDados = canEncrypt ? stripChassiFromDados(dadosWithChassi) : dadosWithChassi;
 
   try {
-    const r = await pgClient.query(
-      'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, now(), now()) RETURNING *',
-      [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, dados]
-    );
+    const sql = (carsHasChassiEnc && enc)
+      ? 'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, chassi_enc, chassi_hash, chassi_last4, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now()) RETURNING *'
+      : 'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, now(), now()) RETURNING *';
+    const params = (carsHasChassiEnc && enc)
+      ? [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, safeDados, enc.enc, enc.hash, enc.last4]
+      : [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, safeDados];
+    const r = await pgClient.query(sql, params);
     const row = r && r.rows && r.rows[0] ? r.rows[0] : null;
     return res.json(row ? shapeCarRow(row) : { id, userId, marca, modelo, ano });
   } catch (e) {
@@ -1711,12 +1857,24 @@ app.put('/api/users/:userId/cars', async (req, res) => {
       const ano = (body.ano !== undefined && body.ano !== null && body.ano !== '') ? Number(body.ano) : null;
       if (!marca || !modelo) continue;
       const id = body.id || `car_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-      const { marca: _m, modelo: _mo, ano: _a, brand: _b, model: _mm, fabricante: _f, ...rest } = body;
-      const dados = Object.keys(rest || {}).length ? rest : null;
-      await pgClient.query(
-        'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, now(), now())',
-        [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, dados]
-      );
+      const rawChassi = body.chassi || body.vin || body.VIN || body.chassis || '';
+      const { marca: _m, modelo: _mo, ano: _a, brand: _b, model: _mm, fabricante: _f, chassi: _c, vin: _v, VIN: _V, chassis: _cs, ...rest } = body;
+      const dadosBase = Object.keys(rest || {}).length ? rest : null;
+
+      const canEncrypt = carsHasChassiEnc && !!getCarsChassiKey();
+      const enc = canEncrypt ? encryptChassiToColumns(rawChassi) : null;
+      const dadosWithChassi = (!canEncrypt && rawChassi)
+        ? ({ ...(dadosBase || {}), chassi: normalizeVin(rawChassi) || String(rawChassi) })
+        : dadosBase;
+      const safeDados = canEncrypt ? stripChassiFromDados(dadosWithChassi) : dadosWithChassi;
+
+      const sql = (carsHasChassiEnc && enc)
+        ? 'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, chassi_enc, chassi_hash, chassi_last4, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())'
+        : 'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, now(), now())';
+      const params = (carsHasChassiEnc && enc)
+        ? [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, safeDados, enc.enc, enc.hash, enc.last4]
+        : [id, userId, String(marca), String(modelo), Number.isFinite(ano) ? ano : null, safeDados];
+      await pgClient.query(sql, params);
     }
     await pgClient.query('COMMIT');
     return res.json({ ok: true });
