@@ -1803,12 +1803,13 @@ app.post('/api/users/:userId/cars-auto', async (req, res) => {
 
   const canEncrypt = carsHasChassiEnc && !!getCarsChassiKey();
   const enc = canEncrypt ? encryptChassiToColumns(rawChassi) : null;
+  const willEncrypt = canEncrypt && !!enc;
   // If encryption isn't available, preserve legacy behavior by storing plaintext in JSONB.
-  // Only remove plaintext from JSONB when encryption is enabled.
-  const dadosWithChassi = (!canEncrypt && rawChassi)
+  // Only remove plaintext from JSONB when encryption actually happens.
+  const dadosWithChassi = (!willEncrypt && rawChassi)
     ? ({ ...(dadosBase || {}), chassi: normalizeVin(rawChassi) || String(rawChassi) })
     : dadosBase;
-  const safeDados = canEncrypt ? stripChassiFromDados(dadosWithChassi) : dadosWithChassi;
+  const safeDados = willEncrypt ? stripChassiFromDados(dadosWithChassi) : dadosWithChassi;
 
   try {
     const sql = (carsHasChassiEnc && enc)
@@ -1863,10 +1864,11 @@ app.put('/api/users/:userId/cars', async (req, res) => {
 
       const canEncrypt = carsHasChassiEnc && !!getCarsChassiKey();
       const enc = canEncrypt ? encryptChassiToColumns(rawChassi) : null;
-      const dadosWithChassi = (!canEncrypt && rawChassi)
+      const willEncrypt = canEncrypt && !!enc;
+      const dadosWithChassi = (!willEncrypt && rawChassi)
         ? ({ ...(dadosBase || {}), chassi: normalizeVin(rawChassi) || String(rawChassi) })
         : dadosBase;
-      const safeDados = canEncrypt ? stripChassiFromDados(dadosWithChassi) : dadosWithChassi;
+      const safeDados = willEncrypt ? stripChassiFromDados(dadosWithChassi) : dadosWithChassi;
 
       const sql = (carsHasChassiEnc && enc)
         ? 'INSERT INTO cars (id, user_id, marca, modelo, ano, dados, chassi_enc, chassi_hash, chassi_last4, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())'
