@@ -360,20 +360,26 @@ export default function MeusCarros() {
       observacoes: observacoes.trim()
     };
 
-    if (isEditing && editingCarId) {
-      await updateCar(userId, editingCarId, carData);
-      if (window.showToast) {
-        window.showToast('Carro atualizado com sucesso!', 'success', 3000);
+    try {
+      if (isEditing && editingCarId) {
+        await updateCar(userId, editingCarId, carData);
+        if (window.showToast) {
+          window.showToast('Carro atualizado com sucesso!', 'success', 3000);
+        }
+      } else {
+        await addCar(userId, carData);
+        if (window.showToast) {
+          window.showToast('Carro cadastrado com sucesso!', 'success', 3000);
+        }
       }
-    } else {
-      await addCar(userId, carData);
-      if (window.showToast) {
-        window.showToast('Carro cadastrado com sucesso!', 'success', 3000);
-      }
-    }
 
-    await loadCars();
-    resetForm();
+      await loadCars();
+      resetForm();
+    } catch (err) {
+      console.warn('Car save failed:', err);
+      const msg = (err && err.message) ? String(err.message) : 'Falha ao salvar o carro.';
+      if (window.showToast) window.showToast(msg, 'error', 4500);
+    }
   };
 
   const handleEdit = (car) => {

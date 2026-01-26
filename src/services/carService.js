@@ -21,15 +21,25 @@ export async function getCars(userId) {
   if (!userId) return [];
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
-    try {
-      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
-        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
-      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars-auto`);
+  try {
+    const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+      || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars-auto`);
     if (response.ok) {
       const cars = await response.json();
       return cars;
     }
+
+    // If we got an HTTP response but it isn't ok, prefer not to silently fall back in production.
+    if (!isLocal()) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`API getCars failed: ${response.status} ${text || response.statusText}`);
+    }
   } catch (error) {
+    if (!isLocal()) {
+      console.warn('API getCars failed:', error);
+      return [];
+    }
     console.warn('API getCars failed, falling back to localStorage:', error);
   }
   
@@ -54,10 +64,10 @@ export async function saveCars(userId, cars) {
   if (!userId) return false;
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
-    try {
-      const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
-        || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
-      const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`, {
+  try {
+    const baseUrl = (typeof window !== 'undefined' && window.__API_BASE)
+      || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cars })
@@ -65,7 +75,14 @@ export async function saveCars(userId, cars) {
     if (response.ok) {
       return true;
     }
+    const text = await response.text().catch(() => '');
+    const err = new Error(`API saveCars failed: ${response.status} ${text || response.statusText}`);
+    if (!isLocal()) throw err;
   } catch (error) {
+    if (!isLocal()) {
+      console.warn('API saveCars failed:', error);
+      throw error;
+    }
     console.warn('API saveCars failed, falling back to localStorage:', error);
   }
   
@@ -107,7 +124,16 @@ export async function addCar(userId, car) {
       console.log('🚗 Car added via API automatically:', addedCar);
       return addedCar;
     }
+
+    // If server responded but not ok, don't silently diverge in production.
+    const text = await response.text().catch(() => '');
+    const err = new Error(`API addCar failed: ${response.status} ${text || response.statusText}`);
+    if (!isLocal()) throw err;
   } catch (error) {
+    if (!isLocal()) {
+      console.warn('Auto API addCar failed:', error);
+      throw error;
+    }
     console.warn('Auto API addCar failed, falling back to localStorage:', error);
   }
   
@@ -163,8 +189,13 @@ export async function removeCar(userId, carId) {
     } else {
       const errorText = await response.text();
       console.error('🗑️ DELETE API failed:', response.status, errorText);
+      if (!isLocal()) throw new Error(`API removeCar failed: ${response.status} ${errorText || response.statusText}`);
     }
   } catch (error) {
+    if (!isLocal()) {
+      console.error('🗑️ API removeCar failed:', error);
+      throw error;
+    }
     console.error('🗑️ API removeCar failed, falling back to localStorage:', error);
   }
   

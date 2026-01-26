@@ -1657,6 +1657,15 @@ function isValidVin(v) {
   return /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);
 }
 
+function isCarsChassiEncryptionRequired() {
+  try {
+    const v = String(process.env.CARS_CHASSI_ENCRYPTION_REQUIRED || '').trim().toLowerCase();
+    return v === '1' || v === 'true' || v === 'yes' || v === 'on';
+  } catch (e) {
+    return false;
+  }
+}
+
 // VIN/Chassi decoder (baseline). Uses NHTSA VPIC which is best for US-market vehicles.
 app.get('/api/vin/decode/:vin', async (req, res) => {
   const vin = normalizeVin(req.params.vin);
@@ -1809,6 +1818,18 @@ app.post('/api/users/:userId/cars-auto', async (req, res) => {
   const canEncrypt = carsHasChassiEnc && !!getCarsChassiKey();
   const enc = canEncrypt ? encryptChassiToColumns(rawChassi) : null;
   const willEncrypt = canEncrypt && !!enc;
+
+  // If configured to require chassi encryption, do not accept plaintext persistence.
+  // This prevents accidentally creating non-encrypted rows when a backend is misconfigured.
+  try {
+    const chassiNorm = normalizeVin(rawChassi);
+    if (carsHasChassiEnc && isCarsChassiEncryptionRequired() && chassiNorm && !willEncrypt) {
+      return res.status(503).json({
+        error: 'chassi encryption required but not configured',
+        code: 'CHASSI_ENCRYPTION_REQUIRED'
+      });
+    }
+  } catch (e) { /* ignore */ }
   // Safe diagnostics (no VIN content). Helps verify the client is actually sending chassi.
   try {
     const uid = String(userId || '');
@@ -1883,6 +1904,17 @@ app.put('/api/users/:userId/cars', async (req, res) => {
       const canEncrypt = carsHasChassiEnc && !!getCarsChassiKey();
       const enc = canEncrypt ? encryptChassiToColumns(rawChassi) : null;
       const willEncrypt = canEncrypt && !!enc;
+
+      try {
+        const chassiNorm = normalizeVin(rawChassi);
+        if (carsHasChassiEnc && isCarsChassiEncryptionRequired() && chassiNorm && !willEncrypt) {
+          const err = new Error('CHASSI_ENCRYPTION_REQUIRED');
+          err.code = 'CHASSI_ENCRYPTION_REQUIRED';
+          throw err;
+        }
+      } catch (e) {
+        if (e && e.code === 'CHASSI_ENCRYPTION_REQUIRED') throw e;
+      }
       if (rawChassi) diagWithChassi++;
       if (willEncrypt) diagEncrypted++;
       const dadosWithChassi = (!willEncrypt && rawChassi)
@@ -1908,6 +1940,9 @@ app.put('/api/users/:userId/cars', async (req, res) => {
   } catch (e) {
     try { await pgClient.query('ROLLBACK'); } catch (e2) { /* ignore */ }
     console.error('PG bulk replace failed /api/users/:userId/cars:', e && e.message ? e.message : e);
+    if (e && e.code === 'CHASSI_ENCRYPTION_REQUIRED') {
+      return res.status(503).json({ error: 'chassi encryption required but not configured', code: 'CHASSI_ENCRYPTION_REQUIRED' });
+    }
     return res.status(500).json({ error: 'internal' });
   }
 });
