@@ -276,9 +276,53 @@ export default function HistoricoManutencao() {
       const matricula = usuarioLogado?.professional?.matricula || usuarioLogado?.matricula || '';
       const userLabel = usuarioLogado?.nome || usuarioLogado?.name || usuarioLogado?.email || 'Usuário';
 
+      const userIdForDoc = String(usuarioLogado?.id || usuarioLogado?.email || 'user');
+      const userIdShort = userIdForDoc.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10) || 'USER';
+      const dateStamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+      const docNumber = `GS-HM-${userIdShort.toUpperCase()}-${dateStamp}-${String(now.getTime()).slice(-5)}`;
+
+      const parseMoney = (raw) => {
+        const s = String(raw ?? '').trim();
+        if (!s) return 0;
+        // Accept formats like "1234.56", "1.234,56", "1234,56"
+        const normalized = s
+          .replace(/\s/g, '')
+          .replace(/R\$/gi, '')
+          .replace(/\./g, '')
+          .replace(/,/g, '.');
+        const n = Number(normalized);
+        return Number.isFinite(n) ? n : 0;
+      };
+
+      const getRawDateForSort = (m) => (m && (m.data || m.createdAt || m.created_at)) || null;
+      const dates = (manutencoesSorted || [])
+        .map(getRawDateForSort)
+        .map((d) => (d ? new Date(d) : null))
+        .filter((d) => d && !isNaN(d.getTime()));
+      const minDate = dates.length ? new Date(Math.min(...dates.map(d => d.getTime()))) : null;
+      const maxDate = dates.length ? new Date(Math.max(...dates.map(d => d.getTime()))) : null;
+      const periodLabel = (minDate && maxDate)
+        ? `${minDate.toLocaleDateString('pt-BR')} a ${maxDate.toLocaleDateString('pt-BR')}`
+        : '—';
+
+      const totalValue = (manutencoesSorted || []).reduce((sum, m) => sum + parseMoney(m?.valor), 0);
+      const totalValueLabel = totalValue > 0
+        ? `R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+        : '—';
+
       const filterLabel = (String(filtroVeiculo) === 'todos')
         ? 'Todos os veículos'
         : getVeiculoNome(filtroVeiculo);
+
+      const baseUrl = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
+      const logoUrl = (() => {
+        try {
+          // Prefer the blue logo if available; fallback to the default logo
+          return new URL(`${String(baseUrl || '/').replace(/^\//, '')}images/logo-azul.png`, window.location.origin + (String(baseUrl || '/').startsWith('/') ? '' : '/')).toString();
+        } catch (e) {
+          try { return new URL('images/logo-azul.png', window.location.href).toString(); } catch (err) { return ''; }
+        }
+      })();
 
       const rowsHtml = (manutencoesSorted || []).map((m) => {
         const tipo = m?.tipo === 'preventiva' ? 'Preventiva' : (m?.tipo === 'corretiva' ? 'Corretiva' : 'Outro');
@@ -315,74 +359,127 @@ export default function HistoricoManutencao() {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Comprovante - Histórico de Manutenção</title>
     <style>
-      body { font-family: Arial, Helvetica, sans-serif; color: #111827; margin: 24px; }
-      .header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
-      h1 { font-size: 18px; margin: 0; }
-      .meta { font-size: 12px; color:#374151; }
-      .box { margin-top: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; }
-      .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; font-size: 13px; }
+      @page { size: A4; margin: 12mm; }
+      html, body { height: 100%; }
+      body { font-family: Arial, Helvetica, sans-serif; color: #111827; margin: 0; }
+      .wrap { padding: 12mm; }
+      .topbar { display:flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+      .brand { display:flex; align-items: center; gap: 10px; }
+      .brand img { width: 40px; height: 40px; object-fit: contain; }
+      .brand .name { font-weight: 800; letter-spacing: 0.2px; }
+      .brand .sub { color:#6b7280; font-size: 12px; margin-top: 2px; }
+      .docbox { text-align: right; font-size: 12px; color:#374151; }
+      .docbox .docno { font-weight: 800; color:#111827; }
+      h1 { font-size: 16px; margin: 14px 0 0 0; }
+      .rule { height: 1px; background: #e5e7eb; margin: 10px 0 12px 0; }
+      .box { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; }
+      .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; font-size: 12.5px; }
       .k { color:#6b7280; }
-      table { width:100%; border-collapse: collapse; margin-top: 14px; font-size: 12px; }
-      th, td { border-bottom: 1px solid #e5e7eb; padding: 8px 6px; vertical-align: top; }
-      th { text-align:left; font-size: 12px; color:#374151; background:#f9fafb; }
-      .footer { margin-top: 18px; font-size: 11px; color:#6b7280; }
+      .badge { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#f3f4f6; color:#111827; font-size: 11px; }
+      .summary { margin-top: 10px; display:flex; gap: 10px; flex-wrap: wrap; }
+      .summary .item { flex: 1 1 180px; }
+      table { width:100%; border-collapse: collapse; margin-top: 12px; font-size: 11.5px; }
+      thead th { text-align:left; font-size: 11px; color:#374151; background:#f9fafb; border-bottom: 1px solid #e5e7eb; padding: 8px 6px; }
+      tbody td { border-bottom: 1px solid #eef2f7; padding: 7px 6px; vertical-align: top; }
+      tbody tr:nth-child(even) td { background: #fcfcfd; }
+      .signatures { margin-top: 16px; display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+      .sig { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; }
+      .sig .line { margin-top: 28px; border-top: 1px solid #9ca3af; }
+      .sig .label { margin-top: 6px; font-size: 11.5px; color:#374151; }
+      .footer { margin-top: 14px; font-size: 10.5px; color:#6b7280; line-height: 1.4; }
+      .no-print { display:flex; gap: 8px; justify-content: flex-end; }
+      .btn { padding:8px 10px; border-radius:8px; border:1px solid #d1d5db; background:#fff; cursor:pointer; font-size: 12px; }
+      .btn.primary { background:#111827; color:#fff; border-color:#111827; }
       @media print {
-        body { margin: 0; }
         .no-print { display:none !important; }
+        .wrap { padding: 0; }
         table { page-break-inside: auto; }
         tr { page-break-inside: avoid; page-break-after: auto; }
       }
     </style>
   </head>
   <body>
-    <div class="header">
-      <div>
-        <h1>Comprovante do Histórico de Manutenção</h1>
-        <div class="meta">Emitido em: ${escapeHtml(issuedAt)}</div>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          ${logoUrl ? `<img src="${escapeHtml(logoUrl)}" alt="Logo" />` : ''}
+          <div>
+            <div class="name">Garagem Smart</div>
+            <div class="sub">Comprovante do histórico de manutenção</div>
+          </div>
+        </div>
+        <div class="docbox">
+          <div class="docno">Documento Nº ${escapeHtml(docNumber)}</div>
+          <div>Emitido em: ${escapeHtml(issuedAt)}</div>
+          <div class="no-print" style="margin-top: 8px;">
+            <button class="btn" onclick="window.close()">Fechar</button>
+            <button class="btn primary" onclick="window.print()">Imprimir</button>
+          </div>
+        </div>
       </div>
-      <div class="no-print">
-        <button onclick="window.print()" style="padding:8px 10px; border-radius:8px; border:1px solid #d1d5db; background:#fff; cursor:pointer;">Imprimir</button>
+
+      <h1>Comprovante</h1>
+      <div class="rule"></div>
+
+      <div class="box">
+        <div class="grid">
+          <div><span class="k">Cliente:</span> ${escapeHtml(userLabel)}</div>
+          <div><span class="k">Filtro:</span> <span class="badge">${escapeHtml(filterLabel)}</span></div>
+          <div><span class="k">Empresa/Oficina:</span> ${escapeHtml(companyName || '—')}</div>
+          <div><span class="k">Matrícula:</span> ${escapeHtml(matricula || '—')}</div>
+        </div>
+
+        <div class="summary">
+          <div class="item"><span class="k">Período:</span> ${escapeHtml(periodLabel)}</div>
+          <div class="item"><span class="k">Registros:</span> ${escapeHtml((manutencoesSorted || []).length)}</div>
+          <div class="item"><span class="k">Total (informado):</span> ${escapeHtml(totalValueLabel)}</div>
+        </div>
       </div>
-    </div>
 
-    <div class="box">
-      <div class="grid">
-        <div><span class="k">Cliente:</span> ${escapeHtml(userLabel)}</div>
-        <div><span class="k">Filtro:</span> ${escapeHtml(filterLabel)}</div>
-        <div><span class="k">Empresa:</span> ${escapeHtml(companyName || '—')}</div>
-        <div><span class="k">Matrícula:</span> ${escapeHtml(matricula || '—')}</div>
+      ${rowsHtml ? `
+        <table>
+          <thead>
+            <tr>
+              <th style="width:78px">Data</th>
+              <th style="width:170px">Veículo</th>
+              <th style="width:80px">Tipo</th>
+              <th>Descrição</th>
+              <th style="width:84px">KM</th>
+              <th style="width:130px">Oficina</th>
+              <th style="width:84px; text-align:right">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      ` : emptyHtml}
+
+      <div class="signatures">
+        <div class="sig">
+          <div><strong>Responsável</strong></div>
+          <div class="line"></div>
+          <div class="label">Assinatura / Carimbo</div>
+        </div>
+        <div class="sig">
+          <div><strong>Cliente</strong></div>
+          <div class="line"></div>
+          <div class="label">Assinatura</div>
+        </div>
       </div>
+
+      <div class="footer">
+        Documento gerado pelo Garagem Smart. As informações deste comprovante refletem os registros cadastrados no histórico de manutenção na data de emissão.
+        Recomenda-se anexar notas fiscais e ordens de serviço quando aplicável.
+      </div>
+
+      <script>
+        window.onload = function(){
+          try { window.focus(); } catch(e) {}
+          try { window.print(); } catch(e) {}
+        };
+      </script>
     </div>
-
-    ${rowsHtml ? `
-      <table>
-        <thead>
-          <tr>
-            <th style="width:92px">Data</th>
-            <th style="width:180px">Veículo</th>
-            <th style="width:88px">Tipo</th>
-            <th>Descrição</th>
-            <th style="width:92px">KM</th>
-            <th style="width:140px">Oficina</th>
-            <th style="width:92px; text-align:right">Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rowsHtml}
-        </tbody>
-      </table>
-    ` : emptyHtml}
-
-    <div class="footer">
-      Documento gerado pelo Garagem Smart. Este comprovante reflete os registros cadastrados no histórico de manutenção.
-    </div>
-
-    <script>
-      window.onload = function(){
-        try { window.focus(); } catch(e) {}
-        try { window.print(); } catch(e) {}
-      };
-    </script>
   </body>
 </html>`;
 
