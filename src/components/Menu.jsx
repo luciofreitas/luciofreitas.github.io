@@ -23,10 +23,20 @@ function Menu() {
   const navigate = useNavigate();
   const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext) || {};
   const proActive = Boolean(usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true';
+  const isProfessionalAccount = (function(){
+    try {
+      const r = String((usuarioLogado && usuarioLogado.role) || '').toLowerCase();
+      const t = String((usuarioLogado && (usuarioLogado.accountType || usuarioLogado.account_type)) || '').toLowerCase();
+      return r === 'professional' || r === 'profissional' || t === 'professional' || t === 'profissional' || !!(usuarioLogado && usuarioLogado.professional);
+    } catch (e) {
+      return false;
+    }
+  })();
   const headerRef = useRef(null);
 
   // shared menu items to render in desktop nav and mobile dropdown
   const menuItems = [
+    ...(isProfessionalAccount ? [{ id: 'prof-dashboard', label: 'Painel Profissional', onClick: () => navigate('/profissional/dashboard') }] : []),
     {
       id: 'buscar',
       label: 'Buscar Peças',

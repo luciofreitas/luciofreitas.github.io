@@ -37,6 +37,8 @@ const BateriaAlternadorPartida = lazy(() => import('./pages/page-BateriaAlternad
 const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'));
 const EsqueciSenha = lazy(() => import('./pages/page-EsqueciSenha'));
 const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
+const ProfissionalOnboarding = lazy(() => import('./pages/page-ProfissionalOnboarding'));
+const ProfissionalDashboard = lazy(() => import('./pages/page-ProfissionalDashboard'));
 // Mercado Livre integration disabled for now.
 // const MLCallback = lazy(() => import('./pages/page-MLCallback'));
 import { ThemeToggle } from './components';
@@ -144,6 +146,26 @@ function ProtectedRoute({ children }) {
   const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
   if (!authLoaded) return null;
   if (!usuarioLogado) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function ProfessionalRoute({ children, requireOnboarding = false }) {
+  const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
+  const location = useLocation();
+  if (!authLoaded) return null;
+  if (!usuarioLogado) return <Navigate to="/login" replace />;
+
+  const role = String(usuarioLogado.role || '').toLowerCase();
+  const t = String(usuarioLogado.accountType || usuarioLogado.account_type || '').toLowerCase();
+  const isProfessional = role === 'professional' || role === 'profissional' || t === 'professional' || t === 'profissional' || !!usuarioLogado.professional;
+  if (!isProfessional) return <Navigate to="/login" replace />;
+
+  const onboardingDone = !!(usuarioLogado.professional && usuarioLogado.professional.onboarding_completed);
+  const onOnboardingRoute = location && location.pathname === '/profissional/onboarding';
+  if (requireOnboarding && !onboardingDone && !onOnboardingRoute) {
+    return <Navigate to="/profissional/onboarding" replace />;
+  }
+
   return children;
 }
 
@@ -588,6 +610,17 @@ export default function App() {
               <ProtectedRoute>
                 <PageConfiguracoes />
               </ProtectedRoute>
+            } />
+
+            <Route path="/profissional/onboarding" element={
+              <ProfessionalRoute>
+                <ProfissionalOnboarding />
+              </ProfessionalRoute>
+            } />
+            <Route path="/profissional/dashboard" element={
+              <ProfessionalRoute requireOnboarding>
+                <ProfissionalDashboard />
+              </ProfessionalRoute>
             } />
             {/* Mercado Livre integration disabled for now */}
             {/* <Route path="/ml/callback" element={<MLCallback />} /> */}

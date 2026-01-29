@@ -197,6 +197,10 @@ export default function Login() {
               celular: backendUser.celular || backendUser.phone || backendUser.telefone || null,
               // Map is_pro from backend to isPro for frontend
               isPro: Boolean(backendUser.is_pro || backendUser.isPro),
+              // Professional accounts (separate from isPro subscription)
+              role: backendUser.role || null,
+              accountType: backendUser.account_type || backendUser.accountType || (String(backendUser.role || '').toLowerCase() === 'professional' ? 'professional' : null),
+              professional: backendUser.professional || null,
             };
             
             if (isDev) console.log('[DEBUG] Updated user with merged data:', updatedUser);
@@ -213,6 +217,17 @@ export default function Login() {
               if (isDev) console.error('[DEBUG] Failed to save to localStorage:', e);
             }
             console.log('[auth-timing] Backend user data merged successfully');
+
+            // If this user is a professional, redirect to the right flow.
+            try {
+              const roleLower = String(updatedUser.role || '').toLowerCase();
+              const acctLower = String((updatedUser.accountType || updatedUser.account_type || '') || '').toLowerCase();
+              const isProfessional = roleLower === 'professional' || acctLower === 'professional' || acctLower === 'profissional';
+              if (isProfessional) {
+                const onboardingDone = !!(updatedUser.professional && updatedUser.professional.onboarding_completed);
+                navigate(onboardingDone ? '/profissional/dashboard' : '/profissional/onboarding', { replace: true });
+              }
+            } catch (e) { /* ignore */ }
           } else {
             if (isDev) console.warn('[DEBUG] No user data in backend response');
           }
@@ -237,7 +252,10 @@ export default function Login() {
         phone: null,
         telefone: null,
         celular: null,
-        isPro: false // Will be updated from backend if user is Pro
+        isPro: false, // Will be updated from backend if user is Pro
+        role: null,
+        accountType: null,
+        professional: null
       };
 
       // If the backend returned a development/mock user (id like 'dev_...') or a
@@ -547,7 +565,10 @@ export default function Login() {
           ...usuario,
           nome: inferredName,
           name: inferredName,
-          access_token: accessToken
+          access_token: accessToken,
+          role: usuario.role || null,
+          accountType: usuario.account_type || usuario.accountType || (String(usuario.role || '').toLowerCase() === 'professional' ? 'professional' : null),
+          professional: usuario.professional || null
         };
 
         // Preserve auth_id/providers hints returned by the server
@@ -557,7 +578,14 @@ export default function Login() {
         if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
         try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
         if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
-        navigate('/buscar-pecas');
+        const roleLower = String(normalizedUsuario.role || '').toLowerCase();
+        const acct = String((normalizedUsuario.accountType || normalizedUsuario.account_type || '') || '').toLowerCase();
+        const onboardingDone = !!(normalizedUsuario.professional && normalizedUsuario.professional.onboarding_completed);
+        if (roleLower === 'professional' || acct === 'professional' || acct === 'profissional') {
+          navigate(onboardingDone ? '/profissional/dashboard' : '/profissional/onboarding');
+        } else {
+          navigate('/buscar-pecas');
+        }
         return;
       } catch (err) {
         const msg = err && err.message ? String(err.message) : '';

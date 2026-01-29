@@ -10,6 +10,9 @@ export default function PageCadastro() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmSenha, setConfirmSenha] = useState('');
+  const [accountType, setAccountType] = useState('user');
+  const [companyName, setCompanyName] = useState('');
+  const [matricula, setMatricula] = useState('');
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmSenha, setShowConfirmSenha] = useState(false);
   const [errors, setErrors] = useState({});
@@ -49,6 +52,13 @@ export default function PageCadastro() {
     if (!nome || !nome.trim()) e.nome = 'Nome é obrigatório.';
     if (!email || !email.trim()) e.email = 'E-mail é obrigatório.';
     else if (!emailRegex.test(email)) e.email = 'E-mail inválido.';
+
+    const acct = (String(accountType || '').toLowerCase() === 'professional' || String(accountType || '').toLowerCase() === 'profissional') ? 'professional' : 'user';
+    if (acct === 'professional') {
+      if (!companyName || !companyName.trim()) e.companyName = 'Nome da empresa é obrigatório para conta profissional.';
+      if (!matricula || !matricula.trim()) e.matricula = 'Matrícula é obrigatória para conta profissional.';
+    }
+
     if (!senha) e.senha = 'Senha é obrigatória.';
     else if (!isPasswordValid) e.senha = 'Senha fraca. Atenda aos requisitos abaixo.';
     if (!confirmSenha) e.confirmSenha = 'Confirme sua senha.';
@@ -82,16 +92,37 @@ export default function PageCadastro() {
     setErrors({});
     if (!validate()) return;
     setLoading(true);
+    const isDev = !!(typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV);
     // Normalize name (collapse whitespace, trim) and attempt create -> then auto-login
     const normalizedNome = normalizeNome(nome);
+    const acct = (String(accountType || '').toLowerCase() === 'professional' || String(accountType || '').toLowerCase() === 'profissional') ? 'professional' : 'user';
     try {
       const apiBase = window.__API_BASE || '';
-      const resp = await fetch(`${apiBase}/api/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: normalizedNome, email: email.trim(), senha }),
-      });
-      if (resp.status === 201) {
+      let backendStatus = null;
+      let backendFailed = false;
+      let backendErrorMessage = null;
+      let resp = null;
+
+      try {
+        resp = await fetch(`${apiBase}/api/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nome: normalizedNome,
+            email: email.trim(),
+            senha,
+            account_type: acct,
+            company_name: acct === 'professional' ? String(companyName || '').trim() : null,
+            matricula: acct === 'professional' ? String(matricula || '').trim() : null,
+          }),
+        });
+        backendStatus = resp && typeof resp.status === 'number' ? resp.status : null;
+      } catch (e) {
+        backendFailed = true;
+        backendErrorMessage = e && e.message ? e.message : String(e);
+      }
+
+      if (resp && resp.status === 201) {
         const created = await resp.json().catch(() => ({}));
         const createdNome = normalizeNome((created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome);
         const normalizedUsuario = {
@@ -101,37 +132,68 @@ export default function PageCadastro() {
           name: createdNome,
           avatarBg: computeAvatarBg(createdNome || normalizedNome),
           photoURL: created.photoURL || created.photo_url || null,
-          isPro: false
+          isPro: false,
+          accountType: acct,
+          role: acct === 'professional' ? 'professional' : 'user',
+          professional: acct === 'professional'
+            ? {
+              status: 'active',
+              onboarding_completed: true,
+              company_name: String(companyName || '').trim() || null,
+              matricula: String(matricula || '').trim() || null
+            }
+            : null
         };
         try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
         try { if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario); } catch(e){}
         try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch(e){}
         setSuccess('Cadastro realizado com sucesso! Entrando...');
         if (window.showToast) window.showToast('Cadastro realizado com sucesso! Entrando...', 'success', 1200);
-        setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
-        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+        setTimeout(() => {
+          try {
+            const acct = String(normalizedUsuario.accountType || '').toLowerCase();
+            navigate((acct === 'professional' || acct === 'profissional') ? '/profissional/dashboard' : '/buscar-pecas');
+          } catch (e) {}
+        }, 1000);
+        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setErrors({});
         setLoading(false);
         return;
       }
-      if (resp.status === 409) {
+      if (resp && resp.status === 409) {
         const body = await resp.json().catch(() => ({}));
         setErrors({ form: 'Usuário já existe. Tente recuperar a senha ou entre em contato.' });
         setLoading(false);
         return;
       }
-      // Other non-OK: fall back to attempt creating the user directly in Supabase
+
+      // If backend is not available in dev (common when only Vite is running), avoid blocking on Supabase.
+      // In many Supabase projects, Auth Hooks can time out locally because the hook URL isn't reachable.
+      const backendLooksDown = backendFailed || (isDev && (typeof backendStatus === 'number' && backendStatus >= 500));
+
+      // Other non-OK: fall back to attempt creating the user directly in Supabase (best-effort)
+      let supabaseErrorMessage = null;
       try {
-        const emailAddr = email.trim();
-        const pw = senha;
-        let _supabase = null;
-        try { const mod = await import('../supabase'); _supabase = mod.default || mod.supabase; } catch (e) { _supabase = null; }
-        if (_supabase && _supabase.auth && typeof _supabase.auth.signUp === 'function') {
-          const { data, error } = await _supabase.auth.signUp({ email: emailAddr, password: pw, options: { data: { nome: normalizedNome } } });
-          if (error) {
-            setErrors({ form: 'Erro ao cadastrar no Supabase: ' + (error.message || 'Erro desconhecido') });
-            setLoading(false);
-            return;
-          } else if (data && (data.user || data)) {
+        if (!backendLooksDown) {
+          const emailAddr = email.trim();
+          const pw = senha;
+          let _supabase = null;
+          try { const mod = await import('../supabase'); _supabase = mod.default || mod.supabase; } catch (e) { _supabase = null; }
+          if (_supabase && _supabase.auth && typeof _supabase.auth.signUp === 'function') {
+            const profCompany = acct === 'professional' ? (String(companyName || '').trim() || null) : null;
+            const profMatricula = acct === 'professional' ? (String(matricula || '').trim() || null) : null;
+            const { data, error } = await _supabase.auth.signUp({
+              email: emailAddr,
+              password: pw,
+              options: { data: { nome: normalizedNome, account_type: acct, company_name: profCompany, matricula: profMatricula } }
+            });
+            if (error) {
+              const raw = error.message || 'Erro desconhecido';
+              if (/failed to reach hook/i.test(raw)) {
+                supabaseErrorMessage = 'Supabase não conseguiu chamar o Auth Hook (timeout de 5s). Isso acontece quando o hook URL está fora do ar/inalcançável. Vou usar cadastro local para você continuar.';
+              } else {
+                supabaseErrorMessage = 'Erro ao cadastrar no Supabase: ' + raw;
+              }
+            } else if (data && (data.user || data)) {
             const sbUser = data.user || data;
             const sbNome = normalizeNome((sbUser.user_metadata && (sbUser.user_metadata.nome || sbUser.user_metadata.name)) ? (sbUser.user_metadata.nome || sbUser.user_metadata.name) : normalizedNome);
             const normalizedUsuario = {
@@ -141,29 +203,109 @@ export default function PageCadastro() {
               name: sbNome,
               avatarBg: computeAvatarBg(sbNome || normalizedNome),
               photoURL: sbUser.photoURL || sbUser.avatar_url || null,
-              isPro: false
+              isPro: false,
+              accountType: acct,
+              role: acct === 'professional' ? 'professional' : 'user',
+              professional: acct === 'professional'
+                ? { status: 'active', onboarding_completed: true, company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
+                : null
             };
+
+            // Best-effort: if Supabase returned a session/access token, create the professional account row server-side
+            try {
+              const session = data && data.session ? data.session : null;
+              const accessToken = session && session.access_token ? session.access_token : null;
+              const apiBase = window.__API_BASE || '';
+              if (acct === 'professional' && accessToken) {
+                // Ensure user row exists in Postgres + fetch normalized fields
+                await fetch(`${apiBase}/api/auth/supabase-verify`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                  body: JSON.stringify({ access_token: accessToken })
+                }).catch(() => null);
+
+                const profResp = await fetch(`${apiBase}/api/professional/account`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                  body: JSON.stringify({
+                    company_name: String(companyName || '').trim() || null,
+                    matricula: String(matricula || '').trim() || null,
+                    onboarding_completed: true
+                  })
+                }).catch(() => null);
+
+                if (profResp && profResp.ok) {
+                  const body = await profResp.json().catch(() => ({}));
+                  if (body && body.professional) {
+                    normalizedUsuario.professional = body.professional;
+                  }
+                }
+              }
+            } catch (e) {
+              // ignore
+            }
+
             try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
             try { if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario); } catch(e){}
             try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch(e){}
             setSuccess('Cadastro realizado (Supabase). Entrando...');
             if (window.showToast) window.showToast('Cadastro realizado (Supabase).', 'success', 1200);
-            setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
-            setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+            setTimeout(() => {
+              try {
+                navigate(acct === 'professional' ? '/profissional/dashboard' : '/buscar-pecas');
+              } catch (e) {}
+            }, 1000);
+            setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setErrors({});
             setLoading(false);
             return;
           }
         }
+        }
       } catch (err2) {
-        setErrors({ form: 'Erro ao cadastrar no Supabase. Tente novamente.' });
+        // Ignore and fall back to local below
+        supabaseErrorMessage = supabaseErrorMessage || 'Erro ao cadastrar no Supabase. Vou usar cadastro local para você continuar.';
+      }
+
+      if (supabaseErrorMessage) {
+        try { console.warn('[cadastro] Supabase signup failed:', supabaseErrorMessage); } catch (e) {}
+        if (window.showToast) window.showToast(supabaseErrorMessage, 'warning', 3500);
+      } else if (backendLooksDown) {
+        const msg = 'Backend indisponível (porta 3001). Vou usar cadastro local para você continuar.';
+        try { console.warn('[cadastro] Backend unavailable, falling back to local.', { backendStatus, backendErrorMessage }); } catch (e) {}
+        if (window.showToast) window.showToast(msg, 'warning', 3000);
+      }
+
+      // In production we never create local accounts (they would not persist and would confuse users).
+      if (!isDev) {
+        const msg = supabaseErrorMessage
+          ? supabaseErrorMessage
+          : (backendFailed
+            ? 'Não foi possível conectar ao servidor para criar sua conta. Tente novamente em instantes.'
+            : 'Não foi possível criar sua conta. Verifique os dados e tente novamente.');
+        setErrors({ form: msg });
         setLoading(false);
         return;
       }
+
       // Fallback persistence in localStorage
       try {
         const key = 'usuarios';
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        const createdLocal = { id: `local_${Date.now()}`, nome: normalizedNome, email: email.trim(), senha, criadoEm: new Date().toISOString(), avatarBg: computeAvatarBg(normalizedNome), isPro: false };
+        const acct = (String(accountType || '').toLowerCase() === 'professional' || String(accountType || '').toLowerCase() === 'profissional') ? 'professional' : 'user';
+        const createdLocal = {
+          id: `local_${Date.now()}`,
+          nome: normalizedNome,
+          email: email.trim(),
+          senha,
+          criadoEm: new Date().toISOString(),
+          avatarBg: computeAvatarBg(normalizedNome),
+          isPro: false,
+          accountType: acct,
+          role: acct === 'professional' ? 'professional' : 'user',
+          professional: acct === 'professional'
+            ? { status: 'active', onboarding_completed: true, company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
+            : null
+        };
         try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
         existing.push(createdLocal);
         localStorage.setItem(key, JSON.stringify(existing));
@@ -171,8 +313,8 @@ export default function PageCadastro() {
         try { localStorage.setItem('usuario-logado', JSON.stringify(createdLocal)); } catch(e){}
         setSuccess('Cadastro (local) realizado com sucesso! Entrando...');
         if (window.showToast) window.showToast('Cadastro realizado (local). Entrando...', 'success', 1200);
-        setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 1000);
-        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setErrors({});
+        setTimeout(() => { try { navigate(acct === 'professional' ? '/profissional/dashboard' : '/buscar-pecas'); } catch (e) {} }, 1000);
+        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setErrors({});
         setLoading(false);
         return;
       } catch (err) {
@@ -195,6 +337,28 @@ export default function PageCadastro() {
           <div className="cadastro-logo-wrapper">
             <h2 className="cadastro-section-title cadastro-title">Criar conta grátis</h2>
             <p className="cadastro-instruction">Crie sua conta para acessar todos os recursos.</p>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', margin: '10px 0 14px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="submit"
+                style={{ width: 'auto', padding: '10px 14px', opacity: String(accountType) === 'user' ? 1 : 0.8 }}
+                onClick={() => setAccountType('user')}
+                disabled={loading}
+              >
+                Conta Pessoal
+              </button>
+              <button
+                type="button"
+                className="submit"
+                style={{ width: 'auto', padding: '10px 14px', opacity: String(accountType) !== 'user' ? 1 : 0.8 }}
+                onClick={() => setAccountType('professional')}
+                disabled={loading}
+              >
+                Conta Profissional
+              </button>
+            </div>
+
             <form className="cadastro-form" autoComplete="on" onSubmit={handleSubmit}>
               {errors.form && (
                 <div className="form-error" style={{ marginBottom: 12, color: '#b91c1c', background: '#fff1f2', border: '1px solid #fecaca', padding: 8, borderRadius: 6, textAlign: 'center' }}>
@@ -225,6 +389,35 @@ export default function PageCadastro() {
                 />
                 {errors.email && <div className="error">{errors.email}</div>}
               </label>
+
+              {String(accountType) !== 'user' && (
+                <>
+                  <label className="field">
+                    <input
+                      className="input"
+                      type="text"
+                      value={companyName}
+                      onChange={e => setCompanyName(e.target.value)}
+                      placeholder="Nome da empresa/oficina"
+                      autoComplete="organization"
+                      disabled={loading}
+                    />
+                    {errors.companyName && <div className="error">{errors.companyName}</div>}
+                  </label>
+                  <label className="field">
+                    <input
+                      className="input"
+                      type="text"
+                      value={matricula}
+                      onChange={e => setMatricula(e.target.value)}
+                      placeholder="Matrícula"
+                      autoComplete="off"
+                      disabled={loading}
+                    />
+                    {errors.matricula && <div className="error">{errors.matricula}</div>}
+                  </label>
+                </>
+              )}
               <label className="field">
                 <div className="password-field">
                   <input

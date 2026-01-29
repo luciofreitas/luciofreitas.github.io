@@ -341,6 +341,113 @@ let userHasAuthId = false;
 let userCreatedAtColumn = null;
 let userHasIsPro = false;
 let userHasProSince = false;
+let userHasRole = false;
+
+// Professional accounts capability detection
+let hasProfessionalAccountsTable = null; // null unknown, boolean when detected
+let hasProfessionalAccountsMatriculaColumn = null; // null unknown, boolean when detected
+
+async function detectProfessionalAccountsTable(pgClientInstance) {
+  if (!pgClientInstance) return false;
+  if (typeof hasProfessionalAccountsTable === 'boolean') return hasProfessionalAccountsTable;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='professional_accounts' LIMIT 1"
+    );
+    hasProfessionalAccountsTable = (r && r.rowCount > 0);
+    return hasProfessionalAccountsTable;
+  } catch (e) {
+    hasProfessionalAccountsTable = false;
+    return false;
+  }
+}
+
+async function detectProfessionalAccountsMatriculaColumn(pgClientInstance) {
+  if (!pgClientInstance) return false;
+  if (typeof hasProfessionalAccountsMatriculaColumn === 'boolean') return hasProfessionalAccountsMatriculaColumn;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='professional_accounts' AND column_name='matricula' LIMIT 1"
+    );
+    hasProfessionalAccountsMatriculaColumn = (r && r.rowCount > 0);
+    return hasProfessionalAccountsMatriculaColumn;
+  } catch (e) {
+    hasProfessionalAccountsMatriculaColumn = false;
+    return false;
+  }
+}
+
+async function resolveDbUserIdFromAuth({ pgClientInstance, authId, email }) {
+  if (!pgClientInstance) return null;
+  const a = authId ? String(authId) : null;
+  const em = email ? String(email) : null;
+  try {
+    if (a) {
+      const r = await pgClientInstance.query(
+        'SELECT id FROM users WHERE id = $1 OR auth_id = $1 LIMIT 1',
+        [a]
+      );
+      if (r && r.rowCount > 0) return r.rows[0].id;
+    }
+  } catch (e) { /* ignore */ }
+
+  try {
+    if (em) {
+      const r = await pgClientInstance.query(
+        'SELECT id FROM users WHERE lower(email) = lower($1) LIMIT 1',
+        [em]
+      );
+      if (r && r.rowCount > 0) return r.rows[0].id;
+    }
+  } catch (e) { /* ignore */ }
+
+  return null;
+}
+
+async function getProfessionalAccount(pgClientInstance, userId) {
+  if (!pgClientInstance || !userId) return null;
+  const ok = await detectProfessionalAccountsTable(pgClientInstance);
+  if (!ok) return null;
+  try {
+    const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClientInstance);
+    const cols = [
+      'user_id',
+      'status',
+      'onboarding_completed',
+      'company_name',
+      ...(hasMatricula ? ['matricula'] : []),
+      'cnpj',
+      'phone',
+      'created_at',
+      'updated_at'
+    ];
+    const r = await pgClientInstance.query(
+          `SELECT ${cols.join(', ')} FROM professional_accounts WHERE user_id = $1 LIMIT 1`,
+      [String(userId)]
+    );
+    return (r && r.rowCount > 0) ? r.rows[0] : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function ensureProfessionalAccount(pgClientInstance, userId, { role } = {}) {
+  if (!pgClientInstance || !userId) return null;
+  const ok = await detectProfessionalAccountsTable(pgClientInstance);
+  if (!ok) return null;
+  const safeRole = role ? String(role) : 'professional';
+  try {
+    await pgClientInstance.query(
+          `INSERT INTO professional_accounts(user_id, role, status, onboarding_completed, created_at, updated_at)
+       VALUES($1, $2, 'active', false, now(), now())
+       ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role, updated_at = now()`,
+      [String(userId), safeRole]
+    );
+  } catch (e) {
+    // ignore
+  }
+  return await getProfessionalAccount(pgClientInstance, userId);
+}
 
 // Cars schema capability detection (some DBs may not yet have the encryption columns)
 let carsHasChassiEnc = false;
@@ -578,7 +685,9 @@ async function tryConnectPg(){
   userHasProSince = names.indexOf('pro_since') >= 0 || names.indexOf('pro_since') >= 0 || names.indexOf('pro_since') >= 0;
   // detect optional auth_id column used to link to Supabase/Firebase auth ids
   userHasAuthId = names.indexOf('auth_id') >= 0;
-  console.log('Detected users name column:', userNameColumn, 'password column:', userPasswordColumn, 'createdAt:', userCreatedAtColumn, 'hasIsPro:', userHasIsPro, 'hasProSince:', userHasProSince);
+  // detect role column used to differentiate account type
+  userHasRole = names.indexOf('role') >= 0;
+  console.log('Detected users name column:', userNameColumn, 'password column:', userPasswordColumn, 'createdAt:', userCreatedAtColumn, 'hasIsPro:', userHasIsPro, 'hasProSince:', userHasProSince, 'hasRole:', userHasRole);
     } catch (e) {
       console.warn('Could not detect users table columns:', e && e.message ? e.message : e);
     }
@@ -1567,6 +1676,122 @@ app.get('/api/fitments', async (req, res) => { if(pgClient){ try{ const r = awai
 app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM equivalences'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/equivalences:', err.message);} } res.json(csvData.equivalences); });
 app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs that use 'nome' or 'name' for the user's display name */ const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, pro_since, created_at FROM users"); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
 
+// Create user (legacy password accounts).
+// Note: this is mainly used for local/dev flows; production auth uses Supabase/Firebase.
+// Body: { nome, email, senha, account_type, company_name?, matricula? }
+app.post('/api/users', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const nome = body.nome != null ? String(body.nome).trim() : '';
+    const email = body.email != null ? String(body.email).trim().toLowerCase() : '';
+    const senha = body.senha != null ? String(body.senha) : '';
+    const acctRaw = String(body.account_type || body.accountType || body.role || 'user').toLowerCase();
+    const accountType = (acctRaw === 'professional' || acctRaw === 'profissional') ? 'professional' : 'user';
+    const companyName = body.company_name != null ? String(body.company_name).trim() : (body.empresa != null ? String(body.empresa).trim() : '');
+    const matricula = body.matricula != null ? String(body.matricula).trim() : '';
+
+    if (!email) return res.status(400).json({ error: 'email required' });
+    if (!senha) return res.status(400).json({ error: 'senha required' });
+    if (accountType === 'professional') {
+      if (!companyName) return res.status(400).json({ error: 'company_name required for professional accounts' });
+      if (!matricula) return res.status(400).json({ error: 'matricula required for professional accounts' });
+    }
+
+    const userId = (crypto && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : `local_${Date.now()}`;
+
+    // Prefer Postgres when available
+    if (pgClient) {
+      try {
+        const existing = await pgClient.query('SELECT id FROM users WHERE lower(email) = lower($1) LIMIT 1', [email]);
+        if (existing && existing.rowCount > 0) return res.status(409).json({ error: 'user already exists' });
+
+        const cols = ['id', 'email'];
+        const vals = [String(userId), email];
+
+        // name
+        if (userNameColumn) {
+          cols.push(userNameColumn);
+          vals.push(nome || email.split('@')[0]);
+        }
+
+        // password
+        if (userPasswordColumn) {
+          cols.push(userPasswordColumn);
+          vals.push(senha);
+        }
+
+        // role discriminator
+        if (userHasRole) {
+          cols.push('role');
+          vals.push(accountType === 'professional' ? 'professional' : 'user');
+        }
+
+        // is_pro (subscription) defaults false
+        if (userHasIsPro) {
+          cols.push('is_pro');
+          vals.push(false);
+        }
+
+        const placeholders = vals.map((_, i) => `$${i + 1}`);
+        await pgClient.query(`INSERT INTO users(${cols.join(', ')}) VALUES(${placeholders.join(', ')})`, vals);
+
+        // If professional, create/update professional_accounts row with company_name + matricula
+        if (accountType === 'professional') {
+          try {
+            await ensureProfessionalAccount(pgClient, userId, { role: 'professional' });
+            const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
+            const sets = ['company_name = $2', 'onboarding_completed = true', 'updated_at = now()'];
+            const params = [String(userId), companyName];
+            if (hasMatricula) {
+              sets.splice(1, 0, 'matricula = $3');
+              params.push(matricula);
+            }
+            await pgClient.query(`UPDATE professional_accounts SET ${sets.join(', ')} WHERE user_id = $1`, params);
+          } catch (e) {
+            // ignore (user creation should still succeed)
+          }
+        }
+
+        const created = {
+          id: userId,
+          email,
+          nome: nome || email.split('@')[0],
+          name: nome || email.split('@')[0],
+          account_type: accountType,
+          role: accountType === 'professional' ? 'professional' : 'user'
+        };
+        return res.status(201).json(created);
+      } catch (e) {
+        console.error('PG insert failed /api/users:', e && e.message ? e.message : e);
+        // fallthrough to CSV fallback
+      }
+    }
+
+    // CSV fallback
+    try {
+      const existing = (csvData.users || []).find(u => String(u.email || '').trim().toLowerCase() === email);
+      if (existing) return res.status(409).json({ error: 'user already exists' });
+      const created = {
+        id: userId,
+        nome: nome || email.split('@')[0],
+        email,
+        senha,
+        is_pro: false,
+        accountType: accountType,
+        role: accountType === 'professional' ? 'professional' : 'user',
+        professional: accountType === 'professional' ? { company_name: companyName || null, matricula: matricula || null, onboarding_completed: true, status: 'active' } : null
+      };
+      csvData.users = Array.isArray(csvData.users) ? csvData.users : [];
+      csvData.users.push(created);
+      return res.status(201).json(created);
+    } catch (e) {
+      return res.status(500).json({ error: 'failed to create user' });
+    }
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
 function normalizeVin(v) {
   try {
     return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
@@ -2169,7 +2394,7 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           console.warn('firebase-verify: Upsert query failed', e && e.message ? e.message : e);
         }
 
-        const r = await pgClient.query(`SELECT id, email, nome, photo_url, is_pro, criado_em, celular FROM users WHERE (id = $1 OR auth_id = $1)`, [dbIdToUse]);
+        const r = await pgClient.query(`SELECT id, email, nome, photo_url, is_pro, criado_em, celular${userHasRole ? ', role' : ''} FROM users WHERE (id = $1 OR auth_id = $1)`, [dbIdToUse]);
         console.log('🔍 FIREBASE-VERIFY: Final query result:', {
           query: `SELECT id, email, nome, photo_url, is_pro, criado_em, celular FROM users WHERE id = $1`,
           params: [dbIdToUse],
@@ -2181,6 +2406,18 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           const row = r.rows[0];
           const displayName = ((row.nome || '') + '').trim();
           const phoneValue = row.celular || null;
+
+          // Determine account type primarily by users.role when available.
+          const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
+          const accountType = (dbRole === 'professional' || dbRole === 'profissional') ? 'professional' : 'user';
+
+          // Fetch professional profile details when professional_accounts exists.
+          let professional = null;
+          try {
+            professional = await getProfessionalAccount(pgClient, row.id);
+          } catch (e) {
+            professional = null;
+          }
           
           console.log('🔍 FIREBASE-VERIFY: Processing user data:', {
             rawRow: row,
@@ -2200,7 +2437,17 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
               created_at: row.criado_em || null,
               celular: phoneValue,
               telefone: phoneValue,
-              phone: phoneValue
+              phone: phoneValue,
+              account_type: accountType,
+              role: dbRole || (accountType === 'professional' ? 'professional' : 'user'),
+              professional: professional ? {
+                status: professional.status || 'active',
+                onboarding_completed: !!professional.onboarding_completed,
+                company_name: professional.company_name || null,
+                matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
+                cnpj: professional.cnpj || null,
+                phone: professional.phone || null
+              } : null
             } 
           };
           
@@ -2475,6 +2722,18 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
 
     const meta = (fullUser && fullUser.user_metadata) ? fullUser.user_metadata : (sbUserFromToken.user_metadata || {});
 
+    // Desired account type can be signaled via Supabase user metadata.
+    // This is independent from subscription (is_pro). We use it to set users.role and
+    // to ensure a professional_accounts row exists.
+    const metaAcctRaw = (function(){
+      try {
+        return String(meta.account_type || meta.accountType || meta.role || '').toLowerCase();
+      } catch (e) {
+        return '';
+      }
+    })();
+    const wantsProfessionalFromMeta = (metaAcctRaw === 'professional' || metaAcctRaw === 'profissional');
+
     // Try identities (OAuth providers) for display name and avatar. Providers may store
     // fields under several possible keys (name, full_name, login, avatar_url, picture, picture_url,
     // profile_image_url or nested under user_info). Check multiple candidates to maximize coverage
@@ -2587,7 +2846,44 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
           throw e;
         }
 
-        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular, auth_id FROM users WHERE id = $1`, [uidToUse]);
+        // If metadata indicates this is a professional account, persist the role and ensure
+        // the professional_accounts row exists (best-effort).
+        if (wantsProfessionalFromMeta) {
+          try {
+            if (userHasRole) {
+              await pgClient.query(`UPDATE users SET role = 'professional', atualizado_em = now() WHERE id = $1`, [uidToUse]);
+            }
+          } catch (e) {
+            // ignore
+          }
+          try {
+            await ensureProfessionalAccount(pgClient, uidToUse, { role: 'professional' });
+          } catch (e) {
+            // ignore
+          }
+
+          // Best-effort: apply professional profile fields from Supabase user metadata.
+          try {
+            const metaCompany = (Object.prototype.hasOwnProperty.call(meta, 'company_name')) ? meta.company_name : (Object.prototype.hasOwnProperty.call(meta, 'empresa') ? meta.empresa : undefined);
+            const metaMatricula = (Object.prototype.hasOwnProperty.call(meta, 'matricula')) ? meta.matricula : undefined;
+            const sets = [];
+            const params = [];
+            let idx = 1;
+            const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
+            if (metaCompany !== undefined && String(metaCompany || '').trim() !== '') { sets.push(`company_name = $${idx++}`); params.push(String(metaCompany).trim()); }
+            if (metaMatricula !== undefined && hasMatricula && String(metaMatricula || '').trim() !== '') { sets.push(`matricula = $${idx++}`); params.push(String(metaMatricula).trim()); }
+            if (sets.length > 0) {
+              sets.push('onboarding_completed = true');
+              sets.push('updated_at = now()');
+              params.push(uidToUse);
+              await pgClient.query(`UPDATE professional_accounts SET ${sets.join(', ')} WHERE user_id = $${idx}`, params);
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        const r = await pgClient.query(`SELECT id, email, ${nameCol} as name, photo_url, is_pro, criado_em, celular, auth_id${userHasRole ? ', role' : ''} FROM users WHERE id = $1`, [uidToUse]);
         if (r.rowCount > 0) {
           const row = r.rows[0];
           
@@ -2604,7 +2900,44 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
           
           const displayName = ((row.name || '') + '').trim();
           const phoneValue = row.celular || null;
-          return res.json({ success: true, user: { id: row.id, email: row.email, name: displayName, nome: displayName, photoURL: row.photo_url || null, is_pro: row.is_pro, created_at: row.criado_em || null, celular: phoneValue, telefone: phoneValue, phone: phoneValue } });
+
+          // Determine account type primarily by users.role when available.
+          const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
+          const accountType = (dbRole === 'professional' || dbRole === 'profissional') ? 'professional' : 'user';
+
+          // Fetch professional profile details when professional_accounts exists.
+          let professional = null;
+          try {
+            professional = await getProfessionalAccount(pgClient, row.id);
+          } catch (e) {
+            professional = null;
+          }
+
+          return res.json({
+            success: true,
+            user: {
+              id: row.id,
+              email: row.email,
+              name: displayName,
+              nome: displayName,
+              photoURL: row.photo_url || null,
+              is_pro: row.is_pro,
+              created_at: row.criado_em || null,
+              celular: phoneValue,
+              telefone: phoneValue,
+              phone: phoneValue,
+              account_type: accountType,
+              role: dbRole || (accountType === 'professional' ? 'professional' : 'user'),
+              professional: professional ? {
+                status: professional.status || 'active',
+                onboarding_completed: !!professional.onboarding_completed,
+                company_name: professional.company_name || null,
+                matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
+                cnpj: professional.cnpj || null,
+                phone: professional.phone || null
+              } : null
+            }
+          });
         }
       } catch (e) {
         console.warn('supabase-verify: DB upsert failed, continuing with token user:', e && e.message ? e.message : e);
@@ -2826,6 +3159,171 @@ app.post('/api/auth/supabase-webhook', async (req, res) => {
   } catch (err) {
     console.error('supabase-webhook error:', err && err.stack ? err.stack : err);
     return res.status(500).json({ error: 'internal' });
+  }
+});
+
+// Professional accounts API
+// GET  /api/professional/account -> returns professional row for current user (Bearer token)
+// POST /api/professional/account -> upserts professional row and can set onboarding_completed
+app.get('/api/professional/account', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectProfessionalAccountsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'professional_accounts table not available' });
+
+    const sbUser = await getSupabaseUserFromReq(req).catch(() => null);
+    const authId = sbUser ? sbUser.id : null;
+    const email = sbUser ? sbUser.email : null;
+
+    const explicitUserId = (req.query && (req.query.user_id || req.query.userId)) ? String(req.query.user_id || req.query.userId) : null;
+    const userId = explicitUserId || await resolveDbUserIdFromAuth({ pgClientInstance: pgClient, authId, email });
+    if (!userId) return res.status(401).json({ error: 'not authenticated' });
+
+    const professional = await getProfessionalAccount(pgClient, userId);
+    return res.json({ success: true, professional: professional || null });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.post('/api/professional/account', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectProfessionalAccountsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'professional_accounts table not available' });
+
+    const sbUser = await getSupabaseUserFromReq(req).catch(() => null);
+    const authId = sbUser ? sbUser.id : null;
+    const email = sbUser ? sbUser.email : null;
+
+    const explicitUserId = (req.body && (req.body.user_id || req.body.userId)) ? String(req.body.user_id || req.body.userId) : null;
+    const userId = explicitUserId || await resolveDbUserIdFromAuth({ pgClientInstance: pgClient, authId, email });
+    if (!userId) return res.status(401).json({ error: 'not authenticated' });
+
+    // Mark user as professional via users.role when available
+    try {
+      if (userHasRole) {
+        await pgClient.query(`UPDATE users SET role = 'professional', atualizado_em = now() WHERE id = $1`, [String(userId)]);
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Ensure row exists first
+    await ensureProfessionalAccount(pgClient, userId, { role: 'professional' });
+
+    // Update fields (best-effort)
+    const companyName = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'company_name')) ? req.body.company_name : undefined;
+    const matricula = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'matricula')) ? req.body.matricula : undefined;
+    const cnpj = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'cnpj')) ? req.body.cnpj : undefined;
+    const phone = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'phone')) ? req.body.phone : undefined;
+    const onboardingCompleted = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'onboarding_completed')) ? !!req.body.onboarding_completed : undefined;
+
+    const sets = [];
+    const params = [];
+    let idx = 1;
+
+    const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
+
+    if (companyName !== undefined) { sets.push(`company_name = $${idx++}`); params.push(companyName); }
+    if (matricula !== undefined && hasMatricula) { sets.push(`matricula = $${idx++}`); params.push(matricula); }
+    if (cnpj !== undefined) { sets.push(`cnpj = $${idx++}`); params.push(cnpj); }
+    if (phone !== undefined) { sets.push(`phone = $${idx++}`); params.push(phone); }
+    if (onboardingCompleted !== undefined) { sets.push(`onboarding_completed = $${idx++}`); params.push(onboardingCompleted); }
+    sets.push('updated_at = now()');
+
+    if (sets.length > 0) {
+      params.push(String(userId));
+      await pgClient.query(`UPDATE professional_accounts SET ${sets.join(', ')} WHERE user_id = $${idx}`, params);
+    }
+
+    const professional = await getProfessionalAccount(pgClient, userId);
+    return res.json({ success: true, professional: professional || null });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Professional onboarding: store business details and mark onboarding_completed=true.
+// Auth: accepts Authorization: Bearer <supabase_access_token> OR Bearer <firebase_id_token>.
+app.post('/api/professional/onboarding', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+
+    // Resolve identity from Supabase token if possible
+    let authId = null;
+    let email = null;
+    try {
+      const sbUser = await getSupabaseUserFromReq(req);
+      if (sbUser && sbUser.id) {
+        authId = sbUser.id;
+        email = sbUser.email || null;
+      }
+    } catch (e) { /* ignore */ }
+
+    // Fallback: Firebase token verification (if configured)
+    if (!authId) {
+      try {
+        tryInitFirebaseAdmin();
+        const authHeader = req.headers.authorization || '';
+        const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+        if (token && firebaseAdmin) {
+          const decoded = await firebaseAdmin.auth().verifyIdToken(token);
+          if (decoded && decoded.uid) {
+            authId = decoded.uid;
+            email = decoded.email || null;
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (!authId && !(req.body && req.body.user_id)) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+
+    // Resolve local DB user id
+    const dbUserId = await resolveDbUserIdFromAuth({
+      pgClientInstance: pgClient,
+      authId: authId || (req.body && req.body.user_id),
+      email: email || (req.body && req.body.email)
+    });
+
+    if (!dbUserId) return res.status(404).json({ error: 'user not found' });
+
+    // Ensure professional account exists
+    const requestedRole = (req.body && req.body.role) ? req.body.role : 'professional';
+    await ensureProfessionalAccount(pgClient, dbUserId, { role: requestedRole });
+
+    const ok = await detectProfessionalAccountsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'professional_accounts not available (run migration 0008)' });
+
+    const companyName = (req.body && req.body.company_name != null) ? String(req.body.company_name).trim() : null;
+    const cnpj = (req.body && req.body.cnpj != null) ? String(req.body.cnpj).trim() : null;
+    const phone = (req.body && req.body.phone != null) ? String(req.body.phone).trim() : null;
+
+    try {
+      await pgClient.query(
+        `UPDATE professional_accounts
+         SET company_name = COALESCE($2, company_name),
+             cnpj = COALESCE($3, cnpj),
+             phone = COALESCE($4, phone),
+             onboarding_completed = true,
+             updated_at = now()
+         WHERE user_id = $1`,
+        [String(dbUserId), companyName, cnpj, phone]
+      );
+    } catch (e) {
+      console.warn('professional onboarding update failed', e && e.message ? e.message : e);
+      return res.status(500).json({ error: 'failed to update professional account' });
+    }
+
+    const professional = await getProfessionalAccount(pgClient, dbUserId);
+    return res.json({ success: true, account_type: 'professional', professional });
+  } catch (err) {
+    console.error('professional onboarding error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ error: 'internal error' });
   }
 });
 

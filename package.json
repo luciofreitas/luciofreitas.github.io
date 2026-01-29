@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "vite --host --port 5174",
     "dev:chrome": "concurrently \"npm run dev\" \"wait-on http://localhost:5174 && .\\open-chrome.bat\"",
+    "dev:backend": "npm --prefix backend run start",
+    "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\"",
     "build": "vite build",
     "ci-build": "NPM_CONFIG_PRODUCTION=false npm ci && npm run build",
     "prebuild": "node scripts/generate-components-index.js && node scripts/generate-parts-meta.js",
