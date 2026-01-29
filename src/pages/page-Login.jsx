@@ -44,24 +44,46 @@ const usuariosDemoGlobais = [
 ];
 
 export default function Login() {
-    // Handler para login com Google
-    async function handleGoogleLogin() {
+    async function firebaseGoogleLogin() {
+      const authApi = await getFirebaseAuthApi();
+      if (authApi && typeof authApi.signInWithGooglePopup === 'function') {
+        const res = await authApi.signInWithGooglePopup();
+        if (res && res.user) {
+          await processFirebaseUser(res.user, res.credential || null);
+        } else if (res && res.error) {
+          setError('Erro ao autenticar com Google: ' + (res.error.message || 'Erro desconhecido'));
+        } else {
+          setError('Não foi possível autenticar com Google.');
+        }
+      } else {
+        setError('Login com Google não está disponível.');
+      }
+    }
+
+    // Handler para login com Google (Firebase direto)
+    // NOTE: Supabase Google OAuth is currently misconfigured in this project
+    // (Google returns deleted_client). We keep Firebase as the default to avoid
+    // redirecting users to an error page.
+    async function handleGoogleLogin(e) {
+      try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch (_) {}
       setError('');
       setGoogleLoading(true);
       try {
-        const authApi = await getFirebaseAuthApi();
-        if (authApi && typeof authApi.signInWithGooglePopup === 'function') {
-          const res = await authApi.signInWithGooglePopup();
-          if (res && res.user) {
-            await processFirebaseUser(res.user, res.credential || null);
-          } else if (res && res.error) {
-            setError('Erro ao autenticar com Google: ' + (res.error.message || 'Erro desconhecido'));
-          } else {
-            setError('Não foi possível autenticar com Google.');
-          }
-        } else {
-          setError('Login com Google não está disponível.');
-        }
+        await firebaseGoogleLogin();
+      } catch (e) {
+        setError('Erro inesperado no login Google: ' + (e && e.message ? e.message : e));
+      } finally {
+        setGoogleLoading(false);
+      }
+    }
+
+    // Handler para login com Google (compatibilidade - Firebase direto)
+    async function handleGoogleLoginCompat(e) {
+      try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch (_) {}
+      setError('');
+      setGoogleLoading(true);
+      try {
+        await firebaseGoogleLogin();
       } catch (e) {
         setError('Erro inesperado no login Google: ' + (e && e.message ? e.message : e));
       } finally {
@@ -156,93 +178,98 @@ export default function Login() {
       if (!idToken) {
         console.warn('processFirebaseUser: no idToken available');
       }
-      // Backend verification: fetch additional user data asynchronously
+      const rawNomeFromToken = (user && user.displayName) || (user && user.email ? user.email.split('@')[0] : '');
+      const nomeFromToken = formatDisplayName(rawNomeFromToken) || '';
+
+      // Backend verification: fetch canonical user from DB (blocking with timeout)
+      // This avoids a partially-synced state where the UI starts using user.uid
+      // before we resolve the canonical DB id + professional profile.
       try { console.time('[auth-timing] backend-verify'); } catch (e) {}
       const apiBase = window.__API_BASE || '';
-      
-      // Start backend verification asynchronously - will update user data when ready
+      let backendUser = null;
       if (idToken) {
-        fetch(`${apiBase}/api/auth/firebase-verify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-          body: JSON.stringify({})
-        })
-        .then(resp => {
+        try {
+          const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+          const timeout = setTimeout(() => { try { controller && controller.abort(); } catch (_) {} }, 6000);
+          const resp = await fetch(`${apiBase}/api/auth/firebase-verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+            body: JSON.stringify({ email: user.email || null, uid: user.uid || null, photoURL: user.photoURL || null }),
+            signal: controller ? controller.signal : undefined,
+          });
+          clearTimeout(timeout);
+          const body = await resp.json().catch(() => null);
           if (isDev) console.log('[DEBUG] Backend response status:', resp.status);
-          return resp.ok ? resp.json() : null;
-        })
-        .then(body => {
           if (isDev) console.log('[DEBUG] Backend response body:', body);
-          if (body && (body.user || body.usuario)) {
-            const backendUser = body.user || body.usuario;
-            if (isDev) console.log('[DEBUG] Backend user data:', backendUser);
-            if (isDev) console.log('[DEBUG] Phone fields:', {
-              phone: backendUser.phone,
-              telefone: backendUser.telefone,
-              celular: backendUser.celular
-            });
-            
-            // Merge backend data (phone, etc) with existing user data
-            const updatedUser = {
-              ...backendUser,
-              id: user.uid, // Keep Firebase uid as primary id
-              email: user.email,
-              nome: nomeFromToken || backendUser.nome || backendUser.name,
-              name: nomeFromToken || backendUser.name || backendUser.nome,
-              access_token: idToken,
-              photoURL: backendUser.photoURL || backendUser.photo_url || user.photoURL || null,
-              // Keep backend-specific fields like phone
-              phone: backendUser.phone || backendUser.telefone || backendUser.celular || null,
-              telefone: backendUser.telefone || backendUser.phone || backendUser.celular || null,
-              celular: backendUser.celular || backendUser.phone || backendUser.telefone || null,
-              // Map is_pro from backend to isPro for frontend
-              isPro: Boolean(backendUser.is_pro || backendUser.isPro),
-              // Professional accounts (separate from isPro subscription)
-              role: backendUser.role || null,
-              accountType: backendUser.account_type || backendUser.accountType || (String(backendUser.role || '').toLowerCase() === 'professional' ? 'professional' : null),
-              professional: backendUser.professional || null,
-            };
-            
-            if (isDev) console.log('[DEBUG] Updated user with merged data:', updatedUser);
-            
-            // Update context and localStorage with complete data
-            if (setUsuarioLogado) {
-              if (isDev) console.log('[DEBUG] Updating context with:', updatedUser);
-              setUsuarioLogado(updatedUser);
+          if (body && (body.user || body.usuario)) backendUser = body.user || body.usuario;
+          else if (body && body.error) {
+            const errMsg = String(body.error);
+            if (/firebase admin not configured/i.test(errMsg)) {
+              try {
+                if (window.showToast) window.showToast('Login Google limitado: servidor sem verificação Firebase. Algumas funções (ex.: conta profissional) podem não sincronizar.', 'warning', 6000);
+              } catch (e) {}
             }
-            try { 
-              localStorage.setItem('usuario-logado', JSON.stringify(updatedUser));
-              if (isDev) console.log('[DEBUG] Saved to localStorage');
-            } catch (e) {
-              if (isDev) console.error('[DEBUG] Failed to save to localStorage:', e);
-            }
-            console.log('[auth-timing] Backend user data merged successfully');
-
-            // If this user is a professional, redirect to the right flow.
-            try {
-              const roleLower = String(updatedUser.role || '').toLowerCase();
-              const acctLower = String((updatedUser.accountType || updatedUser.account_type || '') || '').toLowerCase();
-              const isProfessional = roleLower === 'professional' || acctLower === 'professional' || acctLower === 'profissional';
-              if (isProfessional) {
-                const onboardingDone = !!(updatedUser.professional && updatedUser.professional.onboarding_completed);
-                navigate(onboardingDone ? '/profissional/dashboard' : '/profissional/onboarding', { replace: true });
-              }
-            } catch (e) { /* ignore */ }
-          } else {
-            if (isDev) console.warn('[DEBUG] No user data in backend response');
           }
-        })
-        .catch(e => console.warn('Backend verification failed (non-blocking):', e));
+        } catch (e) {
+          console.warn('Backend verification failed (will fallback to Firebase user):', e && e.message ? e.message : e);
+        }
       }
       try { console.timeEnd('[auth-timing] backend-verify'); } catch (e) {}
 
-      const rawNomeFromToken = (user && user.displayName) || (user && user.email ? user.email.split('@')[0] : '');
-      const nomeFromToken = formatDisplayName(rawNomeFromToken) || '';
+      if (backendUser) {
+        // Prefer the canonical DB user id returned by the server.
+        const canonicalId = backendUser && backendUser.id ? backendUser.id : (backendUser && backendUser.user_id ? backendUser.user_id : null);
+        const effectiveId = canonicalId || user.uid;
+
+        const isProfessionalFromProfile = !!(backendUser && backendUser.professional);
+        const updatedUser = {
+          ...backendUser,
+          id: effectiveId,
+          auth_id: user.uid,
+          // Prefer backend email if present, otherwise Firebase
+          email: backendUser.email || user.email,
+          // Prefer DB name over Google displayName
+          nome: (backendUser.nome || backendUser.name || nomeFromToken || ''),
+          name: (backendUser.name || backendUser.nome || nomeFromToken || ''),
+          access_token: idToken,
+          // Prefer DB photo if present; otherwise use provider
+          photoURL: backendUser.photoURL || backendUser.photo_url || user.photoURL || null,
+          phone: backendUser.phone || backendUser.telefone || backendUser.celular || null,
+          telefone: backendUser.telefone || backendUser.phone || backendUser.celular || null,
+          celular: backendUser.celular || backendUser.phone || backendUser.telefone || null,
+          isPro: Boolean(backendUser.is_pro || backendUser.isPro),
+          role: backendUser.role || (isProfessionalFromProfile ? 'professional' : null),
+          accountType: backendUser.account_type || backendUser.accountType || (isProfessionalFromProfile ? 'professional' : (String(backendUser.role || '').toLowerCase() === 'professional' ? 'professional' : null)),
+          professional: backendUser.professional || null,
+        };
+
+        if (setUsuarioLogado) setUsuarioLogado(updatedUser);
+        try { localStorage.setItem('usuario-logado', JSON.stringify(updatedUser)); } catch (e) {}
+
+        // Redirect professionals to the proper flow
+        try {
+          const roleLower = String(updatedUser.role || '').toLowerCase();
+          const acctLower = String((updatedUser.accountType || updatedUser.account_type || '') || '').toLowerCase();
+          const isProfessional = roleLower === 'professional' || acctLower === 'professional' || acctLower === 'profissional';
+          if (isProfessional) {
+            const onboardingDone = !!(updatedUser.professional && updatedUser.professional.onboarding_completed);
+            navigate(onboardingDone ? '/profissional/dashboard' : '/profissional/onboarding', { replace: true });
+            return;
+          }
+        } catch (e) { /* ignore */ }
+
+        navigate('/buscar-pecas', { replace: true });
+        setTimeout(() => {
+          if (window.showToast) window.showToast(`Bem-vindo(a), ${updatedUser.nome || updatedUser.name || 'Usuário'}!`, 'success', 3000);
+        }, 100);
+        return;
+      }
       
       // Create initial user object with Firebase data
       // Backend will update this asynchronously with additional fields (phone, etc)
       const normalizedUsuario = {
         id: user.uid,
+        auth_id: user.uid,
         email: user.email,
         nome: nomeFromToken,
         name: nomeFromToken,
@@ -477,6 +504,8 @@ export default function Login() {
             if (usuario) {
               // preserve any provider hints/auth_id from server
               const uWithProviders = { ...usuario };
+              if (!uWithProviders.photoURL && uWithProviders.photo_url) uWithProviders.photoURL = uWithProviders.photo_url;
+              if (!uWithProviders.photo_url && uWithProviders.photoURL) uWithProviders.photo_url = uWithProviders.photoURL;
               if (usuario.auth_id && !uWithProviders.providers) uWithProviders.providers = ['google'];
               if (setUsuarioLogado) setUsuarioLogado(uWithProviders);
               try { localStorage.setItem('usuario-logado', JSON.stringify(uWithProviders)); } catch (e) {}
@@ -561,13 +590,14 @@ export default function Login() {
         }
 
         const inferredName = (usuario.nome || usuario.name || '').trim() || displayNameFromEmail(usuario.email || usuario.email_address || usuario.mail);
+        const hasProfessionalProfile = !!(usuario && usuario.professional);
         const normalizedUsuario = {
           ...usuario,
           nome: inferredName,
           name: inferredName,
           access_token: accessToken,
-          role: usuario.role || null,
-          accountType: usuario.account_type || usuario.accountType || (String(usuario.role || '').toLowerCase() === 'professional' ? 'professional' : null),
+          role: usuario.role || (hasProfessionalProfile ? 'professional' : null),
+          accountType: usuario.account_type || usuario.accountType || (hasProfessionalProfile ? 'professional' : (String(usuario.role || '').toLowerCase() === 'professional' ? 'professional' : null)),
           professional: usuario.professional || null
         };
 

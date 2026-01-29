@@ -1792,6 +1792,114 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
+function isSafeSqlIdentifier(name) {
+  return !!name && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(String(name));
+}
+
+// Legacy password login (Postgres users table).
+// Body: { email, senha }
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const email = body.email != null ? String(body.email).trim().toLowerCase() : '';
+    const senha = body.senha != null ? String(body.senha) : '';
+    if (!email || !senha) return res.status(400).json({ error: 'email and senha required' });
+
+    // Prefer Postgres when available
+    if (pgClient) {
+      try {
+        const nameCol = isSafeSqlIdentifier(userNameColumn) ? userNameColumn : 'nome';
+        const passCol = isSafeSqlIdentifier(userPasswordColumn) ? userPasswordColumn : null;
+        const authIdSelect = userHasAuthId ? ', auth_id' : '';
+        const roleSelect = userHasRole ? ', role' : '';
+        const isProSelect = userHasIsPro ? ', is_pro' : '';
+
+        if (!passCol) {
+          return res.status(503).json({ error: 'password auth not available' });
+        }
+
+        const r = await pgClient.query(
+          `SELECT id, email, ${nameCol} as name, nome, photo_url${authIdSelect}${roleSelect}${isProSelect}, ${passCol} as senha_db
+           FROM users WHERE lower(email) = lower($1) LIMIT 1`,
+          [email]
+        );
+
+        if (!r || r.rowCount === 0) {
+          return res.status(401).json({ error: 'invalid credentials' });
+        }
+
+        const row = r.rows[0];
+        const stored = row.senha_db != null ? String(row.senha_db) : '';
+
+        // Support plaintext legacy passwords; if it looks like bcrypt, we can't verify without a dependency.
+        if (stored && stored.startsWith('$2')) {
+          return res.status(501).json({ error: 'password hash verification not configured' });
+        }
+
+        if (!stored || stored !== senha) {
+          return res.status(401).json({ error: 'invalid credentials' });
+        }
+
+        let professional = null;
+        try { professional = await getProfessionalAccount(pgClient, row.id); } catch (e) { professional = null; }
+
+        const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
+        const role = (dbRole === 'professional' || dbRole === 'profissional')
+          ? 'professional'
+          : (professional ? 'professional' : 'user');
+
+        const user = {
+          id: row.id,
+          email: row.email,
+          nome: (row.nome || row.name || '').trim() || (row.email ? String(row.email).split('@')[0] : ''),
+          name: (row.nome || row.name || '').trim() || (row.email ? String(row.email).split('@')[0] : ''),
+          photoURL: row.photo_url || null,
+          photo_url: row.photo_url || null,
+          auth_id: userHasAuthId ? (row.auth_id || null) : null,
+          role,
+          account_type: role === 'professional' ? 'professional' : 'user',
+          professional: professional || null,
+          is_pro: userHasIsPro ? !!row.is_pro : false
+        };
+
+        return res.json({ success: true, user });
+      } catch (e) {
+        console.error('PG /api/auth/login failed:', e && e.message ? e.message : e);
+        return res.status(500).json({ error: 'internal' });
+      }
+    }
+
+    // CSV fallback
+    try {
+      const u = (csvData.users || []).find(x => String(x.email || '').trim().toLowerCase() === email);
+      if (!u) return res.status(401).json({ error: 'invalid credentials' });
+      const stored = u.senha != null ? String(u.senha) : '';
+      if (!stored || stored !== senha) return res.status(401).json({ error: 'invalid credentials' });
+
+      const role = (String(u.role || u.accountType || '').toLowerCase() === 'professional') ? 'professional' : 'user';
+      return res.json({
+        success: true,
+        user: {
+          id: u.id,
+          email: u.email,
+          nome: u.nome || u.name || (u.email ? String(u.email).split('@')[0] : ''),
+          name: u.nome || u.name || (u.email ? String(u.email).split('@')[0] : ''),
+          photoURL: u.photoURL || u.photo_url || null,
+          photo_url: u.photo_url || u.photoURL || null,
+          role,
+          account_type: role === 'professional' ? 'professional' : 'user',
+          professional: u.professional || null,
+          is_pro: !!u.is_pro
+        }
+      });
+    } catch (e) {
+      return res.status(500).json({ error: 'internal' });
+    }
+  } catch (e) {
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
 function normalizeVin(v) {
   try {
     return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
@@ -2298,8 +2406,204 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
       const authHeader = req.headers.authorization || '';
       const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : (req.body && (req.body.idToken || req.body.access_token));
       const uid = (req.body && req.body.uid) || (idToken ? `dev_${String(idToken).slice(0,8)}` : `dev_${Date.now()}`);
-      const email = (req.body && req.body.email) || `devuser+${Date.now()}@localhost`;
-      return res.json({ success: true, user: { id: uid, email, name: email.split('@')[0], nome: email.split('@')[0], photoURL: null } });
+      const email = (req.body && req.body.email) || null;
+      const photoURLHint = (req.body && (req.body.photoURL || req.body.photo_url || req.body.avatar_url || req.body.picture)) || null;
+
+      // If we have a DB and an email, simulate a proper "sync" by linking auth_id
+      // and returning the canonical DB user (including role/professional fields).
+      if (pgClient && email) {
+        try {
+          // Detect available columns (schemas differ across environments)
+          let userCols = [];
+          try {
+            const cols = await pgClient.query(
+              "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='users'"
+            );
+            userCols = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+          } catch (e) {
+            userCols = [];
+          }
+
+          // Find the canonical user row by email.
+          // If multiple rows exist for the same email, prefer the one that has a professional_accounts record.
+          const nameCol = userNameColumn || 'nome';
+          const r0 = await pgClient.query(
+            `SELECT u.id, u.email, u.${nameCol} as name, u.nome, u.photo_url, u.is_pro, u.criado_em, u.celular, u.auth_id${userHasRole ? ', u.role' : ''}
+             FROM users u
+             LEFT JOIN professional_accounts pa ON pa.user_id = u.id
+             WHERE lower(u.email) = lower($1)
+             ORDER BY (pa.user_id IS NOT NULL) DESC
+             LIMIT 1`,
+            [email]
+          );
+
+          if (r0 && r0.rowCount > 0) {
+            const row = r0.rows[0];
+
+            // Link Firebase UID into auth_id so future lookups can match by token uid
+            try {
+              if (uid && userHasAuthId) {
+                // Also persist avatar when provided, but do not overwrite an existing manual photo_url.
+                if (photoURLHint) {
+                  await pgClient.query(
+                    'UPDATE users SET auth_id = $1, photo_url = COALESCE(NULLIF(photo_url, \'\'), $2), atualizado_em = now() WHERE id = $3',
+                    [uid, photoURLHint, row.id]
+                  );
+                } else {
+                  await pgClient.query('UPDATE users SET auth_id = $1, atualizado_em = now() WHERE id = $2', [uid, row.id]);
+                }
+              }
+            } catch (e) {
+              // ignore link failures in dev
+            }
+
+            const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
+
+            let professional = null;
+            try { professional = await getProfessionalAccount(pgClient, row.id); } catch (e) { professional = null; }
+
+            const isProfessional = (dbRole === 'professional' || dbRole === 'profissional') || !!professional;
+            const accountType = isProfessional ? 'professional' : 'user';
+
+            return res.json({
+              success: true,
+              user: {
+                id: row.id,
+                auth_id: uid,
+                email: row.email,
+                name: (row.nome || row.name || '').trim() || (row.email ? String(row.email).split('@')[0] : ''),
+                nome: (row.nome || row.name || '').trim() || (row.email ? String(row.email).split('@')[0] : ''),
+                photoURL: row.photo_url || photoURLHint || null,
+                photo_url: row.photo_url || photoURLHint || null,
+                is_pro: row.is_pro,
+                created_at: row.criado_em || null,
+                celular: row.celular || null,
+                telefone: row.celular || null,
+                phone: row.celular || null,
+                account_type: accountType,
+                role: isProfessional ? 'professional' : 'user',
+                professional: professional ? {
+                  status: professional.status || 'active',
+                  onboarding_completed: !!professional.onboarding_completed,
+                  company_name: professional.company_name || null,
+                  matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
+                  cnpj: professional.cnpj || null,
+                  phone: professional.phone || null
+                } : null
+              }
+            });
+          }
+
+          // If no user exists yet, create one so the login persists to Postgres.
+          // Use only columns that exist in the current DB.
+          try {
+            const insertCols = ['id', 'email'];
+            const insertVals = [uid, email];
+
+            // name/nome
+            if (nameCol && userCols.includes(String(nameCol).toLowerCase())) {
+              insertCols.push(nameCol);
+              insertVals.push(email.split('@')[0]);
+            } else if (userCols.includes('nome')) {
+              insertCols.push('nome');
+              insertVals.push(email.split('@')[0]);
+            } else if (userCols.includes('name')) {
+              insertCols.push('name');
+              insertVals.push(email.split('@')[0]);
+            }
+
+            // auth_id
+            if (userCols.includes('auth_id')) {
+              insertCols.push('auth_id');
+              insertVals.push(uid);
+            }
+
+            // photo_url (only if provided)
+            if (photoURLHint && userCols.includes('photo_url')) {
+              insertCols.push('photo_url');
+              insertVals.push(photoURLHint);
+            }
+
+            // created/updated timestamps
+            if (userCols.includes('created_at')) {
+              insertCols.push('created_at');
+              insertVals.push(new Date());
+            } else if (userCols.includes('criado_em')) {
+              insertCols.push('criado_em');
+              insertVals.push(new Date());
+            }
+            if (userCols.includes('updated_at')) {
+              insertCols.push('updated_at');
+              insertVals.push(new Date());
+            } else if (userCols.includes('atualizado_em')) {
+              insertCols.push('atualizado_em');
+              insertVals.push(new Date());
+            }
+
+            // is_pro default false
+            if (userCols.includes('is_pro')) {
+              insertCols.push('is_pro');
+              insertVals.push(false);
+            }
+
+            const placeholders = insertVals.map((_, i) => `$${i + 1}`);
+            await pgClient.query(
+              `INSERT INTO users(${insertCols.join(',')}) VALUES(${placeholders.join(',')}) ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email`,
+              insertVals
+            );
+
+            const r1 = await pgClient.query(
+              `SELECT id, email, ${nameCol} as name, nome, photo_url, is_pro, criado_em, created_at, celular, auth_id${userHasRole ? ', role' : ''}
+               FROM users WHERE id = $1 LIMIT 1`,
+              [uid]
+            );
+            if (r1 && r1.rowCount > 0) {
+              const row = r1.rows[0];
+              const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
+              let professional = null;
+              try { professional = await getProfessionalAccount(pgClient, row.id); } catch (e) { professional = null; }
+              const isProfessional = (dbRole === 'professional' || dbRole === 'profissional') || !!professional;
+              const accountType = isProfessional ? 'professional' : 'user';
+
+              return res.json({
+                success: true,
+                user: {
+                  id: row.id,
+                  auth_id: uid,
+                  email: row.email,
+                  name: (row.nome || row.name || '').trim() || (row.email ? String(row.email).split('@')[0] : ''),
+                  nome: (row.nome || row.name || '').trim() || (row.email ? String(row.email).split('@')[0] : ''),
+                  photoURL: row.photo_url || photoURLHint || null,
+                  photo_url: row.photo_url || photoURLHint || null,
+                  is_pro: row.is_pro,
+                  created_at: row.created_at || row.criado_em || null,
+                  celular: row.celular || null,
+                  telefone: row.celular || null,
+                  phone: row.celular || null,
+                  account_type: accountType,
+                  role: isProfessional ? 'professional' : 'user',
+                  professional: professional ? {
+                    status: professional.status || 'active',
+                    onboarding_completed: !!professional.onboarding_completed,
+                    company_name: professional.company_name || null,
+                    matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
+                    cnpj: professional.cnpj || null,
+                    phone: professional.phone || null
+                  } : null
+                }
+              });
+            }
+          } catch (e) {
+            console.warn('DEV_FIREBASE_BYPASS: DB upsert for new user failed', e && e.message ? e.message : e);
+          }
+        } catch (e) {
+          console.warn('DEV_FIREBASE_BYPASS: DB sync by email failed', e && e.message ? e.message : e);
+        }
+      }
+
+      // Fallback: lightweight fake user (no DB sync)
+      const safeEmail = email || `devuser+${Date.now()}@localhost`;
+      return res.json({ success: true, user: { id: uid, auth_id: uid, email: safeEmail, name: safeEmail.split('@')[0], nome: safeEmail.split('@')[0], photoURL: photoURLHint || null, photo_url: photoURLHint || null } });
     }
   } catch (e) { /* ignore dev bypass errors */ }
 
@@ -2371,23 +2675,33 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           }
         } catch (e) { /* ignore supabase client errors */ }
 
-        // Check if user already exists by email
+        // Check if user already exists by email.
+        // Prefer the row that already has professional_accounts (so Gmail sync lands on the pro account).
         let existingUserId = null;
         try {
-          const emailCheck = await pgClient.query(`SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`, [email]);
-          if (emailCheck.rowCount > 0) {
-            existingUserId = emailCheck.rows[0].id;
-          }
-        } catch (e) {
-          // ignore error
-        }
+          const emailCheck = await pgClient.query(
+            `SELECT u.id
+             FROM users u
+             LEFT JOIN professional_accounts pa ON pa.user_id = u.id
+             WHERE lower(u.email) = lower($1)
+             ORDER BY (pa.user_id IS NOT NULL) DESC
+             LIMIT 1`,
+            [email]
+          );
+          if (emailCheck && emailCheck.rowCount > 0) existingUserId = emailCheck.rows[0].id;
+        } catch (e) { /* ignore */ }
         
         // Use existing ID if found, otherwise use Firebase UID
         dbIdToUse = existingUserId || uid;
 
         const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, auth_id, criado_em, atualizado_em)
           VALUES($1, $2, $3, $4, $5, now(), now())
-          ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), auth_id = EXCLUDED.auth_id, atualizado_em = now()`;
+          ON CONFLICT (id) DO UPDATE SET
+            email = EXCLUDED.email,
+            ${nameCol} = COALESCE(NULLIF(users.${nameCol}, ''), EXCLUDED.${nameCol}),
+            photo_url = COALESCE(NULLIF(users.photo_url, ''), EXCLUDED.photo_url),
+            auth_id = EXCLUDED.auth_id,
+            atualizado_em = now()`;
         try {
           await pgClient.query(insertSql, [dbIdToUse, email, name, photoURL, uid]);
         } catch (e) {
@@ -2407,10 +2721,6 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           const displayName = ((row.nome || '') + '').trim();
           const phoneValue = row.celular || null;
 
-          // Determine account type primarily by users.role when available.
-          const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
-          const accountType = (dbRole === 'professional' || dbRole === 'profissional') ? 'professional' : 'user';
-
           // Fetch professional profile details when professional_accounts exists.
           let professional = null;
           try {
@@ -2418,6 +2728,11 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           } catch (e) {
             professional = null;
           }
+
+          // Determine account type primarily by users.role when available.
+          const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
+          const isProfessional = (dbRole === 'professional' || dbRole === 'profissional') || !!professional;
+          const accountType = isProfessional ? 'professional' : 'user';
           
           console.log('🔍 FIREBASE-VERIFY: Processing user data:', {
             rawRow: row,
@@ -2433,13 +2748,14 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
               name: displayName, 
               nome: displayName, 
               photoURL: row.photo_url || null, 
+              photo_url: row.photo_url || null,
               is_pro: row.is_pro, 
               created_at: row.criado_em || null,
               celular: phoneValue,
               telefone: phoneValue,
               phone: phoneValue,
               account_type: accountType,
-              role: dbRole || (accountType === 'professional' ? 'professional' : 'user'),
+              role: isProfessional ? 'professional' : 'user',
               professional: professional ? {
                 status: professional.status || 'active',
                 onboarding_completed: !!professional.onboarding_completed,
@@ -2624,7 +2940,11 @@ app.post('/api/auth/merge-google', async (req, res) => {
       try {
         const insertSql = `INSERT INTO users(id, email, ${userNameColumn}, photo_url, criado_em, atualizado_em)
           VALUES($1, $2, $3, $4, now(), now())
-          ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${userNameColumn} = EXCLUDED.${userNameColumn}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
+          ON CONFLICT (id) DO UPDATE SET
+            email = EXCLUDED.email,
+            ${userNameColumn} = COALESCE(NULLIF(users.${userNameColumn}, ''), EXCLUDED.${userNameColumn}),
+            photo_url = COALESCE(NULLIF(users.photo_url, ''), EXCLUDED.photo_url),
+            atualizado_em = now()`;
         await pgClient.query(insertSql, [uid, email, name, photoURL]);
         const r = await pgClient.query(`SELECT id, email, ${userNameColumn} as name, photo_url FROM users WHERE id = $1`, [uid]);
         if (r && r.rowCount > 0) {
@@ -2835,9 +3155,13 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
         }
 
         // Build SQL specifically for the detected name column to avoid referencing a missing column
-        const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
-           VALUES($1, $2, $3, $4, now(), now())
-           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ${nameCol} = EXCLUDED.${nameCol}, photo_url = COALESCE(EXCLUDED.photo_url, users.photo_url), atualizado_em = now()`;
+          const insertSql = `INSERT INTO users(id, email, ${nameCol}, photo_url, criado_em, atualizado_em)
+            VALUES($1, $2, $3, $4, now(), now())
+            ON CONFLICT (id) DO UPDATE SET
+             email = EXCLUDED.email,
+             ${nameCol} = COALESCE(NULLIF(users.${nameCol}, ''), EXCLUDED.${nameCol}),
+             photo_url = COALESCE(NULLIF(users.photo_url, ''), EXCLUDED.photo_url),
+             atualizado_em = now()`;
         try {
           await pgClient.query(insertSql, [uidToUse, email, nome, photoURL]);
         } catch (e) {
