@@ -59,7 +59,14 @@
   } catch (e) {
     // ignore
   }
-  try { window.location.replace(window.location.origin + '/#/'); } catch(e) { window.location.href = '/#/'; }
+  try {
+    const origin = window.location.origin;
+    const path = window.location.pathname || '/';
+    const basePath = path.endsWith('/') ? path : path.replace(/\/(?:[^\/]+)?$/, '/');
+    window.location.replace(origin + basePath + '#/');
+  } catch(e) {
+    window.location.href = '#/';
+  }
 })();
 </script>
 </body>
