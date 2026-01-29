@@ -90,7 +90,7 @@ export default function ProfissionalOnboarding() {
       }
 
       if (window.showToast) window.showToast('Onboarding profissional concluído!', 'success', 2500);
-      navigate('/profissional/dashboard', { replace: true });
+      navigate('/historico-manutencao', { replace: true });
     } catch (err) {
       setError(err && err.message ? String(err.message) : 'Erro inesperado ao salvar.');
     } finally {
@@ -134,7 +134,7 @@ export default function ProfissionalOnboarding() {
 
           <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
             <button className="submit" type="submit" disabled={loading}>
-              {loading ? 'Salvando…' : 'Concluir e ir para o painel'}
+              {loading ? 'Salvando…' : 'Concluir e ir para o histórico'}
             </button>
             <button
               className="submit"

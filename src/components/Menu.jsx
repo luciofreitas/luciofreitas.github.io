@@ -36,7 +36,7 @@ function Menu() {
 
   // shared menu items to render in desktop nav and mobile dropdown
   const menuItems = [
-    ...(isProfessionalAccount ? [{ id: 'prof-dashboard', label: 'Painel Profissional', onClick: () => navigate('/profissional/dashboard') }] : []),
+    ...(isProfessionalAccount ? [{ id: 'prof-onboarding', label: 'Dados Profissionais', onClick: () => navigate('/profissional/onboarding') }] : []),
     {
       id: 'buscar',
       label: 'Buscar Peças',

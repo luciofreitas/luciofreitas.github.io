@@ -118,6 +118,14 @@
   flex-wrap: wrap;
 }
 
+.historico-actions-right {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .historico-filters {
   display: flex;
   align-items: center;
@@ -153,6 +161,44 @@
 .historico-add-btn:hover {
   background: #005571;
   transform: translateY(-1px);
+}
+
+.historico-print-btn {
+  padding: 0.875rem 1.25rem;
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.historico-print-btn:hover {
+  background: #0b1220;
+  transform: translateY(-1px);
+}
+
+.historico-professional-hint {
+  margin-top: -1rem;
+  margin-bottom: 1.5rem;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #6b5b00;
+  font-size: 14px;
+}
+
+.historico-professional-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #0b5ed7;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 600;
 }
 
 /* Empty State */

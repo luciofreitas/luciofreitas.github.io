@@ -38,7 +38,6 @@ const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'
 const EsqueciSenha = lazy(() => import('./pages/page-EsqueciSenha'));
 const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
 const ProfissionalOnboarding = lazy(() => import('./pages/page-ProfissionalOnboarding'));
-const ProfissionalDashboard = lazy(() => import('./pages/page-ProfissionalDashboard'));
 // Mercado Livre integration disabled for now.
 // const MLCallback = lazy(() => import('./pages/page-MLCallback'));
 import { ThemeToggle } from './components';
@@ -618,8 +617,8 @@ export default function App() {
               </ProfessionalRoute>
             } />
             <Route path="/profissional/dashboard" element={
-              <ProfessionalRoute requireOnboarding>
-                <ProfissionalDashboard />
+              <ProfessionalRoute>
+                <Navigate to="/historico-manutencao" replace />
               </ProfessionalRoute>
             } />
             {/* Mercado Livre integration disabled for now */}

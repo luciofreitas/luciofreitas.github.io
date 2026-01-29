@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { Menu, MenuLogin } from '../components';
@@ -14,6 +14,16 @@ import '../styles/pages/page-HistoricoManutencao.css';
 
 export default function HistoricoManutencao() {
   const { usuarioLogado } = useContext(AuthContext) || {};
+
+  const isProfessional = useMemo(() => {
+    try {
+      const role = String(usuarioLogado?.role || '').toLowerCase();
+      const t = String(usuarioLogado?.accountType || usuarioLogado?.account_type || '').toLowerCase();
+      return role === 'professional' || role === 'profissional' || t === 'professional' || t === 'profissional' || !!usuarioLogado?.professional;
+    } catch (e) {
+      return false;
+    }
+  }, [usuarioLogado]);
   
   // Debug: verificar estado do usuário
   useEffect(() => {
@@ -251,6 +261,145 @@ export default function HistoricoManutencao() {
     new Date(b.data) - new Date(a.data)
   );
 
+  const handlePrintComprovante = () => {
+    try {
+      const escapeHtml = (v) => String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+      const now = new Date();
+      const issuedAt = now.toLocaleString('pt-BR');
+      const companyName = usuarioLogado?.professional?.company_name || usuarioLogado?.company_name || '';
+      const matricula = usuarioLogado?.professional?.matricula || usuarioLogado?.matricula || '';
+      const userLabel = usuarioLogado?.nome || usuarioLogado?.name || usuarioLogado?.email || 'Usuário';
+
+      const filterLabel = (String(filtroVeiculo) === 'todos')
+        ? 'Todos os veículos'
+        : getVeiculoNome(filtroVeiculo);
+
+      const rowsHtml = (manutencoesSorted || []).map((m) => {
+        const tipo = m?.tipo === 'preventiva' ? 'Preventiva' : (m?.tipo === 'corretiva' ? 'Corretiva' : 'Outro');
+        const valor = (m?.valor != null && String(m.valor).trim() !== '')
+          ? `R$ ${Number(m.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+          : '';
+        const km = (m?.kmAtual != null && String(m.kmAtual).trim() !== '')
+          ? `${parseInt(m.kmAtual, 10).toLocaleString('pt-BR')} km`
+          : '';
+
+        return `
+          <tr>
+            <td>${escapeHtml(formatManutencaoDate(m))}</td>
+            <td>${escapeHtml(getVeiculoNome(m?.veiculoId))}</td>
+            <td>${escapeHtml(tipo)}</td>
+            <td>${escapeHtml(m?.descricao || '')}</td>
+            <td>${escapeHtml(km)}</td>
+            <td>${escapeHtml(m?.oficina || '')}</td>
+            <td style="text-align:right">${escapeHtml(valor)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const emptyHtml = `
+        <div style="margin-top:12px; padding:12px; border:1px solid #e5e7eb; border-radius:10px; background:#fafafa;">
+          Nenhuma manutenção registrada para o filtro selecionado.
+        </div>
+      `;
+
+      const html = `<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Comprovante - Histórico de Manutenção</title>
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; color: #111827; margin: 24px; }
+      .header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+      h1 { font-size: 18px; margin: 0; }
+      .meta { font-size: 12px; color:#374151; }
+      .box { margin-top: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; }
+      .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; font-size: 13px; }
+      .k { color:#6b7280; }
+      table { width:100%; border-collapse: collapse; margin-top: 14px; font-size: 12px; }
+      th, td { border-bottom: 1px solid #e5e7eb; padding: 8px 6px; vertical-align: top; }
+      th { text-align:left; font-size: 12px; color:#374151; background:#f9fafb; }
+      .footer { margin-top: 18px; font-size: 11px; color:#6b7280; }
+      @media print {
+        body { margin: 0; }
+        .no-print { display:none !important; }
+        table { page-break-inside: auto; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div>
+        <h1>Comprovante do Histórico de Manutenção</h1>
+        <div class="meta">Emitido em: ${escapeHtml(issuedAt)}</div>
+      </div>
+      <div class="no-print">
+        <button onclick="window.print()" style="padding:8px 10px; border-radius:8px; border:1px solid #d1d5db; background:#fff; cursor:pointer;">Imprimir</button>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="grid">
+        <div><span class="k">Cliente:</span> ${escapeHtml(userLabel)}</div>
+        <div><span class="k">Filtro:</span> ${escapeHtml(filterLabel)}</div>
+        <div><span class="k">Empresa:</span> ${escapeHtml(companyName || '—')}</div>
+        <div><span class="k">Matrícula:</span> ${escapeHtml(matricula || '—')}</div>
+      </div>
+    </div>
+
+    ${rowsHtml ? `
+      <table>
+        <thead>
+          <tr>
+            <th style="width:92px">Data</th>
+            <th style="width:180px">Veículo</th>
+            <th style="width:88px">Tipo</th>
+            <th>Descrição</th>
+            <th style="width:92px">KM</th>
+            <th style="width:140px">Oficina</th>
+            <th style="width:92px; text-align:right">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+    ` : emptyHtml}
+
+    <div class="footer">
+      Documento gerado pelo Garagem Smart. Este comprovante reflete os registros cadastrados no histórico de manutenção.
+    </div>
+
+    <script>
+      window.onload = function(){
+        try { window.focus(); } catch(e) {}
+        try { window.print(); } catch(e) {}
+      };
+    </script>
+  </body>
+</html>`;
+
+      const w = window.open('', '_blank', 'noopener,noreferrer,width=980,height=720');
+      if (!w) {
+        alert('Não foi possível abrir a janela de impressão. Verifique se o navegador bloqueou pop-ups.');
+        return;
+      }
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    } catch (e) {
+      console.error('Erro ao gerar comprovante para impressão:', e);
+      alert('Erro ao gerar o comprovante.');
+    }
+  };
+
   if (!usuarioLogado) {
     return (
       <>
@@ -315,26 +464,48 @@ export default function HistoricoManutencao() {
                     ))}
                   </select>
                 </div>
-                
-                <button 
-                    className="historico-add-btn"
-                    onClick={() => {
-                      // Open new maintenance modal. If there is a prefetched product code
-                      // (from catalog save), prefill it into the form, then clear sessionStorage.
-                      resetForm();
-                      try {
-                        const pref = sessionStorage.getItem('pf_prefill_codigo');
-                        if (pref) {
-                          setFormData(prev => ({ ...prev, codigoProduto: pref }));
-                          try { sessionStorage.removeItem('pf_prefill_codigo'); } catch (err) {}
-                        }
-                      } catch (e) { /* ignore */ }
-                      setShowModal(true);
-                    }}
-                >
-                  + Nova Manutenção
-                </button>
+
+                <div className="historico-actions-right">
+                  {isProfessional && (
+                    <button
+                      type="button"
+                      className="historico-print-btn"
+                      onClick={handlePrintComprovante}
+                      title="Imprimir um comprovante do histórico de manutenção (somente conta profissional)"
+                    >
+                      🖨️ Imprimir comprovante
+                    </button>
+                  )}
+
+                  <button 
+                      className="historico-add-btn"
+                      onClick={() => {
+                        // Open new maintenance modal. If there is a prefetched product code
+                        // (from catalog save), prefill it into the form, then clear sessionStorage.
+                        resetForm();
+                        try {
+                          const pref = sessionStorage.getItem('pf_prefill_codigo');
+                          if (pref) {
+                            setFormData(prev => ({ ...prev, codigoProduto: pref }));
+                            try { sessionStorage.removeItem('pf_prefill_codigo'); } catch (err) {}
+                          }
+                        } catch (e) { /* ignore */ }
+                        setShowModal(true);
+                      }}
+                  >
+                    + Nova Manutenção
+                  </button>
+                </div>
               </div>
+
+              {isProfessional && (!usuarioLogado?.professional?.company_name || !usuarioLogado?.professional?.matricula) && (
+                <div className="historico-professional-hint">
+                  <strong>Dica:</strong> para o comprovante sair com <em>Empresa</em> e <em>Matrícula</em>, conclua seus dados em{' '}
+                  <button type="button" className="historico-professional-link" onClick={() => navigate('/profissional/onboarding')}>
+                    Dados Profissionais
+                  </button>.
+                </div>
+              )}
 
               {manutencoesSorted.length === 0 ? (
                 <div className="historico-empty">
