@@ -38,6 +38,7 @@ const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'
 const EsqueciSenha = lazy(() => import('./pages/page-EsqueciSenha'));
 const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
 const ProfissionalOnboarding = lazy(() => import('./pages/page-ProfissionalOnboarding'));
+const AdminCompanies = lazy(() => import('./pages/page-AdminCompanies'));
 // Mercado Livre integration disabled for now.
 // const MLCallback = lazy(() => import('./pages/page-MLCallback'));
 import { ThemeToggle } from './components';
@@ -64,80 +65,40 @@ function PageLoader() {
 export const AuthContext = createContext(null);
 
 function StartupEnforcer() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const ranRef = useRef(false);
-  const { setUsuarioLogado } = useContext(AuthContext) || {};
+  const location = useLocation();
 
   useEffect(() => {
     if (ranRef.current) return;
     ranRef.current = true;
 
-    // Allowlist: routes that should NOT be redirected to /inicio
-    const bypassRedirectRoutes = ['/redefinir-senha', '/esqueci-senha'];
-    const isBypassRoute = location && bypassRedirectRoutes.includes(location.pathname);
-
-    // Run only once per browser-tab session (sessionStorage persists across refresh)
-    // so the user doesn't get logged out on every page reload.
+    // NOTE: This app uses persisted sessions in localStorage (legacy token and/or Supabase).
+    // Do NOT force logout or force redirect here; it breaks deep links like /#/admin/companies
+    // and triggers 401 spam in the console.
     try {
-      if (sessionStorage.getItem('gs_startup_enforced') === '1') {
-        // still ensure /inicio is the first page for the session, unless on bypass route
-        if (location && location.pathname !== '/inicio' && !isBypassRoute) {
-          navigate('/inicio', { replace: true });
-        }
-        return;
+      if (sessionStorage.getItem('gs_startup_enforced') !== '1') {
+        sessionStorage.setItem('gs_startup_enforced', '1');
       }
-      sessionStorage.setItem('gs_startup_enforced', '1');
     } catch (e) {
-      // If sessionStorage is blocked, fallback to enforcing (best-effort).
+      // ignore
     }
+  }, [location]);
 
-    // Force logged out on first open of the session.
-    try { localStorage.removeItem('usuario-logado'); } catch (e) {}
-    try { sessionStorage.removeItem('usuario-logado'); } catch (e) {}
-    try { if (setUsuarioLogado) setUsuarioLogado(null); } catch (e) {}
+  return null;
+}
 
-    // Best-effort cleanup of Supabase auth token keys in localStorage.
-    try {
-      const keys = Object.keys(localStorage || {});
-      for (const k of keys) {
-        if (typeof k === 'string' && k.startsWith('sb-') && k.endsWith('-auth-token')) {
-          try { localStorage.removeItem(k); } catch (e) {}
-        }
-      }
-    } catch (e) {}
-
-    // Best-effort sign out from Supabase and Firebase (if configured).
-    (async () => {
-      try {
-        const mod = await import('./supabase').catch(() => ({}));
-        const supabase = (mod && (mod.default || mod.supabase)) ? (mod.default || mod.supabase) : null;
-        if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
-          await supabase.auth.signOut();
-        }
-      } catch (e) {
-        // ignore
-      }
-      try {
-        const fb = await import('./firebase').catch(() => ({}));
-        const auth = fb && fb.auth ? fb.auth : null;
-        if (auth) {
-          const authMod = await import('firebase/auth').catch(() => ({}));
-          if (authMod && typeof authMod.signOut === 'function') {
-            await authMod.signOut(auth);
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-    })();
-
-    // Only redirect to /inicio if not on a bypass route
-    if (location && location.pathname !== '/inicio' && !isBypassRoute) {
-      navigate('/inicio', { replace: true });
-    }
-  }, [navigate, location]);
-
+// If a user has the restricted role `companies_admin`, they should only be able
+// to access the companies management page.
+function RoleGate() {
+  const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
+  const location = useLocation();
+  if (!authLoaded || !usuarioLogado) return null;
+  const role = String(usuarioLogado.role || '').toLowerCase();
+  if (role !== 'companies_admin') return null;
+  const path = location && location.pathname ? String(location.pathname) : '';
+  if (path !== '/admin/companies' && path !== '/login') {
+    return <Navigate to="/admin/companies" replace />;
+  }
   return null;
 }
 
@@ -165,6 +126,16 @@ function ProfessionalRoute({ children, requireOnboarding = false }) {
     return <Navigate to="/profissional/onboarding" replace />;
   }
 
+  return children;
+}
+
+function CompaniesAdminRoute({ children }) {
+  const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
+  if (!authLoaded) return null;
+  if (!usuarioLogado) return <Navigate to="/login" replace />;
+
+  const role = String(usuarioLogado.role || '').toLowerCase();
+  if (role !== 'companies_admin' && role !== 'admin') return <Navigate to="/login" replace />;
   return children;
 }
 
@@ -276,8 +247,9 @@ export default function App() {
           if (!stored.photoURL && stored.photo_url) stored.photoURL = stored.photo_url;
           setUsuarioLogado(stored);
 
-          // If we have a token but no photoURL, try to refresh profile from backend
-          if (stored.access_token && !stored.photoURL) {
+          // If we have a Supabase token but no photoURL, try to refresh profile from backend.
+          // Skip legacy tokens (gs_*) because they are not Supabase JWTs and will 401.
+          if (stored.access_token && !stored.photoURL && !String(stored.access_token).startsWith('gs_')) {
             try {
               const apiBase = window.__API_BASE || '';
               const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
@@ -523,6 +495,7 @@ export default function App() {
       <AuthContext.Provider value={{ usuarioLogado, setUsuarioLogado, authLoaded, setAuthLoaded }}>
         <HashRouter>
           <StartupEnforcer />
+          <RoleGate />
           <div className="app">
             <ThemeToggle />
 
@@ -609,6 +582,12 @@ export default function App() {
               <ProtectedRoute>
                 <PageConfiguracoes />
               </ProtectedRoute>
+            } />
+
+            <Route path="/admin/companies" element={
+              <CompaniesAdminRoute>
+                <AdminCompanies />
+              </CompaniesAdminRoute>
             } />
 
             <Route path="/profissional/onboarding" element={

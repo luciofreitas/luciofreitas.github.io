@@ -1,0 +1,219 @@
+/* AdminCompanies page styles (uses global design tokens from App.css) */
+
+.admin-companies-container {
+  width: 100%;
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md) var(--space-2xl);
+  color: var(--text-primary);
+}
+
+/* App.css adds `.btn { margin-top: 1.5em !important; }` in some desktop breakpoints.
+   That breaks alignment inside this admin table/actions area, so neutralize it here. */
+.admin-companies-container .btn {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.admin-companies-header {
+  margin-bottom: var(--space-md);
+}
+
+.admin-companies-header .page-title {
+  color: var(--color-section-title) !important;
+  margin-bottom: var(--space-xs);
+}
+
+.admin-companies-header .page-subtitle {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.admin-alert {
+  border-radius: var(--radius-base);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-md);
+  border: 1px solid var(--border-gray);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-alert-warn {
+  background: var(--bg-primary-50);
+  border-color: var(--border-primary);
+}
+
+.admin-alert-error {
+  background: var(--bg-error-50);
+  border-color: var(--border-error);
+}
+
+.admin-companies-card {
+  margin-top: var(--space-md);
+  background: var(--bg-white);
+  border: 1px solid var(--border-gray);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-lg);
+}
+
+.admin-companies-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+@media (max-width: 48rem) {
+  .admin-companies-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-companies-container {
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
+  }
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.admin-label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--form-label-color);
+}
+
+.admin-help {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.admin-uppercase {
+  text-transform: uppercase;
+}
+
+.admin-actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.admin-companies-list-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-sm);
+}
+
+.admin-section-title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.admin-muted {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.admin-table {
+  background: var(--bg-white);
+}
+
+.admin-table-scroll {
+  overflow-x: auto;
+}
+
+.admin-table-el {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table-el thead th {
+  text-align: center;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--border-gray);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.admin-table-el tbody td {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--bg-gray-200);
+  vertical-align: middle;
+  text-align: center;
+}
+
+.admin-empty {
+  padding: var(--space-lg) var(--space-md) !important;
+  color: var(--text-muted);
+}
+
+.admin-actions-col {
+  width: 8rem;
+  text-align: center;
+}
+
+.admin-table-el td.admin-actions-col {
+  /* Keep table-cell behavior so vertical-align works reliably */
+  text-align: center;
+  vertical-align: middle;
+}
+
+.admin-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: var(--font-size-sm);
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-gray);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  background: var(--bg-gray-50);
+  color: var(--text-secondary);
+}
+
+.admin-badge-active {
+  background: var(--bg-success-50);
+  border-color: var(--border-success);
+  color: var(--color-success);
+}
+
+.admin-badge-pending {
+  background: var(--bg-primary-50);
+  border-color: var(--border-primary);
+  color: var(--color-primary);
+}
+
+.admin-badge-suspended {
+  background: var(--bg-error-50);
+  border-color: var(--border-error);
+  color: var(--color-error);
+}
+
+.admin-danger {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-color: var(--color-error) !important;
+  background: var(--color-error) !important;
+  color: #fff !important;
+}
+
+.admin-danger:hover:not(:disabled) {
+  background: var(--color-error) !important;
+  color: #fff !important;
+}
+
+.admin-danger:focus-visible:not(:disabled) {
+  background: var(--color-error) !important;
+  color: #fff !important;
+  outline: 2px solid rgba(0, 0, 0, 0.18);
+  outline-offset: 2px;
+}

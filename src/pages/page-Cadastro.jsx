@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useContext } from 'react';
+import React, { useEffect, useMemo, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToggleCar, MenuLogin } from '../components';
 import '../styles/pages/page-Cadastro.css';
@@ -13,6 +13,10 @@ export default function PageCadastro() {
   const [accountType, setAccountType] = useState('user');
   const [companyName, setCompanyName] = useState('');
   const [matricula, setMatricula] = useState('');
+  const [companyId, setCompanyId] = useState('');
+  const [companies, setCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+  const [companiesError, setCompaniesError] = useState('');
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmSenha, setShowConfirmSenha] = useState(false);
   const [errors, setErrors] = useState({});
@@ -47,6 +51,52 @@ export default function PageCadastro() {
   };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const apiBase = useMemo(() => {
+    try {
+      return window.__API_BASE ? String(window.__API_BASE) : '';
+    } catch (e) {
+      return '';
+    }
+  }, []);
+
+  const usingCompaniesDropdown = useMemo(() => {
+    const acct = (String(accountType || '').toLowerCase() === 'professional' || String(accountType || '').toLowerCase() === 'profissional') ? 'professional' : 'user';
+    return acct === 'professional' && !!apiBase;
+  }, [accountType, apiBase]);
+
+  const selectedCompany = useMemo(() => {
+    const id = String(companyId || '').trim();
+    if (!id) return null;
+    const list = Array.isArray(companies) ? companies : [];
+    return list.find(c => String(c.id) === id) || null;
+  }, [companyId, companies]);
+
+  useEffect(() => {
+    if (!usingCompaniesDropdown) return;
+    let cancelled = false;
+    (async () => {
+      setCompaniesError('');
+      setCompaniesLoading(true);
+      try {
+        const resp = await fetch(`${apiBase}/api/companies`);
+        const body = await resp.json().catch(() => ({}));
+        if (!resp.ok || !body || body.error) {
+          const msg = body && body.error ? String(body.error) : 'Não foi possível carregar empresas.';
+          if (!cancelled) setCompaniesError(msg);
+          return;
+        }
+        const list = Array.isArray(body.companies) ? body.companies : [];
+        if (!cancelled) setCompanies(list);
+      } catch (e) {
+        if (!cancelled) setCompaniesError(e && e.message ? String(e.message) : 'Erro ao carregar empresas.');
+      } finally {
+        if (!cancelled) setCompaniesLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [usingCompaniesDropdown, apiBase]);
+
   function validate() {
     const e = {};
     if (!nome || !nome.trim()) e.nome = 'Nome é obrigatório.';
@@ -55,8 +105,12 @@ export default function PageCadastro() {
 
     const acct = (String(accountType || '').toLowerCase() === 'professional' || String(accountType || '').toLowerCase() === 'profissional') ? 'professional' : 'user';
     if (acct === 'professional') {
-      if (!companyName || !companyName.trim()) e.companyName = 'Nome da empresa é obrigatório para conta profissional.';
-      if (!matricula || !matricula.trim()) e.matricula = 'Matrícula é obrigatória para conta profissional.';
+      if (usingCompaniesDropdown) {
+        if (!companyId || !String(companyId).trim()) e.companyId = 'Selecione uma empresa.';
+      } else {
+        if (!companyName || !companyName.trim()) e.companyName = 'Nome da empresa é obrigatório para conta profissional.';
+        if (!matricula || !matricula.trim()) e.matricula = 'Matrícula é obrigatória para conta profissional.';
+      }
     }
 
     if (!senha) e.senha = 'Senha é obrigatória.';
@@ -112,8 +166,10 @@ export default function PageCadastro() {
             email: email.trim(),
             senha,
             account_type: acct,
-            company_name: acct === 'professional' ? String(companyName || '').trim() : null,
-            matricula: acct === 'professional' ? String(matricula || '').trim() : null,
+            ...(acct === 'professional' && usingCompaniesDropdown
+              ? { company_id: String(companyId || '').trim() || null }
+              : { company_name: acct === 'professional' ? String(companyName || '').trim() : null, matricula: acct === 'professional' ? String(matricula || '').trim() : null }
+            ),
           }),
         });
         backendStatus = resp && typeof resp.status === 'number' ? resp.status : null;
@@ -125,6 +181,7 @@ export default function PageCadastro() {
       if (resp && resp.status === 201) {
         const created = await resp.json().catch(() => ({}));
         const createdNome = normalizeNome((created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome);
+        const createdProfessional = created && created.professional ? created.professional : null;
         const normalizedUsuario = {
           id: created.id || (`local_${Date.now()}`),
           email: created.email || email.trim(),
@@ -136,12 +193,16 @@ export default function PageCadastro() {
           accountType: acct,
           role: acct === 'professional' ? 'professional' : 'user',
           professional: acct === 'professional'
-            ? {
+            ? (createdProfessional ? {
+              ...(createdProfessional || {}),
+              onboarding_completed: true
+            } : {
               status: 'active',
               onboarding_completed: true,
-              company_name: String(companyName || '').trim() || null,
-              matricula: String(matricula || '').trim() || null
-            }
+              company_name: (usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null)),
+              matricula: (usingCompaniesDropdown ? null : (String(matricula || '').trim() || null)),
+              company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null
+            })
             : null
         };
         try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
@@ -155,7 +216,7 @@ export default function PageCadastro() {
             navigate((acct === 'professional' || acct === 'profissional') ? '/profissional/dashboard' : '/buscar-pecas');
           } catch (e) {}
         }, 1000);
-        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setErrors({});
+        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
         setLoading(false);
         return;
       }
@@ -179,12 +240,15 @@ export default function PageCadastro() {
           let _supabase = null;
           try { const mod = await import('../supabase'); _supabase = mod.default || mod.supabase; } catch (e) { _supabase = null; }
           if (_supabase && _supabase.auth && typeof _supabase.auth.signUp === 'function') {
-            const profCompany = acct === 'professional' ? (String(companyName || '').trim() || null) : null;
-            const profMatricula = acct === 'professional' ? (String(matricula || '').trim() || null) : null;
+            const profCompany = acct === 'professional' ? (usingCompaniesDropdown
+              ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null)
+              : (String(companyName || '').trim() || null))
+              : null;
+            const profCompanyId = acct === 'professional' && usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null;
             const { data, error } = await _supabase.auth.signUp({
               email: emailAddr,
               password: pw,
-              options: { data: { nome: normalizedNome, account_type: acct, company_name: profCompany, matricula: profMatricula } }
+              options: { data: { nome: normalizedNome, account_type: acct, company_name: profCompany, ...(profCompanyId ? { company_id: profCompanyId } : {}), ...(usingCompaniesDropdown ? {} : { matricula: (acct === 'professional' ? (String(matricula || '').trim() || null) : null) }) } }
             });
             if (error) {
               const raw = error.message || 'Erro desconhecido';
@@ -228,8 +292,10 @@ export default function PageCadastro() {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
                   body: JSON.stringify({
-                    company_name: String(companyName || '').trim() || null,
-                    matricula: String(matricula || '').trim() || null,
+                    ...(usingCompaniesDropdown
+                      ? { company_id: String(companyId || '').trim() || null }
+                      : { company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
+                    ),
                     onboarding_completed: true
                   })
                 }).catch(() => null);
@@ -255,7 +321,7 @@ export default function PageCadastro() {
                 navigate(acct === 'professional' ? '/profissional/dashboard' : '/buscar-pecas');
               } catch (e) {}
             }, 1000);
-            setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setErrors({});
+            setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
             setLoading(false);
             return;
           }
@@ -303,7 +369,7 @@ export default function PageCadastro() {
           accountType: acct,
           role: acct === 'professional' ? 'professional' : 'user',
           professional: acct === 'professional'
-            ? { status: 'active', onboarding_completed: true, company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
+            ? { status: 'active', onboarding_completed: true, company_name: usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null), matricula: usingCompaniesDropdown ? null : (String(matricula || '').trim() || null), company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null }
             : null
         };
         try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
@@ -314,7 +380,7 @@ export default function PageCadastro() {
         setSuccess('Cadastro (local) realizado com sucesso! Entrando...');
         if (window.showToast) window.showToast('Cadastro realizado (local). Entrando...', 'success', 1200);
         setTimeout(() => { try { navigate(acct === 'professional' ? '/profissional/dashboard' : '/buscar-pecas'); } catch (e) {} }, 1000);
-        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setErrors({});
+        setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
         setLoading(false);
         return;
       } catch (err) {
@@ -392,30 +458,67 @@ export default function PageCadastro() {
 
               {String(accountType) !== 'user' && (
                 <>
-                  <label className="field">
-                    <input
-                      className="input"
-                      type="text"
-                      value={companyName}
-                      onChange={e => setCompanyName(e.target.value)}
-                      placeholder="Nome da empresa/oficina"
-                      autoComplete="organization"
-                      disabled={loading}
-                    />
-                    {errors.companyName && <div className="error">{errors.companyName}</div>}
-                  </label>
-                  <label className="field">
-                    <input
-                      className="input"
-                      type="text"
-                      value={matricula}
-                      onChange={e => setMatricula(e.target.value)}
-                      placeholder="Matrícula"
-                      autoComplete="off"
-                      disabled={loading}
-                    />
-                    {errors.matricula && <div className="error">{errors.matricula}</div>}
-                  </label>
+                  {usingCompaniesDropdown ? (
+                    <>
+                      <label className="field">
+                        <select
+                          className="input"
+                          value={companyId}
+                          onChange={e => setCompanyId(e.target.value)}
+                          disabled={loading || companiesLoading}
+                        >
+                          <option value="">{companiesLoading ? 'Carregando empresas...' : 'Selecione a empresa/oficina'}</option>
+                          {(Array.isArray(companies) ? companies : []).map(c => (
+                            <option key={c.id} value={c.id}>
+                              {String(c.trade_name || c.legal_name || c.company_code || 'Empresa')}
+                            </option>
+                          ))}
+                        </select>
+                        {companiesError && <div className="error">{companiesError}</div>}
+                        {errors.companyId && <div className="error">{errors.companyId}</div>}
+                      </label>
+
+                      <label className="field">
+                        <input
+                          className="input"
+                          type="text"
+                          value={selectedCompany && (selectedCompany.company_registration_code || selectedCompany.matricula_prefix) ? `${(selectedCompany.company_registration_code || selectedCompany.matricula_prefix)}XXXXXXX` : 'Será gerada automaticamente'}
+                          readOnly
+                          disabled
+                        />
+                        <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                          A matrícula é gerada pelo sistema com o código da empresa.
+                        </div>
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <label className="field">
+                        <input
+                          className="input"
+                          type="text"
+                          value={companyName}
+                          onChange={e => setCompanyName(e.target.value)}
+                          placeholder="Nome da empresa/oficina"
+                          autoComplete="organization"
+                          disabled={loading}
+                        />
+                        {errors.companyName && <div className="error">{errors.companyName}</div>}
+                      </label>
+                      <label className="field">
+                        <input
+                          className="input"
+                          type="text"
+                          value={matricula}
+                          onChange={e => setMatricula(e.target.value)}
+                          placeholder="Matrícula"
+                          autoComplete="off"
+                          disabled={loading}
+                        />
+                        {errors.matricula && <div className="error">{errors.matricula}</div>}
+                      </label>
+                    </>
+                  )}
                 </>
               )}
               <label className="field">

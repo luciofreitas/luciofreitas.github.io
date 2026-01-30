@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import './MenuUsuario.css';
 
-function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onConfiguracoes, onLogout, photoURL }) {
+function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onConfiguracoes, onLogout, photoURL, restricted = false }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -31,6 +31,10 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onCon
   };
 
   const displayName = formatDisplayName(nome);
+
+  const isRestricted = useMemo(() => {
+    try { return Boolean(restricted); } catch (e) { return false; }
+  }, [restricted]);
 
   const normalizedPhotoURL = (() => {
     const raw = (photoURL == null) ? '' : String(photoURL).trim();
@@ -160,12 +164,18 @@ function MenuUsuario({ nome, isPro = false, onPerfil, onMeusCarros, onPro, onCon
               <div className="dropdown-user-subtitle">Assinante Pro</div>
             )}
           </div>
-          {/* <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button> */}
-          <button className="dropdown-item" onClick={() => { setOpen(false); onMeusCarros(); }}>Meus Carros</button>
-          <button className="dropdown-item" onClick={() => { setOpen(false); onPro(); }}>Versão Pro</button>
-          {typeof onConfiguracoes === 'function' && (
-            <button className="dropdown-item" onClick={() => { setOpen(false); onConfiguracoes(); }}>Configurações</button>
+
+          {!isRestricted && (
+            <>
+              {/* <button className="dropdown-item" onClick={() => { setOpen(false); onPerfil(); }}>Perfil</button> */}
+              <button className="dropdown-item" onClick={() => { setOpen(false); onMeusCarros(); }}>Meus Carros</button>
+              <button className="dropdown-item" onClick={() => { setOpen(false); onPro(); }}>Versão Pro</button>
+              {typeof onConfiguracoes === 'function' && (
+                <button className="dropdown-item" onClick={() => { setOpen(false); onConfiguracoes(); }}>Configurações</button>
+              )}
+            </>
           )}
+
           <button className="dropdown-item dropdown-item-logout" onClick={() => { setOpen(false); onLogout(); }}>Sair</button>
         </div>
       )}

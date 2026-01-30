@@ -22,6 +22,8 @@ function Menu() {
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
   const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext) || {};
+  const role = String((usuarioLogado && usuarioLogado.role) || '').toLowerCase();
+  const isCompaniesAdmin = role === 'companies_admin';
   const proActive = Boolean(usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true';
   const isProfessionalAccount = (function(){
     try {
@@ -35,7 +37,7 @@ function Menu() {
   const headerRef = useRef(null);
 
   // shared menu items to render in desktop nav and mobile dropdown
-  const menuItems = [
+  const menuItems = isCompaniesAdmin ? [] : [
     ...(isProfessionalAccount ? [{ id: 'prof-onboarding', label: 'Dados Profissionais', onClick: () => navigate('/profissional/onboarding') }] : []),
     {
       id: 'buscar',
@@ -210,7 +212,8 @@ function Menu() {
         {/* Use the shared Logo component (restored) */}
         <Logo usuarioLogado={usuarioLogado} />
 
-  {/* Mobile hamburger button - replicate MenuUsuario structure */}
+  {/* Mobile hamburger button - only when there are nav items */}
+  {menuItems.length > 0 && (
   <div className="user-menu-root">
           <button
             ref={mobileMenuButtonRef}
@@ -249,19 +252,22 @@ function Menu() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Navigation menu (desktop) */}
-        <div className="menu-login-center">
-          <nav className="menu-nav">
-            <ul className="menu-list">
-              {menuItems.map(item => (
-                <li key={item.id}>
-                  <a href={`#${item.id}`} className={`menu-login-item ${item.destacado ? 'destacado' : ''}`} onClick={handleNavigation(item.onClick)}>{item.label}</a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
+        {menuItems.length > 0 && (
+          <div className="menu-login-center">
+            <nav className="menu-nav">
+              <ul className="menu-list">
+                {menuItems.map(item => (
+                  <li key={item.id}>
+                    <a href={`#${item.id}`} className={`menu-login-item ${item.destacado ? 'destacado' : ''}`} onClick={handleNavigation(item.onClick)}>{item.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        )}
 
         {/* NOTE: mobile dropdown uses the replicated user-dropdown earlier; no separate mobile-menu-dropdown required */}
 
@@ -274,6 +280,7 @@ function Menu() {
               nome={usuarioLogado?.nome}
                photoURL={usuarioLogado?.photoURL || usuarioLogado?.photo_url || null}
               isPro={proActive}
+              restricted={isCompaniesAdmin}
               onPerfil={handleNavigation(() => navigate('/perfil'))}
               onMeusCarros={handleNavigation(() => navigate('/meus-carros'))}
               onPro={handleNavigation(() => navigate(proActive ? '/versao-pro-assinado' : '/versao-pro'))}

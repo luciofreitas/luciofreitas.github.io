@@ -41,4 +41,6 @@ scripts/import-parts-to-supabase.js
 
 # Local backend logs
 backend/_server.out.log
+backend/server.out.log
+backend/server.err.log
 backend/_server.err.log

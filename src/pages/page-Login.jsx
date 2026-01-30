@@ -504,9 +504,22 @@ export default function Login() {
             if (usuario) {
               // preserve any provider hints/auth_id from server
               const uWithProviders = { ...usuario };
+              // Accept legacy server session token for subsequent authenticated API calls
+              // (used when Supabase password sign-in is blocked by an Auth Hook).
+              if (body && body.legacy_token && !uWithProviders.access_token) {
+                uWithProviders.access_token = String(body.legacy_token);
+              }
               if (!uWithProviders.photoURL && uWithProviders.photo_url) uWithProviders.photoURL = uWithProviders.photo_url;
               if (!uWithProviders.photo_url && uWithProviders.photoURL) uWithProviders.photo_url = uWithProviders.photoURL;
               if (usuario.auth_id && !uWithProviders.providers) uWithProviders.providers = ['google'];
+
+              // Normalize role/accountType
+              const roleLower = String(uWithProviders.role || '').toLowerCase();
+              if (roleLower === 'companies_admin') {
+                uWithProviders.accountType = 'companies_admin';
+                uWithProviders.account_type = 'companies_admin';
+              }
+
               if (setUsuarioLogado) setUsuarioLogado(uWithProviders);
               try { localStorage.setItem('usuario-logado', JSON.stringify(uWithProviders)); } catch (e) {}
               if (window.showToast) window.showToast(`Bem-vindo(a), ${usuario.nome || usuario.name || 'Usuário'}!`, 'success', 3000);

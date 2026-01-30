@@ -15,6 +15,14 @@ const crypto = require('crypto');
 
 const app = express();
 
+const SERVER_STARTED_AT = new Date().toISOString();
+const SERVER_COMMIT =
+  process.env.RENDER_GIT_COMMIT ||
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.GITHUB_SHA ||
+  process.env.COMMIT_SHA ||
+  null;
+
 // Mercado Livre OAuth routes
 const mercadoLivreRoutes = require('./routes/mercadolivre');
 // Guias API routes
@@ -25,7 +33,28 @@ const { router: guiasRoutes, setPgClientGetter: setGuiasPgClientGetter } = requi
 app.get('/_health', (req, res) => {
   try {
     // Return basic process info without revealing secrets.
-    return res.json({ ok: true, pid: process.pid, uptime: process.uptime() });
+    return res.json({
+      ok: true,
+      pid: process.pid,
+      uptime: process.uptime(),
+      startedAt: SERVER_STARTED_AT,
+      commit: SERVER_COMMIT,
+      companiesAdminRequiredField: 'company_registration_code'
+    });
+  } catch (e) { return res.status(500).json({ ok: false }); }
+});
+
+// Debug-friendly alias (some setups only allow /api/* via proxy)
+app.get('/api/health', (req, res) => {
+  try {
+    return res.json({
+      ok: true,
+      pid: process.pid,
+      uptime: process.uptime(),
+      startedAt: SERVER_STARTED_AT,
+      commit: SERVER_COMMIT,
+      companiesAdminRequiredField: 'company_registration_code'
+    });
   } catch (e) { return res.status(500).json({ ok: false }); }
 });
 // Ensure basic CORS headers are always present (echo origin) so that
@@ -302,6 +331,7 @@ async function getSupabaseUserFromReq(req){
   const authHeader = req.headers.authorization || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
   if(!token) return null;
+  if (typeof token === 'string' && token.startsWith('gs_')) return null;
   return await verifySupabaseAccessToken(token);
 }
 
@@ -322,6 +352,43 @@ const csvData = {
   equivalences: loadCSV('equivalences.csv'),
   users: loadCSV('users.csv')
 };
+
+// Legacy session tokens (used by /api/auth/login password login).
+// This enables limited admin features even when Supabase password sign-in is
+// blocked by an Auth Hook.
+// Map<token, { userId: string, expiresAtMs: number }>
+const legacySessions = new Map();
+const LEGACY_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
+
+function createLegacySession(userId) {
+  try {
+    const crypto = require('crypto');
+    const token = `gs_${crypto.randomBytes(24).toString('hex')}`;
+    legacySessions.set(token, { userId: String(userId), expiresAtMs: Date.now() + LEGACY_SESSION_TTL_MS });
+    return token;
+  } catch (e) {
+    const token = `gs_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    legacySessions.set(token, { userId: String(userId), expiresAtMs: Date.now() + LEGACY_SESSION_TTL_MS });
+    return token;
+  }
+}
+
+function getLegacySessionUserIdFromReq(req) {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    if (!token || typeof token !== 'string' || !token.startsWith('gs_')) return null;
+    const s = legacySessions.get(token);
+    if (!s) return null;
+    if (!s.expiresAtMs || s.expiresAtMs < Date.now()) {
+      legacySessions.delete(token);
+      return null;
+    }
+    return s.userId || null;
+  } catch (e) {
+    return null;
+  }
+}
 
 // Temporary in-memory store for the last user-create error (for debugging only)
 let lastUserCreateError = null;
@@ -346,10 +413,17 @@ let userHasRole = false;
 // Professional accounts capability detection
 let hasProfessionalAccountsTable = null; // null unknown, boolean when detected
 let hasProfessionalAccountsMatriculaColumn = null; // null unknown, boolean when detected
+let hasProfessionalAccountsCompanyIdColumn = null; // null unknown, boolean when detected
+
+// Companies capability detection
+let hasCompaniesTable = null; // null unknown, boolean when detected
+let hasCompaniesCompanyTypeColumn = null; // null unknown, boolean when detected
 
 async function detectProfessionalAccountsTable(pgClientInstance) {
   if (!pgClientInstance) return false;
-  if (typeof hasProfessionalAccountsTable === 'boolean') return hasProfessionalAccountsTable;
+  // Cache only positive detections; if the DB schema changes while the server is running,
+  // we want to be able to re-detect newly created tables/columns.
+  if (hasProfessionalAccountsTable === true) return true;
   try {
     const r = await pgClientInstance.query(
       "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='professional_accounts' LIMIT 1"
@@ -357,14 +431,13 @@ async function detectProfessionalAccountsTable(pgClientInstance) {
     hasProfessionalAccountsTable = (r && r.rowCount > 0);
     return hasProfessionalAccountsTable;
   } catch (e) {
-    hasProfessionalAccountsTable = false;
     return false;
   }
 }
 
 async function detectProfessionalAccountsMatriculaColumn(pgClientInstance) {
   if (!pgClientInstance) return false;
-  if (typeof hasProfessionalAccountsMatriculaColumn === 'boolean') return hasProfessionalAccountsMatriculaColumn;
+  if (hasProfessionalAccountsMatriculaColumn === true) return true;
   try {
     const r = await pgClientInstance.query(
       "SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='professional_accounts' AND column_name='matricula' LIMIT 1"
@@ -372,7 +445,48 @@ async function detectProfessionalAccountsMatriculaColumn(pgClientInstance) {
     hasProfessionalAccountsMatriculaColumn = (r && r.rowCount > 0);
     return hasProfessionalAccountsMatriculaColumn;
   } catch (e) {
-    hasProfessionalAccountsMatriculaColumn = false;
+    return false;
+  }
+}
+
+async function detectProfessionalAccountsCompanyIdColumn(pgClientInstance) {
+  if (!pgClientInstance) return false;
+  if (hasProfessionalAccountsCompanyIdColumn === true) return true;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='professional_accounts' AND column_name='company_id' LIMIT 1"
+    );
+    hasProfessionalAccountsCompanyIdColumn = (r && r.rowCount > 0);
+    return hasProfessionalAccountsCompanyIdColumn;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function detectCompaniesTable(pgClientInstance) {
+  if (!pgClientInstance) return false;
+  if (hasCompaniesTable === true) return true;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='companies' LIMIT 1"
+    );
+    hasCompaniesTable = (r && r.rowCount > 0);
+    return hasCompaniesTable;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function detectCompaniesCompanyTypeColumn(pgClientInstance) {
+  if (!pgClientInstance) return false;
+  if (hasCompaniesCompanyTypeColumn === true) return true;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='companies' AND column_name='company_type' LIMIT 1"
+    );
+    hasCompaniesCompanyTypeColumn = (r && r.rowCount > 0);
+    return hasCompaniesCompanyTypeColumn;
+  } catch (e) {
     return false;
   }
 }
@@ -410,24 +524,156 @@ async function getProfessionalAccount(pgClientInstance, userId) {
   if (!ok) return null;
   try {
     const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClientInstance);
+    const hasCompanyId = await detectProfessionalAccountsCompanyIdColumn(pgClientInstance);
+    const hasCompanies = hasCompanyId ? await detectCompaniesTable(pgClientInstance) : false;
     const cols = [
       'user_id',
       'status',
       'onboarding_completed',
       'company_name',
+      ...(hasCompanyId ? ['company_id'] : []),
       ...(hasMatricula ? ['matricula'] : []),
       'cnpj',
       'phone',
       'created_at',
       'updated_at'
     ];
-    const r = await pgClientInstance.query(
-          `SELECT ${cols.join(', ')} FROM professional_accounts WHERE user_id = $1 LIMIT 1`,
-      [String(userId)]
-    );
+
+    const selectList = cols.map(c => `pa.${c}`).join(', ');
+    const joinCompanySelect = hasCompanies
+      ? ', c.trade_name as company_trade_name, c.legal_name as company_legal_name, c.brand as company_brand, c.company_code as company_code, c.status as company_status, c.matricula_prefix as company_matricula_prefix'
+      : '';
+
+    const sql = hasCompanies
+      ? `SELECT ${selectList}${joinCompanySelect} FROM professional_accounts pa LEFT JOIN companies c ON pa.company_id = c.id WHERE pa.user_id = $1 LIMIT 1`
+      : `SELECT ${selectList} FROM professional_accounts pa WHERE pa.user_id = $1 LIMIT 1`;
+
+    const r = await pgClientInstance.query(sql, [String(userId)]);
     return (r && r.rowCount > 0) ? r.rows[0] : null;
   } catch (e) {
     return null;
+  }
+}
+
+function sanitizeCodeToken(input) {
+  const raw = String(input || '').trim();
+  if (!raw) return '';
+  return raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+function padLeft(num, width) {
+  const s = String(num == null ? '' : num);
+  if (s.length >= width) return s;
+  return '0'.repeat(width - s.length) + s;
+}
+
+async function generateUniqueCompanyCode(pgClientInstance, brand) {
+  const base = sanitizeCodeToken(brand).slice(0, 2) || 'CO';
+  for (let i = 0; i < 8; i++) {
+    const candidate = `${base}${padLeft(Math.floor(Math.random() * 1000000), 6)}`;
+    try {
+      const r = await pgClientInstance.query('SELECT 1 FROM companies WHERE company_code = $1 LIMIT 1', [candidate]);
+      if (!r || r.rowCount === 0) return candidate;
+    } catch (e) {
+      // ignore and try next
+    }
+  }
+  // fallback: time-based
+  return `${base}${padLeft(Date.now() % 1000000, 6)}`;
+}
+
+async function getDbUserFromReq(req, { allowExplicitUserId = true } = {}) {
+  const legacyUserId = getLegacySessionUserIdFromReq(req);
+  const sbUser = legacyUserId ? null : await getSupabaseUserFromReq(req).catch(() => null);
+  const authId = sbUser ? sbUser.id : null;
+  const email = sbUser ? sbUser.email : null;
+  const explicitUserId = allowExplicitUserId && (
+    (req.query && (req.query.user_id || req.query.userId))
+      ? String(req.query.user_id || req.query.userId)
+      : (req.body && (req.body.user_id || req.body.userId))
+        ? String(req.body.user_id || req.body.userId)
+        : null
+  );
+  const userId = explicitUserId || legacyUserId || await resolveDbUserIdFromAuth({ pgClientInstance: pgClient, authId, email });
+  if (!userId) return null;
+  try {
+    const nameCol = isSafeSqlIdentifier(userNameColumn) ? userNameColumn : 'nome';
+    const r = await pgClient.query(`SELECT id, email, ${nameCol} as name${userHasRole ? ', role' : ''} FROM users WHERE id = $1 LIMIT 1`, [String(userId)]);
+    if (r && r.rowCount > 0) return r.rows[0];
+  } catch (e) {
+    // ignore
+  }
+  return { id: String(userId), email: email || null, role: null };
+}
+
+async function requireAdmin(req, res, next) {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    if (!userHasRole) await refreshUsersSchema(pgClient);
+    if (!userHasRole) return res.status(503).json({ error: 'users.role not available (run migration 0010)' });
+    const dbUser = await getDbUserFromReq(req, { allowExplicitUserId: false });
+    if (!dbUser || !dbUser.id) return res.status(401).json({ error: 'not authenticated' });
+    const role = String(dbUser.role || '').toLowerCase();
+    if (role !== 'admin') return res.status(403).json({ error: 'admin required' });
+    req.dbUser = dbUser;
+    return next();
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+}
+
+async function requireCompaniesAdmin(req, res, next) {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    if (!userHasRole) await refreshUsersSchema(pgClient);
+    if (!userHasRole) return res.status(503).json({ error: 'users.role not available (run migration 0010)' });
+    const dbUser = await getDbUserFromReq(req, { allowExplicitUserId: false });
+    if (!dbUser || !dbUser.id) return res.status(401).json({ error: 'not authenticated' });
+    const role = String(dbUser.role || '').toLowerCase();
+    if (role !== 'admin' && role !== 'companies_admin') return res.status(403).json({ error: 'companies admin required' });
+    req.dbUser = dbUser;
+    return next();
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+}
+
+async function allocateMatriculaForCompany(pgClientInstance, companyId, { padWidth = 7 } = {}) {
+  if (!pgClientInstance) throw new Error('pgClient required');
+  const cid = String(companyId || '').trim();
+  if (!cid) throw new Error('company_id required');
+
+  await pgClientInstance.query('BEGIN');
+  try {
+    const r = await pgClientInstance.query(
+      `SELECT id, trade_name, legal_name, company_code, matricula_prefix, next_matricula_seq
+       FROM companies
+       WHERE id = $1
+       FOR UPDATE`,
+      [cid]
+    );
+    if (!r || r.rowCount === 0) {
+      await pgClientInstance.query('ROLLBACK');
+      throw new Error('company not found');
+    }
+    const c = r.rows[0];
+    const prefix = String(c.matricula_prefix || '').trim();
+    if (!prefix) {
+      await pgClientInstance.query('ROLLBACK');
+      throw new Error('company matricula_prefix not configured');
+    }
+    const seq = Number(c.next_matricula_seq || 1);
+    await pgClientInstance.query(
+      `UPDATE companies SET next_matricula_seq = $2, updated_at = now() WHERE id = $1`,
+      [cid, seq + 1]
+    );
+    await pgClientInstance.query('COMMIT');
+    const matricula = `${prefix}${padLeft(seq, padWidth)}`;
+    const companyName = (c.trade_name || c.legal_name || c.company_code || '').trim() || null;
+    return { matricula, company_name: companyName, company: c };
+  } catch (e) {
+    try { await pgClientInstance.query('ROLLBACK'); } catch (e2) {}
+    throw e;
   }
 }
 
@@ -638,6 +884,60 @@ function snakeToCamelKeys(obj){
     out[camel] = v;
   }
   return out;
+}
+
+function normalizeComparableText(value) {
+  try {
+    return String(value || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '');
+  } catch (e) {
+    return String(value || '').trim().toLowerCase();
+  }
+}
+
+async function canonicalizeCompanyBrand(pgClientInstance, brand) {
+  const typed = brand != null ? String(brand).trim() : '';
+  if (!typed) return null;
+  try {
+    // Prefer an existing canonical spelling/casing already stored.
+    // (DB does not have unaccent by default; do a conservative lower() match.)
+    const r = await pgClientInstance.query(
+      "SELECT brand FROM companies WHERE brand IS NOT NULL AND lower(brand) = lower($1) LIMIT 1",
+      [typed]
+    );
+    if (r && r.rows && r.rows[0] && r.rows[0].brand) return String(r.rows[0].brand);
+  } catch (e) {
+    // If anything goes wrong, fall back to the typed value.
+  }
+  return typed;
+}
+
+function normalizeCompanyType(value) {
+  const raw = value != null ? String(value).trim() : '';
+  if (!raw) return null;
+  const key = normalizeComparableText(raw).replace(/\s+/g, ' ');
+  const compact = key.replace(/\s+/g, '_');
+
+  // Accept either internal codes or PT-BR labels (accents already removed)
+  if (key === 'centro automotivo' || compact === 'centro_automotivo') return 'centro_automotivo';
+  if (compact === 'concessionaria') return 'concessionaria';
+  if (compact === 'autopecas') return 'autopecas';
+  if (compact === 'oficina') return 'oficina';
+
+  return null;
+}
+
+function assertCompanyTypeOr400(res, value) {
+  const allowed = new Set(['concessionaria', 'oficina', 'autopecas', 'centro_automotivo']);
+  if (!value) return null;
+  if (!allowed.has(value)) {
+    res.status(400).json({ error: 'invalid company_type' });
+    return '__sent__';
+  }
+  return value;
 }
 
 async function tryConnectPg(){
@@ -1678,7 +1978,7 @@ app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs th
 
 // Create user (legacy password accounts).
 // Note: this is mainly used for local/dev flows; production auth uses Supabase/Firebase.
-// Body: { nome, email, senha, account_type, company_name?, matricula? }
+// Body: { nome, email, senha, account_type, company_id?, company_name?, matricula? }
 app.post('/api/users', async (req, res) => {
   try {
     const body = req.body || {};
@@ -1687,14 +1987,33 @@ app.post('/api/users', async (req, res) => {
     const senha = body.senha != null ? String(body.senha) : '';
     const acctRaw = String(body.account_type || body.accountType || body.role || 'user').toLowerCase();
     const accountType = (acctRaw === 'professional' || acctRaw === 'profissional') ? 'professional' : 'user';
+    const companyId = body.company_id != null ? String(body.company_id).trim() : (body.companyId != null ? String(body.companyId).trim() : '');
     const companyName = body.company_name != null ? String(body.company_name).trim() : (body.empresa != null ? String(body.empresa).trim() : '');
     const matricula = body.matricula != null ? String(body.matricula).trim() : '';
 
     if (!email) return res.status(400).json({ error: 'email required' });
     if (!senha) return res.status(400).json({ error: 'senha required' });
     if (accountType === 'professional') {
-      if (!companyName) return res.status(400).json({ error: 'company_name required for professional accounts' });
-      if (!matricula) return res.status(400).json({ error: 'matricula required for professional accounts' });
+      if (!companyId) {
+        if (!companyName) return res.status(400).json({ error: 'company_id or company_name required for professional accounts' });
+        if (!matricula) return res.status(400).json({ error: 'matricula required for professional accounts when company_id not provided' });
+      }
+    }
+
+    // If caller uses company_id, ensure schema supports companies before inserting the user.
+    if (pgClient && accountType === 'professional' && companyId) {
+      const hasCompanyIdCol = await detectProfessionalAccountsCompanyIdColumn(pgClient);
+      const hasCompanies = await detectCompaniesTable(pgClient);
+      if (!hasCompanyIdCol || !hasCompanies) {
+        return res.status(503).json({ error: 'companies/company_id not available (run migration 0013)' });
+      }
+      // Also validate company exists early
+      try {
+        const r = await pgClient.query('SELECT 1 FROM companies WHERE id = $1 LIMIT 1', [String(companyId)]);
+        if (!r || r.rowCount === 0) return res.status(400).json({ error: 'company_id not found' });
+      } catch (e) {
+        return res.status(500).json({ error: 'failed to validate company_id' });
+      }
     }
 
     const userId = (crypto && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : `local_${Date.now()}`;
@@ -1735,21 +2054,56 @@ app.post('/api/users', async (req, res) => {
         const placeholders = vals.map((_, i) => `$${i + 1}`);
         await pgClient.query(`INSERT INTO users(${cols.join(', ')}) VALUES(${placeholders.join(', ')})`, vals);
 
-        // If professional, create/update professional_accounts row with company_name + matricula
+        // If professional, create/update professional_accounts row
         if (accountType === 'professional') {
           try {
             await ensureProfessionalAccount(pgClient, userId, { role: 'professional' });
             const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
-            const sets = ['company_name = $2', 'onboarding_completed = true', 'updated_at = now()'];
-            const params = [String(userId), companyName];
-            if (hasMatricula) {
-              sets.splice(1, 0, 'matricula = $3');
-              params.push(matricula);
+            const hasCompanyId = await detectProfessionalAccountsCompanyIdColumn(pgClient);
+            const hasCompanies = hasCompanyId ? await detectCompaniesTable(pgClient) : false;
+
+            let resolvedCompanyName = companyName;
+            let resolvedMatricula = matricula;
+            let resolvedCompanyId = companyId || null;
+
+            if (companyId) {
+              if (!hasCompanyId || !hasCompanies) throw new Error('companies/company_id not available (run migration 0013)');
+              try {
+                const alloc = await allocateMatriculaForCompany(pgClient, companyId);
+                resolvedMatricula = alloc.matricula;
+                resolvedCompanyName = alloc.company_name || resolvedCompanyName;
+                resolvedCompanyId = companyId;
+              } catch (e) {
+                throw new Error(e && e.message ? String(e.message) : 'failed to allocate matricula');
+              }
             }
+
+            const sets = ['company_name = $2', 'onboarding_completed = true', 'updated_at = now()'];
+            const params = [String(userId), resolvedCompanyName || null];
+
+            let paramIdx = 3;
+            if (hasCompanyId && resolvedCompanyId) {
+              sets.splice(1, 0, `company_id = $${paramIdx++}`);
+              params.push(resolvedCompanyId);
+            }
+            if (hasMatricula && resolvedMatricula) {
+              sets.splice(1, 0, `matricula = $${paramIdx++}`);
+              params.push(resolvedMatricula);
+            }
+
             await pgClient.query(`UPDATE professional_accounts SET ${sets.join(', ')} WHERE user_id = $1`, params);
           } catch (e) {
             // ignore (user creation should still succeed)
           }
+        }
+
+        let professional = null;
+        try {
+          if (accountType === 'professional') {
+            professional = await getProfessionalAccount(pgClient, userId);
+          }
+        } catch (e) {
+          professional = null;
         }
 
         const created = {
@@ -1758,7 +2112,16 @@ app.post('/api/users', async (req, res) => {
           nome: nome || email.split('@')[0],
           name: nome || email.split('@')[0],
           account_type: accountType,
-          role: accountType === 'professional' ? 'professional' : 'user'
+          role: accountType === 'professional' ? 'professional' : 'user',
+          professional: professional ? {
+            status: professional.status || 'active',
+            onboarding_completed: !!professional.onboarding_completed,
+            company_name: professional.company_name || null,
+            company_id: (professional && Object.prototype.hasOwnProperty.call(professional, 'company_id')) ? (professional.company_id || null) : null,
+            matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
+            cnpj: professional.cnpj || null,
+            phone: professional.phone || null
+          } : null
         };
         return res.status(201).json(created);
       } catch (e) {
@@ -1796,6 +2159,38 @@ function isSafeSqlIdentifier(name) {
   return !!name && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(String(name));
 }
 
+// Users schema detection can become stale when migrations are applied while the
+// backend is already running. Refresh lazily (rate-limited) when needed.
+let _usersSchemaLastRefreshMs = 0;
+async function refreshUsersSchema(pgClientInstance, { force = false } = {}) {
+  if (!pgClientInstance) return;
+  const now = Date.now();
+  if (!force && _usersSchemaLastRefreshMs && (now - _usersSchemaLastRefreshMs) < 30000) return;
+  _usersSchemaLastRefreshMs = now;
+  try {
+    const cols = await pgClientInstance.query("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'");
+    const names = (cols.rows || []).map(r => String(r.column_name).toLowerCase());
+
+    if (names.indexOf('name') >= 0) userNameColumn = 'name';
+    else if (names.indexOf('nome') >= 0) userNameColumn = 'nome';
+
+    if (names.indexOf('password_hash') >= 0) userPasswordColumn = 'password_hash';
+    else if (names.indexOf('senha_hash') >= 0) userPasswordColumn = 'senha_hash';
+    else if (names.indexOf('senha') >= 0) userPasswordColumn = 'senha';
+    else if (names.indexOf('password') >= 0) userPasswordColumn = 'password';
+
+    if (names.indexOf('created_at') >= 0) userCreatedAtColumn = 'created_at';
+    else if (names.indexOf('criado_em') >= 0) userCreatedAtColumn = 'criado_em';
+
+    userHasIsPro = names.indexOf('is_pro') >= 0 || names.indexOf('ispro') >= 0;
+    userHasProSince = names.indexOf('pro_since') >= 0;
+    userHasAuthId = names.indexOf('auth_id') >= 0;
+    userHasRole = names.indexOf('role') >= 0;
+  } catch (e) {
+    // ignore
+  }
+}
+
 // Legacy password login (Postgres users table).
 // Body: { email, senha }
 app.post('/api/auth/login', async (req, res) => {
@@ -1808,6 +2203,7 @@ app.post('/api/auth/login', async (req, res) => {
     // Prefer Postgres when available
     if (pgClient) {
       try {
+        await refreshUsersSchema(pgClient);
         const nameCol = isSafeSqlIdentifier(userNameColumn) ? userNameColumn : 'nome';
         const passCol = isSafeSqlIdentifier(userPasswordColumn) ? userPasswordColumn : null;
         const authIdSelect = userHasAuthId ? ', auth_id' : '';
@@ -1831,12 +2227,24 @@ app.post('/api/auth/login', async (req, res) => {
         const row = r.rows[0];
         const stored = row.senha_db != null ? String(row.senha_db) : '';
 
-        // Support plaintext legacy passwords; if it looks like bcrypt, we can't verify without a dependency.
+        let passwordOk = false;
+        // Support plaintext legacy passwords and bcrypt hashes.
         if (stored && stored.startsWith('$2')) {
-          return res.status(501).json({ error: 'password hash verification not configured' });
+          let bcrypt = null;
+          try { bcrypt = require('bcryptjs'); } catch (e) { bcrypt = null; }
+          if (!bcrypt || typeof bcrypt.compareSync !== 'function') {
+            return res.status(501).json({ error: 'password hash verification not configured' });
+          }
+          try {
+            passwordOk = !!bcrypt.compareSync(senha, stored);
+          } catch (e) {
+            passwordOk = false;
+          }
+        } else {
+          passwordOk = !!stored && stored === senha;
         }
 
-        if (!stored || stored !== senha) {
+        if (!passwordOk) {
           return res.status(401).json({ error: 'invalid credentials' });
         }
 
@@ -1844,9 +2252,13 @@ app.post('/api/auth/login', async (req, res) => {
         try { professional = await getProfessionalAccount(pgClient, row.id); } catch (e) { professional = null; }
 
         const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
-        const role = (dbRole === 'professional' || dbRole === 'profissional')
-          ? 'professional'
-          : (professional ? 'professional' : 'user');
+        const role = (dbRole === 'admin')
+          ? 'admin'
+          : (dbRole === 'companies_admin')
+            ? 'companies_admin'
+            : ((dbRole === 'professional' || dbRole === 'profissional')
+              ? 'professional'
+              : (professional ? 'professional' : 'user'));
 
         const user = {
           id: row.id,
@@ -1862,7 +2274,8 @@ app.post('/api/auth/login', async (req, res) => {
           is_pro: userHasIsPro ? !!row.is_pro : false
         };
 
-        return res.json({ success: true, user });
+        const legacy_token = createLegacySession(row.id);
+        return res.json({ success: true, user, legacy_token, token_type: 'legacy' });
       } catch (e) {
         console.error('PG /api/auth/login failed:', e && e.message ? e.message : e);
         return res.status(500).json({ error: 'internal' });
@@ -3189,13 +3602,42 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
           // Best-effort: apply professional profile fields from Supabase user metadata.
           try {
             const metaCompany = (Object.prototype.hasOwnProperty.call(meta, 'company_name')) ? meta.company_name : (Object.prototype.hasOwnProperty.call(meta, 'empresa') ? meta.empresa : undefined);
+            const metaCompanyId = (Object.prototype.hasOwnProperty.call(meta, 'company_id')) ? meta.company_id : (Object.prototype.hasOwnProperty.call(meta, 'companyId') ? meta.companyId : undefined);
             const metaMatricula = (Object.prototype.hasOwnProperty.call(meta, 'matricula')) ? meta.matricula : undefined;
             const sets = [];
             const params = [];
             let idx = 1;
             const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
-            if (metaCompany !== undefined && String(metaCompany || '').trim() !== '') { sets.push(`company_name = $${idx++}`); params.push(String(metaCompany).trim()); }
-            if (metaMatricula !== undefined && hasMatricula && String(metaMatricula || '').trim() !== '') { sets.push(`matricula = $${idx++}`); params.push(String(metaMatricula).trim()); }
+
+            const hasCompanyId = await detectProfessionalAccountsCompanyIdColumn(pgClient);
+            const hasCompanies = hasCompanyId ? await detectCompaniesTable(pgClient) : false;
+            let resolvedCompanyName = (metaCompany !== undefined && String(metaCompany || '').trim() !== '') ? String(metaCompany).trim() : null;
+
+            if (metaCompanyId !== undefined && metaCompanyId !== null && String(metaCompanyId || '').trim() !== '' && hasCompanyId && hasCompanies) {
+              const cid = String(metaCompanyId).trim();
+              sets.push(`company_id = $${idx++}`);
+              params.push(cid);
+              // Prefer company name from companies table for consistency
+              try {
+                const cr = await pgClient.query('SELECT trade_name, legal_name, company_code FROM companies WHERE id = $1 LIMIT 1', [cid]);
+                if (cr && cr.rowCount > 0) {
+                  const c = cr.rows[0];
+                  const nm = (c.trade_name || c.legal_name || c.company_code || '').trim();
+                  if (nm) resolvedCompanyName = nm;
+                }
+              } catch (e) {
+                // ignore
+              }
+            }
+
+            if (resolvedCompanyName) { sets.push(`company_name = $${idx++}`); params.push(resolvedCompanyName); }
+
+            // Only accept custom matricula when company_id is NOT being used.
+            const usingCompanyId = sets.some(s => /^company_id\s*=/.test(s));
+            if (!usingCompanyId && metaMatricula !== undefined && hasMatricula && String(metaMatricula || '').trim() !== '') {
+              sets.push(`matricula = $${idx++}`);
+              params.push(String(metaMatricula).trim());
+            }
             if (sets.length > 0) {
               sets.push('onboarding_completed = true');
               sets.push('updated_at = now()');
@@ -3489,6 +3931,214 @@ app.post('/api/auth/supabase-webhook', async (req, res) => {
 // Professional accounts API
 // GET  /api/professional/account -> returns professional row for current user (Bearer token)
 // POST /api/professional/account -> upserts professional row and can set onboarding_completed
+
+// Companies API
+// GET /api/companies -> list active companies (for dropdown)
+app.get('/api/companies', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectCompaniesTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
+
+    const status = (req.query && req.query.status) ? String(req.query.status).trim().toLowerCase() : 'active';
+    const allowed = new Set(['active', 'pending', 'suspended', 'all']);
+    const statusFilter = allowed.has(status) ? status : 'active';
+
+    const where = (statusFilter === 'all') ? '' : 'WHERE status = $1';
+    const params = (statusFilter === 'all') ? [] : [statusFilter];
+    const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+    const selectCols = hasType
+      ? 'id, trade_name, legal_name, brand, company_type, company_code, status, matricula_prefix'
+      : 'id, trade_name, legal_name, brand, company_code, status, matricula_prefix';
+    const r = await pgClient.query(
+      `SELECT ${selectCols}
+       FROM companies
+       ${where}
+       ORDER BY COALESCE(trade_name, legal_name, company_code) ASC`,
+      params
+    );
+
+    const companies = (r.rows || []).map((c) => ({
+      ...c,
+      company_registration_code: c && c.matricula_prefix ? c.matricula_prefix : null,
+    }));
+    return res.json({ success: true, companies });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Admin Companies API (companies_admin or admin)
+app.get('/api/admin/companies', requireCompaniesAdmin, async (req, res) => {
+  try {
+    const ok = await detectCompaniesTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
+    const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+    const selectCols = hasType
+      ? 'id, legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at'
+      : 'id, legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at';
+    const r = await pgClient.query(
+      `SELECT ${selectCols}
+       FROM companies
+       ORDER BY COALESCE(trade_name, legal_name, company_code) ASC`
+    );
+    const companies = (r.rows || []).map((c) => ({
+      ...c,
+      company_registration_code: c && c.matricula_prefix ? c.matricula_prefix : null,
+    }));
+    return res.json({ success: true, companies });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.post('/api/admin/companies', requireCompaniesAdmin, async (req, res) => {
+  try {
+    const ok = await detectCompaniesTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
+    const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+
+    const body = req.body || {};
+    const legalName = body.legal_name != null ? String(body.legal_name).trim() : null;
+    const tradeName = body.trade_name != null ? String(body.trade_name).trim() : null;
+    const brandRaw = body.brand != null ? String(body.brand).trim() : null;
+    const companyTypeRaw = (body.company_type != null ? body.company_type : (body.companyType != null ? body.companyType : (body.tipo != null ? body.tipo : null)));
+    const cnpj = body.cnpj != null ? String(body.cnpj).trim() : null;
+    const status = body.status != null ? String(body.status).trim().toLowerCase() : 'active';
+    const matriculaPrefixCandidate =
+      (body.company_registration_code != null ? body.company_registration_code :
+        (body.companyRegistrationCode != null ? body.companyRegistrationCode :
+          (body.codigo_empresa != null ? body.codigo_empresa :
+            (body.codigoEmpresa != null ? body.codigoEmpresa :
+              body.matricula_prefix))));
+    const matriculaPrefixRaw = matriculaPrefixCandidate != null ? String(matriculaPrefixCandidate).trim() : '';
+    const matriculaPrefix = String(matriculaPrefixRaw || '').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+
+    if (!matriculaPrefix) return res.status(400).json({ error: 'company_registration_code required' });
+    if (!['active', 'pending', 'suspended'].includes(status)) return res.status(400).json({ error: 'invalid status' });
+
+    const companyType = normalizeCompanyType(companyTypeRaw) || 'oficina';
+    if (hasType && assertCompanyTypeOr400(res, companyType) === '__sent__') return;
+
+    const brand = await canonicalizeCompanyBrand(pgClient, brandRaw);
+    const companyCode = await generateUniqueCompanyCode(pgClient, brand);
+
+    const r = await pgClient.query(
+      hasType
+        ? `INSERT INTO companies(legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8,1,now(),now())
+           RETURNING id, legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at`
+        : `INSERT INTO companies(legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at)
+           VALUES($1,$2,$3,$4,$5,$6,$7,1,now(),now())
+           RETURNING id, legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at`,
+      hasType
+        ? [legalName, tradeName, brand, companyType, companyCode, cnpj, status, matriculaPrefix]
+        : [legalName, tradeName, brand, companyCode, cnpj, status, matriculaPrefix]
+    );
+
+    const company = (r.rows && r.rows[0]) ? r.rows[0] : null;
+    const out = company ? { ...company, company_registration_code: company.matricula_prefix || null } : null;
+    return res.status(201).json({ success: true, company: out });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.patch('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) => {
+  try {
+    const ok = await detectCompaniesTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
+    const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+
+    const id = req.params && req.params.id ? String(req.params.id).trim() : null;
+    if (!id) return res.status(400).json({ error: 'id required' });
+    const body = req.body || {};
+
+    const sets = [];
+    const params = [];
+    let idx = 1;
+
+    if (Object.prototype.hasOwnProperty.call(body, 'legal_name')) { sets.push(`legal_name = $${idx++}`); params.push(body.legal_name != null ? String(body.legal_name).trim() : null); }
+    if (Object.prototype.hasOwnProperty.call(body, 'trade_name')) { sets.push(`trade_name = $${idx++}`); params.push(body.trade_name != null ? String(body.trade_name).trim() : null); }
+    if (Object.prototype.hasOwnProperty.call(body, 'brand')) {
+      const br = body.brand != null ? String(body.brand).trim() : null;
+      const canonical = br ? await canonicalizeCompanyBrand(pgClient, br) : null;
+      sets.push(`brand = $${idx++}`);
+      params.push(canonical);
+    }
+    if (hasType && (Object.prototype.hasOwnProperty.call(body, 'company_type') || Object.prototype.hasOwnProperty.call(body, 'companyType') || Object.prototype.hasOwnProperty.call(body, 'tipo'))) {
+      const raw = (Object.prototype.hasOwnProperty.call(body, 'company_type') ? body.company_type : (Object.prototype.hasOwnProperty.call(body, 'companyType') ? body.companyType : body.tipo));
+      const normalized = normalizeCompanyType(raw);
+      if (!normalized) return res.status(400).json({ error: 'invalid company_type' });
+      if (assertCompanyTypeOr400(res, normalized) === '__sent__') return;
+      sets.push(`company_type = $${idx++}`);
+      params.push(normalized);
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'cnpj')) { sets.push(`cnpj = $${idx++}`); params.push(body.cnpj != null ? String(body.cnpj).trim() : null); }
+    if (Object.prototype.hasOwnProperty.call(body, 'status')) {
+      const st = body.status != null ? String(body.status).trim().toLowerCase() : 'active';
+      if (!['active', 'pending', 'suspended'].includes(st)) return res.status(400).json({ error: 'invalid status' });
+      sets.push(`status = $${idx++}`);
+      params.push(st);
+    }
+    if (
+      Object.prototype.hasOwnProperty.call(body, 'matricula_prefix') ||
+      Object.prototype.hasOwnProperty.call(body, 'company_registration_code') ||
+      Object.prototype.hasOwnProperty.call(body, 'companyRegistrationCode') ||
+      Object.prototype.hasOwnProperty.call(body, 'codigo_empresa') ||
+      Object.prototype.hasOwnProperty.call(body, 'codigoEmpresa')
+    ) {
+      const mpRaw =
+        (Object.prototype.hasOwnProperty.call(body, 'company_registration_code') ? body.company_registration_code :
+          (Object.prototype.hasOwnProperty.call(body, 'companyRegistrationCode') ? body.companyRegistrationCode :
+            (Object.prototype.hasOwnProperty.call(body, 'codigo_empresa') ? body.codigo_empresa :
+              (Object.prototype.hasOwnProperty.call(body, 'codigoEmpresa') ? body.codigoEmpresa : body.matricula_prefix))));
+      const mp = mpRaw != null ? String(mpRaw).trim() : '';
+      const sanitized = String(mp || '').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+      if (!sanitized) return res.status(400).json({ error: 'company_registration_code cannot be empty' });
+      sets.push(`matricula_prefix = $${idx++}`);
+      params.push(sanitized);
+    }
+
+    if (sets.length === 0) return res.json({ success: true, updated: false });
+    sets.push('updated_at = now()');
+
+    params.push(id);
+    await pgClient.query(`UPDATE companies SET ${sets.join(', ')} WHERE id = $${idx}`, params);
+
+    const r = await pgClient.query(
+      hasType
+        ? `SELECT id, legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at
+           FROM companies WHERE id = $1 LIMIT 1`
+        : `SELECT id, legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at
+           FROM companies WHERE id = $1 LIMIT 1`,
+      [id]
+    );
+    const company = (r.rows && r.rows[0]) ? r.rows[0] : null;
+    const out = company ? { ...company, company_registration_code: company.matricula_prefix || null } : null;
+    return res.json({ success: true, company: out });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.delete('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) => {
+  try {
+    const ok = await detectCompaniesTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
+
+    const id = req.params && req.params.id ? String(req.params.id).trim() : null;
+    if (!id) return res.status(400).json({ error: 'id required' });
+
+    // Hard-delete. If you prefer soft-delete, change to: UPDATE companies SET status='suspended'...
+    const r = await pgClient.query('DELETE FROM companies WHERE id = $1', [id]);
+    if (!r || r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+    return res.json({ success: true });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
 app.get('/api/professional/account', async (req, res) => {
   try {
     if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
@@ -3538,19 +4188,72 @@ app.post('/api/professional/account', async (req, res) => {
 
     // Update fields (best-effort)
     const companyName = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'company_name')) ? req.body.company_name : undefined;
+    const companyIdRaw = (req.body && (Object.prototype.hasOwnProperty.call(req.body, 'company_id') || Object.prototype.hasOwnProperty.call(req.body, 'companyId')))
+      ? (req.body.company_id != null ? req.body.company_id : req.body.companyId)
+      : undefined;
     const matricula = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'matricula')) ? req.body.matricula : undefined;
     const cnpj = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'cnpj')) ? req.body.cnpj : undefined;
     const phone = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'phone')) ? req.body.phone : undefined;
     const onboardingCompleted = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'onboarding_completed')) ? !!req.body.onboarding_completed : undefined;
+    const regenerateMatricula = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'regenerate_matricula')) ? !!req.body.regenerate_matricula : false;
 
     const sets = [];
     const params = [];
     let idx = 1;
 
     const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
+    const hasCompanyId = await detectProfessionalAccountsCompanyIdColumn(pgClient);
+    const hasCompanies = hasCompanyId ? await detectCompaniesTable(pgClient) : false;
 
-    if (companyName !== undefined) { sets.push(`company_name = $${idx++}`); params.push(companyName); }
-    if (matricula !== undefined && hasMatricula) { sets.push(`matricula = $${idx++}`); params.push(matricula); }
+    let resolvedCompanyId = (companyIdRaw !== undefined && companyIdRaw !== null && String(companyIdRaw).trim() !== '') ? String(companyIdRaw).trim() : null;
+    let resolvedCompanyName = companyName;
+    let resolvedMatricula = matricula;
+
+    // If company_id is provided, enforce companies + company_id schema and generate matricula server-side.
+    if (resolvedCompanyId) {
+      if (!hasCompanyId || !hasCompanies) return res.status(503).json({ error: 'companies/company_id not available (run migration 0013)' });
+
+      // Load current professional row to decide whether we need to generate.
+      const current = await getProfessionalAccount(pgClient, userId);
+      const currentMatricula = current && Object.prototype.hasOwnProperty.call(current, 'matricula') ? String(current.matricula || '').trim() : '';
+
+      const needGenerate = hasMatricula && (regenerateMatricula || !currentMatricula);
+
+      if (needGenerate) {
+        let allocErr = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const alloc = await allocateMatriculaForCompany(pgClient, resolvedCompanyId);
+            resolvedCompanyName = alloc.company_name || resolvedCompanyName;
+            resolvedMatricula = alloc.matricula;
+            allocErr = null;
+            break;
+          } catch (e) {
+            allocErr = e;
+          }
+        }
+        if (allocErr) {
+          return res.status(400).json({ error: allocErr && allocErr.message ? String(allocErr.message) : 'failed to allocate matricula' });
+        }
+      } else {
+        // When not generating, do not accept custom matricula together with company_id.
+        resolvedMatricula = undefined;
+        // Still try to resolve company_name from companies for display/consistency
+        try {
+          const cr = await pgClient.query('SELECT trade_name, legal_name, company_code FROM companies WHERE id = $1 LIMIT 1', [resolvedCompanyId]);
+          if (cr && cr.rowCount > 0) {
+            const c = cr.rows[0];
+            resolvedCompanyName = (c.trade_name || c.legal_name || c.company_code || '').trim() || resolvedCompanyName;
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+
+    if (resolvedCompanyId && hasCompanyId) { sets.push(`company_id = $${idx++}`); params.push(resolvedCompanyId); }
+    if (resolvedCompanyName !== undefined) { sets.push(`company_name = $${idx++}`); params.push(resolvedCompanyName); }
+    if (resolvedMatricula !== undefined && hasMatricula) { sets.push(`matricula = $${idx++}`); params.push(resolvedMatricula); }
     if (cnpj !== undefined) { sets.push(`cnpj = $${idx++}`); params.push(cnpj); }
     if (phone !== undefined) { sets.push(`phone = $${idx++}`); params.push(phone); }
     if (onboardingCompleted !== undefined) { sets.push(`onboarding_completed = $${idx++}`); params.push(onboardingCompleted); }
@@ -3739,9 +4442,11 @@ const PORT = process.env.PORT || 3001;
     console.warn('ENV CHECK failed:', e && e.message ? e.message : e);
   }
 
-  // Bind to 0.0.0.0 by default so platforms like Render can detect the open port.
-  // Allow overriding by setting the HOST environment variable if needed.
-  const HOST = process.env.HOST || '0.0.0.0';
+  // Bind to 0.0.0.0 in production so platforms like Render can detect the open port.
+  // In local dev on Windows, defaulting to 127.0.0.1 helps avoid transient port
+  // conflicts due to TIME_WAIT/exclusive bindings.
+  const defaultHost = (process.env.NODE_ENV === 'production') ? '0.0.0.0' : '127.0.0.1';
+  const HOST = process.env.HOST || defaultHost;
 
   // Ensure PORT is a number when possible (some platforms provide it as string)
   const NUM_PORT = Number(process.env.PORT) || PORT;
@@ -3750,7 +4455,7 @@ const PORT = process.env.PORT || 3001;
   // and the normal startup log below.
 
   // Start listening immediately so PaaS port scanners can detect the open port.
-  const server = app.listen(NUM_PORT, HOST, () => {
+  const server = app.listen({ port: NUM_PORT, host: HOST, exclusive: false }, () => {
     console.log(`Parts API listening on http://${HOST}:${NUM_PORT} (pg=${pgClient?true:false})`);
     // server.address() logging removed (cleanup): server is listening
   });

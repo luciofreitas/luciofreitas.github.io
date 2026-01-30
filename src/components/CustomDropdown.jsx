@@ -94,6 +94,18 @@ export default function CustomDropdown({
               // Select all text so typing replaces the current selection
               try { requestAnimationFrame(() => e.target && e.target.select && e.target.select()); } catch (err) {}
             }}
+            onBlur={() => {
+              if (disabled) return;
+              // If custom values are allowed, commit the typed text when leaving the field.
+              // This makes the control behave like an actual combobox (type + tab/click away).
+              if (allowCustomValue) {
+                const typed = String(searchText || '').trim();
+                if (typed) {
+                  onChange(typed);
+                }
+              }
+              closeDropdown();
+            }}
             onChange={(e) => {
               setSearchText(e.target.value);
               if (!open) setOpen(true);

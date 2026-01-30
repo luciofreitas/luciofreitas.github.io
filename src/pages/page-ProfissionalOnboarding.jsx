@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
@@ -20,6 +20,10 @@ export default function ProfissionalOnboarding() {
 
   const [companyName, setCompanyName] = useState(() => (usuarioLogado?.professional?.company_name || ''));
   const [matricula, setMatricula] = useState(() => (usuarioLogado?.professional?.matricula || ''));
+  const [companyId, setCompanyId] = useState(() => (usuarioLogado?.professional?.company_id || ''));
+  const [companies, setCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+  const [companiesError, setCompaniesError] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,6 +31,43 @@ export default function ProfissionalOnboarding() {
     const t = String(usuarioLogado?.accountType || usuarioLogado?.account_type || '').toLowerCase();
     return t === 'professional' || t === 'profissional' || !!usuarioLogado?.professional;
   }, [usuarioLogado]);
+
+  const apiBase = useMemo(() => getApiBase(), []);
+  const usingCompaniesDropdown = useMemo(() => {
+    return !!apiBase;
+  }, [apiBase]);
+
+  const selectedCompany = useMemo(() => {
+    const id = String(companyId || '').trim();
+    if (!id) return null;
+    const list = Array.isArray(companies) ? companies : [];
+    return list.find(c => String(c.id) === id) || null;
+  }, [companyId, companies]);
+
+  useEffect(() => {
+    if (!usingCompaniesDropdown) return;
+    let cancelled = false;
+    (async () => {
+      setCompaniesError('');
+      setCompaniesLoading(true);
+      try {
+        const resp = await fetch(`${apiBase}/api/companies`);
+        const body = await resp.json().catch(() => ({}));
+        if (!resp.ok || !body || body.error) {
+          const msg = body && body.error ? String(body.error) : 'Não foi possível carregar empresas.';
+          if (!cancelled) setCompaniesError(msg);
+          return;
+        }
+        const list = Array.isArray(body.companies) ? body.companies : [];
+        if (!cancelled) setCompanies(list);
+      } catch (e) {
+        if (!cancelled) setCompaniesError(e && e.message ? String(e.message) : 'Erro ao carregar empresas.');
+      } finally {
+        if (!cancelled) setCompaniesLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [usingCompaniesDropdown, apiBase]);
 
   async function handleSave(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
@@ -43,6 +84,11 @@ export default function ProfissionalOnboarding() {
       return;
     }
 
+    if (usingCompaniesDropdown && (!companyId || !String(companyId).trim())) {
+      setError('Selecione uma empresa para concluir o onboarding.');
+      return;
+    }
+
     setLoading(true);
     try {
       const accessToken = usuarioLogado?.access_token || null;
@@ -53,8 +99,10 @@ export default function ProfissionalOnboarding() {
           ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
         },
         body: JSON.stringify({
-          company_name: String(companyName || '').trim() || null,
-          matricula: String(matricula || '').trim() || null,
+          ...(usingCompaniesDropdown
+            ? { company_id: String(companyId || '').trim() || null }
+            : { company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
+          ),
           onboarding_completed: true
         })
       });
@@ -76,8 +124,9 @@ export default function ProfissionalOnboarding() {
           onboarding_completed: true
         } : {
           ...(usuarioLogado?.professional || {}),
-          company_name: String(companyName || '').trim() || null,
-          matricula: String(matricula || '').trim() || null,
+          company_name: usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null),
+          matricula: usingCompaniesDropdown ? null : (String(matricula || '').trim() || null),
+          company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null,
           onboarding_completed: true
         }
       };
@@ -121,15 +170,37 @@ export default function ProfissionalOnboarding() {
 
         <form onSubmit={handleSave} style={{ marginTop: 16, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span style={{ fontSize: 13, color: '#444' }}>Nome da oficina/empresa</span>
-              <input className="input" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Ex.: Auto Center Silva" />
-            </label>
+            {usingCompaniesDropdown ? (
+              <>
+                <label style={{ display: 'grid', gap: 6 }}>
+                  <span style={{ fontSize: 13, color: '#444' }}>Empresa/Oficina</span>
+                  <select className="input" value={companyId} onChange={e => setCompanyId(e.target.value)} disabled={loading || companiesLoading}>
+                    <option value="">{companiesLoading ? 'Carregando empresas...' : 'Selecione a empresa'}</option>
+                    {(Array.isArray(companies) ? companies : []).map(c => (
+                      <option key={c.id} value={c.id}>{String(c.trade_name || c.legal_name || c.company_code || 'Empresa')}</option>
+                    ))}
+                  </select>
+                  {companiesError && <div style={{ color: '#b91c1c', fontSize: 13 }}>{companiesError}</div>}
+                </label>
 
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span style={{ fontSize: 13, color: '#444' }}>Matrícula</span>
-              <input className="input" value={matricula} onChange={e => setMatricula(e.target.value)} placeholder="Ex.: 12345" />
-            </label>
+                <label style={{ display: 'grid', gap: 6 }}>
+                  <span style={{ fontSize: 13, color: '#444' }}>Matrícula</span>
+                  <input className="input" value={matricula || (selectedCompany && (selectedCompany.company_registration_code || selectedCompany.matricula_prefix) ? `${(selectedCompany.company_registration_code || selectedCompany.matricula_prefix)}XXXXXXX` : 'Será gerada automaticamente')} readOnly />
+                </label>
+              </>
+            ) : (
+              <>
+                <label style={{ display: 'grid', gap: 6 }}>
+                  <span style={{ fontSize: 13, color: '#444' }}>Nome da oficina/empresa</span>
+                  <input className="input" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Ex.: Auto Center Silva" />
+                </label>
+
+                <label style={{ display: 'grid', gap: 6 }}>
+                  <span style={{ fontSize: 13, color: '#444' }}>Matrícula</span>
+                  <input className="input" value={matricula} onChange={e => setMatricula(e.target.value)} placeholder="Ex.: 12345" />
+                </label>
+              </>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
