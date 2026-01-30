@@ -39,6 +39,7 @@ export default function BuscarPeca() {
   const [modelos, setModelos] = useState([]);
   const [anos, setAnos] = useState([]);
   const [fabricantes, setFabricantes] = useState([]);
+  const [metaRelationships, setMetaRelationships] = useState({});
   const [pecas, setPecas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -91,6 +92,7 @@ export default function BuscarPeca() {
         setFabricantes(data.fabricantes || []);
         setMotores(data.motores || []);
         setVersoes(data.versoes || []);
+        setMetaRelationships((data && data.relationships && typeof data.relationships === 'object') ? data.relationships : {});
         
         // states initialized from metadata
 
@@ -147,110 +149,82 @@ export default function BuscarPeca() {
   };
 
   const getFilteredFabricantes = () => {
+    const rel = metaRelationships || {};
+    const byGrupo = rel.fabricantesByGrupo || {};
+    const byGrupoPeca = rel.fabricantesByGrupoPeca || {};
+
+    if (selectedGrupo && selectedCategoria) {
+      const key = `${selectedGrupo}||${selectedCategoria}`;
+      const arr = byGrupoPeca[key];
+      if (Array.isArray(arr) && arr.length) return arr;
+    }
+    if (selectedGrupo) {
+      const arr = byGrupo[selectedGrupo];
+      if (Array.isArray(arr) && arr.length) return arr;
+    }
     return Array.isArray(fabricantes) ? fabricantes : [];
   };
 
   const getFilteredMarcas = () => {
+    const rel = metaRelationships || {};
+    const modelsByBrand = rel.modelsByBrand || {};
+    const relBrands = Object.keys(modelsByBrand || {}).filter(Boolean).sort();
+    if (relBrands.length) return relBrands;
     return Array.isArray(marcas) ? marcas : [];
   };
 
   const getFilteredModelos = () => {
-    if (!selectedMarca) return Array.isArray(modelos) ? modelos : [];
-    if (!Array.isArray(todasPecas)) return [];
-    
-    let filtered = todasPecas;
-    if (selectedGrupo) {
-      filtered = filtered.filter(p => p && p.category === selectedGrupo);
-    }
-    
-    const modelosSet = new Set();
-    const marcaLower = selectedMarca.toLowerCase();
-    
-    filtered.forEach(peca => {
-      if (peca && peca.applications && Array.isArray(peca.applications)) {
-        peca.applications.forEach(app => {
-          if (typeof app === 'string') {
-            const parts = app.trim().split(/\s+/);
-            if (parts.length >= 2) {
-              const marca = parts[0].toLowerCase();
-              const modelo = parts[1];
-              // Check if this application matches the selected brand
-              if (marca === marcaLower) {
-                modelosSet.add(modelo);
-              }
-            }
-          } else if (typeof app === 'object' && app.make && app.model) {
-            if (app.make.toLowerCase() === marcaLower) {
-              modelosSet.add(app.model);
-            }
-          }
-        });
+    const rel = metaRelationships || {};
+    const modelsByBrand = rel.modelsByBrand || {};
+    if (selectedMarca && Array.isArray(modelsByBrand[selectedMarca]) && modelsByBrand[selectedMarca].length) {
+      const modelosArray = [...modelsByBrand[selectedMarca]];
+      if (carroSelecionadoId && selectedModelo && !modelosArray.includes(selectedModelo)) {
+        modelosArray.push(selectedModelo);
+        modelosArray.sort();
       }
-    });
-    
-    const modelosArray = Array.from(modelosSet).sort();
-    
-    // Only preserve selected model if user has selected a specific car
-    if (carroSelecionadoId && selectedModelo && !modelosArray.includes(selectedModelo)) {
-      modelosArray.push(selectedModelo);
+      return modelosArray;
     }
-    
-    return modelosArray;
+
+    // Fallback: keep previous behavior (list provided by meta)
+    if (!selectedMarca) return Array.isArray(modelos) ? modelos : [];
+    return Array.isArray(modelos) ? modelos : [];
   };
 
   const getFilteredAnos = () => {
-    if (!selectedMarca && !selectedModelo) return Array.isArray(anos) ? anos : [];
-    if (!Array.isArray(todasPecas)) return [];
-    
-    let filtered = todasPecas;
-    if (selectedGrupo) {
-      filtered = filtered.filter(p => p && p.category === selectedGrupo);
-    }
-    
-    const anosSet = new Set();
-    const marcaLower = selectedMarca?.toLowerCase();
-    const modeloLower = selectedModelo?.toLowerCase();
-    
-    filtered.forEach(peca => {
-      if (peca && peca.applications && Array.isArray(peca.applications)) {
-        peca.applications.forEach(app => {
-          if (typeof app === 'string') {
-            const parts = app.trim().split(/\s+/);
-            if (parts.length >= 2) {
-              const marca = parts[0].toLowerCase();
-              const modelo = parts[1].toLowerCase();
-              
-              const matchesMarca = !marcaLower || marca === marcaLower;
-              const matchesModelo = !modeloLower || modelo === modeloLower;
-              
-              if (matchesMarca && matchesModelo) {
-                // Extract years from application string
-                const yearRegex = /\b(19|20)\d{2}\b/g;
-                const yearMatches = app.match(yearRegex) || [];
-                yearMatches.forEach(year => anosSet.add(year));
-              }
-            }
-          } else if (typeof app === 'object') {
-            const matchesMarca = !marcaLower || (app.make && app.make.toLowerCase() === marcaLower);
-            const matchesModelo = !modeloLower || (app.model && app.model.toLowerCase() === modeloLower);
-            
-            if (matchesMarca && matchesModelo && app.year) {
-              anosSet.add(String(app.year));
-            }
-          }
-        });
+    const rel = metaRelationships || {};
+    const yearsByBrandModel = rel.yearsByBrandModel || {};
+    const modelsByBrand = rel.modelsByBrand || {};
+
+    if (selectedMarca && selectedModelo) {
+      const key = `${selectedMarca}||${selectedModelo}`;
+      const arr = yearsByBrandModel[key];
+      if (Array.isArray(arr) && arr.length) {
+        const anosArray = [...arr];
+        if (carroSelecionadoId && selectedAno && !anosArray.includes(selectedAno)) {
+          anosArray.push(selectedAno);
+          anosArray.sort();
+        }
+        return anosArray;
       }
-    });
-    
-    const anosArray = Array.from(anosSet).sort();
-    
-    // Only preserve selected year if user has selected a specific car
-    if (carroSelecionadoId && selectedAno && !anosArray.includes(selectedAno)) {
-      anosArray.push(selectedAno);
-      anosArray.sort();
     }
-    
-    return anosArray;
+
+    if (selectedMarca && !selectedModelo && Array.isArray(modelsByBrand[selectedMarca])) {
+      const union = new Set();
+      for (const m of modelsByBrand[selectedMarca]) {
+        const key = `${selectedMarca}||${m}`;
+        const ys = yearsByBrandModel[key];
+        if (Array.isArray(ys)) ys.forEach(y => union.add(String(y)));
+      }
+      const anosArray = Array.from(union).filter(Boolean).sort();
+      if (carroSelecionadoId && selectedAno && !anosArray.includes(selectedAno)) {
+        anosArray.push(selectedAno);
+        anosArray.sort();
+      }
+      return anosArray;
+    }
+
+    if (!selectedMarca && !selectedModelo) return Array.isArray(anos) ? anos : [];
+    return Array.isArray(anos) ? anos : [];
   };
 
   const openDrawerCompat = (pecaOrId) => {

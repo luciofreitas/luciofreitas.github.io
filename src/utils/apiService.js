@@ -81,6 +81,23 @@ class ApiService {
     }
   }
 
+  // Build a URL for assets under /public (ex: data/*.json) that works on:
+  // - localhost dev
+  // - GitHub Pages subpaths
+  // - HashRouter routes (pathname stays at the app root)
+  // Avoid using relative URLs like './data/x.json' because they can break
+  // when the app is served from a subpath or the current document isn't '/'.
+  publicAssetUrl(relPath) {
+    try {
+      if (typeof window === 'undefined') return relPath;
+      const clean = String(relPath || '').replace(/^\//, '').replace(/^\.\//, '');
+      const base = `${window.location.origin}${window.location.pathname}`;
+      return new URL(clean, base).toString();
+    } catch (e) {
+      return relPath;
+    }
+  }
+
   isStaticProd() {
     try {
       if (typeof window === 'undefined') return false;
@@ -159,7 +176,7 @@ class ApiService {
       const jsonPath = this.getJsonFallbackPath(apiPath);
       if (jsonPath) {
         try {
-          const response = await fetch(jsonPath);
+          const response = await fetch(this.publicAssetUrl(jsonPath));
           if (response.ok) {
             return await response.json();
           }
@@ -192,7 +209,7 @@ class ApiService {
     try {
       const jsonPath = this.getJsonFallbackPath(apiPath);
       if (jsonPath) {
-        const response = await fetch(jsonPath);
+        const response = await fetch(this.publicAssetUrl(jsonPath));
         if (response.ok) {
           return await response.json();
         }
@@ -208,8 +225,8 @@ class ApiService {
   getJsonFallbackPath(apiPath) {
     const pathMap = {
       '/api/glossario-dashboard': null,
-      '/api/luzes-painel': './data/luzes_painel.json',
-      '/api/pecas/meta': './data/parts_meta.json',
+      '/api/luzes-painel': 'data/luzes_painel.json',
+      '/api/pecas/meta': 'data/parts_meta.json',
     };
     return pathMap[apiPath] || null;
   }
@@ -238,7 +255,7 @@ class ApiService {
 
   async getPecasMeta() {
     const buildMetaFromPartsDb = async () => {
-      const response = await fetch('./data/parts_db.json');
+      const response = await fetch(this.publicAssetUrl('data/parts_db.json'));
       if (!response.ok) throw new Error(`Failed to load /data/parts_db.json: ${response.status}`);
       const partsData = await response.json();
 
@@ -260,27 +277,80 @@ class ApiService {
       const modelos = new Set();
       const anos = new Set();
       const todasMarcasVeiculos = new Set();
+
+      const modelsByBrand = {};
+      const yearsByBrandModel = {};
+      const fabricantesByGrupo = {};
+      const fabricantesByGrupoPeca = {};
+
+      const addToMapSet = (obj, key, value) => {
+        if (!key || !value) return;
+        if (!obj[key]) obj[key] = new Set();
+        obj[key].add(value);
+      };
+
+      const parseAppString = (appStr) => {
+        const s = String(appStr || '').trim();
+        if (!s) return null;
+        const parts = s.split(/\s+/);
+        if (parts.length < 2) return null;
+        const make = parts[0];
+        const model = parts[1];
+        const yearsMatch = s.match(/\b(19|20)\d{2}\b/g) || [];
+        return { make, model, years: yearsMatch };
+      };
       (Array.isArray(partsData) ? partsData : []).forEach(part => {
+        // Manufacturer relationships
+        try {
+          const cat = part && part.category ? String(part.category).trim() : '';
+          const nm = part && part.name ? String(part.name).trim() : '';
+          const mf = part && part.manufacturer ? String(part.manufacturer).trim() : '';
+          if (cat && mf) addToMapSet(fabricantesByGrupo, cat, mf);
+          if (cat && nm && mf) addToMapSet(fabricantesByGrupoPeca, `${cat}||${nm}`, mf);
+        } catch (e) {
+          // ignore
+        }
+
         if (part && part.applications && Array.isArray(part.applications)) {
           part.applications.forEach(app => {
             if (typeof app === 'string') {
-              const parts = app.trim().split(/\s+/);
-              if (parts.length >= 2) {
-                const marca = parts[0];
-                const modelo = parts[1];
-                todasMarcasVeiculos.add(marca);
-                modelos.add(`${marca} ${modelo}`);
-                const yearsMatch = app.match(/\b(19|20)\d{2}\b/g);
-                if (yearsMatch) yearsMatch.forEach(year => anos.add(year));
+              const parsed = parseAppString(app);
+              if (!parsed) return;
+              const marca = parsed.make;
+              const modelo = parsed.model;
+              todasMarcasVeiculos.add(marca);
+              modelos.add(`${marca} ${modelo}`);
+              addToMapSet(modelsByBrand, marca, modelo);
+              if (Array.isArray(parsed.years)) {
+                for (const y of parsed.years) {
+                  if (!y) continue;
+                  anos.add(y);
+                  addToMapSet(yearsByBrandModel, `${marca}||${modelo}`, String(y));
+                }
               }
             } else if (typeof app === 'object') {
               if (app.model) modelos.add(app.model);
               if (app.year) anos.add(app.year);
               if (app.make) todasMarcasVeiculos.add(app.make);
+
+              if (app.make && app.model) {
+                addToMapSet(modelsByBrand, String(app.make), String(app.model));
+                const yr = app.year ? String(app.year) : '';
+                if (yr) addToMapSet(yearsByBrandModel, `${String(app.make)}||${String(app.model)}`, yr);
+              }
             }
           });
         }
       });
+
+      const normalizeSetMap = (obj) => {
+        const out = {};
+        for (const k of Object.keys(obj || {})) {
+          const arr = Array.from(obj[k] || []).filter(Boolean).map(String);
+          out[k] = arr.sort();
+        }
+        return out;
+      };
 
       return {
         grupos,
@@ -290,8 +360,41 @@ class ApiService {
         anos: [...anos].sort(),
         fabricantes,
         motores: [],
-        versoes: []
+        versoes: [],
+        relationships: {
+          modelsByBrand: normalizeSetMap(modelsByBrand),
+          yearsByBrandModel: normalizeSetMap(yearsByBrandModel),
+          fabricantesByGrupo: normalizeSetMap(fabricantesByGrupo),
+          fabricantesByGrupoPeca: normalizeSetMap(fabricantesByGrupoPeca)
+        }
       };
+    };
+
+    const enrichWithLocalRelationships = async (meta) => {
+      try {
+        const hasRels =
+          meta &&
+          meta.relationships &&
+          typeof meta.relationships === 'object' &&
+          meta.relationships.modelsByBrand &&
+          Object.keys(meta.relationships.modelsByBrand || {}).length > 0;
+        if (hasRels) return meta;
+
+        const built = await buildMetaFromPartsDb();
+        const merged = {
+          ...(meta || {}),
+          relationships: built.relationships || {},
+        };
+
+        // If backend/Supabase didn't provide these lists, keep them usable.
+        if (!Array.isArray(merged.marcas) || merged.marcas.length === 0) merged.marcas = built.marcas || [];
+        if (!Array.isArray(merged.modelos) || merged.modelos.length === 0) merged.modelos = built.modelos || [];
+        if (!Array.isArray(merged.anos) || merged.anos.length === 0) merged.anos = built.anos || [];
+
+        return merged;
+      } catch (e) {
+        return meta;
+      }
     };
 
     // Buscar metadados diretamente do backend
@@ -301,7 +404,7 @@ class ApiService {
       const response = await fetch(url);
       if (response.ok) {
         const meta = await response.json();
-        return {
+        const normalized = {
           grupos: meta.grupos || [],
           pecas: meta.pecas || [],
           fabricantes: meta.fabricantes || [],
@@ -310,7 +413,17 @@ class ApiService {
           anos: meta.anos || [],
           motores: meta.motores || [],
           versoes: meta.versoes || [],
+          relationships: meta.relationships || undefined,
         };
+
+        // If backend is reachable but doesn't have parts data populated yet,
+        // don't block the UI: fall back to Supabase/local JSON.
+        const hasAny =
+          (Array.isArray(normalized.grupos) && normalized.grupos.length > 0) ||
+          (Array.isArray(normalized.pecas) && normalized.pecas.length > 0) ||
+          (Array.isArray(normalized.fabricantes) && normalized.fabricantes.length > 0);
+
+        if (hasAny) return await enrichWithLocalRelationships(normalized);
       }
     } catch (e) {
       // fallback para Supabase/local se necessário
@@ -365,7 +478,32 @@ class ApiService {
               // ignore (columns might not exist)
             }
 
-            return {
+            // Basic relationships we can infer without applications
+            const fabricantesByGrupo = {};
+            const fabricantesByGrupoPeca = {};
+            const addToMapSet = (obj, key, value) => {
+              if (!key || !value) return;
+              if (!obj[key]) obj[key] = new Set();
+              obj[key].add(value);
+            };
+
+            for (const p of (Array.isArray(partsData) ? partsData : [])) {
+              const cat = p && p.category ? String(p.category).trim() : '';
+              const nm = p && p.name ? String(p.name).trim() : '';
+              const mf = p && p.manufacturer ? String(p.manufacturer).trim() : '';
+              if (cat && mf) addToMapSet(fabricantesByGrupo, cat, mf);
+              if (cat && nm && mf) addToMapSet(fabricantesByGrupoPeca, `${cat}||${nm}`, mf);
+            }
+
+            const normalizeSetMap = (obj) => {
+              const out = {};
+              for (const k of Object.keys(obj || {})) {
+                out[k] = Array.from(obj[k] || []).filter(Boolean).map(String).sort();
+              }
+              return out;
+            };
+
+            const result = {
               grupos: [...new Set(partsData.map(p => p.category).filter(Boolean))].sort(),
               // Keep category for filtering "Peça" by "Grupo" in the UI
               pecas: partsData.filter(p => p && p.name && p.category).map(p => ({
@@ -378,8 +516,16 @@ class ApiService {
               modelos: [],
               anos: [],
               motores,
-              versoes
+              versoes,
+              relationships: {
+                modelsByBrand: {},
+                yearsByBrandModel: {},
+                fabricantesByGrupo: normalizeSetMap(fabricantesByGrupo),
+                fabricantesByGrupoPeca: normalizeSetMap(fabricantesByGrupoPeca)
+              }
             };
+
+            return await enrichWithLocalRelationships(result);
           }
           if (error) console.warn('Supabase returned error for parts:', error);
         } catch (err) {
@@ -582,7 +728,7 @@ class ApiService {
     }
     // Fallback: filter local data
     try {
-      const response = await fetch('./data/parts_db.json');
+      const response = await fetch(this.publicAssetUrl('data/parts_db.json'));
   if (response.ok) {
   const partsData = await response.json();
   let filtered = partsData;
@@ -688,7 +834,7 @@ class ApiService {
     // Fallback: find in local detailed data first, then basic data
       try {
         // Try detailed data first
-        const detailedResponse = await fetch('./data/parts_detailed.json');
+        const detailedResponse = await fetch(this.publicAssetUrl('data/parts_detailed.json'));
         if (detailedResponse.ok) {
         const detailedData = await detailedResponse.json();
         const detailedPiece = detailedData.find(p => {
@@ -699,7 +845,7 @@ class ApiService {
       }
       
       // Fallback to basic data if not found in detailed
-      const response = await fetch('./data/parts_db.json');
+      const response = await fetch(this.publicAssetUrl('data/parts_db.json'));
       if (response.ok) {
   const partsData = await response.json();
   const piece = partsData.find(p => p.id === id || p.id === parseInt(id) || p.id === String(id));
