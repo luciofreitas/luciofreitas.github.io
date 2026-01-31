@@ -51,11 +51,23 @@ class ApiService {
       if (isLikelyDevHostname(window.location.hostname)) {
         return `${window.location.protocol}//${window.location.hostname}:3001`;
       }
-      if (window.__API_BASE) return window.__API_BASE;
-    // Avoid using import.meta.env here to prevent Vite from inlining a build-time
-    // value (like a localhost fallback) into the production bundle. If no
-    // runtime injector is present, return empty and let callers handle fallbacks.
-    return '';
+
+      // Prefer explicit runtime injection.
+      if (window.__API_BASE) return String(window.__API_BASE).trim().replace(/\/+$/, '');
+
+      // If runtime config was loaded (src/runtimeConfig.js), prefer it.
+      if (window.__RUNTIME_CONFIG__ && window.__RUNTIME_CONFIG__.API_URL) {
+        return String(window.__RUNTIME_CONFIG__.API_URL).trim().replace(/\/+$/, '');
+      }
+
+      // Safe default: assume same-origin API (e.g. Vercel/Netlify functions or a
+      // backend reverse-proxied behind the same host). On truly static hosts this
+      // will 404 and callers can fall back.
+      try {
+        return String(window.location.origin || '').trim().replace(/\/+$/, '');
+      } catch (e) {
+        return '';
+      }
     };
 
     // Ensure instance methods keep `this` even when passed as callbacks.
@@ -103,11 +115,17 @@ class ApiService {
       if (typeof window === 'undefined') return false;
       const host = window.location && window.location.hostname ? window.location.hostname : '';
       if (isLikelyDevHostname(host)) return false;
+
+      // If any backend base was configured, we should not treat the app as "static".
+      const hasBackendBase = !!(
+        (typeof window !== 'undefined' && window.__API_BASE) ||
+        (typeof window !== 'undefined' && window.__RUNTIME_CONFIG__ && window.__RUNTIME_CONFIG__.API_URL)
+      );
+      if (hasBackendBase) return false;
+
       return (
         host.endsWith('github.io') ||
-        host === 'garagemsmart.com.br' ||
-        host.endsWith('vercel.app') ||
-        host.endsWith('onrender.com')
+        host === 'garagemsmart.com.br'
       );
     } catch (e) {
       return false;
@@ -117,7 +135,10 @@ class ApiService {
   async suggestFiltersAI({ query, context } = {}) {
     const q = String(query || '').trim();
 
-    // In static production builds, the backend may not be reachable.
+    const base = this.getBaseUrl ? this.getBaseUrl() : '';
+
+    // In truly static builds (e.g. GitHub Pages) there is no backend.
+    // Avoid a network round-trip and show a clear message.
     if (this.isStaticProd()) {
       return {
         filters: {},
@@ -126,11 +147,10 @@ class ApiService {
       };
     }
 
-    const base = this.getBaseUrl ? this.getBaseUrl() : '';
     if (!base) {
       return {
         filters: {},
-        questions: ['Backend não detectado. Inicie o servidor para usar a sugestão por IA.'],
+        questions: ['Backend não detectado. Configure a URL da API para usar a sugestão por IA.'],
         confidence: 0
       };
     }
@@ -160,19 +180,8 @@ class ApiService {
   }
 
   async fetchWithFallback(apiPath, fallbackData = null) {
-    // Detecta produção estática (ex: GitHub Pages, Vercel, etc.)
-    const isStaticProd =
-      typeof window !== 'undefined' &&
-      !isLikelyDevHostname(window.location.hostname) &&
-      (
-        window.location.hostname.endsWith('github.io') ||
-        window.location.hostname === 'garagemsmart.com.br' ||
-        window.location.hostname.endsWith('vercel.app') ||
-        window.location.hostname.endsWith('onrender.com')
-      );
-
-    // Se for produção estática, sempre usa fallback JSON local
-    if (isStaticProd) {
+    // Se for produção realmente estática (ex: GitHub Pages), sempre usa fallback JSON local
+    if (this.isStaticProd()) {
       const jsonPath = this.getJsonFallbackPath(apiPath);
       if (jsonPath) {
         try {
@@ -190,7 +199,7 @@ class ApiService {
     }
 
     // Try API first (backend quando disponível)
-    const fullUrl = this.getBaseUrl() + apiPath;
+    const fullUrl = (this.getBaseUrl ? this.getBaseUrl() : '') + apiPath;
     try {
       const response = await fetch(fullUrl);
       if (response.ok) {
