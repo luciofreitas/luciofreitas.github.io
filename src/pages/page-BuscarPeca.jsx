@@ -363,6 +363,19 @@ export default function BuscarPeca() {
       const hasStructural = Boolean(nextGrupo || nextCategoria || nextFabricante);
       const qs = Array.isArray(result?.questions) ? result.questions : [];
 
+      // If AI returned only an informational message (no filters), show it as a friendly notice
+      // instead of listing it under "Perguntas rápidas".
+      const hasAnySuggested = suggested && typeof suggested === 'object' && Object.keys(suggested).some(k => {
+        const v = suggested[k];
+        return v !== undefined && v !== null && String(v).trim() !== '';
+      });
+      const isInfoOnly = !hasStructural && !hasAnySuggested && qs.length === 1 && Number(result?.confidence || 0) === 0;
+      if (isInfoOnly) {
+        setAiError(String(qs[0] || '').trim());
+        setAiQuestions([]);
+        return;
+      }
+
       // Always show backend follow-up questions (if any), even when we can run a search.
       if (qs.length) setAiQuestions(qs);
       if (!hasStructural) {

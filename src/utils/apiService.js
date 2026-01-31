@@ -142,7 +142,7 @@ class ApiService {
     if (this.isStaticProd()) {
       return {
         filters: {},
-        questions: ['Sugestão por IA requer o backend ativo (não disponível nesta versão estática).'],
+        questions: ['A sugestão por IA não está disponível neste modo do site.'],
         confidence: 0
       };
     }
@@ -150,7 +150,7 @@ class ApiService {
     if (!base) {
       return {
         filters: {},
-        questions: ['Backend não detectado. Configure a URL da API para usar a sugestão por IA.'],
+        questions: ['Não consegui conectar ao serviço de sugestão. Tente novamente em instantes.'],
         confidence: 0
       };
     }
@@ -171,9 +171,22 @@ class ApiService {
       return data || { filters: {}, questions: [], confidence: 0 };
     } catch (e) {
       console.warn('[apiService] suggestFiltersAI failed:', e && e.message ? e.message : e);
+
+      const rawMsg = String((e && e.message) ? e.message : e || '').toLowerCase();
+      const looksLikeNetwork =
+        rawMsg.includes('failed to fetch') ||
+        rawMsg.includes('networkerror') ||
+        rawMsg.includes('load failed') ||
+        rawMsg.includes('fetch') ||
+        rawMsg.includes('timeout');
+
       return {
         filters: {},
-        questions: ['Não foi possível acessar a IA agora. Verifique se o backend está rodando.'],
+        questions: [
+          looksLikeNetwork
+            ? 'Sem conexão com o serviço de sugestão agora. Verifique sua internet e tente novamente.'
+            : 'O serviço de sugestão está temporariamente indisponível. Tente novamente mais tarde.'
+        ],
         confidence: 0
       };
     }
