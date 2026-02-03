@@ -5,6 +5,11 @@ node_modules/
 dist/
 backend/node_modules/
 
+# Python cache / bytecode
+__pycache__/
+*.pyc
+*.pyo
+
 # Environment files (do not commit secrets)
 .env
 .env.local
