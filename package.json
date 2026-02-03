@@ -16,9 +16,7 @@
     "postbuild": "node scripts/copy-static.js",
     "generate-barrel": "node scripts/generate-components-index.js",
     "deploy": "npm run build && node scripts/deploy-to-master.js",
-    "sync-parts": "node scripts/sync-parts-from-supabase.js",
-    "test-db": "node scripts/test-db.js",
-    "seed": "node scripts/seed.js"
+    "sync-parts": "node scripts/sync-parts-from-supabase.js"
   },
   "engines": {
     "node": ">=22.16.0 <23",

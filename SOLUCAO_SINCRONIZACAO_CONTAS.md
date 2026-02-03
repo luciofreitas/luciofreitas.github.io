@@ -10,21 +10,12 @@ O usuário reportou que ao fazer login com Gmail, os carros cadastrados aparecem
 
 ## Soluções Implementadas
 
-### 1. Script de Migração de Dados (`migrate_duplicate_cars.js`)
+### 1. Migração de Dados (Automática)
 
-**Localização**: `backend/scripts/migrate_duplicate_cars.js`
+Anteriormente existia um script manual (`backend/scripts/migrate_duplicate_cars.js`) para migrar carros entre contas duplicadas.
+Esse script foi removido na limpeza do repositório.
 
-**Funcionalidade**:
-- Identifica usuários duplicados com o mesmo email
-- Migra todos os carros da conta OAuth para a conta de senha (conta principal)
-- Define a conta de senha como principal e vincula o `auth_id` OAuth
-- Remove contas duplicadas vazias automaticamente
-
-**Como usar**:
-```bash
-cd backend
-node scripts/migrate_duplicate_cars.js
-```
+Hoje a migração é feita automaticamente durante o login, pelos fluxos descritos abaixo.
 
 ### 2. Auto-Vinculação Durante Login com Senha
 
@@ -75,12 +66,11 @@ node scripts/migrate_duplicate_cars.js
 4. Remove conta senha vazia
 5. **Resultado**: Uma única conta OAuth com todos os dados
 
-### Cenário 3: Dados Existentes (Script de Migração)
-1. Executa script de migração
-2. Identifica todas as duplicatas por email
-3. Prioriza conta OAuth se existir, senão conta mais antiga
-4. Migra todos os carros para conta principal
-5. **Resultado**: Dados históricos consolidados
+### Cenário 3: Dados Existentes (Migração Automática)
+1. Usuário faz login (senha ou Google)
+2. Sistema detecta duplicatas por email
+3. Migra os carros para a conta principal conforme regras do fluxo
+4. **Resultado**: Dados históricos consolidados
 
 ## Segurança
 
@@ -119,5 +109,4 @@ Para validar que a solução está funcionando:
 
 Se necessário reverter:
 1. As funções de auto-link podem ser comentadas
-2. O script de migração gera logs detalhados para auditoria
-3. Dados originais são preservados durante migração
+2. Dados originais são preservados durante migração
