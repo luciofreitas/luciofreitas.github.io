@@ -360,15 +360,66 @@ const csvData = {
 const legacySessions = new Map();
 const LEGACY_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-function createLegacySession(userId) {
+function base64UrlEncode(bufOrStr) {
   try {
-    const crypto = require('crypto');
+    const b = Buffer.isBuffer(bufOrStr) ? bufOrStr : Buffer.from(String(bufOrStr || ''), 'utf8');
+    return b.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  } catch (e) {
+    return '';
+  }
+}
+
+function base64UrlDecodeToString(b64url) {
+  try {
+    const s = String(b64url || '').replace(/-/g, '+').replace(/_/g, '/');
+    const pad = s.length % 4 ? '='.repeat(4 - (s.length % 4)) : '';
+    return Buffer.from(s + pad, 'base64').toString('utf8');
+  } catch (e) {
+    return '';
+  }
+}
+
+function getLegacySessionSecret() {
+  // Prefer a dedicated secret; fall back to SUPABASE_SERVICE_ROLE_KEY when present
+  // so legacy sessions survive restarts in typical deployments.
+  const s = process.env.LEGACY_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const v = String(s || '').trim();
+  return v.length >= 16 ? v : null;
+}
+
+function signLegacySessionPayload(payloadB64) {
+  const secret = getLegacySessionSecret();
+  if (!secret) return null;
+  try {
+    return base64UrlEncode(crypto.createHmac('sha256', secret).update(String(payloadB64)).digest());
+  } catch (e) {
+    return null;
+  }
+}
+
+function createLegacySession(userId) {
+  const uid = String(userId || '').trim();
+  if (!uid) return null;
+  const exp = Date.now() + LEGACY_SESSION_TTL_MS;
+
+  // Prefer stateless signed tokens so they survive process restarts.
+  // Format: gs_<base64url(json_payload)>.<base64url(hmac_sha256(payloadB64))>
+  const secret = getLegacySessionSecret();
+  if (secret) {
+    const payload = { uid, exp, v: 1 };
+    const payloadB64 = base64UrlEncode(JSON.stringify(payload));
+    const sigB64 = signLegacySessionPayload(payloadB64);
+    if (payloadB64 && sigB64) return `gs_${payloadB64}.${sigB64}`;
+  }
+
+  // Fallback: in-memory random token (will NOT survive restarts).
+  try {
     const token = `gs_${crypto.randomBytes(24).toString('hex')}`;
-    legacySessions.set(token, { userId: String(userId), expiresAtMs: Date.now() + LEGACY_SESSION_TTL_MS });
+    legacySessions.set(token, { userId: uid, expiresAtMs: exp });
     return token;
   } catch (e) {
     const token = `gs_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    legacySessions.set(token, { userId: String(userId), expiresAtMs: Date.now() + LEGACY_SESSION_TTL_MS });
+    legacySessions.set(token, { userId: uid, expiresAtMs: exp });
     return token;
   }
 }
@@ -378,6 +429,37 @@ function getLegacySessionUserIdFromReq(req) {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
     if (!token || typeof token !== 'string' || !token.startsWith('gs_')) return null;
+
+    // Signed (stateless) legacy token: gs_<payload>.<sig>
+    // This survives restarts.
+    if (token.includes('.')) {
+      const secret = getLegacySessionSecret();
+      if (!secret) return null;
+      const stripped = token.slice(3); // remove "gs_"
+      const parts = stripped.split('.');
+      if (parts.length !== 2) return null;
+      const payloadB64 = parts[0];
+      const sigB64 = parts[1];
+      const expected = signLegacySessionPayload(payloadB64);
+      if (!expected) return null;
+      try {
+        const a = Buffer.from(String(expected));
+        const b = Buffer.from(String(sigB64));
+        if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+      } catch (e) {
+        // fallback string compare
+        if (String(expected) !== String(sigB64)) return null;
+      }
+      const payloadJson = base64UrlDecodeToString(payloadB64);
+      if (!payloadJson) return null;
+      let payload;
+      try { payload = JSON.parse(payloadJson); } catch (e) { payload = null; }
+      if (!payload || !payload.uid || !payload.exp) return null;
+      const exp = Number(payload.exp);
+      if (!Number.isFinite(exp) || exp < Date.now()) return null;
+      return String(payload.uid);
+    }
+
     const s = legacySessions.get(token);
     if (!s) return null;
     if (!s.expiresAtMs || s.expiresAtMs < Date.now()) {
@@ -4989,6 +5071,28 @@ const PORT = process.env.PORT || 3001;
   const server = app.listen({ port: NUM_PORT, host: HOST, exclusive: false }, () => {
     console.log(`Parts API listening on http://${HOST}:${NUM_PORT} (pg=${pgClient?true:false})`);
     // server.address() logging removed (cleanup): server is listening
+  });
+
+  // Avoid crashing with an unhandled 'error' event (common in dev when a previous
+  // Node process is still holding the port).
+  server.on('error', (err) => {
+    try {
+      if (err && err.code === 'EADDRINUSE') {
+        console.error(`[startup] Port already in use: ${HOST}:${NUM_PORT}`);
+        console.error('[startup] Close the process using this port, or start with a different PORT.');
+        console.error('[startup] Windows quick check:');
+        console.error('  netstat -ano | findstr ":' + NUM_PORT + '"');
+        console.error('  Get-Process -Id <PID>');
+        console.error('  Stop-Process -Id <PID> -Force');
+        console.error('[startup] Or: set PORT=3002 (PowerShell: $env:PORT=3002) then run again.');
+        process.exit(1);
+        return;
+      }
+      console.error('[startup] Server error:', err && err.stack ? err.stack : err);
+    } catch (e) {
+      console.error('[startup] Server error (logging failed).');
+    }
+    process.exit(1);
   });
 
   // Connect to Postgres without blocking server startup. If Postgres is unreachable

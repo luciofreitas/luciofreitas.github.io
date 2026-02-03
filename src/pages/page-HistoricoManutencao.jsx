@@ -56,6 +56,19 @@ export default function HistoricoManutencao() {
   const [officeError, setOfficeError] = useState('');
   const [officeClientFilter, setOfficeClientFilter] = useState('all');
 
+  const officeErrorLabel = useMemo(() => {
+    const s = String(officeError || '').trim();
+    if (!s) return '';
+    const low = s.toLowerCase();
+    if (low === 'not authenticated' || low.includes('not authenticated') || low.includes('não autentic')) {
+      return 'Sessão expirada para o histórico da oficina. Faça login novamente.';
+    }
+    if (low.includes('token') && low.includes('missing')) {
+      return 'Sessão não autenticada. Faça login novamente para ver o histórico da oficina.';
+    }
+    return s;
+  }, [officeError]);
+
   const [companies, setCompanies] = useState([]);
   const [companiesLoading, setCompaniesLoading] = useState(false);
   const [companiesError, setCompaniesError] = useState('');
@@ -64,6 +77,8 @@ export default function HistoricoManutencao() {
   const [carros, setCarros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailsMaintenance, setDetailsMaintenance] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [filtroVeiculo, setFiltroVeiculo] = useState('todos');
   const [carroSelecionadoHelper, setCarroSelecionadoHelper] = useState('');
@@ -517,10 +532,20 @@ export default function HistoricoManutencao() {
 
   const formatManutencaoDate = (manutencao) => {
     // Prefer explicit data field, then createdAt, then fallback to now
-    const raw = manutencao && (manutencao.data || manutencao.createdAt || manutencao.createdAt) || '';
+    const raw = manutencao && (manutencao.data || manutencao.createdAt || manutencao.created_at) || '';
     const d = raw ? new Date(raw) : new Date();
     if (isNaN(d.getTime())) return new Date().toLocaleDateString('pt-BR');
     return d.toLocaleDateString('pt-BR');
+  };
+
+  const openDetails = (m) => {
+    setDetailsMaintenance(m || null);
+    setShowDetailsModal(true);
+  };
+
+  const closeDetails = () => {
+    setShowDetailsModal(false);
+    setDetailsMaintenance(null);
   };
 
   const manutencoesFiltered = filtroVeiculo === 'todos' 
@@ -568,6 +593,7 @@ export default function HistoricoManutencao() {
   const handlePrintComprovante = (opts = {}) => {
     try {
       const list = Array.isArray(opts.maintenances) ? opts.maintenances : manutencoesSorted;
+      const isDetailedSingle = !!(opts && opts.detailed) && Array.isArray(list) && list.length === 1;
 
       const escapeHtml = (v) => String(v ?? '')
         .replace(/&/g, '&amp;')
@@ -600,6 +626,12 @@ export default function HistoricoManutencao() {
           .replace(/,/g, '.');
         const n = Number(normalized);
         return Number.isFinite(n) ? n : 0;
+      };
+
+      const formatMoneyLabel = (raw) => {
+        const n = parseMoney(raw);
+        if (!n) return '';
+        return `R$ ${n.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
       };
 
       const getRawDateForSort = (m) => (m && (m.data || m.createdAt || m.created_at)) || null;
@@ -636,9 +668,7 @@ export default function HistoricoManutencao() {
 
       const rowsHtml = (list || []).map((m) => {
         const tipo = m?.tipo === 'preventiva' ? 'Preventiva' : (m?.tipo === 'corretiva' ? 'Corretiva' : 'Outro');
-        const valor = (m?.valor != null && String(m.valor).trim() !== '')
-          ? `R$ ${Number(m.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-          : '';
+        const valor = formatMoneyLabel(m?.valor);
         const km = (m?.kmAtual != null && String(m.kmAtual).trim() !== '')
           ? `${parseInt(m.kmAtual, 10).toLocaleString('pt-BR')} km`
           : '';
@@ -661,6 +691,46 @@ export default function HistoricoManutencao() {
           Nenhuma manutenção registrada para o filtro selecionado.
         </div>
       `;
+
+      const detailsHtml = (() => {
+        if (!isDetailedSingle) return '';
+        const m = list[0] || {};
+
+        const tipo = m?.tipo === 'preventiva' ? 'Preventiva'
+          : (m?.tipo === 'corretiva' ? 'Corretiva'
+            : (m?.tipo ? String(m.tipo) : '—'));
+
+        const codigo = m?.codigoProduto || m?.codigo_produto || '';
+        const km = m?.kmAtual || m?.km_atual || '';
+        const valor = formatMoneyLabel(m?.valor) || '—';
+        const obs = m?.observacoes || '';
+
+        const clientLabel = (() => {
+          // Office view prints may include user_email/user_name
+          const name = String(m?.user_name || '').trim();
+          const email = String(m?.user_email || '').trim();
+          if (name && email) return `${name} (${email})`;
+          if (email) return email;
+          return userLabel;
+        })();
+
+        return `
+          <div class="box" style="margin-top: 12px;">
+            <div class="grid">
+              <div><span class="k">Cliente:</span> ${escapeHtml(clientLabel || '—')}</div>
+              <div><span class="k">Data:</span> ${escapeHtml(formatManutencaoDate(m))}</div>
+              <div><span class="k">Veículo:</span> ${escapeHtml(getMaintenanceVehicleLabel(m))}</div>
+              <div><span class="k">Tipo:</span> ${escapeHtml(tipo)}</div>
+              <div style="grid-column: 1 / -1;"><span class="k">Descrição:</span> ${escapeHtml(m?.descricao || '—')}</div>
+              <div><span class="k">Código do produto:</span> ${escapeHtml(codigo || '—')}</div>
+              <div><span class="k">Quilometragem:</span> ${escapeHtml(km || '—')}</div>
+              <div><span class="k">Oficina:</span> ${escapeHtml(m?.oficina || '—')}</div>
+              <div><span class="k">Valor:</span> ${escapeHtml(valor)}</div>
+              <div style="grid-column: 1 / -1;"><span class="k">Observações:</span> ${escapeHtml(obs || '—')}</div>
+            </div>
+          </div>
+        `;
+      })();
 
       const html = `<!doctype html>
 <html lang="pt-BR">
@@ -746,24 +816,26 @@ export default function HistoricoManutencao() {
         </div>
       </div>
 
-      ${rowsHtml ? `
-        <table>
-          <thead>
-            <tr>
-              <th style="width:78px">Data</th>
-              <th style="width:170px">Veículo</th>
-              <th style="width:80px">Tipo</th>
-              <th>Descrição</th>
-              <th style="width:84px">KM</th>
-              <th style="width:130px">Oficina</th>
-              <th style="width:84px; text-align:right">Valor</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      ` : emptyHtml}
+      ${isDetailedSingle
+        ? detailsHtml
+        : (rowsHtml ? `
+          <table>
+            <thead>
+              <tr>
+                <th style="width:78px">Data</th>
+                <th style="width:170px">Veículo</th>
+                <th style="width:80px">Tipo</th>
+                <th>Descrição</th>
+                <th style="width:84px">KM</th>
+                <th style="width:130px">Oficina</th>
+                <th style="width:84px; text-align:right">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        ` : emptyHtml)}
 
       <div class="signatures">
         <div class="sig">
@@ -782,25 +854,56 @@ export default function HistoricoManutencao() {
         Documento gerado pelo Garagem Smart. As informações deste comprovante refletem os registros cadastrados no histórico de manutenção na data de emissão.
         Recomenda-se anexar notas fiscais e ordens de serviço quando aplicável.
       </div>
-
-      <script>
-        window.onload = function(){
-          try { window.focus(); } catch(e) {}
-          try { window.print(); } catch(e) {}
-        };
-      </script>
     </div>
   </body>
 </html>`;
 
-      const w = window.open('', '_blank', 'noopener,noreferrer,width=980,height=720');
+      // IMPORTANT: avoid noopener/noreferrer here. Some Chrome setups return a Window
+      // reference that cannot be written to, resulting in a blank popup.
+      const w = window.open('about:blank', '_blank', 'width=980,height=720');
       if (!w) {
         alert('Não foi possível abrir a janela de impressão. Verifique se o navegador bloqueou pop-ups.');
         return;
       }
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
+
+      let wroteOk = false;
+      try {
+        w.document.open('text/html', 'replace');
+        w.document.write(html);
+        w.document.close();
+        wroteOk = true;
+      } catch (err) {
+        console.error('Falha ao escrever HTML no popup de impressão:', err);
+      }
+
+      // Fallback: if some browser/extension prevents document.write, load the HTML
+      // through a blob URL.
+      if (!wroteOk) {
+        try {
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+          const blobUrl = URL.createObjectURL(blob);
+          try { w.location.replace(blobUrl); } catch (e) { w.location.href = blobUrl; }
+          setTimeout(() => {
+            try { URL.revokeObjectURL(blobUrl); } catch (e) {}
+          }, 120000);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // Try to auto-open the print dialog shortly after the document is ready.
+      // If the browser blocks it, the user can still print via Ctrl+P.
+      try {
+        const tryPrint = () => {
+          try { w.focus(); } catch (e) {}
+          try { w.print(); } catch (e) {}
+        };
+        // onload is best-effort; also call with a short delay as a fallback.
+        try { w.onload = tryPrint; } catch (e) {}
+        setTimeout(tryPrint, 450);
+      } catch (e) {
+        // ignore
+      }
     } catch (e) {
       console.error('Erro ao gerar comprovante para impressão:', e);
       alert('Erro ao gerar o comprovante.');
@@ -882,26 +985,13 @@ export default function HistoricoManutencao() {
                 </div>
 
                 <div className="historico-actions-right">
-                  <button
-                    type="button"
-                    className="historico-print-btn"
-                    onClick={() => handlePrintComprovante({
-                      maintenances: officeMaintenancesFilteredSorted,
-                      userLabelOverride: selectedOfficeClientLabel,
-                      filterLabelOverride: 'Histórico da oficina'
-                    })}
-                    disabled={officeLoading || officeMaintenancesFilteredSorted.length === 0}
-                    title="Imprimir comprovante do histórico da oficina"
-                  >
-                    🖨️ Imprimir comprovante
-                  </button>
                 </div>
               </div>
 
               {officeLoading ? (
                 <div className="historico-loading"><p>Carregando histórico da oficina...</p></div>
               ) : officeError ? (
-                <div className="historico-empty"><p>{officeError}</p></div>
+                <div className="historico-empty"><p>{officeErrorLabel}</p></div>
               ) : officeMaintenancesFilteredSorted.length === 0 ? (
                 <div className="historico-empty">
                   <p>Nenhuma manutenção encontrada para sua oficina.</p>
@@ -960,6 +1050,17 @@ export default function HistoricoManutencao() {
                           </div>
                         )}
                       </div>
+
+                      <div className="historico-card-actions">
+                        <button
+                          type="button"
+                          className="historico-view-btn"
+                          onClick={() => openDetails(m)}
+                          title="Abrir registro completo (somente leitura)"
+                        >
+                          Ver completo
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1003,17 +1104,6 @@ export default function HistoricoManutencao() {
                 </div>
 
                 <div className="historico-actions-right">
-                  {isProfessional && (
-                    <button
-                      type="button"
-                      className="historico-print-btn"
-                      onClick={() => handlePrintComprovante()}
-                      title="Imprimir um comprovante do histórico de manutenção (somente conta profissional)"
-                    >
-                      🖨️ Imprimir comprovante
-                    </button>
-                  )}
-
                   <button 
                       className="historico-add-btn"
                       onClick={() => {
@@ -1379,6 +1469,92 @@ export default function HistoricoManutencao() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {showDetailsModal && (
+            <div className="historico-modal-overlay" onClick={closeDetails}>
+              <div className="historico-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="historico-modal-header">
+                  <h3>Registro completo (somente leitura)</h3>
+                  <button
+                    className="historico-modal-close"
+                    onClick={closeDetails}
+                    aria-label="Fechar"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="historico-details">
+                  {detailsMaintenance ? (
+                    <div className="historico-details-grid">
+                      <div className="historico-details-item">
+                        <div className="k">Cliente</div>
+                        <div className="v">
+                          {String(detailsMaintenance.user_name || '').trim()
+                            ? `${detailsMaintenance.user_name} (${detailsMaintenance.user_email || ''})`
+                            : (detailsMaintenance.user_email || '—')}
+                        </div>
+                      </div>
+                      <div className="historico-details-item">
+                        <div className="k">Data</div>
+                        <div className="v">{formatManutencaoDate(detailsMaintenance)}</div>
+                      </div>
+                      <div className="historico-details-item">
+                        <div className="k">Veículo</div>
+                        <div className="v">{getMaintenanceVehicleLabel(detailsMaintenance)}</div>
+                      </div>
+                      <div className="historico-details-item">
+                        <div className="k">Tipo</div>
+                        <div className="v">
+                          {detailsMaintenance.tipo === 'preventiva' ? 'Preventiva'
+                            : detailsMaintenance.tipo === 'corretiva' ? 'Corretiva'
+                              : (detailsMaintenance.tipo ? String(detailsMaintenance.tipo) : '—')}
+                        </div>
+                      </div>
+                      <div className="historico-details-item historico-details-item-full">
+                        <div className="k">Descrição</div>
+                        <div className="v">{detailsMaintenance.descricao || '—'}</div>
+                      </div>
+                      <div className="historico-details-item">
+                        <div className="k">Código do produto</div>
+                        <div className="v">{detailsMaintenance.codigoProduto || detailsMaintenance.codigo_produto || '—'}</div>
+                      </div>
+                      <div className="historico-details-item">
+                        <div className="k">Quilometragem</div>
+                        <div className="v">{detailsMaintenance.kmAtual || detailsMaintenance.km_atual || '—'}</div>
+                      </div>
+                      <div className="historico-details-item">
+                        <div className="k">Oficina</div>
+                        <div className="v">{detailsMaintenance.oficina || '—'}</div>
+                      </div>
+                      <div className="historico-details-item">
+                        <div className="k">Valor</div>
+                        <div className="v">{detailsMaintenance.valor != null && String(detailsMaintenance.valor).trim() !== '' ? `R$ ${Number(detailsMaintenance.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}</div>
+                      </div>
+                      <div className="historico-details-item historico-details-item-full">
+                        <div className="k">Observações</div>
+                        <div className="v">{detailsMaintenance.observacoes || '—'}</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ padding: '1.25rem' }}>Registro não encontrado.</div>
+                  )}
+
+                  <div className="historico-details-actions">
+                    <button type="button" className="historico-print-btn" onClick={() => handlePrintComprovante({
+                      maintenances: detailsMaintenance ? [detailsMaintenance] : [],
+                      userLabelOverride: selectedOfficeClientLabel,
+                      filterLabelOverride: 'Registro individual (oficina)',
+                      detailed: true
+                    })}>
+                      🖨️ Imprimir este registro
+                    </button>
+                    <button type="button" className="historico-view-btn" onClick={closeDetails}>Fechar</button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
