@@ -1,21 +1,12 @@
 import React, { useMemo, useState, useEffect, useContext } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Menu, ToggleCar } from '../components';
 import { AuthContext } from '../App';
-// Mercado Livre integration disabled for now.
-// Kept commented so it can be re-enabled later.
-// import * as mlService from '../services/mlService';
 import '../styles/pages/page-Configuracoes.css';
 
 export default function PageConfiguracoes() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { usuarioLogado: user, setUsuarioLogado } = useContext(AuthContext) || {};
-  // Mercado Livre integration disabled: keep state placeholders so the old UI/code can be restored.
-  const ML_INTEGRATION_ENABLED = false;
-  const [mlStatus, setMlStatus] = useState({ connected: false, expired: false, disabled: true });
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [profileNome, setProfileNome] = useState('');
   const [profileTelefone, setProfileTelefone] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
@@ -106,56 +97,6 @@ export default function PageConfiguracoes() {
     setProfileNome(String(nome || ''));
     setProfileTelefone(String(telefone || ''));
   }, [user?.id]);
-
-  useEffect(() => {
-    // Mercado Livre integration disabled:
-    // Previous logic (kept for later) used mlService.getServerConnectionStatus + ml_success URL param.
-    setMlStatus({ connected: false, expired: false, disabled: true });
-    setIsConnecting(false);
-    setShowSuccess(false);
-
-    // Optionally clear legacy ml_success/ml_error params so the page doesn't show stale banners.
-    try {
-      const params = new URLSearchParams(location.search);
-      if (params.has('ml_success') || params.has('ml_error')) {
-        navigate('/configuracoes', { replace: true });
-      }
-    } catch (e) {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
-
-  // Mercado Livre integration disabled: keep handlers commented for future.
-  /*
-  const handleConnectML = async () => {
-    try {
-      if (!user || !user.id) {
-        alert('Usuário não autenticado');
-        return;
-      }
-
-      setIsConnecting(true);
-      await mlService.initiateAuth(user.id);
-    } catch (error) {
-      console.error('Error connecting to ML:', error);
-      alert('Erro ao conectar com Mercado Livre. Tente novamente.');
-      setIsConnecting(false);
-    }
-  };
-
-  const handleDisconnectML = async () => {
-    try {
-      if (confirm('Deseja realmente desconectar sua conta do Mercado Livre?')) {
-        await mlService.disconnectServer({ authToken: user?.access_token, userId: user?.id });
-        const status = await mlService.getServerConnectionStatus({ authToken: user?.access_token, userId: user?.id });
-        setMlStatus(status);
-        alert('Conta do Mercado Livre desconectada com sucesso!');
-      }
-    } catch (error) {
-      console.error('Error disconnecting from ML:', error);
-      alert('Erro ao desconectar. Tente novamente.');
-    }
-  };
-  */
 
   const handleReauth = async () => {
     try {
@@ -567,96 +508,6 @@ export default function PageConfiguracoes() {
                       </form>
                     </div>
                   )}
-                </div>
-              </section>
-
-              {/* Seção de Integrações */}
-              <section className="config-section">
-                <div className="config-section-header">
-                  <div className="config-section-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
-                      <circle cx="4" cy="4" r="2"/>
-                    </svg>
-                  </div>
-                  <div className="config-section-info">
-                    <h2 className="config-section-title">Integrações</h2>
-                    <p className="config-section-description">Conecte sua conta com serviços externos</p>
-                  </div>
-                </div>
-
-                {!ML_INTEGRATION_ENABLED ? (
-                  <div className="integration-card" style={{ opacity: 0.85 }}>
-                    <div className="integration-info">
-                      <div className="integration-logo">ML</div>
-                      <div>
-                        <h3 className="integration-title">Mercado Livre</h3>
-                        <p className="integration-description">
-                          Integração desativada no momento. Foco atual: Supabase + base local (JSON).
-                        </p>
-                      </div>
-                    </div>
-                    <button className="integration-btn connect" disabled>
-                      Em breve
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {/* Mercado Livre integration UI (kept for future)
-                    {showSuccess && (
-                      <div className="ml-success-banner">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                        </svg>
-                        <span>Mercado Livre conectado com sucesso!</span>
-                      </div>
-                    )}
-
-                    <div className="integration-card">
-                      <div className="integration-info">
-                        <div className="integration-logo">ML</div>
-                        <div>
-                          <h3 className="integration-title">Mercado Livre</h3>
-                          <p className="integration-description">
-                            {mlStatus?.connected 
-                              ? mlStatus.expired 
-                                ? 'Conexão expirada - Reconecte para continuar'
-                                : 'Conta conectada e ativa'
-                              : 'Conecte sua conta para acessar funcionalidades adicionais'}
-                          </p>
-                          {mlStatus?.connected && mlStatus?.connectedAt && (
-                            <p className="integration-meta">
-                              Conectado em: {new Date(mlStatus.connectedAt).toLocaleDateString('pt-BR')}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      {mlStatus?.connected ? (
-                        <button className="integration-btn disconnect" onClick={handleDisconnectML}>Desconectar</button>
-                      ) : (
-                        <button className="integration-btn connect" onClick={handleConnectML} disabled={isConnecting}>
-                          {isConnecting ? 'Conectando...' : 'Conectar'}
-                        </button>
-                      )}
-                    </div>
-                    */}
-                  </>
-                )}
-              </section>
-
-              {/* Placeholder para futuras configurações */}
-              <section className="config-section config-section-disabled">
-                <div className="config-section-header">
-                  <div className="config-section-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                      <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
-                  </div>
-                  <div className="config-section-info">
-                    <h2 className="config-section-title">Mais Configurações</h2>
-                    <p className="config-section-description">Em breve mais opções de personalização</p>
-                  </div>
                 </div>
               </section>
             </div>
