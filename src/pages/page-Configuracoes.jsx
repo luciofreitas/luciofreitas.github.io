@@ -23,16 +23,27 @@ export default function PageConfiguracoes() {
   const [profileError, setProfileError] = useState('');
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const isReauthRequiredError = (error) => {
+    const msg = String(error?.message || '').toLowerCase();
+    const code = String(error?.code || '').toLowerCase();
+    return (
+      code.includes('reauth')
+      || msg.includes('reauth')
+      || msg.includes('recent')
+      || msg.includes('session')
+      || msg.includes('jwt')
+      || msg.includes('login')
+    );
+  };
 
   const passwordChecklist = useMemo(() => {
     const s = String(newPassword || '');
@@ -146,6 +157,39 @@ export default function PageConfiguracoes() {
   };
   */
 
+  const handleReauth = async () => {
+    try {
+      let _supabase = null;
+      try {
+        const mod = await import('../supabase');
+        _supabase = mod.default || mod.supabase;
+      } catch (e) {
+        _supabase = null;
+      }
+      if (_supabase?.auth?.signOut) {
+        await _supabase.auth.signOut();
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Also sign out from Firebase when Google/Firebase login is used.
+    try {
+      const fb = await import('../firebaseAuth').catch(() => ({}));
+      if (fb && typeof fb.signOutFirebase === 'function') {
+        await fb.signOutFirebase();
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    try {
+      if (typeof setUsuarioLogado === 'function') setUsuarioLogado(null);
+    } catch (e) {}
+    try { localStorage.removeItem('usuario-logado'); } catch (e) {}
+    navigate('/login', { replace: true });
+  };
+
   const handleSaveProfile = async (ev) => {
     if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
     setProfileError('');
@@ -239,12 +283,7 @@ export default function PageConfiguracoes() {
     }
 
     if (!String(user?.email || '').trim()) {
-      setPasswordError('Não foi possível identificar seu e-mail para confirmar a senha atual.');
-      return;
-    }
-
-    if (!String(currentPassword || '').trim()) {
-      setPasswordError('Digite sua senha atual para confirmar.');
+      setPasswordError('Não foi possível identificar seu e-mail.');
       return;
     }
 
@@ -260,72 +299,43 @@ export default function PageConfiguracoes() {
 
     setPasswordSaving(true);
     try {
-      let _supabase = null;
-      try {
-        const mod = await import('../supabase');
-        _supabase = mod.default || mod.supabase;
-      } catch (e) {
-        _supabase = null;
-      }
-
-      if (!_supabase || !_supabase.auth || typeof _supabase.auth.updateUser !== 'function' || _supabase._notConfigured) {
-        setPasswordError('Alteração de senha indisponível: Supabase não configurado nesta build.');
+      const apiBase = window.__API_BASE || '';
+      const authToken = String(user?.access_token || '').trim();
+      if (!authToken) {
+        setPasswordError('Sua sessão expirou. Faça login novamente para definir a senha.');
         setPasswordSaving(false);
         return;
       }
 
-      // Security: confirm the current password by re-authenticating.
-      try {
-        const email = String(user?.email || '').trim();
-        const password = String(currentPassword || '');
+      const resp = await fetch(`${apiBase}/api/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          newPassword,
+          email: user?.email || null,
+          uid: user?.auth_id || null,
+        })
+      });
 
-        let reauthResult = null;
-        if (typeof _supabase.auth.signInWithPassword === 'function') {
-          reauthResult = await _supabase.auth.signInWithPassword({ email, password });
-        } else if (typeof _supabase.auth.signIn === 'function') {
-          reauthResult = await _supabase.auth.signIn({ email, password });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => null);
+        const msg = body && body.error ? String(body.error) : 'Erro ao alterar senha.';
+        if (resp.status === 401 || resp.status === 403) {
+          setPasswordError('Por segurança, sua sessão precisa ser renovada. Faça login novamente para definir a senha.');
+        } else {
+          setPasswordError(msg);
         }
-
-        const reauthError = reauthResult && reauthResult.error ? reauthResult.error : null;
-        if (reauthError) {
-          const msg = (reauthError.message || '').toLowerCase();
-          setPasswordError(msg.includes('invalid') || msg.includes('credentials') || msg.includes('senha')
-            ? 'Senha atual incorreta.'
-            : (reauthError.message || 'Não foi possível confirmar sua senha atual.'));
-          setPasswordSaving(false);
-          return;
-        }
-
-        const session = reauthResult && reauthResult.data ? reauthResult.data.session : null;
-        const reauthUser = reauthResult && reauthResult.data ? reauthResult.data.user : null;
-
-        if (session && session.access_token) {
-          const merged = { ...(user || {}), ...(reauthUser || {}) };
-          merged.access_token = session.access_token;
-          try {
-            if (typeof setUsuarioLogado === 'function') setUsuarioLogado(merged);
-          } catch (e) { /* ignore */ }
-          try { localStorage.setItem('usuario-logado', JSON.stringify(merged)); } catch (e) {}
-        }
-      } catch (e) {
-        setPasswordError('Não foi possível confirmar sua senha atual.');
-        setPasswordSaving(false);
-        return;
-      }
-
-      const { error } = await _supabase.auth.updateUser({ password: newPassword });
-      if (error) {
-        setPasswordError(error.message || 'Erro ao alterar senha.');
         setPasswordSaving(false);
         return;
       }
 
       setPasswordMessage('Senha atualizada com sucesso.');
       if (window.showToast) window.showToast('Senha atualizada com sucesso.', 'success', 1800);
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowConfirmPassword(false);
       setShowPasswordForm(false);
@@ -432,17 +442,15 @@ export default function PageConfiguracoes() {
                         onClick={() => {
                           setPasswordMessage('');
                           setPasswordError('');
-                          setCurrentPassword('');
                           setNewPassword('');
                           setConfirmPassword('');
-                          setShowCurrentPassword(false);
                           setShowNewPassword(false);
                           setShowConfirmPassword(false);
                           setShowPasswordForm(v => !v);
                         }}
                         disabled={profileSaving || passwordSaving}
                       >
-                        {showPasswordForm ? 'Cancelar troca de senha' : 'Alterar senha'}
+                        {showPasswordForm ? 'Cancelar' : 'Alterar senha'}
                       </button>
                       <button
                         type="submit"
@@ -459,40 +467,29 @@ export default function PageConfiguracoes() {
                       {passwordError && (
                         <div className="config-banner error">
                           {passwordError}
+                          {String(passwordError || '').toLowerCase().includes('faça login novamente') && (
+                            <span>
+                              {' '}
+                              <a
+                                href="/#/login"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleReauth();
+                                }}
+                                style={{ textDecoration: 'underline', fontWeight: 600 }}
+                              >
+                                Fazer login novamente
+                              </a>
+                            </span>
+                          )}
                         </div>
                       )}
                       {passwordMessage && (
-                        <div className="config-banner success">
-                          {passwordMessage}
-                        </div>
+                        <div className="config-banner success">{passwordMessage}</div>
                       )}
 
                       <form onSubmit={handleChangePassword}>
                         <div className="profile-grid">
-                          <label className="profile-field">
-                            <span className="profile-label">Senha atual</span>
-                            <div className="password-field">
-                              <input
-                                className="profile-input password-input"
-                                type={showCurrentPassword ? 'text' : 'password'}
-                                value={currentPassword}
-                                onChange={(e) => {
-                                  setPasswordError('');
-                                  setPasswordMessage('');
-                                  setCurrentPassword(e.target.value);
-                                }}
-                                placeholder="Digite sua senha atual"
-                                disabled={passwordSaving}
-                                autoComplete="current-password"
-                              />
-                              <ToggleCar
-                                on={showCurrentPassword}
-                                onClick={() => { if (passwordSaving) return; setShowCurrentPassword(v => !v); }}
-                                ariaLabel={showCurrentPassword ? 'Ocultar senha atual' : 'Mostrar senha atual'}
-                              />
-                            </div>
-                          </label>
-
                           <label className="profile-field">
                             <span className="profile-label">Nova senha</span>
                             <div className="password-field">
@@ -558,12 +555,13 @@ export default function PageConfiguracoes() {
                             className="profile-btn primary"
                             disabled={
                               passwordSaving
-                              || !String(currentPassword || '').trim()
                               || !isPasswordValid
+                              || !String(newPassword || '').trim()
+                              || !String(confirmPassword || '').trim()
                               || String(newPassword || '') !== String(confirmPassword || '')
                             }
                           >
-                            {passwordSaving ? 'Atualizando...' : 'Atualizar senha'}
+                            {passwordSaving ? 'Salvando...' : 'Salvar nova senha'}
                           </button>
                         </div>
                       </form>

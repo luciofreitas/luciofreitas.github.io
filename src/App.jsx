@@ -37,7 +37,6 @@ const BateriaAlternadorPartida = lazy(() => import('./pages/page-BateriaAlternad
 const HistoricoManutencao = lazy(() => import('./pages/page-HistoricoManutencao'));
 const EsqueciSenha = lazy(() => import('./pages/page-EsqueciSenha'));
 const RedefinirSenha = lazy(() => import('./pages/page-RedefinirSenha'));
-const ProfissionalOnboarding = lazy(() => import('./pages/page-ProfissionalOnboarding'));
 const AdminCompanies = lazy(() => import('./pages/page-AdminCompanies'));
 // Mercado Livre integration disabled for now.
 // const MLCallback = lazy(() => import('./pages/page-MLCallback'));
@@ -106,26 +105,6 @@ function ProtectedRoute({ children }) {
   const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
   if (!authLoaded) return null;
   if (!usuarioLogado) return <Navigate to="/login" replace />;
-  return children;
-}
-
-function ProfessionalRoute({ children, requireOnboarding = false }) {
-  const { usuarioLogado, authLoaded } = useContext(AuthContext) || {};
-  const location = useLocation();
-  if (!authLoaded) return null;
-  if (!usuarioLogado) return <Navigate to="/login" replace />;
-
-  const role = String(usuarioLogado.role || '').toLowerCase();
-  const t = String(usuarioLogado.accountType || usuarioLogado.account_type || '').toLowerCase();
-  const isProfessional = role === 'professional' || role === 'profissional' || t === 'professional' || t === 'profissional' || !!usuarioLogado.professional;
-  if (!isProfessional) return <Navigate to="/login" replace />;
-
-  const onboardingDone = !!(usuarioLogado.professional && usuarioLogado.professional.onboarding_completed);
-  const onOnboardingRoute = location && location.pathname === '/profissional/onboarding';
-  if (requireOnboarding && !onboardingDone && !onOnboardingRoute) {
-    return <Navigate to="/profissional/onboarding" replace />;
-  }
-
   return children;
 }
 
@@ -245,11 +224,58 @@ export default function App() {
           } catch (e) { /* ignore */ }
           // Normalize old key photo_url to photoURL
           if (!stored.photoURL && stored.photo_url) stored.photoURL = stored.photo_url;
+
+          // Normalize role/accountType and drop any stray professional profile for non-pro accounts.
+          try {
+            // Role is the source of truth. If role is missing in old localStorage entries,
+            // default to 'user' (safe) and let backend/login flows refresh it.
+            if (!stored.role) stored.role = 'user';
+
+            const roleLower = String(stored.role || '').toLowerCase().trim();
+            const isProfessional = (roleLower === 'professional' || roleLower === 'profissional');
+            if (!isProfessional) stored.professional = null;
+
+            // Keep accountType consistent with role to avoid stale UI gating.
+            stored.accountType = isProfessional ? 'professional' : 'user';
+          } catch (e) { /* ignore */ }
+
+          // Normalize Pro subscription flags across old/new shapes.
+          // Some flows store `is_pro` (snake_case) while the UI historically reads `isPro`.
+          try {
+            const beforeIsPro = stored.isPro;
+            const beforeIs_pro = stored.is_pro;
+            const pro = Boolean(beforeIsPro || beforeIs_pro);
+            stored.isPro = pro;
+            stored.is_pro = pro;
+            if (beforeIsPro !== stored.isPro || beforeIs_pro !== stored.is_pro) {
+              try { localStorage.setItem('usuario-logado', JSON.stringify(stored)); } catch (e) {}
+            }
+          } catch (e) { /* ignore */ }
+
           setUsuarioLogado(stored);
 
-          // If we have a Supabase token but no photoURL, try to refresh profile from backend.
-          // Skip legacy tokens (gs_*) because they are not Supabase JWTs and will 401.
-          if (stored.access_token && !stored.photoURL && !String(stored.access_token).startsWith('gs_')) {
+          // If we have a Supabase token, refresh the canonical user profile (role/account_type/professional)
+          // from backend in the background. This prevents stale localStorage roles from enabling
+          // professional-only UI incorrectly.
+          // Only do this for Supabase access tokens. Firebase JWTs (and other tokens) will 401.
+          const isSupabaseAccessToken = (() => {
+            try {
+              const token = String(stored.access_token || '');
+              if (!token || !token.includes('.')) return false;
+              const parts = token.split('.');
+              if (parts.length < 2) return false;
+              const payloadB64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+              const padded = payloadB64 + '='.repeat((4 - (payloadB64.length % 4)) % 4);
+              const json = atob(padded);
+              const payload = JSON.parse(json);
+              const iss = String(payload && payload.iss ? payload.iss : '').toLowerCase();
+              return iss.includes('supabase') || iss.includes('/auth/v1');
+            } catch (e) {
+              return false;
+            }
+          })();
+
+          if (stored.access_token && isSupabaseAccessToken) {
             try {
               const apiBase = window.__API_BASE || '';
               const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
@@ -263,7 +289,21 @@ export default function App() {
                 if (usuario) {
                   // normalize returned fields
                   if (!usuario.photoURL && usuario.photo_url) usuario.photoURL = usuario.photo_url;
-                  const refreshed = { ...usuario, access_token: stored.access_token };
+                  // Always keep role as source-of-truth. Default to 'user' if missing.
+                  const refreshed = { ...usuario, role: (usuario && usuario.role ? usuario.role : 'user'), access_token: stored.access_token };
+                  try {
+                    const rLower = String(refreshed.role || '').toLowerCase().trim();
+                    refreshed.accountType = (rLower === 'professional' || rLower === 'profissional') ? 'professional' : 'user';
+                    if (!(rLower === 'professional' || rLower === 'profissional')) refreshed.professional = null;
+                  } catch (e) {}
+
+                  // Mirror Pro flags to support both `isPro` and `is_pro` consumers.
+                  try {
+                    const pro = Boolean(refreshed.isPro || refreshed.is_pro);
+                    refreshed.isPro = pro;
+                    refreshed.is_pro = pro;
+                  } catch (e) {}
+
                   setUsuarioLogado(refreshed);
                   try { localStorage.setItem('usuario-logado', JSON.stringify(refreshed)); } catch (e) {}
                 }
@@ -590,16 +630,8 @@ export default function App() {
               </CompaniesAdminRoute>
             } />
 
-            <Route path="/profissional/onboarding" element={
-              <ProfessionalRoute>
-                <ProfissionalOnboarding />
-              </ProfessionalRoute>
-            } />
-            <Route path="/profissional/dashboard" element={
-              <ProfessionalRoute>
-                <Navigate to="/historico-manutencao" replace />
-              </ProfessionalRoute>
-            } />
+            <Route path="/profissional/onboarding" element={<Navigate to="/historico-manutencao" replace />} />
+            <Route path="/profissional/dashboard" element={<Navigate to="/historico-manutencao" replace />} />
             {/* Mercado Livre integration disabled for now */}
             {/* <Route path="/ml/callback" element={<MLCallback />} /> */}
             <Route path="/tabela-fipe" element={

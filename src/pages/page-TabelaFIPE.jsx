@@ -28,7 +28,7 @@ export default function TabelaFIPE() {
   const [onlineErro, setOnlineErro] = useState('');
   
   // Verifica se o usuário é Pro
-  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
+  const isPro = Boolean((usuarioLogado && (usuarioLogado.isPro || usuarioLogado.is_pro)) || localStorage.getItem('versaoProAtiva') === 'true');
 
   // Carrega tabelas de referência (BrasilAPI)
   useEffect(() => {

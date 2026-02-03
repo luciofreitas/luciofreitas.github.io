@@ -24,21 +24,11 @@ function Menu() {
   const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext) || {};
   const role = String((usuarioLogado && usuarioLogado.role) || '').toLowerCase();
   const isCompaniesAdmin = role === 'companies_admin';
-  const proActive = Boolean(usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true';
-  const isProfessionalAccount = (function(){
-    try {
-      const r = String((usuarioLogado && usuarioLogado.role) || '').toLowerCase();
-      const t = String((usuarioLogado && (usuarioLogado.accountType || usuarioLogado.account_type)) || '').toLowerCase();
-      return r === 'professional' || r === 'profissional' || t === 'professional' || t === 'profissional' || !!(usuarioLogado && usuarioLogado.professional);
-    } catch (e) {
-      return false;
-    }
-  })();
+  const proActive = Boolean(usuarioLogado && (usuarioLogado.isPro || usuarioLogado.is_pro)) || localStorage.getItem('versaoProAtiva') === 'true';
   const headerRef = useRef(null);
 
   // shared menu items to render in desktop nav and mobile dropdown
   const menuItems = isCompaniesAdmin ? [] : [
-    ...(isProfessionalAccount ? [{ id: 'prof-onboarding', label: 'Dados Profissionais', onClick: () => navigate('/profissional/onboarding') }] : []),
     {
       id: 'buscar',
       label: 'Buscar Peças',

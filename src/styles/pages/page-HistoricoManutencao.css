@@ -179,28 +179,6 @@
   transform: translateY(-1px);
 }
 
-.historico-professional-hint {
-  margin-top: -1rem;
-  margin-bottom: 1.5rem;
-  background: #fff3cd;
-  border: 1px solid #ffeeba;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: #6b5b00;
-  font-size: 14px;
-}
-
-.historico-professional-link {
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  color: #0b5ed7;
-  cursor: pointer;
-  text-decoration: underline;
-  font-weight: 600;
-}
-
 /* Empty State */
 .historico-empty {
   text-align: center;
@@ -453,16 +431,10 @@
   font-size: 0.95rem;
 }
 
-/* Descrição field - make label and input narrower (about half width) */
-.historico-descricao-input {
-  width: 50%;
-  max-width: 40rem;
-}
-
-.historico-form-group label[for="descricao"],
-.historico-descricao-label {
+/* Descrição field - keep full width (matches the rest of the form) */
+.historico-form-group label[for="descricao"] {
   display: block;
-  width: 50%;
+  width: auto;
 }
 
 /* Seletor de carro helper */
@@ -515,12 +487,6 @@
   box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
 }
 
-/* Keep Descrição input at half width even though `.historico-input` defaults to 100% */
-.historico-input.historico-descricao-input {
-  width: 50%;
-  max-width: 40rem;
-}
-
 .historico-textarea {
   resize: vertical;
   min-height: 4rem;
@@ -533,17 +499,25 @@
   gap: 1rem;
 }
 
-/* When descricao is rendered inside a two-column row, make it occupy the full column
-   (the column already represents ~50% of the form). This prevents double-halving. */
-.historico-form-row .historico-input.historico-descricao-input {
-  width: 100%;
+/* Vehicle brand/model/year row */
+.historico-vehicle-bmy-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr 0.6fr;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.historico-bmy-col,
+.historico-bmy-year-col {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Vehicle + year row (vehicle select smaller + year on the right) */
 .historico-vehicle-year-row {
   display: flex;
   gap: 0.75rem;
-  align-items: center; /* vertically center inputs so they align horizontally */
+  align-items: flex-start; /* align by top so label heights don't shift inputs */
 }
 
 .historico-vehicle-select {
@@ -564,7 +538,7 @@
   width: 9rem; /* restore width for year column so label doesn't wrap */
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0; /* use label margin-bottom to match vehicle column */
   align-items: flex-start; /* align year label to the left */
 }
 
@@ -573,6 +547,8 @@
   margin-bottom: 0.25rem;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.25rem;
+  min-height: 1.25rem;
 }
 
 .historico-vehicle-year-label {
@@ -580,7 +556,9 @@
   color: var(--text-secondary);
   font-weight: 600;
   text-align: left;
-  margin: 0; /* remove top margin to align label baseline with vehicle label */
+  margin: 0 0 0.25rem 0; /* keep same spacing as vehicle label */
+  line-height: 1.25rem;
+  min-height: 1.25rem;
 }
 
 /* Force both controls to the same height and vertical centering */

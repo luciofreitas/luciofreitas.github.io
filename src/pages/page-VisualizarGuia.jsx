@@ -162,7 +162,7 @@ function PageVisualizarGuia() {
   }
 
   const isAutor = usuarioLogado?.email === guia.autorEmail;
-  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
+  const isPro = Boolean((usuarioLogado && (usuarioLogado.isPro || usuarioLogado.is_pro)) || localStorage.getItem('versaoProAtiva') === 'true');
   const averageRating = guiasService.calculateAverageRating(guia);
 
   // Corrigir autorNome na visualização se for o autor e não tiver nome salvo

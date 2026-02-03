@@ -64,3 +64,18 @@ export async function handleRedirectResult() {
     return { error: err };
   }
 }
+
+export async function signOutFirebase() {
+  try {
+    const [{ auth } = {}, authMod] = await Promise.all([
+      import('./firebase').catch(() => ({})),
+      import('firebase/auth').catch(() => ({})),
+    ]);
+    if (!auth) return { ok: false, error: new Error('[firebaseAuth] Firebase not configured (missing env vars)') };
+    if (!authMod || typeof authMod.signOut !== 'function') return { ok: false, error: new Error('[firebaseAuth] firebase/auth signOut not available') };
+    await authMod.signOut(auth);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err };
+  }
+}

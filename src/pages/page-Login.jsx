@@ -187,6 +187,7 @@ export default function Login() {
       try { console.time('[auth-timing] backend-verify'); } catch (e) {}
       const apiBase = window.__API_BASE || '';
       let backendUser = null;
+      let backendLegacyToken = null;
       if (idToken) {
         try {
           const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
@@ -201,6 +202,7 @@ export default function Login() {
           const body = await resp.json().catch(() => null);
           if (isDev) console.log('[DEBUG] Backend response status:', resp.status);
           if (isDev) console.log('[DEBUG] Backend response body:', body);
+          if (body && body.legacy_token) backendLegacyToken = String(body.legacy_token);
           if (body && (body.user || body.usuario)) backendUser = body.user || body.usuario;
           else if (body && body.error) {
             const errMsg = String(body.error);
@@ -221,7 +223,15 @@ export default function Login() {
         const canonicalId = backendUser && backendUser.id ? backendUser.id : (backendUser && backendUser.user_id ? backendUser.user_id : null);
         const effectiveId = canonicalId || user.uid;
 
-        const isProfessionalFromProfile = !!(backendUser && backendUser.professional);
+        const roleLowerFromBackend = String((backendUser && backendUser.role) || '').toLowerCase().trim();
+        const acctLowerFromBackend = String((backendUser && (backendUser.account_type || backendUser.accountType)) || '').toLowerCase().trim();
+
+        // Source of truth: role, when present.
+        const hasRoleFromBackend = !!roleLowerFromBackend;
+        const roleSaysProfessional = roleLowerFromBackend === 'professional' || roleLowerFromBackend === 'profissional';
+        const acctSaysProfessional = acctLowerFromBackend === 'professional' || acctLowerFromBackend === 'profissional';
+        const isProfessionalFromBackend = hasRoleFromBackend ? roleSaysProfessional : acctSaysProfessional;
+        const canonicalAccountType = isProfessionalFromBackend ? 'professional' : 'user';
         const updatedUser = {
           ...backendUser,
           id: effectiveId,
@@ -232,15 +242,18 @@ export default function Login() {
           nome: (backendUser.nome || backendUser.name || nomeFromToken || ''),
           name: (backendUser.name || backendUser.nome || nomeFromToken || ''),
           access_token: idToken,
+          legacy_token: backendLegacyToken || null,
           // Prefer DB photo if present; otherwise use provider
           photoURL: backendUser.photoURL || backendUser.photo_url || user.photoURL || null,
           phone: backendUser.phone || backendUser.telefone || backendUser.celular || null,
           telefone: backendUser.telefone || backendUser.phone || backendUser.celular || null,
           celular: backendUser.celular || backendUser.phone || backendUser.telefone || null,
           isPro: Boolean(backendUser.is_pro || backendUser.isPro),
-          role: backendUser.role || (isProfessionalFromProfile ? 'professional' : null),
-          accountType: backendUser.account_type || backendUser.accountType || (isProfessionalFromProfile ? 'professional' : (String(backendUser.role || '').toLowerCase() === 'professional' ? 'professional' : null)),
-          professional: backendUser.professional || null,
+          role: backendUser.role || null,
+          // Normalize accountType so it cannot contradict role.
+          accountType: canonicalAccountType,
+          // Only keep professional profile when backend confirms professional role/account type.
+          professional: isProfessionalFromBackend ? (backendUser.professional || null) : null,
         };
 
         if (setUsuarioLogado) setUsuarioLogado(updatedUser);
@@ -252,8 +265,7 @@ export default function Login() {
           const acctLower = String((updatedUser.accountType || updatedUser.account_type || '') || '').toLowerCase();
           const isProfessional = roleLower === 'professional' || acctLower === 'professional' || acctLower === 'profissional';
           if (isProfessional) {
-            const onboardingDone = !!(updatedUser.professional && updatedUser.professional.onboarding_completed);
-            navigate(onboardingDone ? '/profissional/dashboard' : '/profissional/onboarding', { replace: true });
+            navigate('/historico-manutencao', { replace: true });
             return;
           }
         } catch (e) { /* ignore */ }
@@ -603,15 +615,16 @@ export default function Login() {
         }
 
         const inferredName = (usuario.nome || usuario.name || '').trim() || displayNameFromEmail(usuario.email || usuario.email_address || usuario.mail);
-        const hasProfessionalProfile = !!(usuario && usuario.professional);
+        const roleLower = String(usuario.role || '').toLowerCase().trim();
+        const isProfessionalFromRole = (roleLower === 'professional' || roleLower === 'profissional');
         const normalizedUsuario = {
           ...usuario,
           nome: inferredName,
           name: inferredName,
           access_token: accessToken,
-          role: usuario.role || (hasProfessionalProfile ? 'professional' : null),
-          accountType: usuario.account_type || usuario.accountType || (hasProfessionalProfile ? 'professional' : (String(usuario.role || '').toLowerCase() === 'professional' ? 'professional' : null)),
-          professional: usuario.professional || null
+          role: usuario.role ? usuario.role : 'user',
+          accountType: isProfessionalFromRole ? 'professional' : 'user',
+          professional: isProfessionalFromRole ? (usuario.professional || null) : null,
         };
 
         // Preserve auth_id/providers hints returned by the server
@@ -621,11 +634,9 @@ export default function Login() {
         if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
         try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
         if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
-        const roleLower = String(normalizedUsuario.role || '').toLowerCase();
-        const acct = String((normalizedUsuario.accountType || normalizedUsuario.account_type || '') || '').toLowerCase();
-        const onboardingDone = !!(normalizedUsuario.professional && normalizedUsuario.professional.onboarding_completed);
-        if (roleLower === 'professional' || acct === 'professional' || acct === 'profissional') {
-          navigate(onboardingDone ? '/profissional/dashboard' : '/profissional/onboarding');
+        const normalizedRoleLower = String(normalizedUsuario.role || '').toLowerCase().trim();
+        if (normalizedRoleLower === 'professional' || normalizedRoleLower === 'profissional') {
+          navigate('/historico-manutencao');
         } else {
           navigate('/buscar-pecas');
         }

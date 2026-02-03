@@ -1,15 +1,17 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
-import { Menu, MenuLogin } from '../components';
+import { Menu, MenuLogin, CustomDropdown } from '../components';
 import { getCars } from '../services/carService';
 import { 
   getMaintenances, 
   addMaintenance, 
   updateMaintenance, 
-  deleteMaintenance 
+  deleteMaintenance,
+  getOfficeMaintenances
 } from '../services/maintenanceService';
 import { comparePtBr, sortByLabelPtBr } from '../utils/sortUtils';
+import apiService from '../utils/apiService';
 import '../styles/pages/page-HistoricoManutencao.css';
 
 export default function HistoricoManutencao() {
@@ -17,9 +19,19 @@ export default function HistoricoManutencao() {
 
   const isProfessional = useMemo(() => {
     try {
-      const role = String(usuarioLogado?.role || '').toLowerCase();
-      const t = String(usuarioLogado?.accountType || usuarioLogado?.account_type || '').toLowerCase();
-      return role === 'professional' || role === 'profissional' || t === 'professional' || t === 'profissional' || !!usuarioLogado?.professional;
+      const role = String(usuarioLogado?.role || '').toLowerCase().trim();
+      // IMPORTANT: Do not treat a user as professional just because `usuarioLogado.professional`
+      // is a truthy object; some flows may leave it as `{}` in storage.
+      if (role === 'companies_admin' || role === 'admin') return false;
+
+      // Prefer role when available.
+      if (role === 'professional' || role === 'profissional') return true;
+
+      // Fallback: older sessions (or partial logins) may not have `role` populated yet,
+      // but do have `accountType`/`account_type`. Backend endpoints still enforce role,
+      // so this only affects UI visibility.
+      const acct = String(usuarioLogado?.accountType || usuarioLogado?.account_type || '').toLowerCase().trim();
+      return acct === 'professional' || acct === 'profissional';
     } catch (e) {
       return false;
     }
@@ -29,6 +41,24 @@ export default function HistoricoManutencao() {
   useEffect(() => {
     console.log('[HistoricoManutencao] usuarioLogado:', usuarioLogado);
   }, [usuarioLogado]);
+
+  const apiBase = useMemo(() => {
+    try {
+      return window.__API_BASE ? String(window.__API_BASE) : '';
+    } catch (e) {
+      return '';
+    }
+  }, []);
+
+  const [viewMode, setViewMode] = useState('mine'); // 'mine' | 'office'
+  const [officeMaintenances, setOfficeMaintenances] = useState([]);
+  const [officeLoading, setOfficeLoading] = useState(false);
+  const [officeError, setOfficeError] = useState('');
+  const [officeClientFilter, setOfficeClientFilter] = useState('all');
+
+  const [companies, setCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+  const [companiesError, setCompaniesError] = useState('');
   
   const [manutencoes, setManutencoes] = useState([]);
   const [carros, setCarros] = useState([]);
@@ -37,17 +67,38 @@ export default function HistoricoManutencao() {
   const [editingId, setEditingId] = useState(null);
   const [filtroVeiculo, setFiltroVeiculo] = useState('todos');
   const [carroSelecionadoHelper, setCarroSelecionadoHelper] = useState('');
+  const [pecasMeta, setPecasMeta] = useState(null);
+  const [pecasMetaLoading, setPecasMetaLoading] = useState(false);
+  const [pecasMetaError, setPecasMetaError] = useState('');
   const [formData, setFormData] = useState({
     veiculoId: '',
+    veiculoMarca: '',
+    veiculoModelo: '',
+    veiculoAno: '',
     data: '',
     tipo: 'preventiva',
     descricao: '',
     codigoProduto: '',
     kmAtual: '',
+    company_id: '',
     oficina: '',
     valor: '',
     observacoes: ''
   });
+
+  const normalizeCompanyLabel = (value) => String(value || '').trim();
+  const getCompanyDisplayName = (c) => normalizeCompanyLabel(c?.trade_name || c?.legal_name || c?.company_code || '');
+
+  const oficinaOptions = useMemo(() => {
+    const list = Array.isArray(companies) ? companies : [];
+    const unique = new Map();
+    for (const c of list) {
+      const label = getCompanyDisplayName(c);
+      if (!label) continue;
+      unique.set(label, true);
+    }
+    return [{ value: '', label: '' }, ...Array.from(unique.keys()).sort(comparePtBr).map(v => ({ value: v, label: v }))];
+  }, [companies]);
   const location = useLocation();
   const navigate = useNavigate();
   const [prefillCodigo, setPrefillCodigo] = useState('');
@@ -83,6 +134,110 @@ export default function HistoricoManutencao() {
       if (pref) setPrefillCodigo(pref);
     } catch (e) { /* ignore */ }
   }, [usuarioLogado]);
+
+  useEffect(() => {
+    if (!isProfessional) return;
+    if (String(viewMode) !== 'office') return;
+
+    let cancelled = false;
+    (async () => {
+      setOfficeError('');
+      setOfficeLoading(true);
+      try {
+        const list = await getOfficeMaintenances();
+        if (!cancelled) {
+          setOfficeMaintenances(Array.isArray(list) ? list : []);
+        }
+      } catch (e) {
+        if (!cancelled) setOfficeError(e && e.message ? String(e.message) : 'Erro ao carregar histórico da oficina.');
+      } finally {
+        if (!cancelled) setOfficeLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [isProfessional, viewMode]);
+
+  useEffect(() => {
+    if (!apiBase) return;
+    let cancelled = false;
+    (async () => {
+      setCompaniesError('');
+      setCompaniesLoading(true);
+      try {
+        const resp = await fetch(`${apiBase}/api/companies`);
+        const body = await resp.json().catch(() => ({}));
+        if (!resp.ok || !body || body.error) {
+          const msg = body && body.error ? String(body.error) : 'Não foi possível carregar empresas.';
+          if (!cancelled) setCompaniesError(msg);
+          return;
+        }
+        const list = Array.isArray(body.companies) ? body.companies : [];
+        if (!cancelled) setCompanies(list);
+      } catch (e) {
+        if (!cancelled) setCompaniesError(e && e.message ? String(e.message) : 'Erro ao carregar empresas.');
+      } finally {
+        if (!cancelled) setCompaniesLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [apiBase]);
+
+  // Carregar metadados de veículos (mesmo universo do Buscar Peças) quando o modal abrir
+  useEffect(() => {
+    if (!showModal) return;
+    if (pecasMeta || pecasMetaLoading) return;
+
+    let cancelled = false;
+    (async () => {
+      setPecasMetaError('');
+      setPecasMetaLoading(true);
+      try {
+        const meta = await apiService.getPecasMeta();
+        if (!cancelled) setPecasMeta(meta || null);
+      } catch (e) {
+        if (!cancelled) setPecasMetaError(e && e.message ? String(e.message) : 'Não foi possível carregar veículos possíveis.');
+      } finally {
+        if (!cancelled) setPecasMetaLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [showModal, pecasMeta, pecasMetaLoading]);
+
+  const marcaSuggestions = useMemo(() => {
+    const marcas = Array.isArray(pecasMeta?.marcas) ? pecasMeta.marcas : [];
+    const current = String(formData?.veiculoMarca || '').trim();
+    const extra = current && !marcas.some(m => String(m).toLowerCase() === current.toLowerCase()) ? [current] : [];
+    return Array.from(new Set([...(marcas || []), ...(extra || [])]))
+      .map(v => String(v || '').trim())
+      .filter(Boolean)
+      .sort(comparePtBr);
+  }, [pecasMeta, formData?.veiculoMarca]);
+
+  const modeloSuggestions = useMemo(() => {
+    const marca = String(formData?.veiculoMarca || '').trim();
+    const rel = pecasMeta && pecasMeta.relationships && pecasMeta.relationships.modelsByBrand
+      ? pecasMeta.relationships.modelsByBrand
+      : {};
+
+    const tryGetByKey = (obj, key) => {
+      if (!obj || !key) return null;
+      if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
+      const kLower = String(key).toLowerCase();
+      const foundKey = Object.keys(obj).find(k => String(k).toLowerCase() === kLower);
+      return foundKey ? obj[foundKey] : null;
+    };
+
+    const list = marca ? (tryGetByKey(rel, marca) || []) : [];
+    const current = String(formData?.veiculoModelo || '').trim();
+    const extra = current && !list.some(m => String(m).toLowerCase() === current.toLowerCase()) ? [current] : [];
+
+    return Array.from(new Set([...(Array.isArray(list) ? list : []), ...(extra || [])]))
+      .map(v => String(v || '').trim())
+      .filter(Boolean)
+      .sort(comparePtBr);
+  }, [pecasMeta, formData?.veiculoMarca, formData?.veiculoModelo]);
 
   // If navigation sent an openMaintenanceId via state, open the modal after maintenances load
   useEffect(() => {
@@ -155,17 +310,45 @@ export default function HistoricoManutencao() {
     e.preventDefault();
     
     if (!usuarioLogado) return;
+
+    // CustomDropdown doesn't support native `required` validation.
+    const hasCarId = formData.veiculoId && String(formData.veiculoId).trim();
+    const hasMarca = formData.veiculoMarca && String(formData.veiculoMarca).trim();
+    const hasModelo = formData.veiculoModelo && String(formData.veiculoModelo).trim();
+    if (!hasCarId && !(hasMarca && hasModelo)) {
+      alert('Informe Marca e Modelo (ou selecione um veículo cadastrado).');
+      return;
+    }
+
     const userId = usuarioLogado.id || usuarioLogado.email;
+
+    const veiculoLabelSnapshot = (() => {
+      try {
+        const carro = carros.find(c => String(c.id) === String(formData.veiculoId));
+        if (carro) return `${carro.marca} ${carro.modelo} (${carro.ano})`;
+      } catch (err) { /* ignore */ }
+
+      const marca = formData && formData.veiculoMarca ? String(formData.veiculoMarca).trim() : '';
+      const modelo = formData && formData.veiculoModelo ? String(formData.veiculoModelo).trim() : '';
+      const base = [marca, modelo].filter(Boolean).join(' ').trim();
+      const ano = formData && formData.veiculoAno ? String(formData.veiculoAno).trim() : '';
+      if (!base) return '';
+      if (!ano) return base;
+      if (/\((19|20)\d{2}\)\s*$/.test(base)) return base;
+      return `${base} (${ano})`;
+    })();
+
+    const payload = { ...formData, veiculoLabel: veiculoLabelSnapshot };
     
     try {
       if (editingId) {
         // Editar manutenção existente
-        await updateMaintenance(userId, editingId, formData);
+        await updateMaintenance(userId, editingId, payload);
         const updated = await getMaintenances(userId);
         setManutencoes(updated);
       } else {
         // Adicionar nova manutenção
-        await addMaintenance(userId, formData);
+        await addMaintenance(userId, payload);
         const updated = await getMaintenances(userId);
         setManutencoes(updated);
       }
@@ -192,9 +375,65 @@ export default function HistoricoManutencao() {
       }
     }
 
-    setFormData({ ...manutencao, data: dateForInput });
+    const veiculoId = manutencao && (manutencao.veiculoId || manutencao.car_id || manutencao.carId) ? String(manutencao.veiculoId || manutencao.car_id || manutencao.carId) : '';
+    const veiculoLabel = manutencao && (manutencao.veiculoLabel || manutencao.vehicle_label) ? String(manutencao.veiculoLabel || manutencao.vehicle_label) : '';
+    let veiculoAno = '';
+    let veiculoMarca = '';
+    let veiculoModelo = '';
+    try {
+      if (veiculoId) {
+        const carro = carros.find(c => String(c.id) === String(veiculoId));
+        if (carro) {
+          if (carro.ano != null) veiculoAno = String(carro.ano);
+          if (carro.marca) veiculoMarca = String(carro.marca);
+          if (carro.modelo) veiculoModelo = String(carro.modelo);
+        }
+      }
+    } catch (e) { /* ignore */ }
+
+    // If not linked to a registered car, best-effort parse from saved label.
+    if (!veiculoId && veiculoLabel) {
+      try {
+        const raw = String(veiculoLabel).trim();
+        let labelNoYear = raw;
+        const mYear = raw.match(/\((19|20)\d{2}\)\s*$/);
+        if (mYear && mYear[0]) {
+          const y = mYear[0].match(/(19|20)\d{2}/);
+          if (y && y[0] && !veiculoAno) veiculoAno = y[0];
+          labelNoYear = raw.replace(/\((19|20)\d{2}\)\s*$/, '').trim();
+        }
+
+        const marcas = Array.isArray(pecasMeta?.marcas) ? pecasMeta.marcas : [];
+        const lower = labelNoYear.toLowerCase();
+        let best = '';
+        for (const mk of marcas) {
+          const candidate = String(mk || '').trim();
+          if (!candidate) continue;
+          const candLower = candidate.toLowerCase();
+          if (lower === candLower || lower.startsWith(candLower + ' ')) {
+            if (candidate.length > best.length) best = candidate;
+          }
+        }
+
+        if (best) {
+          veiculoMarca = veiculoMarca || best;
+          veiculoModelo = veiculoModelo || labelNoYear.slice(best.length).trim();
+        } else {
+          // Fallback: first token as brand
+          const parts = labelNoYear.split(/\s+/).filter(Boolean);
+          if (parts.length >= 2) {
+            veiculoMarca = veiculoMarca || parts[0];
+            veiculoModelo = veiculoModelo || parts.slice(1).join(' ');
+          } else {
+            veiculoModelo = veiculoModelo || labelNoYear;
+          }
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    setFormData({ ...manutencao, veiculoId, veiculoMarca, veiculoModelo, veiculoAno, data: dateForInput });
     setEditingId(manutencao.id);
-    setCarroSelecionadoHelper(manutencao.veiculoId);
+    setCarroSelecionadoHelper(veiculoId || '');
     setShowModal(true);
   };
 
@@ -217,11 +456,15 @@ export default function HistoricoManutencao() {
   const resetForm = () => {
     setFormData({
       veiculoId: '',
+      veiculoMarca: '',
+      veiculoModelo: '',
+      veiculoAno: '',
       data: '',
       tipo: 'preventiva',
       descricao: '',
       codigoProduto: '',
       kmAtual: '',
+      company_id: '',
       oficina: '',
       valor: '',
       observacoes: ''
@@ -234,8 +477,22 @@ export default function HistoricoManutencao() {
     setCarroSelecionadoHelper(carroId);
     
     if (carroId) {
-      // Preenche o veiculoId no formData
-      setFormData({...formData, veiculoId: carroId});
+      const carro = carros.find(c => String(c.id) === String(carroId));
+      const marca = carro && carro.marca != null ? String(carro.marca) : '';
+      const modelo = carro && carro.modelo != null ? String(carro.modelo) : '';
+      const ano = carro && carro.ano != null ? String(carro.ano) : '';
+
+      // Preenche os campos com base no veículo cadastrado
+      setFormData(prev => ({
+        ...prev,
+        veiculoId: carroId,
+        veiculoMarca: marca || prev.veiculoMarca,
+        veiculoModelo: modelo || prev.veiculoModelo,
+        veiculoAno: ano || prev.veiculoAno,
+      }));
+    } else {
+      // Remove vínculo com veículo cadastrado (mantém label digitado)
+      setFormData(prev => ({ ...prev, veiculoId: '' }));
     }
   };
 
@@ -243,6 +500,19 @@ export default function HistoricoManutencao() {
     // Compare IDs as strings to be tolerant to number/string mismatches
     const carro = carros.find(c => String(c.id) === String(veiculoId));
     return carro ? `${carro.marca} ${carro.modelo} (${carro.ano})` : 'Veículo não encontrado';
+  };
+
+  const getMaintenanceVehicleLabel = (m) => {
+    try {
+      const id = m?.veiculoId || m?.car_id || m?.carId;
+      if (id != null && String(id).trim() !== '') {
+        const byCars = getVeiculoNome(id);
+        if (byCars && byCars !== 'Veículo não encontrado') return byCars;
+      }
+    } catch (e) { /* ignore */ }
+
+    const snap = m?.veiculoLabel || m?.vehicle_label;
+    return snap ? String(snap) : '—';
   };
 
   const formatManutencaoDate = (manutencao) => {
@@ -257,12 +527,48 @@ export default function HistoricoManutencao() {
     ? manutencoes 
     : manutencoes.filter(m => m.veiculoId === filtroVeiculo);
 
-  const manutencoesSorted = [...manutencoesFiltered].sort((a, b) => 
-    new Date(b.data) - new Date(a.data)
-  );
+  const manutencoesSorted = [...manutencoesFiltered].sort((a, b) => {
+    const da = a?.data || a?.createdAt || a?.created_at || 0;
+    const db = b?.data || b?.createdAt || b?.created_at || 0;
+    return new Date(db).getTime() - new Date(da).getTime();
+  });
 
-  const handlePrintComprovante = () => {
+  const officeClients = useMemo(() => {
+    const map = new Map();
+    (Array.isArray(officeMaintenances) ? officeMaintenances : []).forEach((m) => {
+      const email = String(m?.user_email || '').trim();
+      if (!email) return;
+      const name = String(m?.user_name || '').trim();
+      const label = name ? `${name} (${email})` : email;
+      if (!map.has(email)) map.set(email, label);
+    });
+    return Array.from(map.entries())
+      .map(([email, label]) => ({ email, label }))
+      .sort((a, b) => comparePtBr(a.label, b.label));
+  }, [officeMaintenances]);
+
+  const officeMaintenancesFilteredSorted = useMemo(() => {
+    const list = Array.isArray(officeMaintenances) ? officeMaintenances : [];
+    const filtered = (String(officeClientFilter) === 'all')
+      ? list
+      : list.filter(m => String(m?.user_email || '') === String(officeClientFilter));
+    return [...filtered].sort((a, b) => {
+      const da = a?.data || a?.createdAt || a?.created_at || 0;
+      const db = b?.data || b?.createdAt || b?.created_at || 0;
+      return new Date(db).getTime() - new Date(da).getTime();
+    });
+  }, [officeMaintenances, officeClientFilter]);
+
+  const selectedOfficeClientLabel = useMemo(() => {
+    if (String(officeClientFilter) === 'all') return 'Clientes da oficina';
+    const found = officeClients.find(c => String(c.email) === String(officeClientFilter));
+    return found ? found.label : String(officeClientFilter);
+  }, [officeClientFilter, officeClients]);
+
+  const handlePrintComprovante = (opts = {}) => {
     try {
+      const list = Array.isArray(opts.maintenances) ? opts.maintenances : manutencoesSorted;
+
       const escapeHtml = (v) => String(v ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -274,7 +580,9 @@ export default function HistoricoManutencao() {
       const issuedAt = now.toLocaleString('pt-BR');
       const companyName = usuarioLogado?.professional?.company_name || usuarioLogado?.company_name || '';
       const matricula = usuarioLogado?.professional?.matricula || usuarioLogado?.matricula || '';
-      const userLabel = usuarioLogado?.nome || usuarioLogado?.name || usuarioLogado?.email || 'Usuário';
+      const userLabel = (opts && opts.userLabelOverride)
+        ? String(opts.userLabelOverride)
+        : (usuarioLogado?.nome || usuarioLogado?.name || usuarioLogado?.email || 'Usuário');
 
       const userIdForDoc = String(usuarioLogado?.id || usuarioLogado?.email || 'user');
       const userIdShort = userIdForDoc.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10) || 'USER';
@@ -295,7 +603,7 @@ export default function HistoricoManutencao() {
       };
 
       const getRawDateForSort = (m) => (m && (m.data || m.createdAt || m.created_at)) || null;
-      const dates = (manutencoesSorted || [])
+      const dates = (list || [])
         .map(getRawDateForSort)
         .map((d) => (d ? new Date(d) : null))
         .filter((d) => d && !isNaN(d.getTime()));
@@ -305,14 +613,16 @@ export default function HistoricoManutencao() {
         ? `${minDate.toLocaleDateString('pt-BR')} a ${maxDate.toLocaleDateString('pt-BR')}`
         : '—';
 
-      const totalValue = (manutencoesSorted || []).reduce((sum, m) => sum + parseMoney(m?.valor), 0);
+      const totalValue = (list || []).reduce((sum, m) => sum + parseMoney(m?.valor), 0);
       const totalValueLabel = totalValue > 0
         ? `R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
         : '—';
 
-      const filterLabel = (String(filtroVeiculo) === 'todos')
-        ? 'Todos os veículos'
-        : getVeiculoNome(filtroVeiculo);
+      const filterLabel = (opts && opts.filterLabelOverride)
+        ? String(opts.filterLabelOverride)
+        : ((String(filtroVeiculo) === 'todos')
+          ? 'Todos os veículos'
+          : getVeiculoNome(filtroVeiculo));
 
       const baseUrl = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
       const logoUrl = (() => {
@@ -324,7 +634,7 @@ export default function HistoricoManutencao() {
         }
       })();
 
-      const rowsHtml = (manutencoesSorted || []).map((m) => {
+      const rowsHtml = (list || []).map((m) => {
         const tipo = m?.tipo === 'preventiva' ? 'Preventiva' : (m?.tipo === 'corretiva' ? 'Corretiva' : 'Outro');
         const valor = (m?.valor != null && String(m.valor).trim() !== '')
           ? `R$ ${Number(m.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
@@ -336,7 +646,7 @@ export default function HistoricoManutencao() {
         return `
           <tr>
             <td>${escapeHtml(formatManutencaoDate(m))}</td>
-            <td>${escapeHtml(getVeiculoNome(m?.veiculoId))}</td>
+            <td>${escapeHtml(getMaintenanceVehicleLabel(m))}</td>
             <td>${escapeHtml(tipo)}</td>
             <td>${escapeHtml(m?.descricao || '')}</td>
             <td>${escapeHtml(km)}</td>
@@ -431,7 +741,7 @@ export default function HistoricoManutencao() {
 
         <div class="summary">
           <div class="item"><span class="k">Período:</span> ${escapeHtml(periodLabel)}</div>
-          <div class="item"><span class="k">Registros:</span> ${escapeHtml((manutencoesSorted || []).length)}</div>
+          <div class="item"><span class="k">Registros:</span> ${escapeHtml((list || []).length)}</div>
           <div class="item"><span class="k">Total (informado):</span> ${escapeHtml(totalValueLabel)}</div>
         </div>
       </div>
@@ -527,7 +837,137 @@ export default function HistoricoManutencao() {
             revisões periódicas e aumenta o valor de revenda.
           </p>
 
-          {loading ? (
+          {isProfessional && (
+            <div className="historico-actions" style={{ marginBottom: 10 }}>
+              <div className="historico-filters" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="historico-add-btn"
+                  style={{ width: 'auto', opacity: String(viewMode) === 'mine' ? 1 : 0.8 }}
+                  onClick={() => setViewMode('mine')}
+                >
+                  Meu histórico
+                </button>
+                <button
+                  type="button"
+                  className="historico-add-btn"
+                  style={{ width: 'auto', opacity: String(viewMode) === 'office' ? 1 : 0.8 }}
+                  onClick={() => setViewMode('office')}
+                  title="Ver manutenções registradas por clientes que informaram sua empresa/oficina"
+                >
+                  Histórico da oficina
+                </button>
+              </div>
+              <div className="historico-actions-right" />
+            </div>
+          )}
+
+          {String(viewMode) === 'office' && isProfessional ? (
+            <>
+              <div className="historico-actions">
+                <div className="historico-filters">
+                  <label htmlFor="office-client">Cliente:</label>
+                  <select
+                    id="office-client"
+                    value={officeClientFilter}
+                    onChange={(e) => setOfficeClientFilter(e.target.value)}
+                    className="historico-select"
+                    disabled={officeLoading}
+                  >
+                    <option value="all">Todos os clientes</option>
+                    {officeClients.map(c => (
+                      <option key={c.email} value={c.email}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="historico-actions-right">
+                  <button
+                    type="button"
+                    className="historico-print-btn"
+                    onClick={() => handlePrintComprovante({
+                      maintenances: officeMaintenancesFilteredSorted,
+                      userLabelOverride: selectedOfficeClientLabel,
+                      filterLabelOverride: 'Histórico da oficina'
+                    })}
+                    disabled={officeLoading || officeMaintenancesFilteredSorted.length === 0}
+                    title="Imprimir comprovante do histórico da oficina"
+                  >
+                    🖨️ Imprimir comprovante
+                  </button>
+                </div>
+              </div>
+
+              {officeLoading ? (
+                <div className="historico-loading"><p>Carregando histórico da oficina...</p></div>
+              ) : officeError ? (
+                <div className="historico-empty"><p>{officeError}</p></div>
+              ) : officeMaintenancesFilteredSorted.length === 0 ? (
+                <div className="historico-empty">
+                  <p>Nenhuma manutenção encontrada para sua oficina.</p>
+                  <p>Para aparecer aqui, o cliente precisa registrar a manutenção informando sua empresa/oficina.</p>
+                  {!apiBase && <p><strong>Dica:</strong> em desenvolvimento, as chamadas usam <code>/api</code> via proxy do Vite; confirme que o backend está rodando em <code>http://127.0.0.1:3001</code>.</p>}
+                </div>
+              ) : (
+                <div className="historico-list">
+                  {officeMaintenancesFilteredSorted.map(m => (
+                    <div key={m.id} className="historico-card">
+                      <div className="historico-card-header">
+                        <div className="historico-card-veiculo">
+                          {getMaintenanceVehicleLabel(m)}
+                        </div>
+                        <div className="historico-card-data">
+                          {formatManutencaoDate(m)}
+                        </div>
+                      </div>
+
+                      <div className="historico-card-body">
+                        <div className="historico-card-descricao" style={{ marginBottom: 6 }}>
+                          <strong>Cliente:</strong> {String(m.user_name || '').trim() ? `${m.user_name} (${m.user_email || ''})` : (m.user_email || '—')}
+                        </div>
+
+                        <div className="historico-card-tipo">
+                          <span className={`historico-tipo-badge ${m.tipo}`}>
+                            {m.tipo === 'preventiva' ? 'Preventiva' : m.tipo === 'corretiva' ? 'Corretiva' : 'Outro'}
+                          </span>
+                        </div>
+
+                        <div className="historico-card-descricao">
+                          <strong>Descrição:</strong> {m.descricao}
+                        </div>
+
+                        {m.kmAtual && (
+                          <div className="historico-card-km">
+                            <strong>Quilometragem:</strong> {parseInt(m.kmAtual).toLocaleString('pt-BR')} km
+                          </div>
+                        )}
+
+                        {m.oficina && (
+                          <div className="historico-card-oficina">
+                            <strong>Oficina:</strong> {m.oficina}
+                          </div>
+                        )}
+
+                        {m.valor && (
+                          <div className="historico-card-valor">
+                            <strong>Valor:</strong> R$ {Number(m.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </div>
+                        )}
+
+                        {m.observacoes && (
+                          <div className="historico-card-observacoes">
+                            <strong>Observações:</strong> {m.observacoes}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+
+          loading ? (
             <div className="historico-loading">
               <p>Carregando dados...</p>
             </div>
@@ -567,7 +1007,7 @@ export default function HistoricoManutencao() {
                     <button
                       type="button"
                       className="historico-print-btn"
-                      onClick={handlePrintComprovante}
+                      onClick={() => handlePrintComprovante()}
                       title="Imprimir um comprovante do histórico de manutenção (somente conta profissional)"
                     >
                       🖨️ Imprimir comprovante
@@ -595,15 +1035,6 @@ export default function HistoricoManutencao() {
                 </div>
               </div>
 
-              {isProfessional && (!usuarioLogado?.professional?.company_name || !usuarioLogado?.professional?.matricula) && (
-                <div className="historico-professional-hint">
-                  <strong>Dica:</strong> para o comprovante sair com <em>Empresa</em> e <em>Matrícula</em>, conclua seus dados em{' '}
-                  <button type="button" className="historico-professional-link" onClick={() => navigate('/profissional/onboarding')}>
-                    Dados Profissionais
-                  </button>.
-                </div>
-              )}
-
               {manutencoesSorted.length === 0 ? (
                 <div className="historico-empty">
                   <p>Nenhuma manutenção registrada ainda.</p>
@@ -615,7 +1046,7 @@ export default function HistoricoManutencao() {
                     <div key={manutencao.id} className="historico-card">
                       <div className="historico-card-header">
                         <div className="historico-card-veiculo">
-                          {getVeiculoNome(manutencao.veiculoId)}
+                          {getMaintenanceVehicleLabel(manutencao)}
                         </div>
                         <div className="historico-card-data">
                           {formatManutencaoDate(manutencao)}
@@ -678,6 +1109,7 @@ export default function HistoricoManutencao() {
                 </div>
               )}
             </>
+          )
           )}
 
           {showModal && (
@@ -720,34 +1152,74 @@ export default function HistoricoManutencao() {
                   )}
 
                   <div className="historico-form-group">
-                    <div className="historico-vehicle-year-row">
-                      <div className="historico-vehicle-col">
-                        <label className="historico-vehicle-label" htmlFor="veiculoId">Veículo *</label>
-                        <select
-                          id="veiculoId"
-                          value={formData.veiculoId}
-                          onChange={(e) => setFormData({...formData, veiculoId: e.target.value})}
-                          required
-                          className="historico-input historico-vehicle-select"
-                        >
-                          <option value="">Selecione um veículo</option>
-                          {sortByLabelPtBr(carros, (c) => `${c?.marca ?? ''} ${c?.modelo ?? ''}`).map(carro => (
-                            <option key={carro.id} value={carro.id}>
-                              {carro.marca} {carro.modelo}
-                            </option>
+                    <div className="historico-vehicle-bmy-row">
+                      <div className="historico-bmy-col">
+                        <label className="historico-vehicle-label">Marca *</label>
+                        <input
+                          type="text"
+                          className="historico-input"
+                          value={String(formData.veiculoMarca || '')}
+                          onChange={(e) => {
+                            const next = e && e.target ? String(e.target.value || '') : '';
+                            setFormData(prev => ({
+                              ...prev,
+                              veiculoMarca: next,
+                              // edição manual desvincula do carro cadastrado
+                              veiculoId: ''
+                            }));
+                            setCarroSelecionadoHelper('');
+                          }}
+                          placeholder="Ex: Volkswagen"
+                          list="pf-veiculo-marcas"
+                          autoComplete="off"
+                        />
+                        <datalist id="pf-veiculo-marcas">
+                          {marcaSuggestions.map((v) => (
+                            <option key={v} value={v} />
                           ))}
-                        </select>
+                        </datalist>
                       </div>
 
-                      <div className="historico-year-col">
-                        <label htmlFor="veiculoAno" className="historico-vehicle-year-label">Ano do Veículo</label>
+                      <div className="historico-bmy-col">
+                        <label className="historico-vehicle-label">Modelo *</label>
+                        <input
+                          type="text"
+                          className="historico-input"
+                          value={String(formData.veiculoModelo || '')}
+                          onChange={(e) => {
+                            const next = e && e.target ? String(e.target.value || '') : '';
+                            setFormData(prev => ({
+                              ...prev,
+                              veiculoModelo: next,
+                              // edição manual desvincula do carro cadastrado
+                              veiculoId: ''
+                            }));
+                            setCarroSelecionadoHelper('');
+                          }}
+                          placeholder="Ex: Gol"
+                          list="pf-veiculo-modelos"
+                          autoComplete="off"
+                        />
+                        <datalist id="pf-veiculo-modelos">
+                          {modeloSuggestions.map((v) => (
+                            <option key={v} value={v} />
+                          ))}
+                        </datalist>
+                      </div>
+
+                      <div className="historico-bmy-year-col">
+                        <label htmlFor="veiculoAno" className="historico-vehicle-year-label">Ano</label>
                         <input
                           id="veiculoAno"
                           type="text"
-                          readOnly
+                          readOnly={!!(formData.veiculoId && String(formData.veiculoId).trim())}
                           className="historico-input historico-vehicle-year"
-                          value={(carros.find(c => String(c.id) === String(formData.veiculoId)) || {}).ano || ''}
-                          aria-label="Ano do veículo selecionado"
+                          value={formData.veiculoId
+                            ? ((carros.find(c => String(c.id) === String(formData.veiculoId)) || {}).ano || '')
+                            : (formData.veiculoAno || '')
+                          }
+                          onChange={(e) => setFormData(prev => ({ ...prev, veiculoAno: e.target.value }))}
+                          aria-label="Ano do veículo"
                           placeholder="Ano"
                         />
                       </div>
@@ -804,7 +1276,7 @@ export default function HistoricoManutencao() {
                         onChange={(e) => setFormData({...formData, descricao: e.target.value})}
                         placeholder="Ex: Troca de óleo e filtro"
                         required
-                        className="historico-input historico-descricao-input"
+                        className="historico-input"
                       />
                     </div>
 
@@ -849,15 +1321,34 @@ export default function HistoricoManutencao() {
                   </div>
 
                   <div className="historico-form-group">
-                    <label htmlFor="oficina">Oficina/Local</label>
-                    <input
-                      type="text"
-                      id="oficina"
-                      value={formData.oficina}
-                      onChange={(e) => setFormData({...formData, oficina: e.target.value})}
-                      placeholder="Ex: Auto Center XYZ"
-                      className="historico-input"
+                    <label>Oficina/Local</label>
+
+                    <CustomDropdown
+                      options={oficinaOptions}
+                      value={String(formData.oficina || '')}
+                      onChange={(val) => {
+                        const value = String(val || '');
+                        const normalized = value.trim().toLowerCase();
+                        const found = normalized
+                          ? (Array.isArray(companies) ? companies : []).find(c => {
+                              const label = getCompanyDisplayName(c).trim().toLowerCase();
+                              return !!label && label === normalized;
+                            })
+                          : null;
+
+                        setFormData(prev => ({
+                          ...prev,
+                          oficina: value,
+                          company_id: found ? String(found.id) : ''
+                        }));
+                      }}
+                      placeholder={companiesLoading ? 'Carregando empresas...' : 'Selecione a Oficina/Local'}
+                      searchable
+                      allowCustomValue
+                      disabled={companiesLoading}
                     />
+
+                    {companiesError && <div className="error" style={{ marginTop: 8 }}>{companiesError}</div>}
                   </div>
 
                   <div className="historico-form-group">

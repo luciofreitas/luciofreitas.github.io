@@ -92,19 +92,23 @@ export default function RedefinirSenha() {
     setLoading(true);
 
     try {
-      // Atualizar senha no Supabase Auth (lazy-import cliente)
-      let _supabase = null;
-      try { const mod = await import('../supabase'); _supabase = mod.default || mod.supabase; } catch (e) { _supabase = null; }
-      if (_supabase && _supabase.auth && typeof _supabase.auth.updateUser === 'function') {
-        // Some Supabase SDKs require a signIn before update; try update first
-        const { error: updateError } = await _supabase.auth.updateUser({ email: userEmail, password: novaSenha });
-        if (updateError) throw updateError;
-      } else {
-        throw new Error('Supabase client not configured');
+      const params = new URLSearchParams(window.location.hash.split('?')[1]);
+      const token = params.get('token');
+      const email = params.get('email');
+      if (!token || !email) {
+        throw new Error('Link de recuperação inválido');
       }
 
-      // Limpar token usado
-      localStorage.removeItem(`reset_token_${userEmail}`);
+      const apiBase = window.__API_BASE || '';
+      const resp = await fetch(`${apiBase}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, email, newPassword: novaSenha })
+      });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => null);
+        throw new Error((body && body.error) ? String(body.error) : 'Erro ao redefinir senha');
+      }
 
       setSuccess(true);
       

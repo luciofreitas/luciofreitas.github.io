@@ -9,7 +9,7 @@ export default function VersaoPro_Assinado() {
   const navigate = useNavigate();
   const { usuarioLogado } = useContext(AuthContext) || {};
   const userId = usuarioLogado ? (usuarioLogado.id || usuarioLogado.email) : null;
-  const isPro = isProActive(userId) || Boolean(usuarioLogado && usuarioLogado.isPro);
+  const isPro = isProActive(userId) || Boolean(usuarioLogado && (usuarioLogado.isPro || usuarioLogado.is_pro));
   const expiryDate = userId ? getFormattedExpiryDate(userId) : '';
   const daysLeft = userId ? getDaysUntilExpiry(userId) : null;
 

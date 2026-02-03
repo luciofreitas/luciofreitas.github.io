@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { AuthContext } from '../App';
 import { apiService } from '../utils/apiService';
 import ToggleCar from './ToggleCar';
@@ -19,12 +19,10 @@ export default function PerfilForm({
     nome: '',
     celular: '',
     email: '',
-    senhaAtual: '',
     novaSenha: '',
     confirmNovaSenha: ''
   });
   const [showPasswordState, setShowPasswordState] = useState(false);
-  const [showSenhaAtual, setShowSenhaAtual] = useState(false);
   const [showConfirmNova, setShowConfirmNova] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -54,7 +52,6 @@ export default function PerfilForm({
         nome: normalizeNome(usuarioLogado.nome || usuarioLogado.name || ''),
         celular: usuarioLogado.celular || '',
         email: usuarioLogado.email || '',
-        senhaAtual: '',
         novaSenha: '',
         confirmNovaSenha: ''
       });
@@ -123,11 +120,7 @@ export default function PerfilForm({
     }
 
     // Validação de senha (apenas se campos de senha estão preenchidos)
-    if (local.senhaAtual || local.novaSenha || local.confirmNovaSenha) {
-      if (!local.senhaAtual) {
-        newErrors.senhaAtual = 'Senha atual é obrigatória para alterar senha';
-      }
-
+    if (local.novaSenha || local.confirmNovaSenha) {
       if (!local.novaSenha) {
         newErrors.novaSenha = 'Nova senha é obrigatória';
       } else if (local.novaSenha.length < 6) {
@@ -181,35 +174,6 @@ export default function PerfilForm({
   async function handleSave() {
     if (!validateForm()) {
       return;
-    }
-
-    // If the user provided senhaAtual, verify it server-side before proceeding
-    if (local.senhaAtual) {
-      try {
-        // Resolve API base at runtime to avoid embedding development defaults into the bundle
-        const base = (apiService && typeof apiService.getBaseUrl === 'function') ? apiService.getBaseUrl() : (typeof window !== 'undefined' && window.__API_BASE) ? window.__API_BASE : '';
-        const resp = await fetch(`${base}/api/auth/verify-password`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: usuarioLogado.email, senha: local.senhaAtual })
-        });
-        if (!resp.ok) {
-          if (resp.status === 401) {
-            setErrors(prev => ({ ...prev, senhaAtual: 'Senha atual incorreta' }));
-            return;
-          }
-          setErrors(prev => ({ ...prev, senhaAtual: 'Erro ao verificar senha atual' }));
-          return;
-        }
-        const j = await resp.json();
-        if (!j || !j.success) {
-          setErrors(prev => ({ ...prev, senhaAtual: 'Senha atual incorreta' }));
-          return;
-        }
-      } catch (err) {
-        setErrors(prev => ({ ...prev, senhaAtual: 'Erro ao verificar senha atual' }));
-        return;
-      }
     }
 
     if (!usuarioLogado) {
@@ -283,7 +247,6 @@ export default function PerfilForm({
       // Limpar campos de senha
       setLocal(prev => ({
         ...prev,
-        senhaAtual: '',
         novaSenha: '',
         confirmNovaSenha: ''
       }));
@@ -308,7 +271,6 @@ export default function PerfilForm({
         nome: usuarioLogado.nome || '',
         celular: usuarioLogado.celular || '',
         email: usuarioLogado.email || '',
-        senhaAtual: '',
         novaSenha: '',
         confirmNovaSenha: ''
       });
@@ -369,20 +331,17 @@ export default function PerfilForm({
           </div>
 
           <div className="form-control w-full login-form-control">
-            <div className="password-field">
-              <input 
-                id="senha-atual" 
-                name="senha-atual" 
-                type={showSenhaAtual ? 'text' : 'password'} 
-                value={local.senhaAtual} 
-                onChange={handleChange} 
-                className={`form-input password-input ${errors.senhaAtual ? 'error' : ''}`}
-                placeholder="Senha atual" 
-                autoComplete="current-password"
-              />
-              <ToggleCar on={showSenhaAtual} onClick={() => setShowSenhaAtual(s => !s)} ariaLabel={showSenhaAtual ? 'Ocultar senha' : 'Mostrar senha'} />
+            <div className="info-box" style={{ marginTop: 8 }}>
+              <p>
+                Para definir/alterar sua senha, informe uma nova senha e confirme.
+              </p>
+              <p style={{ marginTop: 8, opacity: 0.9 }}>
+                Se sua sessão exigir confirmação, use a opção “Esqueci minha senha”.
+              </p>
+              <a className="btn btn-cancel" style={{ textDecoration: 'none', display: 'inline-block', marginTop: 10 }} href="/#/esqueci-senha">
+                Esqueci minha senha
+              </a>
             </div>
-              {errors.senhaAtual && <span className="error-message">{errors.senhaAtual}</span>}
           </div>
 
           <div className="form-control w-full login-form-control">

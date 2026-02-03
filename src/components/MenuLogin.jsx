@@ -79,7 +79,7 @@ const MenuLogin = () => {
   };
 
   const handleProClick = () => {
-    if (usuarioLogado?.isPro) {
+    if (usuarioLogado?.isPro || usuarioLogado?.is_pro) {
       navigate('/versao-pro-assinado');
     } else {
       navigate('/versao-pro');

@@ -491,6 +491,28 @@ async function detectCompaniesCompanyTypeColumn(pgClientInstance) {
   }
 }
 
+async function detectMaintenanceRecordsTable(pgClientInstance) {
+  try {
+    if (!pgClientInstance) return false;
+    const r = await pgClientInstance.query(`SELECT to_regclass('public.maintenance_records') AS t`);
+    return !!(r && r.rows && r.rows[0] && r.rows[0].t);
+  } catch (e) {
+    return false;
+  }
+}
+
+async function detectMaintenanceRecordsCompanyIdColumn(pgClientInstance) {
+  try {
+    if (!pgClientInstance) return false;
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='maintenance_records' AND column_name='company_id' LIMIT 1"
+    );
+    return !!(r && r.rowCount > 0);
+  } catch (e) {
+    return false;
+  }
+}
+
 async function resolveDbUserIdFromAuth({ pgClientInstance, authId, email }) {
   if (!pgClientInstance) return null;
   const a = authId ? String(authId) : null;
@@ -528,8 +550,8 @@ async function getProfessionalAccount(pgClientInstance, userId) {
     const hasCompanies = hasCompanyId ? await detectCompaniesTable(pgClientInstance) : false;
     const cols = [
       'user_id',
+      'role',
       'status',
-      'onboarding_completed',
       'company_name',
       ...(hasCompanyId ? ['company_id'] : []),
       ...(hasMatricula ? ['matricula'] : []),
@@ -544,9 +566,15 @@ async function getProfessionalAccount(pgClientInstance, userId) {
       ? ', c.trade_name as company_trade_name, c.legal_name as company_legal_name, c.brand as company_brand, c.company_code as company_code, c.status as company_status, c.matricula_prefix as company_matricula_prefix'
       : '';
 
+    // Only return a professional profile when it is explicitly a professional role
+    // and active (prevents casual users from being treated as professionals due to stray rows).
+    const whereClause = `pa.user_id = $1
+      AND lower(COALESCE(pa.role, '')) IN ('professional','profissional')
+      AND (pa.status IS NULL OR lower(COALESCE(pa.status, '')) IN ('active','ativo'))`;
+
     const sql = hasCompanies
-      ? `SELECT ${selectList}${joinCompanySelect} FROM professional_accounts pa LEFT JOIN companies c ON pa.company_id = c.id WHERE pa.user_id = $1 LIMIT 1`
-      : `SELECT ${selectList} FROM professional_accounts pa WHERE pa.user_id = $1 LIMIT 1`;
+      ? `SELECT ${selectList}${joinCompanySelect} FROM professional_accounts pa LEFT JOIN companies c ON pa.company_id = c.id WHERE ${whereClause} LIMIT 1`
+      : `SELECT ${selectList} FROM professional_accounts pa WHERE ${whereClause} LIMIT 1`;
 
     const r = await pgClientInstance.query(sql, [String(userId)]);
     return (r && r.rowCount > 0) ? r.rows[0] : null;
@@ -684,8 +712,8 @@ async function ensureProfessionalAccount(pgClientInstance, userId, { role } = {}
   const safeRole = role ? String(role) : 'professional';
   try {
     await pgClientInstance.query(
-          `INSERT INTO professional_accounts(user_id, role, status, onboarding_completed, created_at, updated_at)
-       VALUES($1, $2, 'active', false, now(), now())
+          `INSERT INTO professional_accounts(user_id, role, status, created_at, updated_at)
+       VALUES($1, $2, 'active', now(), now())
        ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role, updated_at = now()`,
       [String(userId), safeRole]
     );
@@ -1974,7 +2002,35 @@ app.get('/api/luzes-painel', (req, res) => {
 
 app.get('/api/fitments', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM fitments'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/fitments:', err.message);} } res.json(csvData.fitments); });
 app.get('/api/equivalences', async (req, res) => { if(pgClient){ try{ const r = await pgClient.query('SELECT * FROM equivalences'); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/equivalences:', err.message);} } res.json(csvData.equivalences); });
-app.get('/api/users', async (req, res) => { if(pgClient){ try{ /* support DBs that use 'nome' or 'name' for the user's display name */ const r = await pgClient.query("SELECT id, email, COALESCE(nome, name) AS name, is_pro, pro_since, created_at FROM users"); return res.json(r.rows);}catch(err){ console.error('PG query failed /api/users:', err.message);} } res.json(csvData.users); });
+
+// List users (debug/admin helper). Must be schema-tolerant.
+// Some deployments don't have `pro_since` and/or use different created_at column names.
+app.get('/api/users', async (req, res) => {
+  if (pgClient) {
+    try {
+      const nameCol = (userNameColumn && isSafeSqlIdentifier(userNameColumn)) ? userNameColumn : null;
+      const createdAtCol = (userCreatedAtColumn && isSafeSqlIdentifier(userCreatedAtColumn)) ? userCreatedAtColumn : null;
+
+      const selectCols = [
+        'id',
+        'email',
+        nameCol ? `${nameCol} AS name` : 'NULL AS name',
+        (userHasIsPro ? 'is_pro' : 'FALSE AS is_pro'),
+        (userHasProSince ? 'pro_since' : 'NULL AS pro_since'),
+        (userHasRole ? 'role' : 'NULL AS role'),
+        (createdAtCol ? `${createdAtCol} AS created_at` : 'NULL AS created_at')
+      ];
+
+      const r = await pgClient.query(`SELECT ${selectCols.join(', ')} FROM users`);
+      return res.json(r.rows || []);
+    } catch (err) {
+      console.error('PG query failed /api/users:', err && err.message ? err.message : err);
+    }
+  }
+
+  // CSV fallback (may be empty in production)
+  return res.json(Array.isArray(csvData.users) ? csvData.users : []);
+});
 
 // Create user (legacy password accounts).
 // Note: this is mainly used for local/dev flows; production auth uses Supabase/Firebase.
@@ -2078,7 +2134,7 @@ app.post('/api/users', async (req, res) => {
               }
             }
 
-            const sets = ['company_name = $2', 'onboarding_completed = true', 'updated_at = now()'];
+            const sets = ['company_name = $2', 'updated_at = now()'];
             const params = [String(userId), resolvedCompanyName || null];
 
             let paramIdx = 3;
@@ -2115,7 +2171,6 @@ app.post('/api/users', async (req, res) => {
           role: accountType === 'professional' ? 'professional' : 'user',
           professional: professional ? {
             status: professional.status || 'active',
-            onboarding_completed: !!professional.onboarding_completed,
             company_name: professional.company_name || null,
             company_id: (professional && Object.prototype.hasOwnProperty.call(professional, 'company_id')) ? (professional.company_id || null) : null,
             matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
@@ -2142,7 +2197,7 @@ app.post('/api/users', async (req, res) => {
         is_pro: false,
         accountType: accountType,
         role: accountType === 'professional' ? 'professional' : 'user',
-        professional: accountType === 'professional' ? { company_name: companyName || null, matricula: matricula || null, onboarding_completed: true, status: 'active' } : null
+        professional: accountType === 'professional' ? { company_name: companyName || null, matricula: matricula || null, status: 'active' } : null
       };
       csvData.users = Array.isArray(csvData.users) ? csvData.users : [];
       csvData.users.push(created);
@@ -2210,13 +2265,16 @@ app.post('/api/auth/login', async (req, res) => {
         const roleSelect = userHasRole ? ', role' : '';
         const isProSelect = userHasIsPro ? ', is_pro' : '';
 
+        const createdAtCol = isSafeSqlIdentifier(userCreatedAtColumn) ? userCreatedAtColumn : null;
+        const createdAtSelect = createdAtCol ? `, ${createdAtCol} as created_at` : '';
+
         if (!passCol) {
           return res.status(503).json({ error: 'password auth not available' });
         }
 
         const r = await pgClient.query(
-          `SELECT id, email, ${nameCol} as name, nome, photo_url${authIdSelect}${roleSelect}${isProSelect}, ${passCol} as senha_db
-           FROM users WHERE lower(email) = lower($1) LIMIT 1`,
+          `SELECT id, email, ${nameCol} as name, nome, photo_url${authIdSelect}${roleSelect}${isProSelect}${createdAtSelect}, ${passCol} as senha_db
+           FROM users WHERE lower(email) = lower($1)`,
           [email]
         );
 
@@ -2224,28 +2282,78 @@ app.post('/api/auth/login', async (req, res) => {
           return res.status(401).json({ error: 'invalid credentials' });
         }
 
-        const row = r.rows[0];
-        const stored = row.senha_db != null ? String(row.senha_db) : '';
+        let bcrypt = null;
+        try { bcrypt = require('bcryptjs'); } catch (e) { bcrypt = null; }
 
-        let passwordOk = false;
-        // Support plaintext legacy passwords and bcrypt hashes.
-        if (stored && stored.startsWith('$2')) {
-          let bcrypt = null;
-          try { bcrypt = require('bcryptjs'); } catch (e) { bcrypt = null; }
-          if (!bcrypt || typeof bcrypt.compareSync !== 'function') {
+        const verifyPassword = (row) => {
+          const stored = row && row.senha_db != null ? String(row.senha_db) : '';
+          if (!stored) return false;
+          // Support plaintext legacy passwords and bcrypt hashes.
+          if (stored.startsWith('$2')) {
+            if (!bcrypt || typeof bcrypt.compareSync !== 'function') {
+              return null; // indicates we can't verify hashes in this environment
+            }
+            try {
+              return !!bcrypt.compareSync(senha, stored);
+            } catch (e) {
+              return false;
+            }
+          }
+          return stored === senha;
+        };
+
+        const rows = Array.isArray(r.rows) ? r.rows : [];
+        const matches = [];
+        for (const candidate of rows) {
+          const stored = candidate && candidate.senha_db != null ? String(candidate.senha_db) : '';
+          const ok = verifyPassword(candidate);
+          if (ok === true) matches.push(candidate);
+          if (ok === null) {
+            // Can't verify bcrypt hashes; fail loudly if any candidate uses hashes.
             return res.status(501).json({ error: 'password hash verification not configured' });
           }
-          try {
-            passwordOk = !!bcrypt.compareSync(senha, stored);
-          } catch (e) {
-            passwordOk = false;
-          }
-        } else {
-          passwordOk = !!stored && stored === senha;
         }
 
-        if (!passwordOk) {
+        if (matches.length === 0) {
           return res.status(401).json({ error: 'invalid credentials' });
+        }
+
+        const effectiveIsPro = userHasIsPro ? rows.some(x => !!x.is_pro) : false;
+
+        const scoreRow = (candidate) => {
+          let score = 0;
+          if (userHasIsPro && candidate && candidate.is_pro) score += 100;
+          if (userHasAuthId && candidate && candidate.auth_id) score += 50;
+          if (userHasRole) {
+            const rr = String((candidate && candidate.role) || '').toLowerCase();
+            if (rr === 'admin') score += 40;
+            else if (rr === 'companies_admin') score += 35;
+            else if (rr === 'professional' || rr === 'profissional') score += 30;
+          }
+          const createdAt = candidate && candidate.created_at ? Date.parse(candidate.created_at) : NaN;
+          if (!Number.isNaN(createdAt)) {
+            // Prefer newest records slightly.
+            score += Math.min(10, Math.max(0, (createdAt / 1e12)));
+          }
+          return score;
+        };
+
+        let row = matches[0];
+        if (matches.length > 1) {
+          row = matches
+            .map(x => ({ x, s: scoreRow(x) }))
+            .sort((a, b) => b.s - a.s)[0].x;
+        }
+
+        // If there are duplicate users with the same email and one is marked Pro,
+        // keep the Pro flag consistent for this email at login time.
+        if (userHasIsPro && effectiveIsPro && !row.is_pro) {
+          try {
+            await pgClient.query('UPDATE users SET is_pro = TRUE WHERE id = $1', [row.id]);
+            row.is_pro = true;
+          } catch (e) {
+            // ignore
+          }
         }
 
         let professional = null;
@@ -2258,7 +2366,7 @@ app.post('/api/auth/login', async (req, res) => {
             ? 'companies_admin'
             : ((dbRole === 'professional' || dbRole === 'profissional')
               ? 'professional'
-              : (professional ? 'professional' : 'user'));
+              : 'user');
 
         const user = {
           id: row.id,
@@ -2271,7 +2379,7 @@ app.post('/api/auth/login', async (req, res) => {
           role,
           account_type: role === 'professional' ? 'professional' : 'user',
           professional: professional || null,
-          is_pro: userHasIsPro ? !!row.is_pro : false
+          is_pro: userHasIsPro ? (effectiveIsPro || !!row.is_pro) : false
         };
 
         const legacy_token = createLegacySession(row.id);
@@ -2844,6 +2952,8 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
             `SELECT u.id, u.email, u.${nameCol} as name, u.nome, u.photo_url, u.is_pro, u.criado_em, u.celular, u.auth_id${userHasRole ? ', u.role' : ''}
              FROM users u
              LEFT JOIN professional_accounts pa ON pa.user_id = u.id
+               AND lower(COALESCE(pa.role, '')) IN ('professional','profissional')
+               AND (pa.status IS NULL OR lower(COALESCE(pa.status, '')) IN ('active','ativo'))
              WHERE lower(u.email) = lower($1)
              ORDER BY (pa.user_id IS NOT NULL) DESC
              LIMIT 1`,
@@ -2875,11 +2985,20 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
             let professional = null;
             try { professional = await getProfessionalAccount(pgClient, row.id); } catch (e) { professional = null; }
 
-            const isProfessional = (dbRole === 'professional' || dbRole === 'profissional') || !!professional;
+            // IMPORTANT: professional status must come from users.role only.
+            // Do not infer professional from the existence of a professional_accounts row
+            // (some databases used users.is_pro for subscription, which previously backfilled
+            // professional_accounts and could incorrectly "promote" casual users).
+            const isProfessional = (dbRole === 'professional' || dbRole === 'profissional');
             const accountType = isProfessional ? 'professional' : 'user';
+            const roleOut = dbRole || 'user';
+
+            const legacyToken = createLegacySession(row.id);
 
             return res.json({
               success: true,
+              legacy_token: legacyToken,
+              token_type: 'legacy',
               user: {
                 id: row.id,
                 auth_id: uid,
@@ -2894,10 +3013,9 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
                 telefone: row.celular || null,
                 phone: row.celular || null,
                 account_type: accountType,
-                role: isProfessional ? 'professional' : 'user',
-                professional: professional ? {
+                role: roleOut,
+                professional: (isProfessional && professional) ? {
                   status: professional.status || 'active',
-                  onboarding_completed: !!professional.onboarding_completed,
                   company_name: professional.company_name || null,
                   matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
                   cnpj: professional.cnpj || null,
@@ -2975,11 +3093,16 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
               const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
               let professional = null;
               try { professional = await getProfessionalAccount(pgClient, row.id); } catch (e) { professional = null; }
-              const isProfessional = (dbRole === 'professional' || dbRole === 'profissional') || !!professional;
+              const isProfessional = (dbRole === 'professional' || dbRole === 'profissional');
               const accountType = isProfessional ? 'professional' : 'user';
+              const roleOut = dbRole || 'user';
+
+              const legacyToken = createLegacySession(row.id);
 
               return res.json({
                 success: true,
+                legacy_token: legacyToken,
+                token_type: 'legacy',
                 user: {
                   id: row.id,
                   auth_id: uid,
@@ -2994,10 +3117,9 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
                   telefone: row.celular || null,
                   phone: row.celular || null,
                   account_type: accountType,
-                  role: isProfessional ? 'professional' : 'user',
-                  professional: professional ? {
+                  role: roleOut,
+                  professional: (isProfessional && professional) ? {
                     status: professional.status || 'active',
-                    onboarding_completed: !!professional.onboarding_completed,
                     company_name: professional.company_name || null,
                     matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
                     cnpj: professional.cnpj || null,
@@ -3096,6 +3218,8 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
             `SELECT u.id
              FROM users u
              LEFT JOIN professional_accounts pa ON pa.user_id = u.id
+               AND lower(COALESCE(pa.role, '')) IN ('professional','profissional')
+               AND (pa.status IS NULL OR lower(COALESCE(pa.status, '')) IN ('active','ativo'))
              WHERE lower(u.email) = lower($1)
              ORDER BY (pa.user_id IS NOT NULL) DESC
              LIMIT 1`,
@@ -3134,6 +3258,8 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           const displayName = ((row.nome || '') + '').trim();
           const phoneValue = row.celular || null;
 
+          const legacyToken = createLegacySession(row.id);
+
           // Fetch professional profile details when professional_accounts exists.
           let professional = null;
           try {
@@ -3144,8 +3270,9 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
 
           // Determine account type primarily by users.role when available.
           const dbRole = userHasRole ? String(row.role || '').toLowerCase() : '';
-          const isProfessional = (dbRole === 'professional' || dbRole === 'profissional') || !!professional;
+          const isProfessional = (dbRole === 'professional' || dbRole === 'profissional');
           const accountType = isProfessional ? 'professional' : 'user';
+          const roleOut = dbRole || 'user';
           
           console.log('🔍 FIREBASE-VERIFY: Processing user data:', {
             rawRow: row,
@@ -3155,6 +3282,8 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
           
           const responseData = { 
             success: true, 
+            legacy_token: legacyToken,
+            token_type: 'legacy',
             user: { 
               id: row.id, 
               email: row.email, 
@@ -3168,10 +3297,9 @@ app.post('/api/auth/firebase-verify', async (req, res) => {
               telefone: phoneValue,
               phone: phoneValue,
               account_type: accountType,
-              role: isProfessional ? 'professional' : 'user',
-              professional: professional ? {
+              role: roleOut,
+              professional: (isProfessional && professional) ? {
                 status: professional.status || 'active',
-                onboarding_completed: !!professional.onboarding_completed,
                 company_name: professional.company_name || null,
                 matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
                 cnpj: professional.cnpj || null,
@@ -3639,7 +3767,6 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
               params.push(String(metaMatricula).trim());
             }
             if (sets.length > 0) {
-              sets.push('onboarding_completed = true');
               sets.push('updated_at = now()');
               params.push(uidToUse);
               await pgClient.query(`UPDATE professional_accounts SET ${sets.join(', ')} WHERE user_id = $${idx}`, params);
@@ -3696,7 +3823,6 @@ app.post('/api/auth/supabase-verify', async (req, res) => {
               role: dbRole || (accountType === 'professional' ? 'professional' : 'user'),
               professional: professional ? {
                 status: professional.status || 'active',
-                onboarding_completed: !!professional.onboarding_completed,
                 company_name: professional.company_name || null,
                 matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
                 cnpj: professional.cnpj || null,
@@ -3930,7 +4056,7 @@ app.post('/api/auth/supabase-webhook', async (req, res) => {
 
 // Professional accounts API
 // GET  /api/professional/account -> returns professional row for current user (Bearer token)
-// POST /api/professional/account -> upserts professional row and can set onboarding_completed
+// POST /api/professional/account -> upserts professional row
 
 // Companies API
 // GET /api/companies -> list active companies (for dropdown)
@@ -4194,7 +4320,6 @@ app.post('/api/professional/account', async (req, res) => {
     const matricula = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'matricula')) ? req.body.matricula : undefined;
     const cnpj = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'cnpj')) ? req.body.cnpj : undefined;
     const phone = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'phone')) ? req.body.phone : undefined;
-    const onboardingCompleted = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'onboarding_completed')) ? !!req.body.onboarding_completed : undefined;
     const regenerateMatricula = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'regenerate_matricula')) ? !!req.body.regenerate_matricula : false;
 
     const sets = [];
@@ -4256,7 +4381,6 @@ app.post('/api/professional/account', async (req, res) => {
     if (resolvedMatricula !== undefined && hasMatricula) { sets.push(`matricula = $${idx++}`); params.push(resolvedMatricula); }
     if (cnpj !== undefined) { sets.push(`cnpj = $${idx++}`); params.push(cnpj); }
     if (phone !== undefined) { sets.push(`phone = $${idx++}`); params.push(phone); }
-    if (onboardingCompleted !== undefined) { sets.push(`onboarding_completed = $${idx++}`); params.push(onboardingCompleted); }
     sets.push('updated_at = now()');
 
     if (sets.length > 0) {
@@ -4271,88 +4395,371 @@ app.post('/api/professional/account', async (req, res) => {
   }
 });
 
-// Professional onboarding: store business details and mark onboarding_completed=true.
-// Auth: accepts Authorization: Bearer <supabase_access_token> OR Bearer <firebase_id_token>.
-app.post('/api/professional/onboarding', async (req, res) => {
+// --- Maintenance history (server-side) ---
+// These endpoints back the maintenance history feature when running with Postgres + Supabase auth.
+
+function normalizeMaintenancePayload(body) {
+  const b = body || {};
+  const veiculoId = (b.veiculoId != null ? String(b.veiculoId) : (b.car_id != null ? String(b.car_id) : (b.carId != null ? String(b.carId) : ''))).trim();
+  const vehicleLabel = (b.vehicle_label != null ? String(b.vehicle_label) : (b.veiculoLabel != null ? String(b.veiculoLabel) : (b.veiculo_nome != null ? String(b.veiculo_nome) : ''))).trim();
+  const data = (b.data != null ? String(b.data) : '').trim();
+  const tipo = (b.tipo != null ? String(b.tipo) : '').trim();
+  const descricao = (b.descricao != null ? String(b.descricao) : '').trim();
+  const codigoProduto = (b.codigoProduto != null ? String(b.codigoProduto) : (b.codigo_produto != null ? String(b.codigo_produto) : '')).trim();
+  const kmAtualRaw = (b.kmAtual != null ? b.kmAtual : (b.km_atual != null ? b.km_atual : null));
+  const kmAtual = (kmAtualRaw == null || String(kmAtualRaw).trim() === '') ? null : Number.parseInt(String(kmAtualRaw).replace(/[^0-9]/g, ''), 10);
+  const companyId = (b.company_id != null ? String(b.company_id) : (b.companyId != null ? String(b.companyId) : '')).trim();
+  const oficina = (b.oficina != null ? String(b.oficina) : '').trim();
+  const valorRaw = (b.valor != null ? b.valor : null);
+  const valor = (valorRaw == null || String(valorRaw).trim() === '')
+    ? null
+    : (() => {
+      const s = String(valorRaw)
+        .replace(/\s/g, '')
+        .replace(/R\$/gi, '')
+        .replace(/\./g, '')
+        .replace(/,/g, '.');
+      const n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    })();
+  const observacoes = (b.observacoes != null ? String(b.observacoes) : '').trim();
+  return {
+    veiculoId: veiculoId || null,
+    vehicleLabel: vehicleLabel || null,
+    data: data || null,
+    tipo: tipo || null,
+    descricao: descricao || null,
+    codigoProduto: codigoProduto || null,
+    kmAtual: Number.isFinite(kmAtual) ? kmAtual : null,
+    companyId: companyId || null,
+    oficina: oficina || null,
+    valor,
+    observacoes: observacoes || null,
+  };
+}
+
+function mapMaintenanceRowToClient(row) {
+  if (!row) return null;
+  const out = {
+    id: row.id,
+    veiculoId: row.car_id || null,
+    veiculoLabel: row.vehicle_label || null,
+    data: row.data ? String(row.data).slice(0, 10) : null,
+    tipo: row.tipo || null,
+    descricao: row.descricao || null,
+    codigoProduto: row.codigo_produto || null,
+    kmAtual: row.km_atual != null ? row.km_atual : null,
+    company_id: row.company_id || null,
+    oficina: row.oficina || null,
+    valor: row.valor != null ? row.valor : null,
+    observacoes: row.observacoes || null,
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null,
+  };
+
+  if (Object.prototype.hasOwnProperty.call(row, 'user_id')) out.user_id = row.user_id;
+  if (Object.prototype.hasOwnProperty.call(row, 'user_email')) out.user_email = row.user_email;
+  if (Object.prototype.hasOwnProperty.call(row, 'user_name')) out.user_name = row.user_name;
+  return out;
+}
+
+function normalizeOfficeNameForMatch(input) {
+  try {
+    return String(input || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ');
+  } catch (e) {
+    return String(input || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+}
+
+app.get('/api/maintenances', async (req, res) => {
   try {
     if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectMaintenanceRecordsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'maintenance_records table not available (run migration 0016)' });
 
-    // Resolve identity from Supabase token if possible
-    let authId = null;
-    let email = null;
-    try {
-      const sbUser = await getSupabaseUserFromReq(req);
-      if (sbUser && sbUser.id) {
-        authId = sbUser.id;
-        email = sbUser.email || null;
-      }
-    } catch (e) { /* ignore */ }
+    // Accept both Supabase JWT and legacy gs_ session tokens
+    const dbUser = await getDbUserFromReq(req, { allowExplicitUserId: false });
+    if (!dbUser || !dbUser.id) return res.status(401).json({ error: 'not authenticated' });
+    const userId = String(dbUser.id);
 
-    // Fallback: Firebase token verification (if configured)
-    if (!authId) {
-      try {
-        tryInitFirebaseAdmin();
-        const authHeader = req.headers.authorization || '';
-        const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-        if (token && firebaseAdmin) {
-          const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-          if (decoded && decoded.uid) {
-            authId = decoded.uid;
-            email = decoded.email || null;
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
+    const r = await pgClient.query(
+      `SELECT id, user_id, car_id, vehicle_label, data, tipo, descricao, codigo_produto, km_atual, company_id, oficina, valor, observacoes, created_at, updated_at
+       FROM maintenance_records
+       WHERE user_id = $1
+       ORDER BY COALESCE(data::timestamp, created_at) DESC, created_at DESC`,
+      [String(userId)]
+    );
 
-    if (!authId && !(req.body && req.body.user_id)) {
-      return res.status(401).json({ error: 'unauthorized' });
-    }
-
-    // Resolve local DB user id
-    const dbUserId = await resolveDbUserIdFromAuth({
-      pgClientInstance: pgClient,
-      authId: authId || (req.body && req.body.user_id),
-      email: email || (req.body && req.body.email)
-    });
-
-    if (!dbUserId) return res.status(404).json({ error: 'user not found' });
-
-    // Ensure professional account exists
-    const requestedRole = (req.body && req.body.role) ? req.body.role : 'professional';
-    await ensureProfessionalAccount(pgClient, dbUserId, { role: requestedRole });
-
-    const ok = await detectProfessionalAccountsTable(pgClient);
-    if (!ok) return res.status(503).json({ error: 'professional_accounts not available (run migration 0008)' });
-
-    const companyName = (req.body && req.body.company_name != null) ? String(req.body.company_name).trim() : null;
-    const cnpj = (req.body && req.body.cnpj != null) ? String(req.body.cnpj).trim() : null;
-    const phone = (req.body && req.body.phone != null) ? String(req.body.phone).trim() : null;
-
-    try {
-      await pgClient.query(
-        `UPDATE professional_accounts
-         SET company_name = COALESCE($2, company_name),
-             cnpj = COALESCE($3, cnpj),
-             phone = COALESCE($4, phone),
-             onboarding_completed = true,
-             updated_at = now()
-         WHERE user_id = $1`,
-        [String(dbUserId), companyName, cnpj, phone]
-      );
-    } catch (e) {
-      console.warn('professional onboarding update failed', e && e.message ? e.message : e);
-      return res.status(500).json({ error: 'failed to update professional account' });
-    }
-
-    const professional = await getProfessionalAccount(pgClient, dbUserId);
-    return res.json({ success: true, account_type: 'professional', professional });
-  } catch (err) {
-    console.error('professional onboarding error:', err && err.stack ? err.stack : err);
+    const items = (r.rows || []).map(mapMaintenanceRowToClient).filter(Boolean);
+    return res.json({ success: true, maintenances: items });
+  } catch (e) {
     return res.status(500).json({ error: 'internal error' });
   }
 });
+
+app.post('/api/maintenances', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectMaintenanceRecordsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'maintenance_records table not available (run migration 0016)' });
+
+    // Accept both Supabase JWT and legacy gs_ session tokens
+    const dbUser = await getDbUserFromReq(req, { allowExplicitUserId: false });
+    if (!dbUser || !dbUser.id) return res.status(401).json({ error: 'not authenticated' });
+    const userId = String(dbUser.id);
+
+    const payload = normalizeMaintenancePayload(req.body);
+    const id = (crypto && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : `m_${Date.now()}`;
+
+    await pgClient.query(
+      `INSERT INTO maintenance_records(
+        id, user_id, car_id, vehicle_label, data, tipo, descricao, codigo_produto, km_atual, company_id, oficina, valor, observacoes, created_at, updated_at
+      ) VALUES (
+        $1,$2,$3,$4,$5::date,$6,$7,$8,$9,$10,$11,$12,$13,now(),now()
+      )`,
+      [
+        String(id),
+        String(userId),
+        payload.veiculoId,
+        payload.vehicleLabel,
+        payload.data,
+        payload.tipo,
+        payload.descricao,
+        payload.codigoProduto,
+        payload.kmAtual,
+        payload.companyId,
+        payload.oficina,
+        payload.valor,
+        payload.observacoes,
+      ]
+    );
+
+    const r = await pgClient.query(
+      `SELECT id, user_id, car_id, vehicle_label, data, tipo, descricao, codigo_produto, km_atual, company_id, oficina, valor, observacoes, created_at, updated_at
+       FROM maintenance_records WHERE id = $1 LIMIT 1`,
+      [String(id)]
+    );
+    const item = r && r.rows && r.rows[0] ? mapMaintenanceRowToClient(r.rows[0]) : null;
+    return res.status(201).json({ success: true, maintenance: item });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.patch('/api/maintenances/:id', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectMaintenanceRecordsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'maintenance_records table not available (run migration 0016)' });
+
+    const id = req.params && req.params.id ? String(req.params.id).trim() : null;
+    if (!id) return res.status(400).json({ error: 'id required' });
+
+    // Accept both Supabase JWT and legacy gs_ session tokens
+    const dbUser = await getDbUserFromReq(req, { allowExplicitUserId: false });
+    if (!dbUser || !dbUser.id) return res.status(401).json({ error: 'not authenticated' });
+    const userId = String(dbUser.id);
+
+    const payload = normalizeMaintenancePayload(req.body);
+    await pgClient.query(
+      `UPDATE maintenance_records
+       SET car_id = $3,
+           vehicle_label = $4,
+           data = $5::date,
+           tipo = $6,
+           descricao = $7,
+           codigo_produto = $8,
+           km_atual = $9,
+           company_id = $10,
+           oficina = $11,
+           valor = $12,
+           observacoes = $13,
+           updated_at = now()
+       WHERE id = $1 AND user_id = $2`,
+      [
+        String(id),
+        String(userId),
+        payload.veiculoId,
+        payload.vehicleLabel,
+        payload.data,
+        payload.tipo,
+        payload.descricao,
+        payload.codigoProduto,
+        payload.kmAtual,
+        payload.companyId,
+        payload.oficina,
+        payload.valor,
+        payload.observacoes,
+      ]
+    );
+
+    const r = await pgClient.query(
+      `SELECT id, user_id, car_id, vehicle_label, data, tipo, descricao, codigo_produto, km_atual, company_id, oficina, valor, observacoes, created_at, updated_at
+       FROM maintenance_records WHERE id = $1 AND user_id = $2 LIMIT 1`,
+      [String(id), String(userId)]
+    );
+    if (!r || r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+    const item = mapMaintenanceRowToClient(r.rows[0]);
+    return res.json({ success: true, maintenance: item });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.delete('/api/maintenances/:id', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectMaintenanceRecordsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'maintenance_records table not available (run migration 0016)' });
+
+    const id = req.params && req.params.id ? String(req.params.id).trim() : null;
+    if (!id) return res.status(400).json({ error: 'id required' });
+
+    // Accept both Supabase JWT and legacy gs_ session tokens
+    const dbUser = await getDbUserFromReq(req, { allowExplicitUserId: false });
+    if (!dbUser || !dbUser.id) return res.status(401).json({ error: 'not authenticated' });
+    const userId = String(dbUser.id);
+
+    const r = await pgClient.query('DELETE FROM maintenance_records WHERE id = $1 AND user_id = $2', [String(id), String(userId)]);
+    if (!r || r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+    return res.json({ success: true });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Professional: list maintenances for their company/oficina.
+// GET /api/professional/maintenances?limit=200&offset=0
+app.get('/api/professional/maintenances', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectMaintenanceRecordsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'maintenance_records table not available (run migration 0016)' });
+
+    // Use the canonical DB user resolved from the request and enforce users.role.
+    // Do not authorize professional access based only on a professional_accounts row.
+    const dbUser = await getDbUserFromReq(req, { allowExplicitUserId: false });
+    if (!dbUser || !dbUser.id) return res.status(401).json({ error: 'not authenticated' });
+    const dbRole = String(dbUser.role || '').toLowerCase();
+    const isProfessionalRole = (dbRole === 'professional' || dbRole === 'profissional');
+    if (!isProfessionalRole) return res.status(403).json({ error: 'not a professional account' });
+
+    const userId = String(dbUser.id);
+    const professional = await getProfessionalAccount(pgClient, userId);
+    if (!professional) return res.status(403).json({ error: 'professional profile missing' });
+
+    const limitRaw = req.query && req.query.limit != null ? Number(req.query.limit) : 200;
+    const offsetRaw = req.query && req.query.offset != null ? Number(req.query.offset) : 0;
+    const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(1000, Math.floor(limitRaw))) : 200;
+    const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+
+    const hasCompanyIdCol = await detectMaintenanceRecordsCompanyIdColumn(pgClient);
+    const profCompanyId = professional && Object.prototype.hasOwnProperty.call(professional, 'company_id') ? (professional.company_id || null) : null;
+    const profCompanyName = professional && professional.company_name ? String(professional.company_name).trim() : '';
+
+    const officeNameCandidates = Array.from(new Set([
+      profCompanyName,
+      professional && professional.company_trade_name ? String(professional.company_trade_name).trim() : '',
+      professional && professional.company_legal_name ? String(professional.company_legal_name).trim() : '',
+      professional && professional.company_code ? String(professional.company_code).trim() : ''
+    ].filter(Boolean)));
+    const officeNameCandidatesNormalized = Array.from(new Set(officeNameCandidates
+      .map(normalizeOfficeNameForMatch)
+      .filter(Boolean)
+    ));
+    const officeNameCandidatesLike = officeNameCandidatesNormalized.map(n => `%${n}%`);
+
+    const nameCol = (userNameColumn && isSafeSqlIdentifier(userNameColumn)) ? userNameColumn : null;
+    const selectUserName = nameCol ? `u.${nameCol} as user_name` : `NULL as user_name`;
+
+    let r;
+    if (hasCompanyIdCol && profCompanyId) {
+      // Primary filter by company_id, but also include records that only set oficina.
+      // Match against multiple possible company name fields.
+      r = await pgClient.query(
+        `SELECT mr.id, mr.user_id, mr.car_id, mr.vehicle_label, mr.data, mr.tipo, mr.descricao, mr.codigo_produto, mr.km_atual, mr.company_id, mr.oficina, mr.valor, mr.observacoes, mr.created_at, mr.updated_at,
+                u.email as user_email, ${selectUserName}
+         FROM maintenance_records mr
+         JOIN users u ON u.id = mr.user_id
+         WHERE (mr.company_id = $1)
+            OR (
+              regexp_replace(
+                translate(lower(trim(COALESCE(mr.oficina,''))), 'áàâãäéèêëíìîïóòôõöúùûüç', 'aaaaaeeeeiiiiooooouuuuc'),
+                '\\s+', ' ', 'g'
+              ) = ANY($2::text[])
+              OR regexp_replace(
+                translate(lower(trim(COALESCE(mr.oficina,''))), 'áàâãäéèêëíìîïóòôõöúùûüç', 'aaaaaeeeeiiiiooooouuuuc'),
+                '\\s+', ' ', 'g'
+              ) LIKE ANY($3::text[])
+            )
+         ORDER BY COALESCE(mr.data::timestamp, mr.created_at) DESC, mr.created_at DESC
+         LIMIT $4 OFFSET $5`,
+        [String(profCompanyId), officeNameCandidatesNormalized.length ? officeNameCandidatesNormalized : [''], officeNameCandidatesLike.length ? officeNameCandidatesLike : [''], limit, offset]
+      );
+    } else {
+      if (!officeNameCandidatesNormalized.length) return res.status(400).json({ error: 'professional account has no company_id/company_name to filter' });
+      r = await pgClient.query(
+        `SELECT mr.id, mr.user_id, mr.car_id, mr.vehicle_label, mr.data, mr.tipo, mr.descricao, mr.codigo_produto, mr.km_atual, mr.company_id, mr.oficina, mr.valor, mr.observacoes, mr.created_at, mr.updated_at,
+                u.email as user_email, ${selectUserName}
+         FROM maintenance_records mr
+         JOIN users u ON u.id = mr.user_id
+         WHERE (
+           regexp_replace(
+             translate(lower(trim(COALESCE(mr.oficina,''))), 'áàâãäéèêëíìîïóòôõöúùûüç', 'aaaaaeeeeiiiiooooouuuuc'),
+             '\\s+', ' ', 'g'
+           ) = ANY($1::text[])
+           OR regexp_replace(
+             translate(lower(trim(COALESCE(mr.oficina,''))), 'áàâãäéèêëíìîïóòôõöúùûüç', 'aaaaaeeeeiiiiooooouuuuc'),
+             '\\s+', ' ', 'g'
+           ) LIKE ANY($2::text[])
+         )
+         ORDER BY COALESCE(mr.data::timestamp, mr.created_at) DESC, mr.created_at DESC
+         LIMIT $3 OFFSET $4`,
+        [officeNameCandidatesNormalized, officeNameCandidatesLike.length ? officeNameCandidatesLike : [''], limit, offset]
+      );
+    }
+
+    const items = (r && r.rows ? r.rows : []).map(mapMaintenanceRowToClient).filter(Boolean);
+    return res.json({ success: true, maintenances: items });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Dev-only: inspect maintenance records by user id to debug why office history is empty.
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/debug/maintenance-records', async (req, res) => {
+    try {
+      if (!isDebugRequest(req)) return res.status(403).json({ error: 'debug required (send X-Debug-Key: let-me-debug)' });
+      if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+      const ok = await detectMaintenanceRecordsTable(pgClient);
+      if (!ok) return res.status(503).json({ error: 'maintenance_records table not available (run migration 0016)' });
+
+      const userId = req.query && (req.query.user_id || req.query.userId) ? String(req.query.user_id || req.query.userId).trim() : '';
+      if (!userId) return res.status(400).json({ error: 'user_id required' });
+
+      const limitRaw = req.query && req.query.limit != null ? Number(req.query.limit) : 50;
+      const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(200, Math.floor(limitRaw))) : 50;
+
+      const r = await pgClient.query(
+        `SELECT id, user_id, company_id, oficina, data, tipo, descricao, created_at, updated_at
+         FROM maintenance_records
+         WHERE user_id = $1
+         ORDER BY created_at DESC
+         LIMIT $2`,
+        [String(userId), limit]
+      );
+      return res.json({ ok: true, count: r ? r.rowCount : 0, rows: r ? r.rows : [] });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
+    }
+  });
+}
 
 // Endpoint para validar token de redefinição de senha
 app.get('/api/validate-reset-token', async (req, res) => {
@@ -4415,6 +4822,130 @@ app.post('/api/auth/request-password-reset', async (req, res) => {
     return res.json({ ok: true, token, expiresAt });
   } catch (e) {
     console.error('/api/auth/request-password-reset failed', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+// Troca de senha para usuário autenticado (Firebase/Supabase/legacy).
+// Body: { newPassword }
+app.post('/api/auth/change-password', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    await refreshUsersSchema(pgClient);
+    const passCol = isSafeSqlIdentifier(userPasswordColumn) ? userPasswordColumn : null;
+    if (!passCol) return res.status(503).json({ error: 'password auth not available' });
+
+    const newPassword = req.body && (req.body.newPassword || req.body.password || req.body.novaSenha)
+      ? String(req.body.newPassword || req.body.password || req.body.novaSenha)
+      : '';
+    if (!newPassword || newPassword.length < 8) return res.status(400).json({ error: 'newPassword must be at least 8 characters' });
+
+    // 1) Legacy session (gs_*)
+    let userId = getLegacySessionUserIdFromReq(req);
+    let email = null;
+    let authId = null;
+
+    // 2) Supabase session
+    if (!userId) {
+      const sbUser = await getSupabaseUserFromReq(req).catch(() => null);
+      if (sbUser && sbUser.id) {
+        authId = sbUser.id;
+        email = sbUser.email || null;
+        userId = await resolveDbUserIdFromAuth({ pgClientInstance: pgClient, authId, email });
+      }
+    }
+
+    // 3) Firebase ID token (if configured)
+    if (!userId) {
+      const authHeader = req.headers.authorization || '';
+      const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : (req.body && (req.body.idToken || req.body.access_token));
+
+      // DEV bypass: allow local testing without a Firebase service account.
+      if (!userId && idToken && String(process.env.DEV_FIREBASE_BYPASS || '').toLowerCase() === 'true') {
+        const uidHint = req.body && req.body.uid ? String(req.body.uid) : (req.body && req.body.auth_id ? String(req.body.auth_id) : null);
+        const emailHint = req.body && req.body.email ? String(req.body.email).trim().toLowerCase() : null;
+        authId = uidHint || `dev_${String(idToken).slice(0,8)}`;
+        email = emailHint || null;
+        userId = await resolveDbUserIdFromAuth({ pgClientInstance: pgClient, authId, email });
+      }
+
+      if (!userId && idToken) {
+        tryInitFirebaseAdmin();
+        if (firebaseAdmin) {
+          const decoded = await firebaseAdmin.auth().verifyIdToken(idToken);
+          if (decoded && decoded.uid) {
+            authId = decoded.uid;
+            email = decoded.email || null;
+            userId = await resolveDbUserIdFromAuth({ pgClientInstance: pgClient, authId, email });
+          }
+        }
+      }
+    }
+
+    if (!userId) return res.status(401).json({ error: 'not authenticated' });
+
+    let bcrypt = null;
+    try { bcrypt = require('bcryptjs'); } catch (e) { bcrypt = null; }
+    if (!bcrypt || typeof bcrypt.hashSync !== 'function') return res.status(501).json({ error: 'password hashing not configured' });
+    const hashed = bcrypt.hashSync(newPassword, 10);
+
+    await pgClient.query(
+      `UPDATE users SET ${passCol} = $1, atualizado_em = now() WHERE id = $2`,
+      [hashed, String(userId)]
+    );
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('/api/auth/change-password failed', e && e.message ? e.message : e);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+// Redefinição de senha via token de recuperação (sem precisar sessão Supabase/Firebase).
+// Body: { token, email, newPassword }
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    await refreshUsersSchema(pgClient);
+    const passCol = isSafeSqlIdentifier(userPasswordColumn) ? userPasswordColumn : null;
+    if (!passCol) return res.status(503).json({ error: 'password auth not available' });
+
+    const token = req.body && req.body.token ? String(req.body.token).trim() : '';
+    const email = req.body && req.body.email ? String(req.body.email).trim().toLowerCase() : '';
+    const newPassword = req.body && (req.body.newPassword || req.body.password || req.body.novaSenha)
+      ? String(req.body.newPassword || req.body.password || req.body.novaSenha)
+      : '';
+    if (!token) return res.status(400).json({ error: 'token required' });
+    if (!email) return res.status(400).json({ error: 'email required' });
+    if (!newPassword || newPassword.length < 8) return res.status(400).json({ error: 'newPassword must be at least 8 characters' });
+
+    const r = await pgClient.query('SELECT * FROM reset_password_tokens WHERE token = $1 LIMIT 1', [token]);
+    if (!r || r.rowCount === 0) return res.status(400).json({ error: 'invalid token' });
+    const info = r.rows[0];
+    if (info.used) return res.status(400).json({ error: 'token already used' });
+    if (new Date(info.expires_at) < new Date()) return res.status(400).json({ error: 'token expired' });
+    if (String(info.email || '').trim().toLowerCase() !== email) return res.status(400).json({ error: 'token/email mismatch' });
+
+    let bcrypt = null;
+    try { bcrypt = require('bcryptjs'); } catch (e) { bcrypt = null; }
+    if (!bcrypt || typeof bcrypt.hashSync !== 'function') return res.status(501).json({ error: 'password hashing not configured' });
+    const hashed = bcrypt.hashSync(newPassword, 10);
+
+    await pgClient.query('BEGIN');
+    try {
+      await pgClient.query(
+        `UPDATE users SET ${passCol} = $1, atualizado_em = now() WHERE id = $2`,
+        [hashed, String(info.user_id)]
+      );
+      await pgClient.query('UPDATE reset_password_tokens SET used = true, used_at = now() WHERE token = $1', [token]);
+      await pgClient.query('COMMIT');
+    } catch (e2) {
+      try { await pgClient.query('ROLLBACK'); } catch (e3) {}
+      throw e2;
+    }
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('/api/auth/reset-password failed', e && e.message ? e.message : e);
     return res.status(500).json({ error: 'internal' });
   }
 });

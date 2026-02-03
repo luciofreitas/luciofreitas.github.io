@@ -41,7 +41,7 @@ export default function CriarGuia() {
   const [successMessage, setSuccessMessage] = useState('');
 
   // Verificar se é Pro
-  const isPro = Boolean((usuarioLogado && usuarioLogado.isPro) || localStorage.getItem('versaoProAtiva') === 'true');
+  const isPro = Boolean((usuarioLogado && (usuarioLogado.isPro || usuarioLogado.is_pro)) || localStorage.getItem('versaoProAtiva') === 'true');
 
   useEffect(() => {
     // Evitar múltiplas execuções

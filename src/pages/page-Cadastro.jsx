@@ -195,10 +195,8 @@ export default function PageCadastro() {
           professional: acct === 'professional'
             ? (createdProfessional ? {
               ...(createdProfessional || {}),
-              onboarding_completed: true
             } : {
               status: 'active',
-              onboarding_completed: true,
               company_name: (usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null)),
               matricula: (usingCompaniesDropdown ? null : (String(matricula || '').trim() || null)),
               company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null
@@ -213,7 +211,7 @@ export default function PageCadastro() {
         setTimeout(() => {
           try {
             const acct = String(normalizedUsuario.accountType || '').toLowerCase();
-            navigate((acct === 'professional' || acct === 'profissional') ? '/profissional/dashboard' : '/buscar-pecas');
+            navigate((acct === 'professional' || acct === 'profissional') ? '/historico-manutencao' : '/buscar-pecas');
           } catch (e) {}
         }, 1000);
         setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
@@ -271,7 +269,7 @@ export default function PageCadastro() {
               accountType: acct,
               role: acct === 'professional' ? 'professional' : 'user',
               professional: acct === 'professional'
-                ? { status: 'active', onboarding_completed: true, company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
+                ? { status: 'active', company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
                 : null
             };
 
@@ -295,8 +293,7 @@ export default function PageCadastro() {
                     ...(usingCompaniesDropdown
                       ? { company_id: String(companyId || '').trim() || null }
                       : { company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
-                    ),
-                    onboarding_completed: true
+                    )
                   })
                 }).catch(() => null);
 
@@ -318,7 +315,7 @@ export default function PageCadastro() {
             if (window.showToast) window.showToast('Cadastro realizado (Supabase).', 'success', 1200);
             setTimeout(() => {
               try {
-                navigate(acct === 'professional' ? '/profissional/dashboard' : '/buscar-pecas');
+                navigate(acct === 'professional' ? '/historico-manutencao' : '/buscar-pecas');
               } catch (e) {}
             }, 1000);
             setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
@@ -369,7 +366,7 @@ export default function PageCadastro() {
           accountType: acct,
           role: acct === 'professional' ? 'professional' : 'user',
           professional: acct === 'professional'
-            ? { status: 'active', onboarding_completed: true, company_name: usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null), matricula: usingCompaniesDropdown ? null : (String(matricula || '').trim() || null), company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null }
+            ? { status: 'active', company_name: usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null), matricula: usingCompaniesDropdown ? null : (String(matricula || '').trim() || null), company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null }
             : null
         };
         try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
@@ -379,7 +376,7 @@ export default function PageCadastro() {
         try { localStorage.setItem('usuario-logado', JSON.stringify(createdLocal)); } catch(e){}
         setSuccess('Cadastro (local) realizado com sucesso! Entrando...');
         if (window.showToast) window.showToast('Cadastro realizado (local). Entrando...', 'success', 1200);
-        setTimeout(() => { try { navigate(acct === 'professional' ? '/profissional/dashboard' : '/buscar-pecas'); } catch (e) {} }, 1000);
+        setTimeout(() => { try { navigate(acct === 'professional' ? '/historico-manutencao' : '/buscar-pecas'); } catch (e) {} }, 1000);
         setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
         setLoading(false);
         return;
