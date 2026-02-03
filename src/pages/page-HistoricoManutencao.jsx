@@ -20,18 +20,10 @@ export default function HistoricoManutencao() {
   const isProfessional = useMemo(() => {
     try {
       const role = String(usuarioLogado?.role || '').toLowerCase().trim();
-      // IMPORTANT: Do not treat a user as professional just because `usuarioLogado.professional`
-      // is a truthy object; some flows may leave it as `{}` in storage.
-      if (role === 'companies_admin' || role === 'admin') return false;
-
-      // Prefer role when available.
-      if (role === 'professional' || role === 'profissional') return true;
-
-      // Fallback: older sessions (or partial logins) may not have `role` populated yet,
-      // but do have `accountType`/`account_type`. Backend endpoints still enforce role,
-      // so this only affects UI visibility.
-      const acct = String(usuarioLogado?.accountType || usuarioLogado?.account_type || '').toLowerCase().trim();
-      return acct === 'professional' || acct === 'profissional';
+      // IMPORTANT: Do not treat a user as professional just because `accountType` or
+      // `usuarioLogado.professional` exists. Office history is privileged and must
+      // follow backend authorization rules.
+      return (role === 'professional' || role === 'profissional');
     } catch (e) {
       return false;
     }
@@ -158,19 +150,39 @@ export default function HistoricoManutencao() {
     (async () => {
       setOfficeError('');
       setOfficeLoading(true);
+      // Avoid showing stale office data if a different user logs in.
+      setOfficeMaintenances([]);
       try {
         const list = await getOfficeMaintenances();
         if (!cancelled) {
           setOfficeMaintenances(Array.isArray(list) ? list : []);
         }
       } catch (e) {
-        if (!cancelled) setOfficeError(e && e.message ? String(e.message) : 'Erro ao carregar histórico da oficina.');
+        if (cancelled) return;
+        const msg = e && e.message ? String(e.message) : 'Erro ao carregar histórico da oficina.';
+        setOfficeError(msg);
+        const low = msg.toLowerCase();
+        if (low.includes('not a professional') || low.includes('professional profile') || low.includes('membership') || low.includes('company binding') || (e && e.status === 403)) {
+          // Backend denied: fallback to user-only history.
+          setViewMode('mine');
+        }
       } finally {
         if (!cancelled) setOfficeLoading(false);
       }
     })();
 
     return () => { cancelled = true; };
+  }, [isProfessional, viewMode]);
+
+  // If user isn't a professional (or became pending), force view mode back.
+  useEffect(() => {
+    if (isProfessional) return;
+    if (String(viewMode) === 'office') {
+      setViewMode('mine');
+      setOfficeMaintenances([]);
+      setOfficeError('');
+      setOfficeClientFilter('all');
+    }
   }, [isProfessional, viewMode]);
 
   useEffect(() => {

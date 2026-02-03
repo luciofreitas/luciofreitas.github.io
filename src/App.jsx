@@ -81,6 +81,48 @@ function StartupEnforcer() {
     } catch (e) {
       // ignore
     }
+
+    // Prefetch companies list to reduce perceived latency on Cadastro (esp. backend cold start)
+    try {
+      const apiBase = window.__API_BASE ? String(window.__API_BASE) : '';
+      if (apiBase) {
+        const cacheKey = `companies_cache_v1:${apiBase}`;
+        const CACHE_TTL_MS = 10 * 60 * 1000;
+        let shouldFetch = true;
+        try {
+          const raw = sessionStorage.getItem(cacheKey);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const ts = Number(parsed && parsed.ts ? parsed.ts : 0);
+            const list = parsed && Array.isArray(parsed.companies) ? parsed.companies : [];
+            if (ts && Number.isFinite(ts) && list.length && (Date.now() - ts) < CACHE_TTL_MS) {
+              shouldFetch = false;
+            }
+          }
+        } catch (e) {}
+
+        if (shouldFetch) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            try { controller.abort(); } catch (e) {}
+          }, 7000);
+          fetch(`${apiBase}/api/companies`, { signal: controller.signal, headers: { 'Accept': 'application/json' } })
+            .then(r => r.json().catch(() => ({})).then(b => ({ ok: r.ok, body: b })))
+            .then(({ ok, body }) => {
+              if (!ok || !body || body.error) return;
+              const list = Array.isArray(body.companies) ? body.companies : [];
+              if (!list.length) return;
+              try { sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), companies: list })); } catch (e) {}
+            })
+            .catch(() => {})
+            .finally(() => {
+              try { clearTimeout(timeoutId); } catch (e) {}
+            });
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
   }, [location]);
 
   return null;

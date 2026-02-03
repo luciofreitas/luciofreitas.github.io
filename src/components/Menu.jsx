@@ -24,11 +24,20 @@ function Menu() {
   const { usuarioLogado, setUsuarioLogado } = useContext(AuthContext) || {};
   const role = String((usuarioLogado && usuarioLogado.role) || '').toLowerCase();
   const isCompaniesAdmin = role === 'companies_admin';
+  const isAdmin = role === 'admin';
   const proActive = Boolean(usuarioLogado && (usuarioLogado.isPro || usuarioLogado.is_pro)) || localStorage.getItem('versaoProAtiva') === 'true';
   const headerRef = useRef(null);
 
   // shared menu items to render in desktop nav and mobile dropdown
-  const menuItems = isCompaniesAdmin ? [] : [
+  const menuItems = isCompaniesAdmin
+    ? [
+      {
+        id: 'admin-companies',
+        label: 'Admin Empresas',
+        onClick: () => navigate('/admin/companies')
+      }
+    ]
+    : [
     {
       id: 'buscar',
       label: 'Buscar Peças',
@@ -38,7 +47,8 @@ function Menu() {
     { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
     { id: 'historico', label: 'Histórico de Manutenção', onClick: () => navigate('/historico-manutencao') },
     { id: 'guias', label: 'Guias', onClick: () => navigate('/guias') },
-    { id: 'contato', label: 'Contato/Feedback', onClick: () => navigate('/contato-logado') }
+    { id: 'contato', label: 'Contato/Feedback', onClick: () => navigate('/contato-logado') },
+    ...(isAdmin ? [{ id: 'admin-companies', label: 'Admin Empresas', onClick: () => navigate('/admin/companies'), destacado: true }] : [])
   ];
 
   useEffect(() => {

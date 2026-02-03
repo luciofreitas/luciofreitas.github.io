@@ -107,11 +107,28 @@
   margin-bottom: var(--space-sm);
 }
 
+.admin-audit-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.admin-audit-details {
+  text-align: left;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
 .admin-section-title {
   font-family: var(--font-family-heading);
   font-size: var(--font-size-xl);
   color: var(--text-primary);
   margin: 0;
+}
+
+.admin-section-title--sm {
+  font-size: var(--font-size-lg);
 }
 
 .admin-muted {
@@ -155,6 +172,151 @@
 .admin-actions-col {
   width: 8rem;
   text-align: center;
+}
+
+.admin-actions-col-wide {
+  width: 14rem;
+}
+
+.admin-icon-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border-gray);
+  background: var(--bg-gray-50);
+  color: #111827 !important;
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.admin-icon {
+  display: block;
+  width: 1.1rem;
+  height: 1.1rem;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  flex: 0 0 auto;
+}
+
+.admin-icon-pencil {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A//www.w3.org/2000/svg'%20viewBox%3D'0%200%2024%2024'%3E%3Cpath%20d%3D'M16.303%202.303a1.5%201.5%200%200%201%202.121%200l3.273%203.273a1.5%201.5%200%200%201%200%202.121L9.53%2019.864a1.5%201.5%200%200%201-.67.382l-6.02%201.505a.75.75%200%200%201-.909-.909l1.505-6.02a1.5%201.5%200%200%201%20.382-.67L16.303%202.303zM15.242%205.485%205.5%2015.227l-.94%203.76%203.76-.94%209.742-9.742-2.82-2.82zm3.88-.939-2.82%202.82%202.82%202.82%202.82-2.82-2.82-2.82z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A//www.w3.org/2000/svg'%20viewBox%3D'0%200%2024%2024'%3E%3Cpath%20d%3D'M16.303%202.303a1.5%201.5%200%200%201%202.121%200l3.273%203.273a1.5%201.5%200%200%201%200%202.121L9.53%2019.864a1.5%201.5%200%200%201-.67.382l-6.02%201.505a.75.75%200%200%201-.909-.909l1.505-6.02a1.5%201.5%200%200%201%20.382-.67L16.303%202.303zM15.242%205.485%205.5%2015.227l-.94%203.76%203.76-.94%209.742-9.742-2.82-2.82zm3.88-.939-2.82%202.82%202.82%202.82%202.82-2.82-2.82-2.82z'/%3E%3C/svg%3E");
+}
+
+.admin-icon-btn:hover:not(:disabled) {
+  background: var(--bg-white);
+  border-color: var(--border-primary);
+}
+
+.admin-icon-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  /* Must be above fixed header/menu (uses --z-fixed: 1030 in App.css) */
+  z-index: var(--z-tooltip);
+}
+
+.admin-modal {
+  width: 100%;
+  max-width: 54rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border-gray);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-lg);
+}
+
+.admin-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.admin-modal-title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+}
+
+.admin-modal-close {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border-gray);
+  background: var(--bg-gray-50);
+  color: #111827 !important;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-icon-close {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A//www.w3.org/2000/svg'%20viewBox%3D'0%200%2024%2024'%3E%3Cpath%20d%3D'M18.3%205.71a1%201%200%200%200-1.41%200L12%2010.59%207.11%205.7A1%201%200%200%200%205.7%207.11L10.59%2012%205.7%2016.89a1%201%200%201%200%201.41%201.41L12%2013.41l4.89%204.89a1%201%200%200%200%201.41-1.41L13.41%2012l4.89-4.89a1%201%200%200%200%200-1.4z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A//www.w3.org/2000/svg'%20viewBox%3D'0%200%2024%2024'%3E%3Cpath%20d%3D'M18.3%205.71a1%201%200%200%200-1.41%200L12%2010.59%207.11%205.7A1%201%200%200%200%205.7%207.11L10.59%2012%205.7%2016.89a1%201%200%201%200%201.41%201.41L12%2013.41l4.89%204.89a1%201%200%200%200%201.41-1.41L13.41%2012l4.89-4.89a1%201%200%200%200%200-1.4z'/%3E%3C/svg%3E");
+}
+
+.theme-dark .admin-icon-btn,
+.theme-dark .admin-modal-close {
+  color: #f8fafc !important;
+}
+
+.admin-modal-close:hover:not(:disabled) {
+  background: var(--bg-white);
+  border-color: var(--border-primary);
+}
+
+.admin-modal-body {
+  display: block;
+}
+
+.admin-modal-actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-modal-actions-left {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.admin-modal-actions-right {
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 48rem) {
+  .admin-modal {
+    padding: var(--space-md);
+  }
 }
 
 .admin-table-el td.admin-actions-col {

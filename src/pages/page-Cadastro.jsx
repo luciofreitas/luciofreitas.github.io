@@ -72,30 +72,99 @@ export default function PageCadastro() {
     return list.find(c => String(c.id) === id) || null;
   }, [companyId, companies]);
 
+  const companiesCacheKey = useMemo(() => {
+    const base = String(apiBase || '').trim() || 'no-api-base';
+    return `companies_cache_v1:${base}`;
+  }, [apiBase]);
+
+  const readCompaniesCache = () => {
+    try {
+      const raw = sessionStorage.getItem(companiesCacheKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      const ts = Number(parsed.ts || 0);
+      const list = Array.isArray(parsed.companies) ? parsed.companies : [];
+      if (!ts || !Number.isFinite(ts) || !list.length) return null;
+      return { ts, companies: list };
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const writeCompaniesCache = (list) => {
+    try {
+      const companiesList = Array.isArray(list) ? list : [];
+      if (!companiesList.length) return;
+      sessionStorage.setItem(companiesCacheKey, JSON.stringify({ ts: Date.now(), companies: companiesList }));
+    } catch (e) {}
+  };
+
   useEffect(() => {
     if (!usingCompaniesDropdown) return;
     let cancelled = false;
+    let controller = null;
+    let timeoutId = null;
     (async () => {
       setCompaniesError('');
-      setCompaniesLoading(true);
+      const cached = readCompaniesCache();
+      const CACHE_TTL_MS = 10 * 60 * 1000;
+      const cacheIsFresh = !!(cached && (Date.now() - cached.ts) < CACHE_TTL_MS);
+      if (cached && Array.isArray(cached.companies) && cached.companies.length) {
+        setCompanies(cached.companies);
+      }
+      // Only show spinner if we don't have anything cached to render.
+      setCompaniesLoading(!(cached && cached.companies && cached.companies.length));
       try {
-        const resp = await fetch(`${apiBase}/api/companies`);
+        // If cache is fresh, avoid hammering the backend on first render.
+        if (cacheIsFresh) return;
+
+        controller = new AbortController();
+        timeoutId = setTimeout(() => {
+          try { controller.abort(); } catch (e) {}
+        }, 8000);
+
+        const resp = await fetch(`${apiBase}/api/companies`, {
+          signal: controller.signal,
+          headers: { 'Accept': 'application/json' }
+        });
         const body = await resp.json().catch(() => ({}));
         if (!resp.ok || !body || body.error) {
           const msg = body && body.error ? String(body.error) : 'Não foi possível carregar empresas.';
-          if (!cancelled) setCompaniesError(msg);
+          // If we have cached data, don't block the dropdown with an error.
+          if (!cancelled && !(cached && cached.companies && cached.companies.length)) setCompaniesError(msg);
           return;
         }
         const list = Array.isArray(body.companies) ? body.companies : [];
-        if (!cancelled) setCompanies(list);
+        if (!cancelled) {
+          setCompanies(list);
+          writeCompaniesCache(list);
+        }
       } catch (e) {
-        if (!cancelled) setCompaniesError(e && e.message ? String(e.message) : 'Erro ao carregar empresas.');
+        // If we have cached data, keep it and avoid showing a hard error.
+        if (!cancelled && !(cached && cached.companies && cached.companies.length)) {
+          setCompaniesError(e && e.message ? String(e.message) : 'Erro ao carregar empresas.');
+        }
       } finally {
+        if (timeoutId) {
+          try { clearTimeout(timeoutId); } catch (e) {}
+          timeoutId = null;
+        }
         if (!cancelled) setCompaniesLoading(false);
       }
     })();
-    return () => { cancelled = true; };
-  }, [usingCompaniesDropdown, apiBase]);
+    return () => {
+      cancelled = true;
+      if (timeoutId) {
+        try { clearTimeout(timeoutId); } catch (e) {}
+        timeoutId = null;
+      }
+      if (controller) {
+        try { controller.abort(); } catch (e) {}
+        controller = null;
+      }
+    };
+  }, [usingCompaniesDropdown, apiBase, companiesCacheKey]);
 
   function validate() {
     const e = {};
@@ -182,6 +251,15 @@ export default function PageCadastro() {
         const created = await resp.json().catch(() => ({}));
         const createdNome = normalizeNome((created.nome || created.name) ? String(created.nome || created.name).trim() : normalizedNome);
         const createdProfessional = created && created.professional ? created.professional : null;
+        const createdRole = created && created.role ? String(created.role) : null;
+        const derivedRole = (() => {
+          if (createdRole) return createdRole;
+          try {
+            const st = createdProfessional && createdProfessional.status ? String(createdProfessional.status).toLowerCase() : '';
+            if (st === 'active' || st === 'ativo') return 'professional';
+          } catch (e) {}
+          return 'user';
+        })();
         const normalizedUsuario = {
           id: created.id || (`local_${Date.now()}`),
           email: created.email || email.trim(),
@@ -191,29 +269,34 @@ export default function PageCadastro() {
           photoURL: created.photoURL || created.photo_url || null,
           isPro: false,
           accountType: acct,
-          role: acct === 'professional' ? 'professional' : 'user',
+          // When professional signup uses company dropdown, backend may return role=user + pending request.
+          role: derivedRole,
           professional: acct === 'professional'
-            ? (createdProfessional ? {
-              ...(createdProfessional || {}),
-            } : {
-              status: 'active',
-              company_name: (usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null)),
-              matricula: (usingCompaniesDropdown ? null : (String(matricula || '').trim() || null)),
-              company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null
+            ? (createdProfessional ? { ...(createdProfessional || {}) } : {
+              status: 'pending',
+              requested_company_name: usingCompaniesDropdown
+                ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null)
+                : (String(companyName || '').trim() || null),
+              requested_company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null,
+              requested_matricula: usingCompaniesDropdown ? null : (String(matricula || '').trim() || null)
             })
             : null
         };
         try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
         try { if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario); } catch(e){}
         try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch(e){}
-        setSuccess('Cadastro realizado com sucesso! Entrando...');
-        if (window.showToast) window.showToast('Cadastro realizado com sucesso! Entrando...', 'success', 1200);
+        const isPendingProfessional = acct === 'professional' && String(normalizedUsuario.role || '').toLowerCase() !== 'professional';
+        const successMsg = isPendingProfessional
+          ? 'Solicitação enviada! Aguarde aprovação para liberar a conta profissional.'
+          : 'Cadastro realizado com sucesso! Entrando...';
+        setSuccess(successMsg);
+        if (window.showToast) window.showToast(successMsg, 'success', 2200);
         setTimeout(() => {
           try {
-            const acct = String(normalizedUsuario.accountType || '').toLowerCase();
-            navigate((acct === 'professional' || acct === 'profissional') ? '/historico-manutencao' : '/buscar-pecas');
+            // Não redirecionar para área profissional enquanto estiver pendente.
+            navigate('/buscar-pecas');
           } catch (e) {}
-        }, 1000);
+        }, 900);
         setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
         setLoading(false);
         return;
@@ -267,9 +350,16 @@ export default function PageCadastro() {
               photoURL: sbUser.photoURL || sbUser.avatar_url || null,
               isPro: false,
               accountType: acct,
-              role: acct === 'professional' ? 'professional' : 'user',
+              role: acct === 'professional' ? 'user' : 'user',
               professional: acct === 'professional'
-                ? { status: 'active', company_name: String(companyName || '').trim() || null, matricula: String(matricula || '').trim() || null }
+                ? {
+                  status: 'pending',
+                  requested_company_name: usingCompaniesDropdown
+                    ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null)
+                    : (String(companyName || '').trim() || null),
+                  requested_company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null,
+                  requested_matricula: usingCompaniesDropdown ? null : (String(matricula || '').trim() || null)
+                }
                 : null
             };
 
@@ -299,9 +389,8 @@ export default function PageCadastro() {
 
                 if (profResp && profResp.ok) {
                   const body = await profResp.json().catch(() => ({}));
-                  if (body && body.professional) {
-                    normalizedUsuario.professional = body.professional;
-                  }
+                  if (body && body.professional) normalizedUsuario.professional = body.professional;
+                  if (body && body.pending_request) normalizedUsuario.professional = { ...(normalizedUsuario.professional || {}), ...(body.pending_request || {}), status: 'pending' };
                 }
               }
             } catch (e) {
@@ -311,11 +400,11 @@ export default function PageCadastro() {
             try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
             try { if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario); } catch(e){}
             try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch(e){}
-            setSuccess('Cadastro realizado (Supabase). Entrando...');
-            if (window.showToast) window.showToast('Cadastro realizado (Supabase).', 'success', 1200);
+            setSuccess('Solicitação enviada! Aguarde aprovação para liberar a conta profissional.');
+            if (window.showToast) window.showToast('Solicitação enviada! Aguarde aprovação para liberar a conta profissional.', 'success', 2500);
             setTimeout(() => {
               try {
-                navigate(acct === 'professional' ? '/historico-manutencao' : '/buscar-pecas');
+                navigate('/buscar-pecas');
               } catch (e) {}
             }, 1000);
             setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
@@ -364,9 +453,14 @@ export default function PageCadastro() {
           avatarBg: computeAvatarBg(normalizedNome),
           isPro: false,
           accountType: acct,
-          role: acct === 'professional' ? 'professional' : 'user',
+          role: acct === 'professional' ? 'user' : 'user',
           professional: acct === 'professional'
-            ? { status: 'active', company_name: usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null), matricula: usingCompaniesDropdown ? null : (String(matricula || '').trim() || null), company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null }
+            ? {
+              status: 'pending',
+              requested_company_name: usingCompaniesDropdown ? (selectedCompany ? (selectedCompany.trade_name || selectedCompany.legal_name || selectedCompany.company_code || null) : null) : (String(companyName || '').trim() || null),
+              requested_company_id: usingCompaniesDropdown ? (String(companyId || '').trim() || null) : null,
+              requested_matricula: usingCompaniesDropdown ? null : (String(matricula || '').trim() || null)
+            }
             : null
         };
         try { localStorage.removeItem('versaoProAtiva'); } catch(e){}
@@ -374,9 +468,9 @@ export default function PageCadastro() {
         localStorage.setItem(key, JSON.stringify(existing));
         try { if (setUsuarioLogado) setUsuarioLogado(createdLocal); } catch(e){}
         try { localStorage.setItem('usuario-logado', JSON.stringify(createdLocal)); } catch(e){}
-        setSuccess('Cadastro (local) realizado com sucesso! Entrando...');
-        if (window.showToast) window.showToast('Cadastro realizado (local). Entrando...', 'success', 1200);
-        setTimeout(() => { try { navigate(acct === 'professional' ? '/historico-manutencao' : '/buscar-pecas'); } catch (e) {} }, 1000);
+        setSuccess(acct === 'professional' ? 'Solicitação enviada (local). Aguarde aprovação para liberar a conta profissional.' : 'Cadastro (local) realizado com sucesso! Entrando...');
+        if (window.showToast) window.showToast(acct === 'professional' ? 'Solicitação enviada (local). Aguarde aprovação para liberar a conta profissional.' : 'Cadastro realizado (local). Entrando...', 'success', 2200);
+        setTimeout(() => { try { navigate('/buscar-pecas'); } catch (e) {} }, 900);
         setNome(''); setEmail(''); setSenha(''); setConfirmSenha(''); setCompanyName(''); setMatricula(''); setCompanyId(''); setErrors({});
         setLoading(false);
         return;
@@ -479,12 +573,12 @@ export default function PageCadastro() {
                         <input
                           className="input"
                           type="text"
-                          value={selectedCompany && (selectedCompany.company_registration_code || selectedCompany.matricula_prefix) ? `${(selectedCompany.company_registration_code || selectedCompany.matricula_prefix)}XXXXXXX` : 'Será gerada automaticamente'}
+                          value={'Será gerada após aprovação'}
                           readOnly
                           disabled
                         />
                         <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                          A matrícula é gerada pelo sistema com o código da empresa.
+                          Para evitar vínculos indevidos, a matrícula só é gerada após a aprovação da solicitação.
                         </div>
                       </label>
                     </>

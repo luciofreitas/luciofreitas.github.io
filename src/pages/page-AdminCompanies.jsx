@@ -29,6 +29,82 @@ function apiBase() {
   return (typeof window !== 'undefined' && window.__API_BASE) ? String(window.__API_BASE) : '';
 }
 
+function formatDateTimePtBr(value) {
+  try {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleString('pt-BR');
+  } catch (e) {
+    return '—';
+  }
+}
+
+function formatAuditAction(action) {
+  const a = String(action || '').trim().toLowerCase();
+  if (a === 'professional_request_approved') return 'Aprovação de conta profissional';
+  if (a === 'professional_request_rejected') return 'Rejeição de conta profissional';
+  if (a === 'company_created') return 'Empresa criada';
+  if (a === 'company_updated') return 'Empresa editada';
+  if (a === 'company_deleted') return 'Empresa excluída';
+  return action ? String(action) : '—';
+}
+
+function summarizeAuditDetails(details) {
+  try {
+    if (!details || typeof details !== 'object') return '';
+    const approvedCompany = details.approved_company_name ? String(details.approved_company_name).trim() : '';
+    const matricula = details.allocated_matricula ? String(details.allocated_matricula).trim() : '';
+    const reason = details.reason ? String(details.reason).trim() : '';
+
+    const companyName = (() => {
+      const after = details.after && typeof details.after === 'object' ? details.after : null;
+      const before = details.before && typeof details.before === 'object' ? details.before : null;
+      const row = details.company && typeof details.company === 'object' ? details.company : null;
+      const name =
+        (after && (after.trade_name || after.legal_name || after.company_code || after.company_registration_code)) ||
+        (before && (before.trade_name || before.legal_name || before.company_code || before.company_registration_code)) ||
+        (row && (row.trade_name || row.legal_name || row.company_code || row.company_registration_code)) ||
+        '';
+      return String(name || '').trim();
+    })();
+
+    const updatedFields = Array.isArray(details.updated_fields) ? details.updated_fields.map(String).filter(Boolean) : [];
+
+    const parts = [];
+    if (approvedCompany) parts.push(`Empresa: ${approvedCompany}`);
+    if (matricula) parts.push(`Matrícula: ${matricula}`);
+    if (reason) parts.push(`Motivo: ${reason}`);
+
+    if (companyName) parts.push(`Empresa: ${companyName}`);
+    if (updatedFields.length) parts.push(`Campos: ${updatedFields.join(', ')}`);
+
+    return parts.join(' • ');
+  } catch (e) {
+    return '';
+  }
+}
+
+function getTokenBestEffort(usuarioLogado) {
+  try {
+    const direct = usuarioLogado && (usuarioLogado.access_token || usuarioLogado.accessToken || usuarioLogado.legacy_token);
+    if (direct) return String(direct);
+  } catch (e) {}
+
+  // Fallback: persisted session
+  try {
+    const raw = localStorage.getItem('usuario-logado');
+    if (!raw) return '';
+    const u = JSON.parse(raw);
+    const t = u && (u.access_token || u.accessToken || u.legacy_token || u.legacyToken);
+    return t ? String(t) : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+
+
 async function fetchJson(url, opts = {}) {
   const res = await fetch(url, opts);
   const text = await res.text();
@@ -48,8 +124,7 @@ export default function AdminCompanies() {
   const { usuarioLogado } = useContext(AuthContext) || {};
 
   const token = useMemo(() => {
-    const t = usuarioLogado && (usuarioLogado.access_token || usuarioLogado.accessToken);
-    return t ? String(t) : '';
+    return getTokenBestEffort(usuarioLogado);
   }, [usuarioLogado]);
 
   const role = String((usuarioLogado && usuarioLogado.role) || '').toLowerCase();
@@ -58,6 +133,15 @@ export default function AdminCompanies() {
   const [error, setError] = useState('');
   const [companies, setCompanies] = useState([]);
 
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [requestsError, setRequestsError] = useState('');
+  const [professionalRequests, setProfessionalRequests] = useState([]);
+
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState('');
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLimit, setAuditLimit] = useState(100);
+
   const [legalName, setLegalName] = useState('');
   const [tradeName, setTradeName] = useState('');
   const [brand, setBrand] = useState('');
@@ -65,6 +149,65 @@ export default function AdminCompanies() {
   const [cnpj, setCnpj] = useState('');
   const [companyRegistrationCode, setCompanyRegistrationCode] = useState('');
   const [status, setStatus] = useState('active');
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
+  const [editCompanyId, setEditCompanyId] = useState(null);
+  const [editLegalName, setEditLegalName] = useState('');
+  const [editTradeName, setEditTradeName] = useState('');
+  const [editBrand, setEditBrand] = useState('');
+  const [editCompanyType, setEditCompanyType] = useState('oficina');
+  const [editCnpj, setEditCnpj] = useState('');
+  const [editCompanyRegistrationCode, setEditCompanyRegistrationCode] = useState('');
+  const [editStatus, setEditStatus] = useState('active');
+
+  function closeEditModal() {
+    setEditOpen(false);
+    setEditError('');
+    setEditSaving(false);
+    setEditCompanyId(null);
+    setEditLegalName('');
+    setEditTradeName('');
+    setEditBrand('');
+    setEditCompanyType('oficina');
+    setEditCnpj('');
+    setEditCompanyRegistrationCode('');
+    setEditStatus('active');
+  }
+
+  function openEditModal(company) {
+    try {
+      if (!company || company.id == null) return;
+      setEditError('');
+      setEditSaving(false);
+      setEditCompanyId(company.id);
+      setEditLegalName(String(company.legal_name || company.legalName || '').trim());
+      setEditTradeName(String(company.trade_name || company.tradeName || '').trim());
+
+      const rawBrand = (company.brand || company.marca || company.group || company.grupo) != null ? String(company.brand || company.marca || company.group || company.grupo) : '';
+      setEditBrand(canonicalizeBrandFromOptions(rawBrand, brandOptions));
+
+      setEditCompanyType(String(company.company_type || company.companyType || 'oficina'));
+      setEditCnpj(String(company.cnpj || '').trim());
+      setEditCompanyRegistrationCode(String(company.company_registration_code || company.matricula_prefix || '').trim());
+      setEditStatus(String(company.status || 'active'));
+      setEditOpen(true);
+    } catch (e) {
+      // no-op
+    }
+  }
+
+  useEffect(() => {
+    if (!editOpen) return;
+    function onKeyDown(e) {
+      if (e && e.key === 'Escape') closeEditModal();
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editOpen]);
 
   const companyTypeLabel = useMemo(() => {
     const map = {
@@ -126,6 +269,120 @@ export default function AdminCompanies() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  async function loadProfessionalRequests() {
+    setRequestsLoading(true);
+    setRequestsError('');
+    try {
+      if (!token) {
+        setProfessionalRequests([]);
+        setRequestsError('not authenticated');
+        return;
+      }
+      const url = `${apiBase()}/api/admin/professional-requests`;
+      const json = await fetchJson(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      const list = json && Array.isArray(json.requests) ? json.requests : (Array.isArray(json) ? json : []);
+      setProfessionalRequests(Array.isArray(list) ? list : []);
+    } catch (e) {
+      const msg = e && e.message ? String(e.message) : 'Erro ao carregar solicitações';
+      const low = msg.toLowerCase();
+      if ((e && e.status === 404) || low === 'not found' || low.includes('not found')) {
+        setRequestsError('Endpoint não encontrado no backend: /api/admin/professional-requests. Isso normalmente significa que o backend ainda não foi reiniciado/redeployado com as últimas mudanças.');
+      } else {
+        setRequestsError(msg);
+      }
+      setProfessionalRequests([]);
+    } finally {
+      setRequestsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadProfessionalRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  async function loadAuditLogs(nextLimit) {
+    setAuditLoading(true);
+    setAuditError('');
+    try {
+      if (!token) {
+        setAuditLogs([]);
+        setAuditError('not authenticated');
+        return;
+      }
+      const limitValue = Number.isFinite(Number(nextLimit)) ? Number(nextLimit) : Number(auditLimit);
+      const safeLimit = (!Number.isFinite(limitValue) || limitValue <= 0) ? 100 : Math.min(500, Math.floor(limitValue));
+      const url = `${apiBase()}/api/admin/audit-logs?limit=${encodeURIComponent(String(safeLimit))}`;
+      const json = await fetchJson(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      const list = json && Array.isArray(json.logs) ? json.logs : (Array.isArray(json) ? json : []);
+      setAuditLogs(Array.isArray(list) ? list : []);
+    } catch (e) {
+      setAuditError(e && e.message ? String(e.message) : 'Erro ao carregar auditoria');
+      setAuditLogs([]);
+    } finally {
+      setAuditLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadAuditLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  async function approveRequest(userId) {
+    if (!userId) return;
+    const ok = window.confirm('Aprovar esta solicitação profissional?');
+    if (!ok) return;
+    setRequestsLoading(true);
+    setRequestsError('');
+    try {
+      const url = `${apiBase()}/api/admin/professional-requests/${encodeURIComponent(String(userId))}/approve`;
+      await fetchJson(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({}),
+      });
+      await loadProfessionalRequests();
+      loadAuditLogs();
+    } catch (e) {
+      setRequestsError(e && e.message ? String(e.message) : 'Erro ao aprovar solicitação');
+    } finally {
+      setRequestsLoading(false);
+    }
+  }
+
+  async function rejectRequest(userId) {
+    if (!userId) return;
+    const ok = window.confirm('Rejeitar esta solicitação profissional?');
+    if (!ok) return;
+    setRequestsLoading(true);
+    setRequestsError('');
+    try {
+      const url = `${apiBase()}/api/admin/professional-requests/${encodeURIComponent(String(userId))}/reject`;
+      await fetchJson(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({}),
+      });
+      await loadProfessionalRequests();
+      loadAuditLogs();
+    } catch (e) {
+      setRequestsError(e && e.message ? String(e.message) : 'Erro ao rejeitar solicitação');
+    } finally {
+      setRequestsLoading(false);
+    }
+  }
+
   async function createCompany(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
     setLoading(true);
@@ -160,12 +417,76 @@ export default function AdminCompanies() {
       setCnpj('');
       setCompanyRegistrationCode('');
       setStatus('active');
-
       await loadCompanies();
+      loadAuditLogs();
     } catch (e2) {
       setError(e2 && e2.message ? String(e2.message) : 'Erro ao cadastrar empresa');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function saveEditCompany(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (editCompanyId == null) return;
+
+    setEditSaving(true);
+    setEditError('');
+    try {
+      const url = `${apiBase()}/api/admin/companies/${encodeURIComponent(String(editCompanyId))}`;
+      const canonicalBrand = canonicalizeBrandFromOptions(editBrand, brandOptions);
+      const payload = {
+        legal_name: editLegalName || null,
+        trade_name: editTradeName || null,
+        brand: canonicalBrand || null,
+        company_type: editCompanyType || 'oficina',
+        cnpj: editCnpj || null,
+        status: editStatus || 'active',
+        company_registration_code: editCompanyRegistrationCode || '',
+        // Backward-compat with older backend versions
+        matricula_prefix: editCompanyRegistrationCode || '',
+      };
+
+      await fetchJson(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      await loadCompanies();
+      loadAuditLogs();
+      closeEditModal();
+    } catch (e2) {
+      setEditError(e2 && e2.message ? String(e2.message) : 'Erro ao salvar alterações');
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function deleteEditCompany() {
+    if (editCompanyId == null) return;
+    const ok = window.confirm('Excluir empresa/oficina? Essa ação é permanente.');
+    if (!ok) return;
+
+    setEditSaving(true);
+    setEditError('');
+    try {
+      const url = `${apiBase()}/api/admin/companies/${encodeURIComponent(String(editCompanyId))}`;
+      await fetchJson(url, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      await loadCompanies();
+      loadAuditLogs();
+      closeEditModal();
+    } catch (e2) {
+      setEditError(e2 && e2.message ? String(e2.message) : 'Erro ao excluir empresa');
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -182,7 +503,11 @@ export default function AdminCompanies() {
         method: 'DELETE',
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
+      if (String(id) === String(editingCompanyId)) {
+        resetCompanyForm();
+      }
       await loadCompanies();
+      loadAuditLogs();
     } catch (e) {
       setError(e && e.message ? String(e.message) : 'Erro ao excluir empresa');
     } finally {
@@ -287,6 +612,167 @@ export default function AdminCompanies() {
             </form>
 
             <div className="admin-companies-list-header">
+              <h2 className="admin-section-title admin-section-title--sm">Solicitações de conta profissional</h2>
+              {requestsLoading && <span className="admin-muted">Carregando...</span>}
+            </div>
+
+            {requestsError && (
+              <div className="admin-alert admin-alert-error">
+                {requestsError}
+                <div className="admin-help" style={{ marginTop: 6 }}>
+                  Dica: abra <a href={`${apiBase()}/api/health`} target="_blank" rel="noreferrer">{`${apiBase()}/api/health`}</a> para conferir se você está apontando para o backend correto.
+                </div>
+              </div>
+            )}
+
+            <div className="admin-table card card-flat">
+              <div className="admin-table-scroll">
+                <table className="admin-table-el">
+                  <thead>
+                    <tr>
+                      <th>Usuário</th>
+                      <th>E-mail</th>
+                      <th>Empresa solicitada</th>
+                      <th>Status</th>
+                      <th className="admin-actions-col admin-actions-col-wide">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(professionalRequests || []).length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="admin-empty">Nenhuma solicitação pendente.</td>
+                      </tr>
+                    ) : (
+                      (professionalRequests || []).map((r) => {
+                        const userId = r.user_id || r.userId || r.id;
+                        const userName = (r.user_name || r.userName || '').trim();
+                        const userEmail = (r.user_email || r.email || '').trim();
+                        const companyLabel = String(r.company_trade_name || r.company_legal_name || r.requested_company_name || r.company_code || '').trim() || '—';
+                        const st = String(r.status || 'pending');
+                        return (
+                          <tr key={String(userId)}>
+                            <td>{userName || '—'}</td>
+                            <td>{userEmail || '—'}</td>
+                            <td>{companyLabel}</td>
+                            <td>
+                              <span className={`admin-badge admin-badge-${st.toLowerCase()}`}>{st}</span>
+                            </td>
+                            <td className="admin-actions-col admin-actions-col-wide">
+                              <button className="btn btn-primary" type="button" onClick={() => approveRequest(userId)} disabled={requestsLoading || !token}>
+                                Aprovar
+                              </button>
+                              <button className="btn btn-secondary admin-danger" type="button" onClick={() => rejectRequest(userId)} disabled={requestsLoading || !token} style={{ marginLeft: 8 }}>
+                                Rejeitar
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="admin-companies-list-header">
+              <h2 className="admin-section-title admin-section-title--sm">Auditoria (aprovações e empresas)</h2>
+              <div className="admin-audit-controls">
+                <label className="admin-muted" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  Limite
+                  <select
+                    className="input"
+                    value={auditLimit}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setAuditLimit(next);
+                      loadAuditLogs(next);
+                    }}
+                    style={{ width: 120, paddingTop: 6, paddingBottom: 6 }}
+                    disabled={!token || auditLoading}
+                  >
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={200}>200</option>
+                    <option value={500}>500</option>
+                  </select>
+                </label>
+                <button className="btn btn-secondary" type="button" onClick={() => loadAuditLogs()} disabled={!token || auditLoading}>
+                  {auditLoading ? 'Atualizando...' : 'Atualizar auditoria'}
+                </button>
+              </div>
+            </div>
+
+            {auditError && (
+              <div className="admin-alert admin-alert-error">
+                {auditError}
+              </div>
+            )}
+
+            <div className="admin-table card card-flat">
+              <div className="admin-table-scroll">
+                <table className="admin-table-el">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Ação</th>
+                      <th>Ator</th>
+                      <th>Alvo</th>
+                      <th>IP</th>
+                      <th>Detalhes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(auditLogs || []).length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="admin-empty">Nenhum log ainda.</td>
+                      </tr>
+                    ) : (
+                      (auditLogs || []).map((l) => {
+                        const id = l.id != null ? String(l.id) : `${l.created_at || ''}-${l.action || ''}`;
+                        const actorName = l.details && typeof l.details === 'object' ? String(l.details.actor_name || '').trim() : '';
+                        const actorEmail = l.details && typeof l.details === 'object' ? String(l.details.actor_email || '').trim() : '';
+                        const actorIdentity = actorName || actorEmail ? [actorName, actorEmail].filter(Boolean).join(' <') + (actorName && actorEmail ? '>' : '') : '';
+                        const actor = [actorIdentity, l.actor_role ? String(l.actor_role) : '', l.actor_user_id ? String(l.actor_user_id) : '']
+                          .filter(Boolean)
+                          .join(' • ') || '—';
+
+                        const targetCompanyId = l.target_company_id != null ? String(l.target_company_id) : '';
+                        const targetUserId = l.target_user_id != null ? String(l.target_user_id) : '';
+                        const targetCompanyName = (() => {
+                          if (!l.details || typeof l.details !== 'object') return '';
+                          const d = l.details;
+                          const after = d.after && typeof d.after === 'object' ? d.after : null;
+                          const before = d.before && typeof d.before === 'object' ? d.before : null;
+                          const row = d.company && typeof d.company === 'object' ? d.company : null;
+                          const name =
+                            (after && (after.trade_name || after.legal_name || after.company_code)) ||
+                            (before && (before.trade_name || before.legal_name || before.company_code)) ||
+                            (row && (row.trade_name || row.legal_name || row.company_code)) ||
+                            '';
+                          return String(name || '').trim();
+                        })();
+                        const target = [targetUserId, targetCompanyName ? `Empresa: ${targetCompanyName}` : '', targetCompanyId ? `ID: ${targetCompanyId}` : '']
+                          .filter(Boolean)
+                          .join(' • ') || '—';
+                        const detailsText = summarizeAuditDetails(l.details);
+                        return (
+                          <tr key={id}>
+                            <td className="admin-mono">{formatDateTimePtBr(l.created_at)}</td>
+                            <td>{formatAuditAction(l.action)}</td>
+                            <td className="admin-mono">{actor}</td>
+                            <td className="admin-mono">{target}</td>
+                            <td className="admin-mono">{l.ip ? String(l.ip) : '—'}</td>
+                            <td className="admin-audit-details">{detailsText || '—'}</td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="admin-companies-list-header">
               <h2 className="admin-section-title">Empresas cadastradas</h2>
               {loading && companies.length === 0 && <span className="admin-muted">Carregando...</span>}
             </div>
@@ -322,8 +808,15 @@ export default function AdminCompanies() {
                               <span className={`admin-badge admin-badge-${String(c.status || 'unknown').toLowerCase()}`}>{c.status || '—'}</span>
                             </td>
                             <td className="admin-actions-col">
-                              <button className="btn btn-secondary admin-danger" type="button" onClick={() => deleteCompany(c.id)} disabled={loading || !token}>
-                                Excluir
+                              <button
+                                className="admin-icon-btn"
+                                type="button"
+                                onClick={() => openEditModal(c)}
+                                disabled={loading || !token}
+                                title="Editar"
+                                aria-label="Editar empresa"
+                              >
+                                <span className="admin-icon admin-icon-pencil" aria-hidden="true" />
                               </button>
                             </td>
                           </tr>
@@ -334,6 +827,108 @@ export default function AdminCompanies() {
                 </table>
               </div>
             </div>
+
+            {editOpen && (
+              <div className="admin-modal-overlay" role="dialog" aria-modal="true" aria-label="Editar empresa" onMouseDown={(e) => {
+                if (e.target === e.currentTarget) closeEditModal();
+              }}>
+                <div className="admin-modal" onMouseDown={(e) => e.stopPropagation()}>
+                  <div className="admin-modal-header">
+                    <h3 className="admin-modal-title">Editar empresa</h3>
+                    <button className="admin-modal-close" type="button" onClick={closeEditModal} aria-label="Fechar" disabled={editSaving}>
+                      <span className="admin-icon admin-icon-close" aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  {editError && (
+                    <div className="admin-alert admin-alert-error" style={{ marginTop: 0 }}>
+                      {editError}
+                    </div>
+                  )}
+
+                  <form onSubmit={saveEditCompany} className="admin-modal-body">
+                    <div className="admin-companies-grid">
+                      <div className="admin-field">
+                        <label className="admin-label">Razão social</label>
+                        <input className="input" value={editLegalName} onChange={(e) => setEditLegalName(e.target.value)} placeholder="Ex.: FIAT Niterói LTDA" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Nome fantasia</label>
+                        <input className="input" value={editTradeName} onChange={(e) => setEditTradeName(e.target.value)} placeholder="Ex.: FIAT Niterói" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Marca / Grupo</label>
+                        <CustomDropdown
+                          options={brandDropdownOptions}
+                          value={editBrand}
+                          onChange={(next) => {
+                            const canonical = canonicalizeBrandFromOptions(next, brandOptions);
+                            setEditBrand(canonical);
+                          }}
+                          placeholder="Ex.: FIAT"
+                          searchable
+                          allowCustomValue
+                        />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Tipo de empresa</label>
+                        <select className="input" value={editCompanyType} onChange={(e) => setEditCompanyType(e.target.value)}>
+                          <option value="concessionaria">Concessionária</option>
+                          <option value="oficina">Oficina</option>
+                          <option value="autopecas">Autopeças</option>
+                          <option value="centro_automotivo">Centro automotivo</option>
+                        </select>
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">CNPJ</label>
+                        <input className="input" value={editCnpj} onChange={(e) => setEditCnpj(e.target.value)} placeholder="Somente números (opcional)" inputMode="numeric" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Código da empresa</label>
+                        <input
+                          className="input admin-uppercase"
+                          value={editCompanyRegistrationCode}
+                          onChange={(e) => setEditCompanyRegistrationCode(e.target.value)}
+                          placeholder="Ex.: FTNIT"
+                          autoCapitalize="characters"
+                        />
+                        <div className="admin-help">Esse código será usado para gerar as matrículas automaticamente.</div>
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Status</label>
+                        <select className="input" value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
+                          <option value="active">Ativa</option>
+                          <option value="pending">Pendente</option>
+                          <option value="suspended">Suspensa</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="admin-modal-actions">
+                      <div className="admin-modal-actions-left">
+                        <button className="btn btn-primary" type="submit" disabled={!token || editSaving}>
+                          {editSaving ? 'Salvando...' : 'Salvar alterações'}
+                        </button>
+                        <button className="btn btn-secondary" type="button" onClick={closeEditModal} disabled={editSaving}>
+                          Cancelar
+                        </button>
+                      </div>
+                      <div className="admin-modal-actions-right">
+                        <button className="btn btn-secondary admin-danger" type="button" onClick={deleteEditCompany} disabled={!token || editSaving}>
+                          Excluir empresa
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -39,7 +39,12 @@ app.get('/_health', (req, res) => {
       uptime: process.uptime(),
       startedAt: SERVER_STARTED_AT,
       commit: SERVER_COMMIT,
-      companiesAdminRequiredField: 'company_registration_code'
+      companiesAdminRequiredField: 'company_registration_code',
+      features: {
+        professionalApprovalRequests: true,
+        companyUsersMembership: true,
+        companiesListCache: true
+      }
     });
   } catch (e) { return res.status(500).json({ ok: false }); }
 });
@@ -53,7 +58,12 @@ app.get('/api/health', (req, res) => {
       uptime: process.uptime(),
       startedAt: SERVER_STARTED_AT,
       commit: SERVER_COMMIT,
-      companiesAdminRequiredField: 'company_registration_code'
+      companiesAdminRequiredField: 'company_registration_code',
+      features: {
+        professionalApprovalRequests: true,
+        companyUsersMembership: true,
+        companiesListCache: true
+      }
     });
   } catch (e) { return res.status(500).json({ ok: false }); }
 });
@@ -496,10 +506,79 @@ let userHasRole = false;
 let hasProfessionalAccountsTable = null; // null unknown, boolean when detected
 let hasProfessionalAccountsMatriculaColumn = null; // null unknown, boolean when detected
 let hasProfessionalAccountsCompanyIdColumn = null; // null unknown, boolean when detected
+let hasProfessionalAccountsRequestedCompanyIdColumn = null; // null unknown, boolean when detected
 
 // Companies capability detection
 let hasCompaniesTable = null; // null unknown, boolean when detected
 let hasCompaniesCompanyTypeColumn = null; // null unknown, boolean when detected
+
+// Company users (employees) capability detection
+let hasCompanyUsersTable = null; // null unknown, boolean when detected
+
+// Audit logs capability detection
+let hasAuditLogsTable = null; // null unknown, boolean when detected
+
+async function detectAuditLogsTable(pgClientInstance) {
+  if (!pgClientInstance) return false;
+  if (hasAuditLogsTable === true) return true;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='audit_logs' LIMIT 1"
+    );
+    hasAuditLogsTable = (r && r.rowCount > 0);
+    return hasAuditLogsTable;
+  } catch (e) {
+    return false;
+  }
+}
+
+function getRequestIp(req) {
+  try {
+    const xf = req && req.headers ? (req.headers['x-forwarded-for'] || req.headers['X-Forwarded-For']) : null;
+    const raw = Array.isArray(xf) ? xf[0] : xf;
+    if (raw && typeof raw === 'string') {
+      const first = raw.split(',')[0].trim();
+      if (first) return first;
+    }
+    if (req && req.ip) return String(req.ip);
+    const ra = req && req.socket && req.socket.remoteAddress ? req.socket.remoteAddress : null;
+    if (ra) return String(ra);
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function writeAuditLog(pgClientInstance, req, { action, actorUserId, actorRole, targetUserId, targetCompanyId, details } = {}) {
+  try {
+    if (!pgClientInstance) return;
+    const ok = await detectAuditLogsTable(pgClientInstance);
+    if (!ok) return;
+    const safeAction = String(action || '').trim();
+    if (!safeAction) return;
+
+    const ip = getRequestIp(req);
+    const userAgent = req && req.headers ? (req.headers['user-agent'] || req.headers['User-Agent'] || null) : null;
+    const detailsJson = (details === undefined) ? null : (details === null ? null : JSON.stringify(details));
+
+    await pgClientInstance.query(
+      `INSERT INTO audit_logs(action, actor_user_id, actor_role, target_user_id, target_company_id, details, ip, user_agent, created_at)
+       VALUES($1,$2,$3,$4,$5,CASE WHEN $6 IS NULL THEN NULL ELSE $6::jsonb END,$7,$8,now())`,
+      [
+        safeAction,
+        actorUserId != null ? String(actorUserId) : null,
+        actorRole != null ? String(actorRole) : null,
+        targetUserId != null ? String(targetUserId) : null,
+        targetCompanyId != null ? String(targetCompanyId) : null,
+        detailsJson,
+        ip != null ? String(ip) : null,
+        userAgent != null ? String(userAgent) : null,
+      ]
+    );
+  } catch (e) {
+    // best-effort; never block business logic
+  }
+}
 
 async function detectProfessionalAccountsTable(pgClientInstance) {
   if (!pgClientInstance) return false;
@@ -545,6 +624,20 @@ async function detectProfessionalAccountsCompanyIdColumn(pgClientInstance) {
   }
 }
 
+async function detectProfessionalAccountsRequestedCompanyIdColumn(pgClientInstance) {
+  if (!pgClientInstance) return false;
+  if (hasProfessionalAccountsRequestedCompanyIdColumn === true) return true;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='professional_accounts' AND column_name='requested_company_id' LIMIT 1"
+    );
+    hasProfessionalAccountsRequestedCompanyIdColumn = (r && r.rowCount > 0);
+    return hasProfessionalAccountsRequestedCompanyIdColumn;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function detectCompaniesTable(pgClientInstance) {
   if (!pgClientInstance) return false;
   if (hasCompaniesTable === true) return true;
@@ -570,6 +663,85 @@ async function detectCompaniesCompanyTypeColumn(pgClientInstance) {
     return hasCompaniesCompanyTypeColumn;
   } catch (e) {
     return false;
+  }
+}
+
+async function detectCompanyUsersTable(pgClientInstance) {
+  if (!pgClientInstance) return false;
+  if (hasCompanyUsersTable === true) return true;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='company_users' LIMIT 1"
+    );
+    hasCompanyUsersTable = (r && r.rowCount > 0);
+    return hasCompanyUsersTable;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function upsertCompanyUserLink(pgClientInstance, { userId, companyId, status = 'active', role = 'employee', matricula = null, jobTitle = null } = {}) {
+  if (!pgClientInstance) throw new Error('pgClient required');
+  const uid = String(userId || '').trim();
+  const cid = String(companyId || '').trim();
+  if (!uid) throw new Error('userId required');
+  if (!cid) throw new Error('companyId required');
+  const ok = await detectCompanyUsersTable(pgClientInstance);
+  if (!ok) throw new Error('company_users table not available (run migration 0018)');
+
+  const safeStatus = String(status || '').trim().toLowerCase() || 'active';
+  const safeRole = String(role || '').trim().toLowerCase() || 'employee';
+  const safeMatricula = (matricula == null || String(matricula).trim() === '') ? null : String(matricula).trim();
+  const safeJobTitle = (jobTitle == null || String(jobTitle).trim() === '') ? null : String(jobTitle).trim();
+
+  await pgClientInstance.query(
+    `INSERT INTO company_users(user_id, company_id, matricula, status, role, job_title, created_at, updated_at)
+     VALUES($1,$2,$3,$4,$5,$6,now(),now())
+     ON CONFLICT (user_id, company_id)
+     DO UPDATE SET matricula = COALESCE(EXCLUDED.matricula, company_users.matricula),
+                   status = EXCLUDED.status,
+                   role = EXCLUDED.role,
+                   job_title = COALESCE(EXCLUDED.job_title, company_users.job_title),
+                   updated_at = now()`,
+    [uid, cid, safeMatricula, safeStatus, safeRole, safeJobTitle]
+  );
+}
+
+async function getActiveCompanyUserLink(pgClientInstance, { userId, companyId } = {}) {
+  if (!pgClientInstance) return null;
+  const uid = String(userId || '').trim();
+  const cid = String(companyId || '').trim();
+  if (!uid || !cid) return null;
+  const ok = await detectCompanyUsersTable(pgClientInstance);
+  if (!ok) return null;
+  try {
+    const r = await pgClientInstance.query(
+      `SELECT id, user_id, company_id, status, role, job_title, matricula, created_at, updated_at
+       FROM company_users
+       WHERE user_id = $1 AND company_id = $2 AND status = 'active'
+       LIMIT 1`,
+      [uid, cid]
+    );
+    return (r && r.rowCount > 0) ? r.rows[0] : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function assertActiveCompanyMembershipOr403(res, pgClientInstance, { userId, companyId } = {}) {
+  try {
+    const uid = String(userId || '').trim();
+    const cid = String(companyId || '').trim();
+    if (!uid || !cid) return true; // nothing to assert
+    const link = await getActiveCompanyUserLink(pgClientInstance, { userId: uid, companyId: cid });
+    if (!link) {
+      res.status(403).json({ error: 'company membership not active' });
+      return '__sent__';
+    }
+    return true;
+  } catch (e) {
+    res.status(500).json({ error: 'internal error' });
+    return '__sent__';
   }
 }
 
@@ -787,17 +959,18 @@ async function allocateMatriculaForCompany(pgClientInstance, companyId, { padWid
   }
 }
 
-async function ensureProfessionalAccount(pgClientInstance, userId, { role } = {}) {
+async function ensureProfessionalAccount(pgClientInstance, userId, { role, status } = {}) {
   if (!pgClientInstance || !userId) return null;
   const ok = await detectProfessionalAccountsTable(pgClientInstance);
   if (!ok) return null;
   const safeRole = role ? String(role) : 'professional';
+  const safeStatus = (status != null ? String(status).trim() : '') || 'active';
   try {
     await pgClientInstance.query(
           `INSERT INTO professional_accounts(user_id, role, status, created_at, updated_at)
-       VALUES($1, $2, 'active', now(), now())
+       VALUES($1, $2, $3, now(), now())
        ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role, updated_at = now()`,
-      [String(userId), safeRole]
+      [String(userId), safeRole, safeStatus]
     );
   } catch (e) {
     // ignore
@@ -2159,6 +2332,16 @@ app.post('/api/users', async (req, res) => {
     // Prefer Postgres when available
     if (pgClient) {
       try {
+        const hasReqCols = (accountType === 'professional')
+          ? await detectProfessionalAccountsRequestedCompanyIdColumn(pgClient)
+          : false;
+        const useApprovalFlow = (accountType === 'professional') && hasReqCols;
+
+        // If the caller is using company_id (companies dropdown), require the approval flow columns.
+        if (accountType === 'professional' && companyId && !useApprovalFlow) {
+          return res.status(503).json({ error: 'professional approval workflow not available (run migration 0017)' });
+        }
+
         const existing = await pgClient.query('SELECT id FROM users WHERE lower(email) = lower($1) LIMIT 1', [email]);
         if (existing && existing.rowCount > 0) return res.status(409).json({ error: 'user already exists' });
 
@@ -2180,7 +2363,8 @@ app.post('/api/users', async (req, res) => {
         // role discriminator
         if (userHasRole) {
           cols.push('role');
-          vals.push(accountType === 'professional' ? 'professional' : 'user');
+          // When approval flow is available, do NOT auto-promote to professional.
+          vals.push((accountType === 'professional' && useApprovalFlow) ? 'user' : (accountType === 'professional' ? 'professional' : 'user'));
         }
 
         // is_pro (subscription) defaults false
@@ -2195,53 +2379,100 @@ app.post('/api/users', async (req, res) => {
         // If professional, create/update professional_accounts row
         if (accountType === 'professional') {
           try {
-            await ensureProfessionalAccount(pgClient, userId, { role: 'professional' });
-            const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
-            const hasCompanyId = await detectProfessionalAccountsCompanyIdColumn(pgClient);
-            const hasCompanies = hasCompanyId ? await detectCompaniesTable(pgClient) : false;
+            if (useApprovalFlow) {
+              // Create a pending request (do NOT allocate matricula and do NOT set company_id yet)
+              await ensureProfessionalAccount(pgClient, userId, { role: 'professional', status: 'pending' });
 
-            let resolvedCompanyName = companyName;
-            let resolvedMatricula = matricula;
-            let resolvedCompanyId = companyId || null;
-
-            if (companyId) {
-              if (!hasCompanyId || !hasCompanies) throw new Error('companies/company_id not available (run migration 0013)');
-              try {
-                const alloc = await allocateMatriculaForCompany(pgClient, companyId);
-                resolvedMatricula = alloc.matricula;
-                resolvedCompanyName = alloc.company_name || resolvedCompanyName;
-                resolvedCompanyId = companyId;
-              } catch (e) {
-                throw new Error(e && e.message ? String(e.message) : 'failed to allocate matricula');
+              // Resolve requested company name for display
+              let requestedCompanyName = companyName || null;
+              if (companyId) {
+                try {
+                  const cr = await pgClient.query('SELECT trade_name, legal_name, company_code FROM companies WHERE id = $1 LIMIT 1', [String(companyId)]);
+                  if (cr && cr.rowCount > 0) {
+                    const c = cr.rows[0];
+                    requestedCompanyName = (c.trade_name || c.legal_name || c.company_code || '').trim() || requestedCompanyName;
+                  }
+                } catch (e) { /* ignore */ }
               }
-            }
 
-            const sets = ['company_name = $2', 'updated_at = now()'];
-            const params = [String(userId), resolvedCompanyName || null];
+              // Best-effort: write requested_* fields (requires migration 0017)
+              await pgClient.query(
+                `UPDATE professional_accounts
+                 SET status = 'pending',
+                     requested_company_id = $2,
+                     requested_company_name = $3,
+                     requested_matricula = $4,
+                     requested_at = COALESCE(requested_at, now()),
+                     company_id = NULL,
+                     matricula = NULL,
+                     updated_at = now()
+                 WHERE user_id = $1`,
+                [String(userId), companyId ? String(companyId) : null, requestedCompanyName, matricula ? String(matricula) : null]
+              );
+            } else {
+              // Legacy behavior (no request columns available): keep existing behavior.
+              await ensureProfessionalAccount(pgClient, userId, { role: 'professional' });
+              const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
+              const hasCompanyId = await detectProfessionalAccountsCompanyIdColumn(pgClient);
+              const hasCompanies = hasCompanyId ? await detectCompaniesTable(pgClient) : false;
 
-            let paramIdx = 3;
-            if (hasCompanyId && resolvedCompanyId) {
-              sets.splice(1, 0, `company_id = $${paramIdx++}`);
-              params.push(resolvedCompanyId);
-            }
-            if (hasMatricula && resolvedMatricula) {
-              sets.splice(1, 0, `matricula = $${paramIdx++}`);
-              params.push(resolvedMatricula);
-            }
+              let resolvedCompanyName = companyName;
+              let resolvedMatricula = matricula;
+              let resolvedCompanyId = companyId || null;
 
-            await pgClient.query(`UPDATE professional_accounts SET ${sets.join(', ')} WHERE user_id = $1`, params);
+              if (companyId) {
+                if (!hasCompanyId || !hasCompanies) throw new Error('companies/company_id not available (run migration 0013)');
+                try {
+                  const alloc = await allocateMatriculaForCompany(pgClient, companyId);
+                  resolvedMatricula = alloc.matricula;
+                  resolvedCompanyName = alloc.company_name || resolvedCompanyName;
+                  resolvedCompanyId = companyId;
+                } catch (e) {
+                  throw new Error(e && e.message ? String(e.message) : 'failed to allocate matricula');
+                }
+              }
+
+              const sets = ['company_name = $2', 'updated_at = now()'];
+              const params = [String(userId), resolvedCompanyName || null];
+
+              let paramIdx = 3;
+              if (hasCompanyId && resolvedCompanyId) {
+                sets.splice(1, 0, `company_id = $${paramIdx++}`);
+                params.push(resolvedCompanyId);
+              }
+              if (hasMatricula && resolvedMatricula) {
+                sets.splice(1, 0, `matricula = $${paramIdx++}`);
+                params.push(resolvedMatricula);
+              }
+
+              await pgClient.query(`UPDATE professional_accounts SET ${sets.join(', ')} WHERE user_id = $1`, params);
+            }
           } catch (e) {
             // ignore (user creation should still succeed)
           }
         }
 
         let professional = null;
+        let pendingRequest = null;
         try {
           if (accountType === 'professional') {
             professional = await getProfessionalAccount(pgClient, userId);
+            if (!professional && useApprovalFlow) {
+              try {
+                const pr = await pgClient.query(
+                  `SELECT status, requested_company_id, requested_company_name, requested_matricula, requested_at
+                   FROM professional_accounts
+                   WHERE user_id = $1
+                   LIMIT 1`,
+                  [String(userId)]
+                );
+                if (pr && pr.rowCount > 0) pendingRequest = pr.rows[0];
+              } catch (e2) { pendingRequest = null; }
+            }
           }
         } catch (e) {
           professional = null;
+          pendingRequest = null;
         }
 
         const created = {
@@ -2250,7 +2481,7 @@ app.post('/api/users', async (req, res) => {
           nome: nome || email.split('@')[0],
           name: nome || email.split('@')[0],
           account_type: accountType,
-          role: accountType === 'professional' ? 'professional' : 'user',
+          role: (accountType === 'professional' && useApprovalFlow) ? 'user' : (accountType === 'professional' ? 'professional' : 'user'),
           professional: professional ? {
             status: professional.status || 'active',
             company_name: professional.company_name || null,
@@ -2258,7 +2489,13 @@ app.post('/api/users', async (req, res) => {
             matricula: (professional && Object.prototype.hasOwnProperty.call(professional, 'matricula')) ? (professional.matricula || null) : null,
             cnpj: professional.cnpj || null,
             phone: professional.phone || null
-          } : null
+          } : (pendingRequest ? {
+            status: pendingRequest.status || 'pending',
+            requested_company_id: pendingRequest.requested_company_id || null,
+            requested_company_name: pendingRequest.requested_company_name || null,
+            requested_matricula: pendingRequest.requested_matricula || null,
+            requested_at: pendingRequest.requested_at || null
+          } : null)
         };
         return res.status(201).json(created);
       } catch (e) {
@@ -4142,6 +4379,12 @@ app.post('/api/auth/supabase-webhook', async (req, res) => {
 
 // Companies API
 // GET /api/companies -> list active companies (for dropdown)
+const _companiesListCache = new Map(); // key -> { expiresAt, companies }
+function _companiesCacheKey({ statusFilter, hasType }) {
+  return `${String(statusFilter || 'active')}|${hasType ? '1' : '0'}`;
+}
+const COMPANIES_CACHE_TTL_MS = 60 * 1000;
+
 app.get('/api/companies', async (req, res) => {
   try {
     if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
@@ -4155,9 +4398,20 @@ app.get('/api/companies', async (req, res) => {
     const where = (statusFilter === 'all') ? '' : 'WHERE status = $1';
     const params = (statusFilter === 'all') ? [] : [statusFilter];
     const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+
+    // In-memory cache to speed up repeated loads (e.g. initial navigation + registration page)
+    const cacheKey = _companiesCacheKey({ statusFilter, hasType });
+    const cached = _companiesListCache.get(cacheKey);
+    if (cached && cached.expiresAt && cached.expiresAt > Date.now() && Array.isArray(cached.companies)) {
+      try { res.set('Cache-Control', 'public, max-age=60'); } catch (e) {}
+      return res.json({ success: true, companies: cached.companies, cached: true });
+    }
+
+    // Do NOT expose matricula_prefix/company_registration_code publicly.
+    // That value is meant for internal registration/admin workflows.
     const selectCols = hasType
-      ? 'id, trade_name, legal_name, brand, company_type, company_code, status, matricula_prefix'
-      : 'id, trade_name, legal_name, brand, company_code, status, matricula_prefix';
+      ? 'id, trade_name, legal_name, brand, company_type, company_code, status'
+      : 'id, trade_name, legal_name, brand, company_code, status';
     const r = await pgClient.query(
       `SELECT ${selectCols}
        FROM companies
@@ -4166,11 +4420,261 @@ app.get('/api/companies', async (req, res) => {
       params
     );
 
-    const companies = (r.rows || []).map((c) => ({
-      ...c,
-      company_registration_code: c && c.matricula_prefix ? c.matricula_prefix : null,
-    }));
+    const companies = (r.rows || []).map((c) => ({ ...c }));
+    _companiesListCache.set(cacheKey, { expiresAt: Date.now() + COMPANIES_CACHE_TTL_MS, companies });
+    try { res.set('Cache-Control', 'public, max-age=60'); } catch (e) {}
     return res.json({ success: true, companies });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Admin: list/approve/reject professional join requests.
+app.get('/api/admin/professional-requests', requireCompaniesAdmin, async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectProfessionalAccountsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'professional_accounts table not available' });
+    const hasReqCols = await detectProfessionalAccountsRequestedCompanyIdColumn(pgClient);
+    if (!hasReqCols) return res.status(503).json({ error: 'request columns not available (run migration 0017)' });
+
+    const nameCol = isSafeSqlIdentifier(userNameColumn) ? userNameColumn : 'nome';
+    const r = await pgClient.query(
+      `SELECT
+         pa.user_id,
+         pa.role,
+         pa.status,
+         pa.requested_company_id,
+         pa.requested_company_name,
+         pa.requested_matricula,
+         pa.requested_at,
+         u.email as user_email,
+         u.${nameCol} as user_name,
+         c.trade_name as company_trade_name,
+         c.legal_name as company_legal_name,
+         c.company_code as company_code,
+         c.status as company_status
+       FROM professional_accounts pa
+       LEFT JOIN users u ON u.id = pa.user_id
+       LEFT JOIN companies c ON c.id = pa.requested_company_id
+       WHERE lower(COALESCE(pa.status, '')) IN ('pending','pendente')
+       ORDER BY pa.requested_at DESC NULLS LAST, pa.updated_at DESC NULLS LAST
+       LIMIT 500`
+    );
+
+    return res.json({ success: true, requests: r.rows || [] });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.post('/api/admin/professional-requests/:userId/approve', requireCompaniesAdmin, async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectProfessionalAccountsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'professional_accounts table not available' });
+    const hasReqCols = await detectProfessionalAccountsRequestedCompanyIdColumn(pgClient);
+    if (!hasReqCols) return res.status(503).json({ error: 'request columns not available (run migration 0017)' });
+
+    const targetUserId = req.params && req.params.userId ? String(req.params.userId).trim() : '';
+    if (!targetUserId) return res.status(400).json({ error: 'userId required' });
+
+    const body = req.body || {};
+    const overrideCompanyId = (body.company_id != null ? String(body.company_id).trim() : (body.companyId != null ? String(body.companyId).trim() : ''));
+
+    const paR = await pgClient.query(
+      `SELECT user_id, requested_company_id, requested_company_name
+       FROM professional_accounts
+       WHERE user_id = $1
+       LIMIT 1`,
+      [targetUserId]
+    );
+    if (!paR || paR.rowCount === 0) return res.status(404).json({ error: 'professional_accounts row not found' });
+    const pa = paR.rows[0];
+
+    const companyId = overrideCompanyId || (pa.requested_company_id ? String(pa.requested_company_id).trim() : '');
+    if (!companyId) return res.status(400).json({ error: 'company_id required (missing on request)' });
+
+    const hasCompanyId = await detectProfessionalAccountsCompanyIdColumn(pgClient);
+    const hasCompanies = hasCompanyId ? await detectCompaniesTable(pgClient) : false;
+    const hasMatricula = await detectProfessionalAccountsMatriculaColumn(pgClient);
+    if (!hasCompanyId || !hasCompanies) return res.status(503).json({ error: 'companies/company_id not available (run migration 0013)' });
+    if (!hasMatricula) return res.status(503).json({ error: 'matricula column not available (run migration 0009)' });
+
+    // Allocate matricula server-side and set company_name consistently
+    const alloc = await allocateMatriculaForCompany(pgClient, companyId);
+    const companyName = alloc.company_name || (pa.requested_company_name || null);
+    const matriculaValue = alloc.matricula;
+
+    // Promote user role to professional
+    try {
+      if (!userHasRole) await refreshUsersSchema(pgClient);
+      if (userHasRole) {
+        await pgClient.query(`UPDATE users SET role = 'professional', atualizado_em = now() WHERE id = $1`, [String(targetUserId)]);
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const approvedBy = (req.dbUser && req.dbUser.id) ? String(req.dbUser.id) : null;
+    const approvedByRole = (req.dbUser && req.dbUser.role) ? String(req.dbUser.role) : null;
+    await pgClient.query(
+      `UPDATE professional_accounts
+       SET status = 'active',
+           company_id = $2,
+           company_name = $3,
+           matricula = $4,
+           requested_company_id = NULL,
+           requested_company_name = NULL,
+           requested_matricula = NULL,
+           approved_at = now(),
+           approved_by = $5,
+           updated_at = now()
+       WHERE user_id = $1`,
+      [String(targetUserId), String(companyId), companyName, String(matriculaValue), approvedBy]
+    );
+
+    // Create/activate membership record
+    try {
+      await upsertCompanyUserLink(pgClient, {
+        userId: targetUserId,
+        companyId,
+        status: 'active',
+        role: 'employee',
+        matricula: matriculaValue,
+      });
+    } catch (e) {
+      // ignore (do not block approval)
+    }
+
+    // Audit (best-effort)
+    writeAuditLog(pgClient, req, {
+      action: 'professional_request_approved',
+      actorUserId: approvedBy,
+      actorRole: approvedByRole,
+      targetUserId: targetUserId,
+      targetCompanyId: companyId,
+      details: {
+        actor_email: (req.dbUser && req.dbUser.email) ? String(req.dbUser.email) : null,
+        actor_name: (req.dbUser && (req.dbUser.nome || req.dbUser.name)) ? String(req.dbUser.nome || req.dbUser.name) : null,
+        override_company_id: overrideCompanyId || null,
+        requested_company_id: pa && pa.requested_company_id ? String(pa.requested_company_id) : null,
+        requested_company_name: pa && pa.requested_company_name ? String(pa.requested_company_name) : null,
+        approved_company_name: companyName || null,
+        allocated_matricula: matriculaValue || null,
+      }
+    });
+
+    const professional = await getProfessionalAccount(pgClient, targetUserId);
+    return res.json({ success: true, professional: professional || null });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.post('/api/admin/professional-requests/:userId/reject', requireCompaniesAdmin, async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectProfessionalAccountsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'professional_accounts table not available' });
+    const hasReqCols = await detectProfessionalAccountsRequestedCompanyIdColumn(pgClient);
+    if (!hasReqCols) return res.status(503).json({ error: 'request columns not available (run migration 0017)' });
+
+    const targetUserId = req.params && req.params.userId ? String(req.params.userId).trim() : '';
+    if (!targetUserId) return res.status(400).json({ error: 'userId required' });
+
+    // Optional reason for audit
+    const body = req.body || {};
+    const reason = body.reason != null ? String(body.reason).trim() : (body.motivo != null ? String(body.motivo).trim() : '');
+
+    // Try to capture the last requested company_id for audit context
+    let requestedCompanyId = null;
+    try {
+      const paR = await pgClient.query(
+        `SELECT requested_company_id, requested_company_name, requested_matricula
+         FROM professional_accounts
+         WHERE user_id = $1
+         LIMIT 1`,
+        [String(targetUserId)]
+      );
+      if (paR && paR.rowCount > 0) {
+        requestedCompanyId = paR.rows[0].requested_company_id ? String(paR.rows[0].requested_company_id) : null;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    await pgClient.query(
+      `UPDATE professional_accounts
+       SET status = 'suspended',
+           requested_company_id = NULL,
+           requested_company_name = NULL,
+           requested_matricula = NULL,
+           updated_at = now()
+       WHERE user_id = $1`,
+      [String(targetUserId)]
+    );
+
+    // Audit (best-effort)
+    const rejectedBy = (req.dbUser && req.dbUser.id) ? String(req.dbUser.id) : null;
+    const rejectedByRole = (req.dbUser && req.dbUser.role) ? String(req.dbUser.role) : null;
+    writeAuditLog(pgClient, req, {
+      action: 'professional_request_rejected',
+      actorUserId: rejectedBy,
+      actorRole: rejectedByRole,
+      targetUserId: targetUserId,
+      targetCompanyId: requestedCompanyId,
+      details: {
+        actor_email: (req.dbUser && req.dbUser.email) ? String(req.dbUser.email) : null,
+        actor_name: (req.dbUser && (req.dbUser.nome || req.dbUser.name)) ? String(req.dbUser.nome || req.dbUser.name) : null,
+        reason: reason || null,
+      }
+    });
+    return res.json({ success: true });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Admin: list audit logs (simple; for troubleshooting and traceability)
+app.get('/api/admin/audit-logs', requireCompaniesAdmin, async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectAuditLogsTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'audit_logs table not available (run migration 0020)' });
+
+    const limitRaw = req.query && req.query.limit != null ? Number(req.query.limit) : 200;
+    const offsetRaw = req.query && req.query.offset != null ? Number(req.query.offset) : 0;
+    const limit = (!Number.isFinite(limitRaw) || limitRaw <= 0) ? 200 : Math.min(500, Math.floor(limitRaw));
+    const offset = (!Number.isFinite(offsetRaw) || offsetRaw < 0) ? 0 : Math.floor(offsetRaw);
+
+    const action = req.query && req.query.action != null ? String(req.query.action).trim() : '';
+    const targetUserId = req.query && (req.query.target_user_id || req.query.targetUserId) != null
+      ? String(req.query.target_user_id || req.query.targetUserId).trim()
+      : '';
+    const targetCompanyId = req.query && (req.query.target_company_id || req.query.targetCompanyId || req.query.company_id || req.query.companyId) != null
+      ? String(req.query.target_company_id || req.query.targetCompanyId || req.query.company_id || req.query.companyId).trim()
+      : '';
+
+    const where = [];
+    const params = [];
+    if (action) { params.push(action); where.push(`action = $${params.length}`); }
+    if (targetUserId) { params.push(targetUserId); where.push(`target_user_id = $${params.length}`); }
+    if (targetCompanyId) { params.push(targetCompanyId); where.push(`target_company_id = $${params.length}`); }
+    params.push(limit);
+    const limitIdx = params.length;
+    params.push(offset);
+    const offsetIdx = params.length;
+
+    const r = await pgClient.query(
+      `SELECT id, action, actor_user_id, actor_role, target_user_id, target_company_id, details, ip, user_agent, created_at
+       FROM audit_logs
+       ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+       ORDER BY created_at DESC
+       LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+      params
+    );
+    return res.json({ success: true, logs: r.rows || [] });
   } catch (e) {
     return res.status(500).json({ error: 'internal error' });
   }
@@ -4246,6 +4750,22 @@ app.post('/api/admin/companies', requireCompaniesAdmin, async (req, res) => {
 
     const company = (r.rows && r.rows[0]) ? r.rows[0] : null;
     const out = company ? { ...company, company_registration_code: company.matricula_prefix || null } : null;
+
+    // Audit (best-effort)
+    const actorId = (req.dbUser && req.dbUser.id) ? String(req.dbUser.id) : null;
+    const actorRole = (req.dbUser && req.dbUser.role) ? String(req.dbUser.role) : null;
+    writeAuditLog(pgClient, req, {
+      action: 'company_created',
+      actorUserId: actorId,
+      actorRole,
+      targetCompanyId: out && out.id ? String(out.id) : null,
+      details: {
+        actor_email: (req.dbUser && req.dbUser.email) ? String(req.dbUser.email) : null,
+        actor_name: (req.dbUser && (req.dbUser.nome || req.dbUser.name)) ? String(req.dbUser.nome || req.dbUser.name) : null,
+        company: out,
+      },
+    });
+
     return res.status(201).json({ success: true, company: out });
   } catch (e) {
     return res.status(500).json({ error: 'internal error' });
@@ -4308,6 +4828,20 @@ app.patch('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) =>
       params.push(sanitized);
     }
 
+    // Capture before snapshot for audit (best-effort)
+    let beforeCompany = null;
+    try {
+      const rb = await pgClient.query(
+        hasType
+          ? 'SELECT id, legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at FROM companies WHERE id = $1 LIMIT 1'
+          : 'SELECT id, legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at FROM companies WHERE id = $1 LIMIT 1',
+        [id]
+      );
+      beforeCompany = (rb && rb.rowCount > 0) ? rb.rows[0] : null;
+    } catch (e) {
+      beforeCompany = null;
+    }
+
     if (sets.length === 0) return res.json({ success: true, updated: false });
     sets.push('updated_at = now()');
 
@@ -4324,6 +4858,24 @@ app.patch('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) =>
     );
     const company = (r.rows && r.rows[0]) ? r.rows[0] : null;
     const out = company ? { ...company, company_registration_code: company.matricula_prefix || null } : null;
+
+    // Audit (best-effort)
+    const actorId = (req.dbUser && req.dbUser.id) ? String(req.dbUser.id) : null;
+    const actorRole = (req.dbUser && req.dbUser.role) ? String(req.dbUser.role) : null;
+    writeAuditLog(pgClient, req, {
+      action: 'company_updated',
+      actorUserId: actorId,
+      actorRole,
+      targetCompanyId: id,
+      details: {
+        actor_email: (req.dbUser && req.dbUser.email) ? String(req.dbUser.email) : null,
+        actor_name: (req.dbUser && (req.dbUser.nome || req.dbUser.name)) ? String(req.dbUser.nome || req.dbUser.name) : null,
+        updated_fields: Object.keys(body || {}),
+        before: beforeCompany ? { ...beforeCompany, company_registration_code: beforeCompany.matricula_prefix || null } : null,
+        after: out,
+      },
+    });
+
     return res.json({ success: true, company: out });
   } catch (e) {
     return res.status(500).json({ error: 'internal error' });
@@ -4338,9 +4890,40 @@ app.delete('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) =
     const id = req.params && req.params.id ? String(req.params.id).trim() : null;
     if (!id) return res.status(400).json({ error: 'id required' });
 
+    // Capture snapshot before delete for audit (best-effort)
+    let beforeCompany = null;
+    try {
+      const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+      const rb = await pgClient.query(
+        hasType
+          ? 'SELECT id, legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at FROM companies WHERE id = $1 LIMIT 1'
+          : 'SELECT id, legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at FROM companies WHERE id = $1 LIMIT 1',
+        [id]
+      );
+      beforeCompany = (rb && rb.rowCount > 0) ? rb.rows[0] : null;
+    } catch (e) {
+      beforeCompany = null;
+    }
+
     // Hard-delete. If you prefer soft-delete, change to: UPDATE companies SET status='suspended'...
     const r = await pgClient.query('DELETE FROM companies WHERE id = $1', [id]);
     if (!r || r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+
+    // Audit (best-effort)
+    const actorId = (req.dbUser && req.dbUser.id) ? String(req.dbUser.id) : null;
+    const actorRole = (req.dbUser && req.dbUser.role) ? String(req.dbUser.role) : null;
+    writeAuditLog(pgClient, req, {
+      action: 'company_deleted',
+      actorUserId: actorId,
+      actorRole,
+      targetCompanyId: id,
+      details: {
+        actor_email: (req.dbUser && req.dbUser.email) ? String(req.dbUser.email) : null,
+        actor_name: (req.dbUser && (req.dbUser.nome || req.dbUser.name)) ? String(req.dbUser.nome || req.dbUser.name) : null,
+        company: beforeCompany ? { ...beforeCompany, company_registration_code: beforeCompany.matricula_prefix || null } : null,
+      },
+    });
+
     return res.json({ success: true });
   } catch (e) {
     return res.status(500).json({ error: 'internal error' });
@@ -4374,25 +4957,13 @@ app.post('/api/professional/account', async (req, res) => {
     const ok = await detectProfessionalAccountsTable(pgClient);
     if (!ok) return res.status(503).json({ error: 'professional_accounts table not available' });
 
-    const sbUser = await getSupabaseUserFromReq(req).catch(() => null);
-    const authId = sbUser ? sbUser.id : null;
-    const email = sbUser ? sbUser.email : null;
-
-    const explicitUserId = (req.body && (req.body.user_id || req.body.userId)) ? String(req.body.user_id || req.body.userId) : null;
-    const userId = explicitUserId || await resolveDbUserIdFromAuth({ pgClientInstance: pgClient, authId, email });
-    if (!userId) return res.status(401).json({ error: 'not authenticated' });
-
-    // Mark user as professional via users.role when available
-    try {
-      if (userHasRole) {
-        await pgClient.query(`UPDATE users SET role = 'professional', atualizado_em = now() WHERE id = $1`, [String(userId)]);
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    // Ensure row exists first
-    await ensureProfessionalAccount(pgClient, userId, { role: 'professional' });
+    // Resolve authenticated user from request (Supabase JWT or legacy session)
+    const dbUser = await getDbUserFromReq(req, { allowExplicitUserId: false });
+    if (!dbUser || !dbUser.id) return res.status(401).json({ error: 'not authenticated' });
+    const userId = String(dbUser.id);
+    const dbRole = String(dbUser.role || '').toLowerCase();
+    const isPrivileged = (dbRole === 'admin' || dbRole === 'companies_admin');
+    const hasReqCols = await detectProfessionalAccountsRequestedCompanyIdColumn(pgClient);
 
     // Update fields (best-effort)
     const companyName = (req.body && Object.prototype.hasOwnProperty.call(req.body, 'company_name')) ? req.body.company_name : undefined;
@@ -4415,6 +4986,115 @@ app.post('/api/professional/account', async (req, res) => {
     let resolvedCompanyId = (companyIdRaw !== undefined && companyIdRaw !== null && String(companyIdRaw).trim() !== '') ? String(companyIdRaw).trim() : null;
     let resolvedCompanyName = companyName;
     let resolvedMatricula = matricula;
+
+    const wantsBindingFields = (
+      (resolvedCompanyId != null) ||
+      (resolvedCompanyName !== undefined) ||
+      (resolvedMatricula !== undefined)
+    );
+
+    // If non-privileged user is trying to bind to a company or set professional details,
+    // create a pending request instead of granting direct access.
+    if (!isPrivileged && wantsBindingFields) {
+      if (!hasReqCols) {
+        return res.status(503).json({ error: 'professional request workflow not available (run migration 0017)' });
+      }
+
+      // Ensure row exists as pending
+      await ensureProfessionalAccount(pgClient, userId, { role: 'professional', status: 'pending' });
+
+      // Resolve requested company name if company_id provided
+      let requestedCompanyName = (resolvedCompanyName !== undefined) ? resolvedCompanyName : null;
+      if (resolvedCompanyId && hasCompanies) {
+        try {
+          const cr = await pgClient.query('SELECT trade_name, legal_name, company_code FROM companies WHERE id = $1 LIMIT 1', [resolvedCompanyId]);
+          if (cr && cr.rowCount > 0) {
+            const c = cr.rows[0];
+            requestedCompanyName = (c.trade_name || c.legal_name || c.company_code || '').trim() || requestedCompanyName;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      // Store request and clear active binding fields.
+      await pgClient.query(
+        `UPDATE professional_accounts
+         SET status = 'pending',
+             requested_company_id = $2,
+             requested_company_name = $3,
+             requested_matricula = $4,
+             requested_at = COALESCE(requested_at, now()),
+             company_id = NULL,
+             matricula = NULL,
+             updated_at = now()
+         WHERE user_id = $1`,
+        [String(userId), resolvedCompanyId, requestedCompanyName, (resolvedMatricula !== undefined ? (resolvedMatricula != null ? String(resolvedMatricula).trim() : null) : null)]
+      );
+
+      // Allow user to still update contact fields while pending
+      const contactSets = [];
+      const contactParams = [String(userId)];
+      let cidx = 2;
+      if (cnpj !== undefined) { contactSets.push(`cnpj = $${cidx++}`); contactParams.push(cnpj); }
+      if (phone !== undefined) { contactSets.push(`phone = $${cidx++}`); contactParams.push(phone); }
+      if (contactSets.length > 0) {
+        contactSets.push('updated_at = now()');
+        await pgClient.query(`UPDATE professional_accounts SET ${contactSets.join(', ')} WHERE user_id = $1`, contactParams);
+      }
+
+      const pr = await pgClient.query(
+        `SELECT status, requested_company_id, requested_company_name, requested_matricula, requested_at
+         FROM professional_accounts
+         WHERE user_id = $1
+         LIMIT 1`,
+        [String(userId)]
+      );
+      const pending = (pr && pr.rowCount > 0) ? pr.rows[0] : { status: 'pending' };
+      return res.json({ success: true, professional: null, pending_request: pending });
+    }
+
+    // Non-privileged: allow contact-only updates without promoting/activating.
+    if (!isPrivileged && !wantsBindingFields) {
+      // If user already has an active professional profile, we can update it.
+      // If not, we keep it pending and only store contact info.
+      await ensureProfessionalAccount(pgClient, userId, { role: 'professional', status: 'pending' });
+      const contactSets = [];
+      const contactParams = [String(userId)];
+      let cidx = 2;
+      if (cnpj !== undefined) { contactSets.push(`cnpj = $${cidx++}`); contactParams.push(cnpj); }
+      if (phone !== undefined) { contactSets.push(`phone = $${cidx++}`); contactParams.push(phone); }
+      if (contactSets.length > 0) {
+        contactSets.push('updated_at = now()');
+        await pgClient.query(`UPDATE professional_accounts SET ${contactSets.join(', ')} WHERE user_id = $1`, contactParams);
+      }
+      const professional = await getProfessionalAccount(pgClient, userId);
+      if (professional) return res.json({ success: true, professional });
+      if (hasReqCols) {
+        const pr = await pgClient.query(
+          `SELECT status, requested_company_id, requested_company_name, requested_matricula, requested_at
+           FROM professional_accounts
+           WHERE user_id = $1
+           LIMIT 1`,
+          [String(userId)]
+        );
+        const pending = (pr && pr.rowCount > 0) ? pr.rows[0] : { status: 'pending' };
+        return res.json({ success: true, professional: null, pending_request: pending });
+      }
+      return res.json({ success: true, professional: null });
+    }
+
+    // Privileged flow: allow direct activation/binding.
+    // Mark user as professional via users.role when available
+    try {
+      if (!userHasRole) await refreshUsersSchema(pgClient);
+      if (userHasRole) {
+        await pgClient.query(`UPDATE users SET role = 'professional', atualizado_em = now() WHERE id = $1`, [String(userId)]);
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Ensure row exists first
+    await ensureProfessionalAccount(pgClient, userId, { role: 'professional', status: 'active' });
 
     // If company_id is provided, enforce companies + company_id schema and generate matricula server-side.
     if (resolvedCompanyId) {
@@ -4465,13 +5145,129 @@ app.post('/api/professional/account', async (req, res) => {
     if (phone !== undefined) { sets.push(`phone = $${idx++}`); params.push(phone); }
     sets.push('updated_at = now()');
 
+    // Ensure active when privileged updates
+    sets.push(`status = 'active'`);
+
     if (sets.length > 0) {
       params.push(String(userId));
       await pgClient.query(`UPDATE professional_accounts SET ${sets.join(', ')} WHERE user_id = $${idx}`, params);
     }
 
+    // If we bound a company_id (privileged), ensure membership record exists.
+    if (resolvedCompanyId) {
+      try {
+        const profAfter = await getProfessionalAccount(pgClient, userId);
+        const m = profAfter && Object.prototype.hasOwnProperty.call(profAfter, 'matricula') ? (profAfter.matricula || null) : null;
+        await upsertCompanyUserLink(pgClient, {
+          userId,
+          companyId: resolvedCompanyId,
+          status: 'active',
+          role: 'employee',
+          matricula: m,
+        });
+      } catch (e) {
+        // ignore
+      }
+    }
+
     const professional = await getProfessionalAccount(pgClient, userId);
     return res.json({ success: true, professional: professional || null });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// --- Admin: company employees (company_users) ---
+app.get('/api/admin/companies/:id/employees', requireCompaniesAdmin, async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectCompanyUsersTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'company_users table not available (run migration 0018)' });
+
+    const companyId = req.params && req.params.id ? String(req.params.id).trim() : '';
+    if (!companyId) return res.status(400).json({ error: 'company id required' });
+
+    const nameCol = isSafeSqlIdentifier(userNameColumn) ? userNameColumn : 'nome';
+    const r = await pgClient.query(
+      `SELECT
+         cu.id,
+         cu.user_id,
+         cu.company_id,
+         cu.matricula,
+         cu.status,
+         cu.role,
+         cu.job_title,
+         cu.created_at,
+         cu.updated_at,
+         u.email as user_email,
+         u.${nameCol} as user_name
+       FROM company_users cu
+       LEFT JOIN users u ON u.id = cu.user_id
+       WHERE cu.company_id = $1
+       ORDER BY cu.status ASC, cu.role DESC, COALESCE(u.${nameCol}, u.email, cu.user_id) ASC
+       LIMIT 1000`,
+      [companyId]
+    );
+    return res.json({ success: true, employees: r.rows || [] });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+app.patch('/api/admin/company-users/:id', requireCompaniesAdmin, async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const ok = await detectCompanyUsersTable(pgClient);
+    if (!ok) return res.status(503).json({ error: 'company_users table not available (run migration 0018)' });
+
+    const id = req.params && req.params.id ? String(req.params.id).trim() : '';
+    if (!id) return res.status(400).json({ error: 'id required' });
+
+    const body = req.body || {};
+    const sets = [];
+    const params = [];
+    let idx = 1;
+
+    if (Object.prototype.hasOwnProperty.call(body, 'status')) {
+      const st = body.status != null ? String(body.status).trim().toLowerCase() : '';
+      if (!['pending', 'active', 'blocked'].includes(st)) return res.status(400).json({ error: 'invalid status' });
+      sets.push(`status = $${idx++}`);
+      params.push(st);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'role')) {
+      const rl = body.role != null ? String(body.role).trim().toLowerCase() : '';
+      if (!['owner', 'admin', 'employee'].includes(rl)) return res.status(400).json({ error: 'invalid role' });
+      sets.push(`role = $${idx++}`);
+      params.push(rl);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'job_title') || Object.prototype.hasOwnProperty.call(body, 'cargo')) {
+      const jt = Object.prototype.hasOwnProperty.call(body, 'job_title') ? body.job_title : body.cargo;
+      const v = (jt == null || String(jt).trim() === '') ? null : String(jt).trim();
+      sets.push(`job_title = $${idx++}`);
+      params.push(v);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'matricula')) {
+      const m = (body.matricula == null || String(body.matricula).trim() === '') ? null : String(body.matricula).trim();
+      sets.push(`matricula = $${idx++}`);
+      params.push(m);
+    }
+
+    if (sets.length === 0) return res.json({ success: true, updated: false });
+    sets.push('updated_at = now()');
+
+    params.push(id);
+    await pgClient.query(`UPDATE company_users SET ${sets.join(', ')} WHERE id = $${idx}`, params);
+
+    const r = await pgClient.query(
+      `SELECT id, user_id, company_id, matricula, status, role, job_title, created_at, updated_at
+       FROM company_users WHERE id = $1 LIMIT 1`,
+      [id]
+    );
+    if (!r || r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+    return res.json({ success: true, employee: r.rows[0] });
   } catch (e) {
     return res.status(500).json({ error: 'internal error' });
   }
@@ -4735,13 +5531,26 @@ app.get('/api/professional/maintenances', async (req, res) => {
     const professional = await getProfessionalAccount(pgClient, userId);
     if (!professional) return res.status(403).json({ error: 'professional profile missing' });
 
+    // If the new membership table exists, require an explicit company binding + ACTIVE membership.
+    // This prevents anyone from gaining access by only matching office names.
+    const hasCompanyUsers = await detectCompanyUsersTable(pgClient);
+
+    // If professional is bound to a company, require an ACTIVE membership record.
+    // This prevents users with a professional row from accessing a company context without approval.
+    const profCompanyId = professional && Object.prototype.hasOwnProperty.call(professional, 'company_id') ? (professional.company_id || null) : null;
+    if (hasCompanyUsers) {
+      if (!profCompanyId) return res.status(403).json({ error: 'company binding required' });
+      if (await assertActiveCompanyMembershipOr403(res, pgClient, { userId, companyId: profCompanyId }) === '__sent__') return;
+    } else if (profCompanyId) {
+      if (await assertActiveCompanyMembershipOr403(res, pgClient, { userId, companyId: profCompanyId }) === '__sent__') return;
+    }
+
     const limitRaw = req.query && req.query.limit != null ? Number(req.query.limit) : 200;
     const offsetRaw = req.query && req.query.offset != null ? Number(req.query.offset) : 0;
     const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(1000, Math.floor(limitRaw))) : 200;
     const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
 
     const hasCompanyIdCol = await detectMaintenanceRecordsCompanyIdColumn(pgClient);
-    const profCompanyId = professional && Object.prototype.hasOwnProperty.call(professional, 'company_id') ? (professional.company_id || null) : null;
     const profCompanyName = professional && professional.company_name ? String(professional.company_name).trim() : '';
 
     const officeNameCandidates = Array.from(new Set([
