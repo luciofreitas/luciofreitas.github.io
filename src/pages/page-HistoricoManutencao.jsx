@@ -594,6 +594,7 @@ export default function HistoricoManutencao() {
     try {
       const list = Array.isArray(opts.maintenances) ? opts.maintenances : manutencoesSorted;
       const isDetailedSingle = !!(opts && opts.detailed) && Array.isArray(list) && list.length === 1;
+      const isOfficePrint = String(opts?.source || opts?.context || '').toLowerCase() === 'office';
 
       const escapeHtml = (v) => String(v ?? '')
         .replace(/&/g, '&amp;')
@@ -606,9 +607,13 @@ export default function HistoricoManutencao() {
       const issuedAt = now.toLocaleString('pt-BR');
       const companyName = usuarioLogado?.professional?.company_name || usuarioLogado?.company_name || '';
       const matricula = usuarioLogado?.professional?.matricula || usuarioLogado?.matricula || '';
+      const employeeLabel = (usuarioLogado?.nome || usuarioLogado?.name || usuarioLogado?.email || 'Usuário');
       const userLabel = (opts && opts.userLabelOverride)
         ? String(opts.userLabelOverride)
-        : (usuarioLogado?.nome || usuarioLogado?.name || usuarioLogado?.email || 'Usuário');
+        : employeeLabel;
+
+      const headerPersonKey = isOfficePrint ? 'Funcionário' : 'Cliente';
+      const headerPersonLabel = isOfficePrint ? employeeLabel : userLabel;
 
       const userIdForDoc = String(usuarioLogado?.id || usuarioLogado?.email || 'user');
       const userIdShort = userIdForDoc.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10) || 'USER';
@@ -803,7 +808,7 @@ export default function HistoricoManutencao() {
 
       <div class="box">
         <div class="grid">
-          <div><span class="k">Cliente:</span> ${escapeHtml(userLabel)}</div>
+          <div><span class="k">${escapeHtml(headerPersonKey)}:</span> ${escapeHtml(headerPersonLabel)}</div>
           <div><span class="k">Filtro:</span> <span class="badge">${escapeHtml(filterLabel)}</span></div>
           <div><span class="k">Empresa/Oficina:</span> ${escapeHtml(companyName || '—')}</div>
           <div><span class="k">Matrícula:</span> ${escapeHtml(matricula || '—')}</div>
@@ -1548,6 +1553,7 @@ export default function HistoricoManutencao() {
                       maintenances: detailsMaintenance ? [detailsMaintenance] : [],
                       userLabelOverride: selectedOfficeClientLabel,
                       filterLabelOverride: 'Registro individual (oficina)',
+                      source: 'office',
                       detailed: true
                     })}>
                       🖨️ Imprimir este registro
