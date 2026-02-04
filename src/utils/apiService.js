@@ -192,6 +192,82 @@ class ApiService {
     }
   }
 
+  async triageAI({ text, vehicle } = {}) {
+    const t = String(text || '').trim();
+    const base = this.getBaseUrl ? this.getBaseUrl() : '';
+
+    if (this.isStaticProd()) {
+      return {
+        risk: { level: 'low', warnings: [] },
+        interpretation: { tags: [] },
+        summary: '',
+        possibleCauses: [],
+        questions: ['A triagem por IA não está disponível neste modo do site.'],
+        suggestedSearchTerms: [],
+        suggestedParts: [],
+        coverageNote: '',
+        note: ''
+      };
+    }
+
+    if (!base) {
+      return {
+        risk: { level: 'low', warnings: [] },
+        interpretation: { tags: [] },
+        summary: '',
+        possibleCauses: [],
+        questions: ['Não consegui conectar ao serviço de triagem agora.'],
+        suggestedSearchTerms: [],
+        suggestedParts: [],
+        coverageNote: '',
+        note: ''
+      };
+    }
+
+    if (!t) {
+      return {
+        risk: { level: 'low', warnings: [] },
+        interpretation: { tags: [] },
+        summary: '',
+        possibleCauses: [],
+        questions: [],
+        suggestedSearchTerms: [],
+        suggestedParts: [],
+        coverageNote: '',
+        note: ''
+      };
+    }
+
+    try {
+      const resp = await fetch(`${base}/api/triagem`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: t, vehicle: vehicle || {} })
+      });
+      const data = await resp.json().catch(() => null);
+      if (!resp.ok) {
+        const msg = (data && (data.error || data.message)) ? (data.error || data.message) : `HTTP ${resp.status}`;
+        throw new Error(msg);
+      }
+      return data || null;
+    } catch (e) {
+      console.warn('[apiService] triageAI failed:', e && e.message ? e.message : e);
+      return {
+        risk: { level: 'low', warnings: [] },
+        interpretation: { tags: [] },
+        summary: '',
+        possibleCauses: [],
+        questions: ['Não foi possível fazer a triagem agora. Tente novamente.'],
+        suggestedSearchTerms: [],
+        suggestedParts: [],
+        coverageNote: '',
+        note: ''
+      };
+    }
+  }
+
   async fetchWithFallback(apiPath, fallbackData = null) {
     // Se for produção realmente estática (ex: GitHub Pages), sempre usa fallback JSON local
     if (this.isStaticProd()) {

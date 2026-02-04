@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "migrate": "node migrate.js",
-    "test:webhook": "node -r dotenv/config tests/webhook-harness.js"
+    "test:webhook": "node -r dotenv/config tests/webhook-harness.js",
+    "test:triagem": "node scripts/test_triagem.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.31.0",

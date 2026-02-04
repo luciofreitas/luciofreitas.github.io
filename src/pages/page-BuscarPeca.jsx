@@ -61,6 +61,7 @@ export default function BuscarPeca() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiQuestions, setAiQuestions] = useState([]);
   const [aiError, setAiError] = useState('');
+  const [aiTriage, setAiTriage] = useState(null);
 
   // drawer state (preferred over modals)
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -325,6 +326,7 @@ export default function BuscarPeca() {
   const applyAiSuggestions = async () => {
     setAiError('');
     setAiQuestions([]);
+    setAiTriage(null);
 
     const q = String(aiQuery || '').trim();
     if (!q) {
@@ -343,6 +345,19 @@ export default function BuscarPeca() {
 
       const result = await apiService.suggestFiltersAI({ query: q, context });
       const suggested = (result && result.filters) ? result.filters : {};
+
+      // Best-effort triage: keeps the written suggestion content, but the UI does not show a title.
+      try {
+        const triageVehicle = {
+          marca: suggested.marca || selectedMarca || '',
+          modelo: suggested.modelo || selectedModelo || '',
+          ano: suggested.ano || selectedAno || ''
+        };
+        const triage = await apiService.triageAI({ text: q, vehicle: triageVehicle });
+        setAiTriage(triage);
+      } catch (e) {
+        setAiTriage(null);
+      }
 
       const nextGrupo = suggested.grupo || '';
       const nextCategoria = suggested.categoria || '';
@@ -452,6 +467,7 @@ export default function BuscarPeca() {
     setAiQuery('');
     setAiQuestions([]);
     setAiError('');
+    setAiTriage(null);
   };
 
   return (
@@ -494,6 +510,56 @@ export default function BuscarPeca() {
                 </div>
 
                 {aiError ? <div className="buscarpeca-ai-error">{aiError}</div> : null}
+
+                {aiTriage && (aiTriage.summary || (Array.isArray(aiTriage.possibleCauses) && aiTriage.possibleCauses.length) || (aiTriage.risk && Array.isArray(aiTriage.risk.warnings) && aiTriage.risk.warnings.length) || aiTriage.coverageNote) ? (
+                  <div className="buscarpeca-ai-suggestion">
+                    {aiTriage.risk && Array.isArray(aiTriage.risk.warnings) && aiTriage.risk.warnings.length ? (
+                      <div className="buscarpeca-ai-suggestion-warnings">
+                        {aiTriage.risk.warnings.map((w, idx) => (
+                          <div key={`w-${idx}-${w}`} className="buscarpeca-ai-suggestion-warning">{w}</div>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {aiTriage.summary ? (
+                      <div className="buscarpeca-ai-suggestion-text">{aiTriage.summary}</div>
+                    ) : null}
+
+                    {!aiTriage.summary && Array.isArray(aiTriage.possibleCauses) && aiTriage.possibleCauses.length ? (
+                      <ul className="buscarpeca-ai-suggestion-list">
+                        {aiTriage.possibleCauses.slice(0, 4).map((c, idx) => (
+                          <li key={`c-${idx}-${c}`}>{c}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+
+                    {aiTriage.coverageNote ? (
+                      <div className="buscarpeca-ai-suggestion-coverage">{aiTriage.coverageNote}</div>
+                    ) : null}
+
+                    {Array.isArray(aiTriage.suggestedParts) && aiTriage.suggestedParts.length ? (
+                      <div className="buscarpeca-ai-suggestion-parts">
+                        <div className="buscarpeca-ai-suggestion-parts-title">Peças prováveis no catálogo</div>
+                        <ul>
+                          {Array.from(
+                            new Map(
+                              aiTriage.suggestedParts
+                                .filter(Boolean)
+                                .map((p) => [`${String(p.name || '').trim().toLowerCase()}||${String(p.category || '').trim().toLowerCase()}`, p])
+                            ).values()
+                          ).slice(0, 5).map((p) => (
+                            <li key={`p-${p.id || p.name}`}>{p.name}{p.category ? ` (${p.category})` : ''}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+
+                    {aiTriage.note ? (
+                      <div className="buscarpeca-ai-suggestion-note">{aiTriage.note}</div>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 {Array.isArray(aiQuestions) && aiQuestions.length > 0 ? (
                   <div className="buscarpeca-ai-questions">
                     <div className="buscarpeca-ai-questions-title">Perguntas rápidas</div>

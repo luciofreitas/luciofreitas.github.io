@@ -1822,6 +1822,659 @@ app.post('/api/ai/suggest-filters', async (req, res) => {
   }
 });
 
+// --- MVP AI endpoint: triage symptoms (free text) into possible parts ---
+// Contract: POST /api/ai/triage { text: string, vehicle?: { marca?, modelo?, ano?, motor? } }
+// Alias:    POST /api/triagem
+// Response: { risk, questions, suggestedSearchTerms, suggestedParts, note }
+const TRIAGE_RULES = [
+  {
+    id: 'noise_engine_generic',
+    keywords: ['barulho no motor', 'ruido no motor', 'ruído no motor', 'barulho vindo do motor', 'ruido vindo do motor', 'ruído vindo do motor'],
+    // Also catch phrases like: "o motor está com barulho" (order can vary)
+    allOfAny: [
+      ['motor', 'barulho'],
+      ['motor', 'ruido'],
+      ['motor', 'ruído']
+    ],
+    tags: ['ruido_motor_geral'],
+    risk: 'low',
+    terms: ['correia', 'correia do alternador', 'correia dentada', 'coxim do motor', 'vela', 'bobina'],
+    questions: [
+      'Esse barulho é mais um chiado/assobio, tec-tec, batida forte, ou rangido?',
+      'O barulho aumenta quando você acelera (RPM sobe)?',
+      'Acontece mais com o motor frio ou quente?'
+    ]
+  },
+  {
+    id: 'noise_high_pitch',
+    keywords: ['chiado', 'assobio', 'guincho', 'grilo', 'apito', 'sibilo'],
+    tags: ['ruido_agudo'],
+    // Prefer termos que existem no catálogo local para retornar peças reais.
+    // Alguns termos genéricos (ex: polia/tensionador) ajudam a orientar, mas podem não existir como item cadastrado.
+    terms: ['correia', 'correia do alternador', 'correia poly-v', 'correia dentada', 'alternador', 'polia', 'tensionador', 'rolamento'],
+    questions: [
+      'O barulho aumenta quando você acelera (RPM sobe)?',
+      'Piora com ar-condicionado ligado?',
+      'Acontece mais ao ligar o carro de manhã e depois some?'
+    ]
+  },
+  {
+    id: 'noise_brakes',
+    keywords: ['freio', 'freando', 'frenagem', 'na freada', 'ao frear', 'barulho ao frear', 'rangendo', 'chiando ao frear', 'metal com metal'],
+    tags: ['freios', 'ruido_ao_frear'],
+    risk: 'medium',
+    terms: ['freios', 'pastilha', 'disco', 'pastilha de freio', 'disco de freio'],
+    questions: [
+      'O barulho aparece ao frear leve, frear forte, ou nos dois?',
+      'Você sente vibração no pedal/volante ao frear?',
+      'O barulho vem mais da frente ou da traseira?'
+    ]
+  },
+  {
+    id: 'noise_steering_turn',
+    keywords: ['ao virar', 'virando o volante', 'esterçando', 'ao esterçar', 'estalo ao virar', 'tec ao virar', 'clic clic', 'clac clac', 'barulho na direcao', 'barulho na direção'],
+    tags: ['direcao', 'ruido_ao_virar'],
+    risk: 'medium',
+    terms: ['direção', 'junta homocinética', 'homocinética', 'bomba de direção hidráulica'],
+    questions: [
+      'O barulho acontece com o carro parado virando o volante, ou só andando?',
+      'Acontece mais ao virar todo para um lado (fim de curso)?',
+      'O barulho aparece mais acelerando em curva (ex: saindo com volante virado)?'
+    ]
+  },
+  {
+    id: 'noise_suspension_bumps',
+    keywords: ['buraco', 'lombada', 'paralelepipedo', 'trepidacao', 'trepidação', 'batida seca', 'tum tum', 'toc toc na suspensao', 'toc toc na suspensão', 'rangido na suspensao', 'rangido na suspensão'],
+    tags: ['suspensao', 'ruido_em_irregularidade'],
+    risk: 'medium',
+    terms: ['suspensão', 'amortecedor', 'amortecedor dianteiro', 'amortecedor traseiro', 'coxim do motor'],
+    questions: [
+      'O barulho aparece mais em baixa velocidade (passando em buracos) ou também em alta?',
+      'O carro está puxando para um lado ou “quicando” mais que o normal?',
+      'O barulho é na frente, atrás, ou dos dois lados?'
+    ]
+  },
+  {
+    id: 'noise_engine_rattle_idle',
+    keywords: ['marcha lenta', 'lenta irregular', 'lenta oscilando', 'oscilando', 'vibrando', 'tremendo parado', 'barulho parado', 'barulho na lenta'],
+    tags: ['marcha_lenta', 'vibracao'],
+    risk: 'medium',
+    terms: ['coxim do motor', 'vela', 'bobina', 'sensor de rotação', 'sensor de temperatura'],
+    questions: [
+      'O motor chega a apagar quando você para no semáforo?',
+      'A vibração aumenta com ar-condicionado ligado?',
+      'A luz da injeção (check engine) acendeu?'
+    ]
+  },
+  {
+    id: 'start_no_start',
+    keywords: ['nao liga', 'não liga', 'nao pega', 'não pega', 'demora pra pegar', 'demora para pegar', 'só pega na segunda', 'so pega na segunda', 'partida longa', 'gira mas nao pega', 'gira mas não pega'],
+    tags: ['nao_liga'],
+    risk: 'medium',
+    terms: ['bomba de combustível', 'filtro de combustível', 'sensor de rotação', 'vela', 'bobina', 'sensor de temperatura'],
+    questions: [
+      'O motor de arranque gira forte (rápido) ou parece fraco?',
+      'Quando você vira a chave, você escuta a bomba de combustível armando por 1–2 segundos?',
+      'Acontece mais com o carro frio ou quente?'
+    ]
+  },
+  {
+    id: 'check_engine_light',
+    keywords: ['luz da injecao', 'luz de injecao', 'luz injecao', 'injeção acesa', 'check engine', 'luz do motor', 'luz da injeção', 'luz de injeção'],
+    tags: ['check_engine'],
+    risk: 'medium',
+    terms: ['sensor de oxigênio', 'sensor de rotação', 'sensor de temperatura', 'vela', 'bobina', 'filtro de ar', 'filtro de combustível'],
+    questions: [
+      'A luz está piscando (intermitente) ou fixa?',
+      'O carro perdeu força ou está falhando junto?',
+      'Você tem código de falha (scanner OBD)? Se tiver, me diga o P0xxx.'
+    ]
+  },
+  {
+    id: 'poor_power_high_consumption',
+    keywords: ['consumo alto', 'gastando muito', 'bebendo', 'cheiro de gasolina', 'cheiro de combustivel', 'forte cheiro', 'fraco', 'sem potencia', 'sem potência', 'perdeu rendimento', 'perdendo rendimento'],
+    tags: ['consumo', 'perda_potencia'],
+    risk: 'medium',
+    terms: ['sensor de oxigênio', 'filtro de ar', 'filtro de combustível', 'bomba de combustível', 'vela', 'bobina'],
+    questions: [
+      'O problema começou de repente ou foi piorando aos poucos?',
+      'Você abasteceu recentemente em posto diferente?',
+      'Acontece mais com o tanque baixo?'
+    ]
+  },
+  {
+    id: 'overheat_expanded',
+    keywords: ['superaquec', 'temperatura alta', 'ferveu', 'fervendo', 'esquentando', 'motor quente', 'a temperatura subiu', 'luz da temperatura', 'luz temperatura', 'ponteiro subindo', 'ventoinha nao para', 'ventoinha não para'],
+    tags: ['temperatura'],
+    risk: 'high',
+    terms: ['bomba d agua', 'bomba de agua', 'radiador', 'sensor de temperatura', 'junta do cabeçote', 'junta do cabecote'],
+    questions: [
+      'A temperatura sobe rápido parado no trânsito ou também andando?',
+      'Está baixando água/aditivo? Tem vazamento aparente?',
+      'O aquecimento aparece com ar-condicionado ligado?'
+    ]
+  },
+  {
+    id: 'coolant_loss_white_smoke',
+    keywords: ['fumaca branca', 'fumaça branca', 'baixa agua', 'baixando agua', 'misturou agua no oleo', 'misturou água no óleo', 'maionese na tampa', 'reservatorio borbulhando', 'reservatório borbulhando'],
+    tags: ['arrefecimento', 'fumaca_branca'],
+    risk: 'high',
+    terms: ['junta do cabeçote', 'junta do cabecote', 'radiador', 'bomba d agua', 'bomba de agua'],
+    questions: [
+      'A fumaça branca some depois que o motor aquece, ou continua?',
+      'O óleo está com aspecto “café com leite/maionese”?',
+      'A pressão no reservatório aumenta rápido (mangueiras duras)?'
+    ]
+  },
+  {
+    id: 'smoke_black',
+    keywords: ['fumaca preta', 'fumaça preta', 'fuligem', 'cheiro forte de combustivel', 'cheiro forte de combustível'],
+    tags: ['fumaca_preta'],
+    risk: 'medium',
+    terms: ['filtro de ar', 'sensor de oxigênio', 'vela', 'bobina', 'filtro de combustível'],
+    questions: [
+      'A fumaça preta acontece só acelerando ou também em marcha lenta?',
+      'O consumo aumentou bastante?',
+      'A luz da injeção acendeu?'
+    ]
+  },
+  {
+    id: 'smoke_blue_oil_burning',
+    keywords: ['fumaca azul', 'fumaça azul', 'queimando oleo', 'queimando óleo', 'cheiro de oleo queimado', 'cheiro de óleo queimado'],
+    tags: ['fumaca_azul'],
+    risk: 'medium',
+    terms: ['filtro de óleo', 'junta do cabeçote', 'junta do cabecote'],
+    questions: [
+      'O nível de óleo baixa entre as trocas?',
+      'A fumaça aparece mais ao acelerar depois de descer uma ladeira (freio-motor)?'
+    ]
+  },
+  {
+    id: 'oil_light_or_pressure',
+    keywords: ['luz do oleo', 'luz de oleo', 'pressao do oleo', 'pressão do óleo', 'luz do óleo', 'luz de óleo'],
+    tags: ['oleo'],
+    risk: 'high',
+    terms: ['filtro de óleo'],
+    questions: [
+      'A luz do óleo acende em marcha lenta, em alta, ou o tempo todo?',
+      'Quando foi a última troca de óleo e filtro?',
+      'O nível na vareta está correto?'
+    ]
+  },
+  {
+    id: 'exhaust_noise_or_emissions',
+    keywords: ['ronco', 'barulho no escapamento', 'barulho no escape', 'estalo no escapamento', 'pipoco', 'pipoco no escape', 'cheiro forte no escape', 'cheiro de enxofre', 'catalisador'],
+    tags: ['escapamento'],
+    risk: 'low',
+    terms: ['sensor de oxigênio', 'filtro de partículas'],
+    questions: [
+      'O barulho mudou de repente (após buraco/raspada) ou foi gradual?',
+      'A luz da injeção acendeu junto?',
+      'O consumo aumentou ou perdeu força?'
+    ]
+  },
+  {
+    id: 'clutch_slip_or_smell',
+    keywords: ['embreagem', 'patinando', 'patina', 'cheiro de embreagem', 'pedal alto', 'dificil engatar', 'difícil engatar', 'arranhando marcha'],
+    tags: ['embreagem'],
+    risk: 'medium',
+    terms: ['kit embreagem', 'disco de embreagem', 'platô de embreagem', 'plato de embreagem'],
+    questions: [
+      'A rotação sobe mas o carro não ganha velocidade (patina)?',
+      'O problema é em todas as marchas ou só em alguma?',
+      'O pedal está mais alto/duro que o normal?'
+    ]
+  },
+  {
+    id: 'cvt_issues',
+    keywords: ['cvt', 'tranco', 'trancos', 'patinando cvt', 'cambio cvt', 'câmbio cvt', 'patinando no cambio', 'patinando no câmbio'],
+    tags: ['cambio', 'cvt'],
+    risk: 'medium',
+    terms: ['filtro hidráulico cvt'],
+    questions: [
+      'O câmbio dá trancos ao sair ou ao reduzir?',
+      'Acontece com o óleo do câmbio frio ou quente?',
+      'A luz de falha do câmbio acendeu?'
+    ]
+  },
+  {
+    id: 'brake_vibration',
+    keywords: ['vibracao ao frear', 'vibração ao frear', 'trepida ao frear', 'trepidação ao frear', 'volante treme ao frear', 'pedal treme'],
+    tags: ['freios', 'vibracao_freio'],
+    risk: 'medium',
+    terms: ['disco de freio', 'pastilha de freio'],
+    questions: [
+      'A vibração aparece mais em velocidade alta?',
+      'O disco/pastilha foi trocado recentemente?',
+      'O carro fica “pulsando” no pedal?'
+    ]
+  },
+  {
+    id: 'suspension_pull_or_wobble',
+    keywords: ['puxando', 'puxa pro lado', 'puxa para o lado', 'volante tremendo', 'vibrando no volante', 'instavel', 'instável', 'balancando', 'balançando'],
+    tags: ['suspensao', 'direcao'],
+    risk: 'low',
+    terms: ['pivô de suspensão', 'terminal de direção', 'braço axial', 'terminal axial', 'amortecedor'],
+    questions: [
+      'A vibração aparece em uma faixa de velocidade específica (ex: 80–100 km/h)?',
+      'O carro puxa mais ao frear ou o tempo todo?',
+      'Você passou recentemente em buraco forte?'
+    ]
+  },
+  {
+    id: 'noise_ticking',
+    keywords: ['tec tec', 'teco teco', 'tic tic', 'tictic', 'batidinha', 'estalo leve'],
+    tags: ['ruido_metalico_leve'],
+    terms: ['vela', 'bobina', 'bico', 'injetor', 'correia', 'tucho'],
+    questions: [
+      'A falha/ruído aparece com o motor frio, quente ou os dois?',
+      'O carro está falhando ou perdendo força junto com o ruído?'
+    ]
+  },
+  {
+    id: 'noise_knock',
+    keywords: ['batida forte', 'martelando', 'batendo biela', 'pancada', 'toc toc forte', 'teco forte'],
+    tags: ['ruido_forte'],
+    risk: 'high',
+    terms: ['oleo', 'filtro de oleo'],
+    questions: [
+      'A luz do óleo acendeu ou piscou?',
+      'O nível de óleo está correto na vareta?',
+      'O barulho aparece mais em aceleração ou em carga (subida)?'
+    ]
+  },
+  {
+    id: 'overheat',
+    keywords: ['superaquec', 'temperatura alta', 'ferveu', 'fervendo', 'aguas ferveu', 'reservatorio borbulhando', 'ventoinha'],
+    tags: ['temperatura'],
+    risk: 'high',
+    terms: ['aditivo', 'fluido de arrefecimento', 'radiador', 'tampa do reservatorio', 'valvula termostatica', 'bomba d agua', 'bomba de agua'],
+    questions: [
+      'A temperatura sobe rápido parado no trânsito ou também andando?',
+      'Está baixando água/aditivo?'
+    ]
+  },
+  {
+    id: 'smoke',
+    keywords: ['fumaca', 'fumaça', 'cheiro de queimado', 'cheiro queimado'],
+    tags: ['fumaca_ou_cheiro'],
+    risk: 'medium',
+    terms: ['oleo', 'filtro de oleo', 'filtro', 'vela'],
+    questions: [
+      'A fumaça é branca, azul ou preta?',
+      'O cheiro parece óleo queimando ou combustível (gasolina/etanol)?'
+    ]
+  },
+  {
+    id: 'misfire',
+    keywords: ['falhando', 'tremendo', 'engasgando', 'sem forca', 'perdeu forca', 'perdendo forca'],
+    tags: ['falha'],
+    risk: 'medium',
+    terms: ['vela', 'bobina', 'filtro de combustivel', 'bomba de combustivel', 'filtro de ar'],
+    questions: [
+      'A luz da injeção (check engine) acendeu? Ela está piscando ou fixa?',
+      'A falha acontece em marcha lenta, acelerando ou em alta?'
+    ]
+  }
+];
+
+function uniq(arr) {
+  const out = [];
+  const seen = new Set();
+  for (const v of (Array.isArray(arr) ? arr : [])) {
+    const s = String(v || '').trim();
+    if (!s) continue;
+    const k = normalizeText(s);
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    out.push(s);
+  }
+  return out;
+}
+
+function buildPossibleCausesFromTags(tags) {
+  // Tags are internal identifiers (often underscore-separated). Do not use
+  // normalizeText() here because it turns '_' into spaces and breaks matching.
+  function normalizeTag(x) {
+    const raw = stripDiacritics(String(x || '')).toLowerCase().trim();
+    return raw
+      .replace(/[^a-z0-9_]+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '');
+  }
+
+  const t = new Set((Array.isArray(tags) ? tags : []).map(x => normalizeTag(x)).filter(Boolean));
+  const causes = [];
+
+  if (t.has('ruido_motor_geral')) {
+    causes.push('Barulho no motor (sem detalhar o tipo) costuma envolver correias/polias, coxins do motor, ou falhas de ignição (velas/bobina).');
+  }
+
+  if (t.has('ruido_ao_frear') || t.has('freios')) {
+    causes.push('Pode estar relacionado a desgaste de pastilhas/discos, ou a componentes do conjunto de freio.');
+  }
+  if (t.has('ruido_ao_virar') || t.has('direcao')) {
+    causes.push('Em estalos ao virar, causas comuns incluem junta homocinética e componentes de direção/suspensão (terminal/braço axial).');
+  }
+  if (t.has('ruido_em_irregularidade') || t.has('suspensao')) {
+    causes.push('Em batidas/rangidos em buracos, causas comuns incluem amortecedores e componentes de suspensão.');
+  }
+  if (t.has('ruido_agudo')) {
+    causes.push('Chiado/assobio em aceleração costuma estar ligado a correias e componentes do acionamento (correia do alternador, polias/tensionador).');
+  }
+  if (t.has('nao_liga')) {
+    causes.push('Se o motor gira mas não pega, causas comuns incluem combustível (bomba/filtro), ignição (velas/bobina) e sensor de rotação.');
+  }
+  if (t.has('falha') || t.has('check_engine')) {
+    causes.push('Falhas de motor e luz de injeção podem envolver ignição (velas/bobina), combustível (filtro/bomba) e sensores (rotação/temperatura/oxigênio).');
+  }
+  if (t.has('temperatura') || t.has('arrefecimento')) {
+    causes.push('Temperatura alta/superaquecimento pode envolver radiador, bomba d’água e sensores; em casos graves, pode afetar a junta do cabeçote.');
+  }
+  if (t.has('embreagem')) {
+    causes.push('Embreagem patinando/cheiro forte costuma indicar desgaste do conjunto (kit/platô/disco).');
+  }
+  if (t.has('cvt') || t.has('cambio')) {
+    causes.push('Trancos/patinação em CVT podem estar ligados a fluido/filtragem e necessidade de diagnóstico específico.');
+  }
+  if (t.has('fumaca_preta')) {
+    causes.push('Fumaça preta pode indicar mistura rica/combustível em excesso (filtro de ar, sensores, ignição).');
+  }
+  if (t.has('fumaca_azul')) {
+    causes.push('Fumaça azul pode indicar queima de óleo; vale checar consumo de óleo e condição do motor.');
+  }
+  if (t.has('fumaca_branca')) {
+    causes.push('Fumaça branca persistente com baixa de água pode indicar problema no arrefecimento/junta; evite rodar.');
+  }
+
+  return uniq(causes);
+}
+
+function computeRiskFromText(normText) {
+  const warnings = [];
+  let level = 'low';
+
+  const hasOilLight = normText.includes('luz do oleo') || normText.includes('luz de oleo') || normText.includes('pressao do oleo') || normText.includes('pressao de oleo');
+  const hasOverheat = normText.includes('superaquec') || normText.includes('temperatura alta') || normText.includes('ferveu') || normText.includes('fervendo') || normText.includes('luz temperatura') || normText.includes('luz da temperatura');
+  const hasKnock = normText.includes('batida forte') || normText.includes('martelando') || normText.includes('batendo biela');
+  const hasWhiteSmokeCoolant = (normText.includes('fumaca branca') || normText.includes('fuma a branca') || normText.includes('fumaça branca')) && (normText.includes('baixa agua') || normText.includes('baixando agua') || normText.includes('reservatorio borbulhando') || normText.includes('reservatorio'));
+
+  if (hasOilLight || hasOverheat || hasKnock || hasWhiteSmokeCoolant) {
+    level = 'high';
+  }
+
+  if (hasOilLight) {
+    warnings.push('Atenção: luz do óleo pode indicar falta de lubrificação. Evite rodar e faça verificação imediata.');
+  }
+  if (hasOverheat) {
+    warnings.push('Atenção: superaquecimento pode causar danos graves. Pare e verifique arrefecimento com segurança.');
+  }
+  if (hasKnock) {
+    warnings.push('Atenção: batida forte no motor pode indicar problema sério. Evite forçar o motor.');
+  }
+  if (hasWhiteSmokeCoolant) {
+    warnings.push('Atenção: fumaça branca com perda de água pode indicar problema no arrefecimento/junta. Evite rodar e faça verificação.');
+  }
+
+  if (level !== 'high') {
+    const mediumSignals = [
+      'luz da injecao', 'check engine', 'fumaca', 'fumaça', 'cheiro de queimado', 'falhando', 'tremendo'
+    ];
+    if (mediumSignals.some(s => normText.includes(normalizeText(s)))) level = 'medium';
+  }
+
+  return { level, warnings };
+}
+
+function partMatchesVehicle(part, vehicle) {
+  try {
+    const v = vehicle && typeof vehicle === 'object' ? vehicle : {};
+    const marca = normalizeText(v.marca || '');
+    const modelo = normalizeText(v.modelo || '');
+    const ano = String(v.ano || '').trim();
+    if (!marca && !modelo && !ano) return true;
+
+    const apps = part && Array.isArray(part.applications) ? part.applications : [];
+    if (!apps.length) return true; // permissive
+
+    for (const app of apps) {
+      const appStr = normalizeText(String(app || ''));
+      if (marca && !appStr.includes(marca)) continue;
+      if (modelo && !appStr.includes(modelo)) continue;
+      if (ano) {
+        const yearMatches = String(app || '').match(/\d{4}(?:-\d{4})?/g) || [];
+        const anos = [];
+        yearMatches.forEach(str => {
+          if (str.includes('-')) {
+            const [start, end] = str.split('-').map(Number);
+            if (Number.isFinite(start) && Number.isFinite(end)) {
+              for (let y = Math.min(start, end); y <= Math.max(start, end); y++) anos.push(String(y));
+            }
+          } else {
+            anos.push(String(str));
+          }
+        });
+        if (!anos.includes(String(ano))) continue;
+      }
+      return true;
+    }
+    return false;
+  } catch (e) {
+    return true;
+  }
+}
+
+function compactPart(part) {
+  return {
+    id: part && part.id,
+    name: part && part.name,
+    category: part && part.category,
+    manufacturer: part && part.manufacturer,
+    part_number: part && part.part_number,
+    applications: (part && Array.isArray(part.applications)) ? part.applications.slice(0, 3) : []
+  };
+}
+
+function searchPartsByTerms(terms, vehicle, limit = 20) {
+  const termNorms = (Array.isArray(terms) ? terms : []).map(t => ({ raw: String(t), norm: normalizeText(t) })).filter(t => t.norm);
+  if (!termNorms.length) return [];
+
+  const scored = [];
+  for (const part of (PARTS_DB || [])) {
+    if (!part) continue;
+    if (!partMatchesVehicle(part, vehicle)) continue;
+
+    const nameNorm = normalizeText(part.name || '');
+    const catNorm = normalizeText(part.category || '');
+    const descNorm = normalizeText(part.description || '');
+    const mfNorm = normalizeText(part.manufacturer || '');
+    const pnNorm = normalizeText(part.part_number || '');
+    const hay = `${nameNorm} ${catNorm} ${descNorm} ${mfNorm} ${pnNorm}`;
+
+    let score = 0;
+    const hits = [];
+    for (const t of termNorms) {
+      if (!t.norm) continue;
+      if (!hay.includes(t.norm)) continue;
+      // Prefer hits in the name and category.
+      if (nameNorm.includes(t.norm)) score += 5;
+      else if (catNorm.includes(t.norm)) score += 3;
+      else score += 1;
+      hits.push(t.raw);
+    }
+    if (score > 0) scored.push({ part, score, hits: uniq(hits) });
+  }
+
+  scored.sort((a, b) => (b.score - a.score));
+  return scored.slice(0, limit).map(x => ({ ...compactPart(x.part), matchScore: x.score, matchedTerms: x.hits }));
+}
+
+function pickRuleHits(normText) {
+  const hits = [];
+  for (const rule of TRIAGE_RULES) {
+    const kws = Array.isArray(rule.keywords) ? rule.keywords : [];
+    const hitByKeywords = kws.some(k => {
+      const kn = normalizeText(k);
+      return kn && normText.includes(kn);
+    });
+
+    const allOf = Array.isArray(rule.allOf) ? rule.allOf : [];
+    const hitByAllOf = allOf.length
+      ? allOf.every(k => {
+        const kn = normalizeText(k);
+        return kn && normText.includes(kn);
+      })
+      : false;
+
+    const allOfAny = Array.isArray(rule.allOfAny) ? rule.allOfAny : [];
+    const hitByAllOfAny = allOfAny.length
+      ? allOfAny.some(group => {
+        const g = Array.isArray(group) ? group : [];
+        if (!g.length) return false;
+        return g.every(k => {
+          const kn = normalizeText(k);
+          return kn && normText.includes(kn);
+        });
+      })
+      : false;
+
+    const hit = hitByKeywords || hitByAllOf || hitByAllOfAny;
+    if (hit) hits.push(rule);
+  }
+  return hits;
+}
+
+function buildTriage(text, vehicle) {
+  const normText = normalizeText(text);
+  const ruleHits = pickRuleHits(normText);
+
+  const riskFromText = computeRiskFromText(normText);
+  const riskFromRules = ruleHits.some(r => r.risk === 'high') ? 'high' : (ruleHits.some(r => r.risk === 'medium') ? 'medium' : 'low');
+  const riskLevel = (riskFromText.level === 'high' || riskFromRules === 'high') ? 'high'
+    : (riskFromText.level === 'medium' || riskFromRules === 'medium') ? 'medium'
+    : 'low';
+
+  const terms = uniq(ruleHits.flatMap(r => r.terms || []));
+  const tags = uniq(ruleHits.flatMap(r => r.tags || []));
+
+  const possibleCauses = buildPossibleCausesFromTags(tags);
+  const summary = possibleCauses.length
+    ? `Pelo que você descreveu: ${possibleCauses.join(' ')}`
+    : '';
+
+  const questions = uniq([
+    ...ruleHits.flatMap(r => r.questions || []),
+    'Qual é o carro (marca, modelo e ano)?',
+    'O barulho acontece parado, andando, ou nos dois?',
+    'Você notou alguma luz no painel (óleo, temperatura, injeção)?'
+  ]);
+
+  // If user gave almost no signal, ask to describe the sound.
+  if (normText && normText.includes('barulho') && !ruleHits.length) {
+    questions.unshift('Esse barulho é mais um chiado/assobio, tec-tec, batida forte, ou rangido?');
+  }
+
+  let suggestedParts = terms.length ? searchPartsByTerms(terms, vehicle, 20) : [];
+  let coverageNote = '';
+
+  // If the user provided vehicle info but our catalog does not have matching compatible parts,
+  // provide a limited fallback list (examples) to keep the experience useful.
+  // These fallback items are NOT confirmed compatible with the user's vehicle.
+  const hasVehicle = Boolean(vehicle && typeof vehicle === 'object' && (
+    String(vehicle.marca || '').trim() ||
+    String(vehicle.modelo || '').trim() ||
+    String(vehicle.ano || '').trim() ||
+    String(vehicle.motor || '').trim()
+  ));
+
+  if (hasVehicle && terms.length && (!suggestedParts || !suggestedParts.length)) {
+    const fallback = searchPartsByTerms(terms, null, 10);
+    if (fallback && fallback.length) {
+      suggestedParts = fallback.map(p => ({ ...p, vehicleMatch: false }));
+      coverageNote = 'Não encontrei itens cadastrados como compatíveis com o veículo informado para essas hipóteses. Abaixo vão exemplos do catálogo (compatibilidade não confirmada).';
+    } else {
+      coverageNote = 'Não encontrei itens no catálogo para essas hipóteses com os dados informados. Tente detalhar o barulho e confirme marca/modelo/ano.';
+    }
+  } else {
+    // mark as compatible-by-filter when we did filter by vehicle and got results
+    if (suggestedParts && suggestedParts.length && hasVehicle) {
+      suggestedParts = suggestedParts.map(p => ({ ...p, vehicleMatch: true }));
+    }
+  }
+
+  // Dedupe by what the user actually sees (name/category). The catalog can contain
+  // multiple entries with the same display name; keeping the first preserves ranking.
+  try {
+    const deduped = [];
+    const seen = new Set();
+    for (const p of (Array.isArray(suggestedParts) ? suggestedParts : [])) {
+      const key = `${normalizeText(p && p.name ? p.name : '')}||${normalizeText(p && p.category ? p.category : '')}`;
+      if (!key || key === '||') continue;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      deduped.push(p);
+    }
+    suggestedParts = deduped;
+  } catch (e) {
+    // ignore dedupe errors
+  }
+
+  const note = 'Sugestão baseada nos sintomas descritos. Pode não ser a causa real. Para confirmar, faça diagnóstico com scanner/inspeção em oficina de confiança ou autorizada.';
+  return {
+    risk: { level: riskLevel, warnings: uniq(riskFromText.warnings) },
+    interpretation: { tags },
+    summary,
+    possibleCauses,
+    questions,
+    suggestedSearchTerms: terms,
+    suggestedParts,
+    coverageNote,
+    note
+  };
+}
+
+async function handleAiTriage(req, res) {
+  try {
+    const body = req.body || {};
+    const text = String(body.text || body.query || '').trim();
+    const vehicle = (body.vehicle && typeof body.vehicle === 'object') ? body.vehicle : {
+      marca: body.marca,
+      modelo: body.modelo,
+      ano: body.ano,
+      motor: body.motor
+    };
+    const debug = isDebugRequest(req);
+
+    if (!text) {
+      return res.status(400).json({ error: 'text is required' });
+    }
+
+    const triage = buildTriage(text, vehicle);
+    if (debug) {
+      triage.debug = {
+        input: { text, vehicle },
+        partsDbSize: Array.isArray(PARTS_DB) ? PARTS_DB.length : 0
+      };
+    }
+    return res.json(triage);
+  } catch (e) {
+    console.error('Failed triage endpoint:', e && e.message ? e.message : e);
+    return res.status(500).json({
+      risk: { level: 'low', warnings: [] },
+      interpretation: { tags: [] },
+      questions: ['Não foi possível fazer a triagem agora. Tente novamente.'],
+      suggestedSearchTerms: [],
+      suggestedParts: [],
+      note: 'Sugestão baseada nos sintomas descritos. Confirme em oficina/autorizada.'
+    });
+  }
+}
+
+app.post('/api/ai/triage', handleAiTriage);
+
+// Friendly alias for the frontend/user: /api/triagem
+app.post('/api/triagem', handleAiTriage);
+
 // Debug endpoint to check data source
 app.get('/api/debug/datasource', async (req, res) => {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
