@@ -130,7 +130,7 @@ function PageRecalls() {
                   <option value="">-- Busca geral (deixar em branco) --</option>
                   {sortByLabelPtBr(carros, (c) => `${c?.marca ?? ''} ${c?.modelo ?? ''} ${c?.ano ?? ''}`).map(carro => (
                     <option key={carro.id} value={carro.id}>
-                      {carro.marca} {carro.modelo} {carro.ano}{carro.isDefault ? ' ⭐' : ''}
+                      {carro.marca} {carro.modelo} {carro.ano}
                     </option>
                   ))}
                 </select>

@@ -1,6 +1,21 @@
 // Serviço para gerenciar carros do usuário (DB + localStorage fallback)
 const STORAGE_KEY = 'pf_user_cars';
 
+function stripDefaultFlags(cars) {
+  try {
+    const list = Array.isArray(cars) ? cars : [];
+    return list.map((c) => {
+      if (!c || typeof c !== 'object') return c;
+      // Remove legacy UI-only flags (feature removed)
+      // eslint-disable-next-line no-unused-vars
+      const { isDefault, ...rest } = c;
+      return rest;
+    });
+  } catch (e) {
+    return Array.isArray(cars) ? cars : [];
+  }
+}
+
 function normalizeUserKey(userId) {
   try {
     return String(userId || '').trim().toLowerCase();
@@ -27,7 +42,7 @@ export async function getCars(userId) {
     const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars-auto`);
     if (response.ok) {
       const cars = await response.json();
-      return cars;
+      return stripDefaultFlags(cars);
     }
 
     // If we got an HTTP response but it isn't ok, prefer not to silently fall back in production.
@@ -47,7 +62,7 @@ export async function getCars(userId) {
   try {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     const key = normalizeUserKey(userId);
-    return all[key] || [];
+    return stripDefaultFlags(all[key] || []);
   } catch (error) {
     console.error('Erro ao carregar carros:', error);
     return [];
@@ -62,6 +77,9 @@ export async function getCars(userId) {
  */
 export async function saveCars(userId, cars) {
   if (!userId) return false;
+
+  // Sanitize legacy flags before persisting.
+  const sanitizedCars = stripDefaultFlags(cars);
   
   // Tentar API primeiro (tanto em localhost quanto em produção)
   try {
@@ -70,7 +88,7 @@ export async function saveCars(userId, cars) {
     const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(userId)}/cars`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cars })
+      body: JSON.stringify({ cars: sanitizedCars })
     });
     if (response.ok) {
       return true;
@@ -90,7 +108,7 @@ export async function saveCars(userId, cars) {
   try {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     const key = normalizeUserKey(userId);
-    all[key] = cars;
+    all[key] = sanitizedCars;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
     return true;
   } catch (error) {
@@ -234,43 +252,5 @@ export async function updateCar(userId, carId, updates) {
   } catch (error) {
     console.error('Erro ao atualizar carro:', error);
     return false;
-  }
-}
-
-/**
- * Marca um carro como padrão/favorito
- * @param {string} userId - ID do usuário
- * @param {string} carId - ID do carro
- * @returns {Promise<boolean>} Sucesso ou não
- */
-export async function setDefaultCar(userId, carId) {
-  if (!userId || !carId) return false;
-  try {
-    const cars = await getCars(userId);
-    const updated = cars.map(c => ({
-      ...c,
-      isDefault: c.id === carId
-    }));
-    await saveCars(userId, updated);
-    return true;
-  } catch (error) {
-    console.error('Erro ao definir carro padrão:', error);
-    return false;
-  }
-}
-
-/**
- * Obtém o carro padrão do usuário
- * @param {string} userId - ID do usuário
- * @returns {Promise<Object|null>} Carro padrão ou null
- */
-export async function getDefaultCar(userId) {
-  if (!userId) return null;
-  try {
-    const cars = await getCars(userId);
-    return cars.find(c => c.isDefault) || null;
-  } catch (error) {
-    console.error('Erro ao obter carro padrão:', error);
-    return null;
   }
 }

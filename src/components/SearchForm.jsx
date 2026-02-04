@@ -189,7 +189,7 @@ function SearchForm({
                 { value: '', label: '-- Busca geral (sem carro) --' },
                 ...carros.map(c => ({
                   value: c.id,
-                  label: `${c.marca} ${c.modelo} ${c.ano}${c.isDefault ? ' ⭐' : ''}`
+                  label: `${c.marca} ${c.modelo} ${c.ano}`
                 }))
               ]}
               value={carroSelecionado}

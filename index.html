@@ -21,6 +21,13 @@
     try {
       (function () {
         var prod = 'https://luciofreitas-github-io.onrender.com';
+        function normalizeBaseUrl(url) {
+          try {
+            return String(url || '').trim().replace(/\/+$/, '');
+          } catch (e) {
+            return '';
+          }
+        }
         if (typeof window === 'undefined' || !window.location || !window.location.hostname) return;
 
         var host = window.location.hostname;
@@ -29,10 +36,28 @@
         var isLocalTld = host.endsWith('.local') || host.endsWith('.lan');
         var isLikelyDevHost = isLocalhost || isPrivateIp || isLocalTld || !host.includes('.');
 
+        // Allow emergency override without redeploy:
+        // - URL param: ?apiBase=https://... (highest priority)
+        // - localStorage keys: apiBase / __API_BASE
+        var override = '';
+        try {
+          var params = new URLSearchParams(window.location.search || '');
+          override = params.get('apiBase') || '';
+        } catch (e) {}
+        if (!override) {
+          try {
+            override = window.localStorage.getItem('apiBase') || window.localStorage.getItem('__API_BASE') || '';
+          } catch (e) {}
+        }
+
+        var base = normalizeBaseUrl(override || prod);
+
         // Only set the production API base when we're clearly not on a dev hostname.
         if (!isLikelyDevHost) {
-          window.__API_BASE = prod;
-          console.log('[runtime] API base set to', prod);
+          if (base) {
+            window.__API_BASE = base;
+            console.log('[runtime] API base set to', base);
+          }
         }
       })();
     } catch (e) {

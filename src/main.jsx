@@ -23,6 +23,15 @@ try { console.time('[app-timing] module-load'); } catch(e){}
     if (typeof window !== 'undefined') window.__RUNTIME_CONFIG__ = cfg;
     try { ensureGlossarioColors(); } catch (e) { /* ignore on non-browser env */ }
 
+    // Normalize any pre-injected API base (index.html sets window.__API_BASE).
+    try {
+      if (typeof window !== 'undefined' && window.__API_BASE) {
+        window.__API_BASE = String(window.__API_BASE).trim().replace(/\/+$/, '');
+      }
+    } catch (e) {
+      // ignore
+    }
+
     // If the runtime config provides an API_URL and the index.html injector didn't
     // set window.__API_BASE, use it as the base for API calls.
     // This is especially important for static hosts (e.g. GitHub Pages) where
@@ -33,7 +42,7 @@ try { console.time('[app-timing] module-load'); } catch(e){}
           const host = window.location && window.location.hostname ? window.location.hostname : '';
           const isLocalHost = host === 'localhost' || host === '127.0.0.1';
           if (!isLocalHost) {
-            window.__API_BASE = String(cfg.API_URL).trim();
+            window.__API_BASE = String(cfg.API_URL).trim().replace(/\/+$/, '');
             if (window.__API_BASE) console.log('[runtime] API base set from runtime config', window.__API_BASE);
           }
         }

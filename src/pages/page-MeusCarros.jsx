@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from '../components';
 import { AuthContext } from '../App';
-import { getCars, addCar, removeCar, updateCar, setDefaultCar } from '../services/carService';
+import { getCars, addCar, removeCar, updateCar } from '../services/carService';
 import { brandList, getModelsByBrand } from '../data/carBrands';
 import { comparePtBr } from '../utils/sortUtils';
 import '../styles/pages/page-MeusCarros.css';
@@ -422,15 +422,6 @@ export default function MeusCarros() {
     }
   };
 
-  const handleSetDefault = async (carId) => {
-    const userId = usuarioLogado.id || usuarioLogado.email;
-    await setDefaultCar(userId, carId);
-    await loadCars();
-    if (window.showToast) {
-      window.showToast('Carro definido como padrão!', 'success', 2000);
-    }
-  };
-
   if (!usuarioLogado) {
     return null;
   }
@@ -445,7 +436,6 @@ export default function MeusCarros() {
           
           <p className="page-subtitle">
             Cadastre seus veículos para facilitar as buscas por peças, recalls e informações específicas.
-            Você pode marcar um carro como padrão para pesquisas rápidas.
           </p>
 
           {/* Botão adicionar */}
@@ -819,10 +809,7 @@ export default function MeusCarros() {
               <h3 className="list-title">Carros Cadastrados ({cars.length})</h3>
               <div className="cars-grid">
                 {cars.map(car => (
-                  <div key={car.id} className={`car-card ${car.isDefault ? 'car-card-default' : ''}`}>
-                    {car.isDefault && (
-                      <div className="default-badge">⭐ Padrão</div>
-                    )}
+                  <div key={car.id} className="car-card">
                     <div className="car-header">
                       <h4 className="car-title">{car.marca} {car.modelo}{car.versao ? ` ${car.versao}` : ''}</h4>
                       <span className="car-year">{car.ano}{car.anoModelo ? `/${car.anoModelo}` : ''}</span>

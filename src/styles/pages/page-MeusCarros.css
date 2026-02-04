@@ -188,28 +188,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.car-card-default {
-  border-color: var(--color-warning);
-  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
-}
-
-.default-badge {
-  position: absolute;
-  top: -10px;
-  right: 10px;
-  background: var(--color-warning);
-  color: white;
-  padding: 0.25rem 0.65rem;
-  border-radius: 1rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-block;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
-}
-
 .car-header {
   display: flex;
   justify-content: space-between;
@@ -260,7 +238,6 @@
   flex-wrap: wrap;
 }
 
-.btn-set-default,
 .btn-edit,
 .btn-delete {
   padding: 0.5rem 1rem;
@@ -270,17 +247,6 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-}
-
-.btn-set-default {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid var(--color-warning);
-}
-
-.btn-set-default:hover {
-  background: #fde68a;
-  transform: translateY(-1px);
 }
 
 .btn-edit {
@@ -381,10 +347,6 @@
 .theme-dark .car-card {
   background: #1e293b;
   border-color: #475569;
-}
-
-.theme-dark .car-card-default {
-  background: linear-gradient(135deg, #422006 0%, #1e293b 100%);
 }
 
 .theme-dark .car-header {

@@ -501,9 +501,92 @@ export default function Login() {
     const normalizedSenha = String(senha || '');
 
     (async () => {
+      let supabaseNotConfigured = false;
       try {
         const apiBase = window.__API_BASE || '';
-        // Try server-side login first (checks Postgres password hash)
+        let sawInvalidCredentials = false;
+
+        // 1) Prefer Supabase password login (avoids noisy 401/400 console logs when it succeeds).
+        try {
+          const { supabase: _supabase, isConfigured: _isSupabaseConfigured } = await getSupabaseClient();
+          if (!_supabase || !_isSupabaseConfigured) {
+            supabaseNotConfigured = true;
+          }
+          if (_supabase && _isSupabaseConfigured && _supabase.auth && typeof _supabase.auth.signInWithPassword === 'function') {
+            const { data, error } = await _supabase.auth.signInWithPassword({ email: normalizedEmail, password: normalizedSenha });
+            if (!error) {
+              const session = data && data.session ? data.session : null;
+              const accessToken = session && session.access_token ? session.access_token : null;
+              if (!accessToken) {
+                console.warn('Supabase signIn returned no access token');
+                setError('Erro ao efetuar login. Tente novamente.');
+                return;
+              }
+
+              // Send token to backend for verification/upsert
+              const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                body: JSON.stringify({ access_token: accessToken }),
+              });
+
+              if (!resp.ok) {
+                console.warn('Backend supabase-verify failed', resp.status);
+                setError('Erro ao verificar conta. Tente novamente.');
+                return;
+              }
+
+              const body = await resp.json().catch(() => ({}));
+              const usuario = (body && body.user) ? body.user : null;
+              if (!usuario) {
+                setError('Erro ao obter dados do usuário.');
+                return;
+              }
+
+              function displayNameFromEmail(email){
+                if(!email || typeof email !== 'string') return '';
+                const local = email.split('@')[0] || '';
+                return local.replace(/[._-]+/g,' ').split(' ').map(s => s ? (s.charAt(0).toUpperCase() + s.slice(1)) : '').join(' ').trim();
+              }
+
+              const inferredName = (usuario.nome || usuario.name || '').trim() || displayNameFromEmail(usuario.email || usuario.email_address || usuario.mail);
+              const roleLower = String(usuario.role || '').toLowerCase().trim();
+              const isProfessionalFromRole = (roleLower === 'professional' || roleLower === 'profissional');
+              const normalizedUsuario = {
+                ...usuario,
+                nome: inferredName,
+                name: inferredName,
+                access_token: accessToken,
+                role: usuario.role ? usuario.role : 'user',
+                accountType: isProfessionalFromRole ? 'professional' : 'user',
+                professional: isProfessionalFromRole ? (usuario.professional || null) : null,
+              };
+
+              // Preserve auth_id/providers hints returned by the server
+              if (usuario.auth_id && !normalizedUsuario.providers) normalizedUsuario.providers = ['google'];
+
+              setError('');
+              if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
+              try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
+              if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
+              const normalizedRoleLower = String(normalizedUsuario.role || '').toLowerCase().trim();
+              if (normalizedRoleLower === 'professional' || normalizedRoleLower === 'profissional') {
+                navigate('/historico-manutencao');
+              } else {
+                navigate('/buscar-pecas');
+              }
+              return;
+            }
+
+            // Invalid credentials or non-Supabase user. Continue to legacy providers.
+            sawInvalidCredentials = true;
+            console.debug('Supabase auth signIn error (will try legacy providers):', error);
+          }
+        } catch (e) {
+          console.debug('Supabase password login attempt failed (continuing):', e && e.message ? e.message : e);
+        }
+
+        // 2) Legacy server-side login (checks Postgres password hash)
         try {
           const respServer = await fetch(`${apiBase}/api/auth/login`, {
             method: 'POST',
@@ -532,6 +615,7 @@ export default function Login() {
                 uWithProviders.account_type = 'companies_admin';
               }
 
+              setError('');
               if (setUsuarioLogado) setUsuarioLogado(uWithProviders);
               try { localStorage.setItem('usuario-logado', JSON.stringify(uWithProviders)); } catch (e) {}
               if (window.showToast) window.showToast(`Bem-vindo(a), ${usuario.nome || usuario.name || 'Usuário'}!`, 'success', 3000);
@@ -539,120 +623,47 @@ export default function Login() {
               return;
             }
           }
+          if (respServer && respServer.status === 401) sawInvalidCredentials = true;
         } catch (e) {
-          // server login failed/unreachable — fallthrough to Supabase attempt
-          console.debug('Server-side /api/auth/login failed (will try Supabase):', e && e.message ? e.message : e);
+          // server login failed/unreachable — fallthrough
+          console.debug('Server-side /api/auth/login failed (continuing):', e && e.message ? e.message : e);
         }
-        // If server-side login failed, try Firebase email/password first (if available)
+
+        // 3) Firebase email/password (only after Supabase+legacy server)
         try {
-          try {
-            const { auth, authMod } = await getFirebaseAuthHelpers();
-            if (auth && authMod && typeof authMod.signInWithEmailAndPassword === 'function') {
-              try {
-                const fbRes = await authMod.signInWithEmailAndPassword(auth, normalizedEmail, normalizedSenha);
-                const fbUser = fbRes && fbRes.user ? fbRes.user : null;
-                if (fbUser) {
-                  await processFirebaseUser(fbUser);
-                  return;
-                }
-              } catch (fbErr) {
-                // expected for non-Firebase users; fall through to Supabase attempt
-                console.debug('Firebase email/password signIn failed (falling back):', fbErr && fbErr.code ? fbErr.code : fbErr && fbErr.message ? fbErr.message : fbErr);
+          const { auth, authMod } = await getFirebaseAuthHelpers();
+          if (auth && authMod && typeof authMod.signInWithEmailAndPassword === 'function') {
+            try {
+              const fbRes = await authMod.signInWithEmailAndPassword(auth, normalizedEmail, normalizedSenha);
+              const fbUser = fbRes && fbRes.user ? fbRes.user : null;
+              if (fbUser) {
+                await processFirebaseUser(fbUser);
+                return;
               }
+            } catch (fbErr) {
+              sawInvalidCredentials = true;
+              console.debug('Firebase email/password signIn failed (continuing):', fbErr && fbErr.code ? fbErr.code : fbErr && fbErr.message ? fbErr.message : fbErr);
             }
-          } catch (inner) {
-            console.debug('Firebase fallback check threw', inner && inner.message ? inner.message : inner);
           }
         } catch (e) {
-          console.debug('Firebase fallback overall failed', e && e.message ? e.message : e);
+          console.debug('Firebase email/password fallback failed', e && e.message ? e.message : e);
         }
 
-        // Try Supabase Auth sign-in (frontend) and then verify token with backend
-        const { supabase: _supabase, isConfigured: _isSupabaseConfigured } = await getSupabaseClient();
-        if (!_supabase || !_isSupabaseConfigured) {
-          // supabase not configured or missing — skip client attempt
-          throw new Error('Supabase client not configured');
-        }
-        const { data, error } = await _supabase.auth.signInWithPassword({ email: normalizedEmail, password: normalizedSenha });
-        if (error) {
-          console.debug('Supabase auth signIn error (expected for non-Supabase users):', error);
-          setError('E-mail ou senha incorretos.');
-          return;
-        }
-
-        const session = data && data.session ? data.session : null;
-        const accessToken = session && session.access_token ? session.access_token : null;
-        if (!accessToken) {
-          console.warn('Supabase signIn returned no access token');
-          setError('Erro ao efetuar login. Tente novamente.');
-          return;
-        }
-
-        // Send token to backend for verification/upsert
-        const resp = await fetch(`${apiBase}/api/auth/supabase-verify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
-          body: JSON.stringify({ access_token: accessToken }),
-        });
-
-        if (!resp.ok) {
-          console.warn('Backend supabase-verify failed', resp.status);
-          setError('Erro ao verificar conta. Tente novamente.');
-          return;
-        }
-
-        const body = await resp.json().catch(() => ({}));
-        const usuario = (body && body.user) ? body.user : null;
-        if (!usuario) {
-          setError('Erro ao obter dados do usuário.');
-          return;
-        }
-
-        function displayNameFromEmail(email){
-          if(!email || typeof email !== 'string') return '';
-          const local = email.split('@')[0] || '';
-          return local.replace(/[._-]+/g,' ').split(' ').map(s => s ? (s.charAt(0).toUpperCase() + s.slice(1)) : '').join(' ').trim();
-        }
-
-        const inferredName = (usuario.nome || usuario.name || '').trim() || displayNameFromEmail(usuario.email || usuario.email_address || usuario.mail);
-        const roleLower = String(usuario.role || '').toLowerCase().trim();
-        const isProfessionalFromRole = (roleLower === 'professional' || roleLower === 'profissional');
-        const normalizedUsuario = {
-          ...usuario,
-          nome: inferredName,
-          name: inferredName,
-          access_token: accessToken,
-          role: usuario.role ? usuario.role : 'user',
-          accountType: isProfessionalFromRole ? 'professional' : 'user',
-          professional: isProfessionalFromRole ? (usuario.professional || null) : null,
-        };
-
-        // Preserve auth_id/providers hints returned by the server
-        if (usuario.auth_id && !normalizedUsuario.providers) normalizedUsuario.providers = ['google'];
-
-        setError('');
-        if (setUsuarioLogado) setUsuarioLogado(normalizedUsuario);
-        try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
-        if (window.showToast) window.showToast(`Bem-vindo(a), ${normalizedUsuario.nome || 'Usuário'}!`, 'success', 3000);
-        const normalizedRoleLower = String(normalizedUsuario.role || '').toLowerCase().trim();
-        if (normalizedRoleLower === 'professional' || normalizedRoleLower === 'profissional') {
-          navigate('/historico-manutencao');
-        } else {
-          navigate('/buscar-pecas');
-        }
-        return;
       } catch (err) {
         const msg = err && err.message ? String(err.message) : '';
         console.warn('Login flow failed, falling back to local users', msg);
-        // If Supabase is not configured on this origin, provide a clearer message.
-        if (msg && msg.toLowerCase().includes('supabase client not configured')) {
-          setError('Login não configurado neste domínio. Configure SUPABASE_URL e SUPABASE_ANON_KEY no Render (Runtime Config).');
-        }
       }
 
       // Fallback to existing local lookup
       const usuario = getUsuarios().find(u => String(u.email || '').trim().toLowerCase() === normalizedEmail && String(u.senha || '') === normalizedSenha);
-      if (!usuario) { setError('E-mail ou senha incorretos.'); return; }
+      if (!usuario) {
+        if (supabaseNotConfigured) {
+          setError('Login não configurado neste domínio. Configure SUPABASE_URL e SUPABASE_ANON_KEY no Render (Runtime Config).');
+          return;
+        }
+        setError('E-mail ou senha incorretos.');
+        return;
+      }
       setError('');
       if (setUsuarioLogado) setUsuarioLogado(usuario);
       try { localStorage.setItem('usuario-logado', JSON.stringify(usuario)); } catch (e) {}
