@@ -758,7 +758,7 @@ export default function AdminCompanies() {
         <div className="page-content">
           <div className="admin-companies-container">
             <div className="admin-companies-header">
-              <h1 className="page-title">Cadastro de Empresa/Oficina</h1>
+              <h1 className="page-title">Cadastro de Empresa</h1>
             </div>
 
             {!token && (
