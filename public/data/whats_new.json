@@ -1,5 +1,5 @@
 {
-  "id": "2026-01-26-ia-e-meu-carro",
+  "id": "2026-02-05-parceiros-ranking",
   "active": true,
   "title": "Novidades",
   "items": [
@@ -14,6 +14,13 @@
       "tag": "Novo",
       "title": "Meu Carro: novos campos",
       "text": "Ao cadastrar um carro em Meu Carro, há novos itens para preencher. Quanto mais completo, melhor para buscas e sugestões."
+    },
+    {
+      "date": "2026-02-05",
+      "tag": "Novo",
+      "title": "Parceiros: ranking de mais citados",
+      "text": "Na página Parceiros, agora existe o ranking \"Mais citados no histórico\" com as empresas mais mencionadas no seu histórico de manutenção.",
+      "ttlDays": 60
     }
   ]
 }
