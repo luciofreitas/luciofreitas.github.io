@@ -781,6 +781,46 @@
   box-shadow: var(--shadow-md);
 }
 
+.theme-dark .parceiros-map-refresh-btn {
+  background: rgba(15, 23, 42, 0.90);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-dark .parceiros-map-refresh-btn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(148, 163, 184, 0.32);
+}
+
+.theme-dark .parceiros-map-refresh-btn:disabled {
+  opacity: 0.65;
+}
+
+/* Tooltip do Leaflet (ex.: ± 25 m) no dark mode */
+.theme-dark .leaflet-tooltip {
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--text-primary);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-dark .leaflet-tooltip-top:before {
+  border-top-color: rgba(15, 23, 42, 0.92);
+}
+
+.theme-dark .leaflet-tooltip-bottom:before {
+  border-bottom-color: rgba(15, 23, 42, 0.92);
+}
+
+.theme-dark .leaflet-tooltip-left:before {
+  border-left-color: rgba(15, 23, 42, 0.92);
+}
+
+.theme-dark .leaflet-tooltip-right:before {
+  border-right-color: rgba(15, 23, 42, 0.92);
+}
+
 .theme-dark .parceiros-ranking-card {
   background: var(--bg-gray-neutral);
   border-color: var(--border-gray);
