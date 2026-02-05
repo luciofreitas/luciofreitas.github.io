@@ -517,7 +517,7 @@ export default function Parceiros() {
           <div className="parceiros-layout">
             <div className="parceiros-list">
               <div className="parceiros-list-header">
-                <h3 className="parceiros-list-title">Oficinas/autopeças</h3>
+                <h3 className="parceiros-list-title">Empresas</h3>
                 {partnersLoading && <span className="parceiros-list-sub">Carregando…</span>}
                 {!partnersLoading && userPos && (
                   <span className="parceiros-list-sub">
