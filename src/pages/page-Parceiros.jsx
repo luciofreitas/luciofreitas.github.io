@@ -536,19 +536,20 @@ export default function Parceiros() {
 
             <div className="parceiros-map-col">
               <div className="parceiros-map-card" aria-label="Mapa de parceiros">
+                <button
+                  type="button"
+                  className={geoLoading ? 'parceiros-map-refresh-btn is-loading' : 'parceiros-map-refresh-btn'}
+                  aria-label="Atualizar localização"
+                  title="Atualizar sua localização"
+                  disabled={geoLoading}
+                  onClick={() => requestGeolocation({ highAccuracy: true })}
+                >
+                  ⟳
+                </button>
                 <div ref={mapContainerRef} className="parceiros-map" />
               </div>
 
               <div className="parceiros-map-actions">
-                <button
-                  className="parceiros-cta-btn parceiros-cta-btn--subtle"
-                  type="button"
-                  disabled={geoLoading}
-                  title="Refazer leitura da localização com maior precisão"
-                  onClick={() => requestGeolocation({ highAccuracy: true })}
-                >
-                  {geoLoading ? 'Localizando…' : 'Localização mais precisa'}
-                </button>
                 <button className="parceiros-cta-btn parceiros-cta-btn--subtle" type="button" onClick={goQueroSerParceiro}>
                   Quero ser parceiro
                 </button>
