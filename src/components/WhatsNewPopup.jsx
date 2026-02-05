@@ -209,7 +209,17 @@ export default function WhatsNewPopup({ disabled = false }) {
   const now = new Date();
   const items = allItems
     .filter((it) => String(it?.tag || '').trim().toLowerCase() === 'novo')
-    .filter((it) => isItemStillNew(it, now));
+    .filter((it) => isItemStillNew(it, now))
+    .map((it, idx) => ({ it, idx }))
+    .sort((a, b) => {
+      const aDate = parseMaybeDate(a.it?.date);
+      const bDate = parseMaybeDate(b.it?.date);
+      const aTime = aDate ? aDate.getTime() : Number.NEGATIVE_INFINITY;
+      const bTime = bDate ? bDate.getTime() : Number.NEGATIVE_INFINITY;
+      if (bTime !== aTime) return bTime - aTime; // newest first
+      return a.idx - b.idx; // stable fallback
+    })
+    .map((x) => x.it);
   const hasItems = Boolean(items.length);
   const headerTitle = hasItems ? (config?.title || 'Novidades') : FALLBACK_CONTENT.title;
 
