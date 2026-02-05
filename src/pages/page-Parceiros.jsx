@@ -70,7 +70,8 @@ export default function Parceiros() {
   const [ranking, setRanking] = useState([]);
 
   const [geoError, setGeoError] = useState('');
-  const [userPos, setUserPos] = useState(null); // { lat, lng }
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [userPos, setUserPos] = useState(null); // { lat, lng, accuracyM, updatedAt }
 
   const [selectedPartnerId, setSelectedPartnerId] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -87,6 +88,12 @@ export default function Parceiros() {
   function textOrDash(value) {
     const s = String(value ?? '').trim();
     return s ? s : '—';
+  }
+
+  function formatAccuracyMeters(value) {
+    const m = Number(value);
+    if (!Number.isFinite(m) || m <= 0) return '';
+    return `${Math.round(m)} m`;
   }
 
   function normalizeUrl(url) {
@@ -228,27 +235,38 @@ export default function Parceiros() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiBase]);
 
-  function requestGeolocation() {
+  function requestGeolocation(opts = {}) {
+    const { highAccuracy = false } = opts || {};
     setGeoError('');
     if (!navigator?.geolocation?.getCurrentPosition) {
       setGeoError('Geolocalização não suportada neste navegador.');
       return;
     }
+
+    setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos?.coords?.latitude;
         const lng = pos?.coords?.longitude;
+        const accuracyM = pos?.coords?.accuracy;
         if (lat == null || lng == null) {
           setGeoError('Não foi possível obter sua localização.');
+          setGeoLoading(false);
           return;
         }
-        setUserPos({ lat, lng });
+        setUserPos({ lat, lng, accuracyM: (accuracyM != null ? Number(accuracyM) : null), updatedAt: Date.now() });
+        setGeoLoading(false);
       },
       (err) => {
         const msg = err && err.message ? String(err.message) : 'Permissão negada ou erro ao obter localização.';
         setGeoError(msg);
+        setGeoLoading(false);
       },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 10 * 60 * 1000 }
+      {
+        enableHighAccuracy: !!highAccuracy,
+        timeout: highAccuracy ? 15000 : 8000,
+        maximumAge: highAccuracy ? 0 : 10 * 60 * 1000
+      }
     );
   }
 
@@ -361,6 +379,18 @@ export default function Parceiros() {
 
     // User marker
     if (userPos?.lat != null && userPos?.lng != null) {
+      const acc = Number(userPos?.accuracyM);
+      if (Number.isFinite(acc) && acc > 0) {
+        L.circle([Number(userPos.lat), Number(userPos.lng)], {
+          radius: acc,
+          color: '#38bdf8',
+          weight: 1,
+          opacity: 0.9,
+          fillColor: '#38bdf8',
+          fillOpacity: 0.12,
+          dashArray: '4 4',
+        }).addTo(markersLayer);
+      }
       const userMarker = L.circleMarker([Number(userPos.lat), Number(userPos.lng)], {
         radius: 7,
         color: '#0ea5e9',
@@ -457,7 +487,12 @@ export default function Parceiros() {
               <div className="parceiros-list-header">
                 <h3 className="parceiros-list-title">Oficinas/autopeças</h3>
                 {partnersLoading && <span className="parceiros-list-sub">Carregando…</span>}
-                {!partnersLoading && userPos && <span className="parceiros-list-sub">Ordenado por distância</span>}
+                {!partnersLoading && userPos && (
+                  <span className="parceiros-list-sub">
+                    Ordenado por distância
+                    {userPos?.accuracyM ? ` • Precisão ~ ${formatAccuracyMeters(userPos.accuracyM)}` : ''}
+                  </span>
+                )}
                 {!partnersLoading && !userPos && <span className="parceiros-list-sub">Ative a localização para ordenar por distância</span>}
               </div>
 
@@ -505,6 +540,15 @@ export default function Parceiros() {
               </div>
 
               <div className="parceiros-map-actions">
+                <button
+                  className="parceiros-cta-btn parceiros-cta-btn--subtle"
+                  type="button"
+                  disabled={geoLoading}
+                  title="Refazer leitura da localização com maior precisão"
+                  onClick={() => requestGeolocation({ highAccuracy: true })}
+                >
+                  {geoLoading ? 'Localizando…' : 'Localização mais precisa'}
+                </button>
                 <button className="parceiros-cta-btn parceiros-cta-btn--subtle" type="button" onClick={goQueroSerParceiro}>
                   Quero ser parceiro
                 </button>
