@@ -512,6 +512,9 @@ let hasProfessionalAccountsRequestedCompanyIdColumn = null; // null unknown, boo
 let hasCompaniesTable = null; // null unknown, boolean when detected
 let hasCompaniesCompanyTypeColumn = null; // null unknown, boolean when detected
 
+// Companies column presence cache (for optional features like partners location)
+let companiesColumnsSet = null; // Set<string>
+
 // Company users (employees) capability detection
 let hasCompanyUsersTable = null; // null unknown, boolean when detected
 
@@ -661,6 +664,30 @@ async function detectCompaniesCompanyTypeColumn(pgClientInstance) {
     );
     hasCompaniesCompanyTypeColumn = (r && r.rowCount > 0);
     return hasCompaniesCompanyTypeColumn;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function loadCompaniesColumns(pgClientInstance) {
+  if (!pgClientInstance) return new Set();
+  if (companiesColumnsSet && companiesColumnsSet.size) return companiesColumnsSet;
+  try {
+    const r = await pgClientInstance.query(
+      "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='companies'"
+    );
+    const set = new Set((r && r.rows ? r.rows : []).map(row => String(row.column_name)));
+    // Cache only positive; if schema changes at runtime, restart is acceptable.
+    if (set.size) companiesColumnsSet = set;
+    return set;
+  } catch (e) {
+    return companiesColumnsSet || new Set();
+  }
+}
+
+function hasCompanyCol(cols, name) {
+  try {
+    return !!(cols && typeof cols.has === 'function' && cols.has(String(name)));
   } catch (e) {
     return false;
   }
@@ -5033,8 +5060,8 @@ app.post('/api/auth/supabase-webhook', async (req, res) => {
 // Companies API
 // GET /api/companies -> list active companies (for dropdown)
 const _companiesListCache = new Map(); // key -> { expiresAt, companies }
-function _companiesCacheKey({ statusFilter, hasType }) {
-  return `${String(statusFilter || 'active')}|${hasType ? '1' : '0'}`;
+function _companiesCacheKey({ statusFilter, hasType, includeLocation }) {
+  return `${String(statusFilter || 'active')}|${hasType ? '1' : '0'}|${includeLocation ? 'L1' : 'L0'}`;
 }
 const COMPANIES_CACHE_TTL_MS = 60 * 1000;
 
@@ -5044,6 +5071,13 @@ app.get('/api/companies', async (req, res) => {
     const ok = await detectCompaniesTable(pgClient);
     if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
 
+    const view = (req.query && req.query.view) ? String(req.query.view).trim().toLowerCase() : '';
+    const includeLocation = !!(
+      view === 'partners' || view === 'parceiros' ||
+      (req.query && (req.query.include_location === '1' || String(req.query.include_location || '').toLowerCase() === 'true')) ||
+      (req.query && (req.query.public === '1' || String(req.query.public || '').toLowerCase() === 'true'))
+    );
+
     const status = (req.query && req.query.status) ? String(req.query.status).trim().toLowerCase() : 'active';
     const allowed = new Set(['active', 'pending', 'suspended', 'all']);
     const statusFilter = allowed.has(status) ? status : 'active';
@@ -5051,9 +5085,10 @@ app.get('/api/companies', async (req, res) => {
     const where = (statusFilter === 'all') ? '' : 'WHERE status = $1';
     const params = (statusFilter === 'all') ? [] : [statusFilter];
     const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+    const cols = includeLocation ? await loadCompaniesColumns(pgClient) : null;
 
     // In-memory cache to speed up repeated loads (e.g. initial navigation + registration page)
-    const cacheKey = _companiesCacheKey({ statusFilter, hasType });
+    const cacheKey = _companiesCacheKey({ statusFilter, hasType, includeLocation });
     const cached = _companiesListCache.get(cacheKey);
     if (cached && cached.expiresAt && cached.expiresAt > Date.now() && Array.isArray(cached.companies)) {
       try { res.set('Cache-Control', 'public, max-age=60'); } catch (e) {}
@@ -5062,9 +5097,31 @@ app.get('/api/companies', async (req, res) => {
 
     // Do NOT expose matricula_prefix/company_registration_code publicly.
     // That value is meant for internal registration/admin workflows.
-    const selectCols = hasType
-      ? 'id, trade_name, legal_name, brand, company_type, company_code, status'
-      : 'id, trade_name, legal_name, brand, company_code, status';
+    const baseCols = hasType
+      ? ['id', 'trade_name', 'legal_name', 'brand', 'company_type', 'company_code', 'status']
+      : ['id', 'trade_name', 'legal_name', 'brand', 'company_code', 'status'];
+
+    const locationCols = (includeLocation && cols)
+      ? [
+          'cep',
+          'address_street',
+          'address_number',
+          'address_complement',
+          'neighborhood',
+          'city',
+          'state',
+          'country',
+          'lat',
+          'lng',
+          'phone',
+          'whatsapp',
+          'website',
+          'instagram',
+          'public_notes'
+        ].filter(cn => hasCompanyCol(cols, cn))
+      : [];
+
+    const selectCols = [...baseCols, ...locationCols].join(', ');
     const r = await pgClient.query(
       `SELECT ${selectCols}
        FROM companies
@@ -5077,6 +5134,49 @@ app.get('/api/companies', async (req, res) => {
     _companiesListCache.set(cacheKey, { expiresAt: Date.now() + COMPANIES_CACHE_TTL_MS, companies });
     try { res.set('Cache-Control', 'public, max-age=60'); } catch (e) {}
     return res.json({ success: true, companies });
+  } catch (e) {
+    return res.status(500).json({ error: 'internal error' });
+  }
+});
+
+// Public: partners ranking based on maintenance usage
+// GET /api/partners/ranking?days=30&limit=20
+app.get('/api/partners/ranking', async (req, res) => {
+  try {
+    if (!pgClient) return res.status(503).json({ error: 'pgClient not available' });
+    const hasCompanies = await detectCompaniesTable(pgClient);
+    if (!hasCompanies) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
+
+    const hasMaint = await detectMaintenanceRecordsTable(pgClient);
+    if (!hasMaint) return res.status(503).json({ error: 'maintenance_records table not available (run migration 0016)' });
+    const hasCompanyIdCol = await detectMaintenanceRecordsCompanyIdColumn(pgClient);
+    if (!hasCompanyIdCol) return res.status(503).json({ error: 'maintenance_records.company_id not available' });
+
+    const daysRaw = (req.query && req.query.days != null) ? req.query.days : (req.query && req.query.period_days != null ? req.query.period_days : 30);
+    const limitRaw = (req.query && req.query.limit != null) ? req.query.limit : 20;
+
+    const days = Math.max(1, Math.min(365, Number(daysRaw) || 30));
+    const limit = Math.max(1, Math.min(100, Number(limitRaw) || 20));
+
+    const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+    const companySelect = hasType
+      ? 'c.id, c.trade_name, c.legal_name, c.brand, c.company_type, c.company_code'
+      : 'c.id, c.trade_name, c.legal_name, c.brand, c.company_code';
+
+    const r = await pgClient.query(
+      `SELECT ${companySelect}, COUNT(m.id)::int AS uses
+       FROM maintenance_records m
+       JOIN companies c ON c.id::text = m.company_id
+       WHERE m.company_id IS NOT NULL
+         AND LENGTH(TRIM(m.company_id)) > 0
+         AND COALESCE(m.data, m.created_at::date) >= (CURRENT_DATE - $1::int)
+       GROUP BY ${companySelect}
+       ORDER BY uses DESC
+       LIMIT $2`,
+      [days, limit]
+    );
+
+    return res.json({ success: true, days, ranking: r.rows || [] });
   } catch (e) {
     return res.status(500).json({ error: 'internal error' });
   }
@@ -5339,9 +5439,28 @@ app.get('/api/admin/companies', requireCompaniesAdmin, async (req, res) => {
     const ok = await detectCompaniesTable(pgClient);
     if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
     const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
-    const selectCols = hasType
-      ? 'id, legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at'
-      : 'id, legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at';
+    const cols = await loadCompaniesColumns(pgClient);
+    const base = hasType
+      ? ['id', 'legal_name', 'trade_name', 'brand', 'company_type', 'company_code', 'cnpj', 'status', 'matricula_prefix', 'next_matricula_seq', 'created_at', 'updated_at']
+      : ['id', 'legal_name', 'trade_name', 'brand', 'company_code', 'cnpj', 'status', 'matricula_prefix', 'next_matricula_seq', 'created_at', 'updated_at'];
+    const extra = [
+      'cep',
+      'address_street',
+      'address_number',
+      'address_complement',
+      'neighborhood',
+      'city',
+      'state',
+      'country',
+      'lat',
+      'lng',
+      'phone',
+      'whatsapp',
+      'website',
+      'instagram',
+      'public_notes'
+    ].filter(cn => hasCompanyCol(cols, cn));
+    const selectCols = [...base, ...extra].join(', ');
     const r = await pgClient.query(
       `SELECT ${selectCols}
        FROM companies
@@ -5362,6 +5481,7 @@ app.post('/api/admin/companies', requireCompaniesAdmin, async (req, res) => {
     const ok = await detectCompaniesTable(pgClient);
     if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
     const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+    const cols = await loadCompaniesColumns(pgClient);
 
     const body = req.body || {};
     const legalName = body.legal_name != null ? String(body.legal_name).trim() : null;
@@ -5379,6 +5499,8 @@ app.post('/api/admin/companies', requireCompaniesAdmin, async (req, res) => {
     const matriculaPrefixRaw = matriculaPrefixCandidate != null ? String(matriculaPrefixCandidate).trim() : '';
     const matriculaPrefix = String(matriculaPrefixRaw || '').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
 
+    if (!tradeName) return res.status(400).json({ error: 'trade_name required' });
+
     if (!matriculaPrefix) return res.status(400).json({ error: 'company_registration_code required' });
     if (!['active', 'pending', 'suspended'].includes(status)) return res.status(400).json({ error: 'invalid status' });
 
@@ -5388,17 +5510,81 @@ app.post('/api/admin/companies', requireCompaniesAdmin, async (req, res) => {
     const brand = await canonicalizeCompanyBrand(pgClient, brandRaw);
     const companyCode = await generateUniqueCompanyCode(pgClient, brand);
 
+    // Optional partners/location fields
+    const toNullableText = (v) => {
+      if (v == null) return null;
+      const s = String(v).trim();
+      return s ? s : null;
+    };
+    const toNullableNumber = (v) => {
+      if (v == null || String(v).trim() === '') return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const extraFields = {
+      cep: toNullableText(body.cep),
+      address_street: toNullableText(body.address_street ?? body.street ?? body.rua),
+      address_number: toNullableText(body.address_number ?? body.number ?? body.numero),
+      address_complement: toNullableText(body.address_complement ?? body.complement ?? body.complemento),
+      neighborhood: toNullableText(body.neighborhood ?? body.bairro),
+      city: toNullableText(body.city ?? body.cidade),
+      state: toNullableText(body.state ?? body.uf ?? body.estado),
+      country: toNullableText(body.country ?? body.pais),
+      lat: toNullableNumber(body.lat),
+      lng: toNullableNumber(body.lng),
+      phone: toNullableText(body.phone ?? body.telefone),
+      whatsapp: toNullableText(body.whatsapp),
+      website: toNullableText(body.website ?? body.site),
+      instagram: toNullableText(body.instagram),
+      public_notes: toNullableText(body.public_notes ?? body.publicNotes ?? body.notas_publicas)
+    };
+
+    const insertCols = [
+      'legal_name',
+      'trade_name',
+      'brand',
+      ...(hasType ? ['company_type'] : []),
+      'company_code',
+      'cnpj',
+      'status',
+      'matricula_prefix',
+      'next_matricula_seq'
+    ];
+
+    const insertVals = [
+      legalName,
+      tradeName,
+      brand,
+      ...(hasType ? [companyType] : []),
+      companyCode,
+      cnpj,
+      status,
+      matriculaPrefix,
+      1
+    ];
+
+    // Add optional columns only if they exist in DB.
+    for (const [k, v] of Object.entries(extraFields)) {
+      if (!hasCompanyCol(cols, k)) continue;
+      insertCols.push(k);
+      insertVals.push(v);
+    }
+
+    const placeholders = insertVals.map((_, i) => `$${i + 1}`);
+
+    const returningCols = [...new Set([...
+      (hasType
+        ? ['id','legal_name','trade_name','brand','company_type','company_code','cnpj','status','matricula_prefix','next_matricula_seq','created_at','updated_at']
+        : ['id','legal_name','trade_name','brand','company_code','cnpj','status','matricula_prefix','next_matricula_seq','created_at','updated_at']),
+      ...Object.keys(extraFields).filter(k => hasCompanyCol(cols, k))
+    ])].join(', ');
+
     const r = await pgClient.query(
-      hasType
-        ? `INSERT INTO companies(legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at)
-           VALUES($1,$2,$3,$4,$5,$6,$7,$8,1,now(),now())
-           RETURNING id, legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at`
-        : `INSERT INTO companies(legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at)
-           VALUES($1,$2,$3,$4,$5,$6,$7,1,now(),now())
-           RETURNING id, legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at`,
-      hasType
-        ? [legalName, tradeName, brand, companyType, companyCode, cnpj, status, matriculaPrefix]
-        : [legalName, tradeName, brand, companyCode, cnpj, status, matriculaPrefix]
+      `INSERT INTO companies(${insertCols.join(', ')}, created_at, updated_at)
+       VALUES(${placeholders.join(', ')}, now(), now())
+       RETURNING ${returningCols}`,
+      insertVals
     );
 
     const company = (r.rows && r.rows[0]) ? r.rows[0] : null;
@@ -5430,6 +5616,7 @@ app.patch('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) =>
     const ok = await detectCompaniesTable(pgClient);
     if (!ok) return res.status(503).json({ error: 'companies table not available (run migration 0013)' });
     const hasType = await detectCompaniesCompanyTypeColumn(pgClient);
+    const cols = await loadCompaniesColumns(pgClient);
 
     const id = req.params && req.params.id ? String(req.params.id).trim() : null;
     if (!id) return res.status(400).json({ error: 'id required' });
@@ -5440,7 +5627,12 @@ app.patch('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) =>
     let idx = 1;
 
     if (Object.prototype.hasOwnProperty.call(body, 'legal_name')) { sets.push(`legal_name = $${idx++}`); params.push(body.legal_name != null ? String(body.legal_name).trim() : null); }
-    if (Object.prototype.hasOwnProperty.call(body, 'trade_name')) { sets.push(`trade_name = $${idx++}`); params.push(body.trade_name != null ? String(body.trade_name).trim() : null); }
+    if (Object.prototype.hasOwnProperty.call(body, 'trade_name')) {
+      const tn = body.trade_name != null ? String(body.trade_name).trim() : '';
+      if (!tn) return res.status(400).json({ error: 'trade_name cannot be empty' });
+      sets.push(`trade_name = $${idx++}`);
+      params.push(tn);
+    }
     if (Object.prototype.hasOwnProperty.call(body, 'brand')) {
       const br = body.brand != null ? String(body.brand).trim() : null;
       const canonical = br ? await canonicalizeCompanyBrand(pgClient, br) : null;
@@ -5481,6 +5673,45 @@ app.patch('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) =>
       params.push(sanitized);
     }
 
+    // Optional partners/location fields (only if DB columns exist)
+    const setNullableText = (field, colName = field) => {
+      if (!hasCompanyCol(cols, colName)) return;
+      if (!Object.prototype.hasOwnProperty.call(body, field)) return;
+      const v = body[field];
+      const s = v == null ? null : String(v).trim();
+      sets.push(`${colName} = $${idx++}`);
+      params.push(s ? s : null);
+    };
+    const setNullableNumber = (field, colName = field) => {
+      if (!hasCompanyCol(cols, colName)) return;
+      if (!Object.prototype.hasOwnProperty.call(body, field)) return;
+      const v = body[field];
+      const raw = (v == null) ? '' : String(v).trim();
+      if (!raw) {
+        sets.push(`${colName} = NULL`);
+        return;
+      }
+      const n = Number(raw);
+      sets.push(`${colName} = $${idx++}`);
+      params.push(Number.isFinite(n) ? n : null);
+    };
+
+    setNullableText('cep');
+    setNullableText('address_street');
+    setNullableText('address_number');
+    setNullableText('address_complement');
+    setNullableText('neighborhood');
+    setNullableText('city');
+    setNullableText('state');
+    setNullableText('country');
+    setNullableNumber('lat');
+    setNullableNumber('lng');
+    setNullableText('phone');
+    setNullableText('whatsapp');
+    setNullableText('website');
+    setNullableText('instagram');
+    setNullableText('public_notes');
+
     // Capture before snapshot for audit (best-effort)
     let beforeCompany = null;
     try {
@@ -5501,14 +5732,14 @@ app.patch('/api/admin/companies/:id', requireCompaniesAdmin, async (req, res) =>
     params.push(id);
     await pgClient.query(`UPDATE companies SET ${sets.join(', ')} WHERE id = $${idx}`, params);
 
-    const r = await pgClient.query(
-      hasType
-        ? `SELECT id, legal_name, trade_name, brand, company_type, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at
-           FROM companies WHERE id = $1 LIMIT 1`
-        : `SELECT id, legal_name, trade_name, brand, company_code, cnpj, status, matricula_prefix, next_matricula_seq, created_at, updated_at
-           FROM companies WHERE id = $1 LIMIT 1`,
-      [id]
-    );
+    const baseSelect = hasType
+      ? ['id','legal_name','trade_name','brand','company_type','company_code','cnpj','status','matricula_prefix','next_matricula_seq','created_at','updated_at']
+      : ['id','legal_name','trade_name','brand','company_code','cnpj','status','matricula_prefix','next_matricula_seq','created_at','updated_at'];
+    const extraSelect = [
+      'cep','address_street','address_number','address_complement','neighborhood','city','state','country','lat','lng','phone','whatsapp','website','instagram','public_notes'
+    ].filter(cn => hasCompanyCol(cols, cn));
+    const selectCols = [...baseSelect, ...extraSelect].join(', ');
+    const r = await pgClient.query(`SELECT ${selectCols} FROM companies WHERE id = $1 LIMIT 1`, [id]);
     const company = (r.rows && r.rows[0]) ? r.rows[0] : null;
     const out = company ? { ...company, company_registration_code: company.matricula_prefix || null } : null;
 

@@ -44,6 +44,24 @@ const usuariosDemoGlobais = [
 ];
 
 export default function Login() {
+  const consumePostLoginRedirect = () => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return '';
+      const raw = window.localStorage.getItem('__post_login_redirect');
+      if (!raw) return '';
+      window.localStorage.removeItem('__post_login_redirect');
+
+      const value = String(raw || '').trim();
+      // Only allow internal app paths
+      if (!value.startsWith('/')) return '';
+      if (value.startsWith('//')) return '';
+      if (/^\/\/(?:[^/]|$)/.test(value)) return '';
+      return value;
+    } catch (e) {
+      return '';
+    }
+  };
+
     async function firebaseGoogleLogin() {
       const authApi = await getFirebaseAuthApi();
       if (authApi && typeof authApi.signInWithGooglePopup === 'function') {
@@ -259,6 +277,13 @@ export default function Login() {
         if (setUsuarioLogado) setUsuarioLogado(updatedUser);
         try { localStorage.setItem('usuario-logado', JSON.stringify(updatedUser)); } catch (e) {}
 
+        // If a screen requested a post-login redirect, honor it first.
+        const requestedRedirect = consumePostLoginRedirect();
+        if (requestedRedirect) {
+          navigate(requestedRedirect, { replace: true });
+          return;
+        }
+
         // Redirect professionals to the proper flow
         try {
           const roleLower = String(updatedUser.role || '').toLowerCase();
@@ -314,6 +339,13 @@ export default function Login() {
       try { localStorage.setItem('usuario-logado', JSON.stringify(normalizedUsuario)); } catch (e) {}
       
       try { console.timeEnd('[auth-timing] processFirebaseUser total'); } catch (e) {}
+
+      // If a screen requested a post-login redirect, honor it first.
+      const requestedRedirect = consumePostLoginRedirect();
+      if (requestedRedirect) {
+        navigate(requestedRedirect, { replace: true });
+        return;
+      }
       
       // Navigate immediately - toast will show after navigation
       navigate('/buscar-pecas', { replace: true });

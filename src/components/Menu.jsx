@@ -47,6 +47,7 @@ function Menu() {
     { id: 'recalls', label: 'Recalls', onClick: () => navigate('/recalls') },
     { id: 'historico', label: 'Histórico de Manutenção', onClick: () => navigate('/historico-manutencao') },
     { id: 'guias', label: 'Guias', onClick: () => navigate('/guias') },
+    { id: 'parceiros', label: 'Parceiros', onClick: () => navigate('/parceiros') },
     { id: 'contato', label: 'Contato/Feedback', onClick: () => navigate('/contato-logado') },
     ...(isAdmin ? [{ id: 'admin-companies', label: 'Admin Empresas', onClick: () => navigate('/admin/companies'), destacado: true }] : [])
   ];

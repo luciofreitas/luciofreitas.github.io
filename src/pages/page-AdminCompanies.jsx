@@ -150,6 +150,24 @@ export default function AdminCompanies() {
   const [companyRegistrationCode, setCompanyRegistrationCode] = useState('');
   const [status, setStatus] = useState('active');
 
+  // Optional partners/location fields (requires backend migration 0021)
+  const [cep, setCep] = useState('');
+  const [city, setCity] = useState('');
+  const [stateUf, setStateUf] = useState('');
+  const [street, setStreet] = useState('');
+  const [streetNumber, setStreetNumber] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
+  const [phone, setPhone] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [website, setWebsite] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [publicNotes, setPublicNotes] = useState('');
+
+  const [cepLoading, setCepLoading] = useState(false);
+  const [geoCodeLoading, setGeoCodeLoading] = useState(false);
+
   const [editOpen, setEditOpen] = useState(false);
   const [editError, setEditError] = useState('');
   const [editSaving, setEditSaving] = useState(false);
@@ -163,6 +181,142 @@ export default function AdminCompanies() {
   const [editCompanyRegistrationCode, setEditCompanyRegistrationCode] = useState('');
   const [editStatus, setEditStatus] = useState('active');
 
+  const [editCep, setEditCep] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editStateUf, setEditStateUf] = useState('');
+  const [editStreet, setEditStreet] = useState('');
+  const [editStreetNumber, setEditStreetNumber] = useState('');
+  const [editNeighborhood, setEditNeighborhood] = useState('');
+  const [editLat, setEditLat] = useState('');
+  const [editLng, setEditLng] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editWhatsapp, setEditWhatsapp] = useState('');
+  const [editWebsite, setEditWebsite] = useState('');
+  const [editInstagram, setEditInstagram] = useState('');
+  const [editPublicNotes, setEditPublicNotes] = useState('');
+
+  const [editCepLoading, setEditCepLoading] = useState(false);
+  const [editGeoCodeLoading, setEditGeoCodeLoading] = useState(false);
+
+  function sanitizeCep(raw) {
+    return String(raw || '').replace(/\D/g, '').slice(0, 8);
+  }
+
+  async function fetchViaCep(cepDigits) {
+    const c = sanitizeCep(cepDigits);
+    if (c.length !== 8) throw new Error('CEP inválido');
+    const url = `https://viacep.com.br/ws/${encodeURIComponent(c)}/json/`;
+    const resp = await fetch(url, { headers: { Accept: 'application/json' } });
+    const body = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(`ViaCEP HTTP ${resp.status}`);
+    if (body && body.erro) throw new Error('CEP não encontrado');
+    return body;
+  }
+
+  function buildGeocodeQuery({ street, number, neighborhood, city, state }) {
+    const parts = [
+      [street, number].filter(Boolean).join(' '),
+      neighborhood,
+      [city, state].filter(Boolean).join(' - '),
+      'Brasil'
+    ].map(v => String(v || '').trim()).filter(Boolean);
+    return parts.join(', ');
+  }
+
+  async function fetchNominatimLatLng(query) {
+    const q = String(query || '').trim();
+    if (!q) throw new Error('Endereço vazio');
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`;
+    const resp = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        // Nominatim recommends a valid user-agent
+        'User-Agent': 'GaragemSmart/1.0 (admin geocode)',
+      },
+    });
+    const body = await resp.json().catch(() => ([]));
+    if (!resp.ok) throw new Error(`Geocoding HTTP ${resp.status}`);
+    const first = Array.isArray(body) ? body[0] : null;
+    if (!first || first.lat == null || first.lon == null) throw new Error('Não encontrei coordenadas para este endereço');
+    const lat = Number(first.lat);
+    const lng = Number(first.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('Coordenadas inválidas retornadas');
+    return { lat, lng };
+  }
+
+  async function handleAutoFillFromCep(mode) {
+    const isEdit = mode === 'edit';
+    const setBusy = isEdit ? setEditCepLoading : setCepLoading;
+    const setErr = isEdit ? setEditError : setError;
+    const currentCep = isEdit ? editCep : cep;
+    const c = sanitizeCep(currentCep);
+
+    setErr('');
+    if (c.length !== 8) {
+      setErr('Informe um CEP válido (8 dígitos).');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const data = await fetchViaCep(c);
+      const nextStreet = String(data.logradouro || '').trim();
+      const nextNeighborhood = String(data.bairro || '').trim();
+      const nextCity = String(data.localidade || '').trim();
+      const nextUf = String(data.uf || '').trim();
+
+      if (isEdit) {
+        setEditCep(c);
+        if (nextStreet) setEditStreet(nextStreet);
+        if (nextNeighborhood) setEditNeighborhood(nextNeighborhood);
+        if (nextCity) setEditCity(nextCity);
+        if (nextUf) setEditStateUf(nextUf);
+      } else {
+        setCep(c);
+        if (nextStreet) setStreet(nextStreet);
+        if (nextNeighborhood) setNeighborhood(nextNeighborhood);
+        if (nextCity) setCity(nextCity);
+        if (nextUf) setStateUf(nextUf);
+      }
+    } catch (e) {
+      setErr(e && e.message ? String(e.message) : 'Erro ao buscar CEP.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleGeocodeFromAddress(mode) {
+    const isEdit = mode === 'edit';
+    const setBusy = isEdit ? setEditGeoCodeLoading : setGeoCodeLoading;
+    const setErr = isEdit ? setEditError : setError;
+
+    const query = isEdit
+      ? buildGeocodeQuery({ street: editStreet, number: editStreetNumber, neighborhood: editNeighborhood, city: editCity, state: editStateUf })
+      : buildGeocodeQuery({ street, number: streetNumber, neighborhood, city, state: stateUf });
+
+    setErr('');
+    if (!query) {
+      setErr('Preencha rua/cidade/UF para gerar coordenadas.');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { lat: outLat, lng: outLng } = await fetchNominatimLatLng(query);
+      if (isEdit) {
+        setEditLat(String(outLat));
+        setEditLng(String(outLng));
+      } else {
+        setLat(String(outLat));
+        setLng(String(outLng));
+      }
+    } catch (e) {
+      setErr(e && e.message ? String(e.message) : 'Erro ao gerar coordenadas.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function closeEditModal() {
     setEditOpen(false);
     setEditError('');
@@ -175,6 +329,20 @@ export default function AdminCompanies() {
     setEditCnpj('');
     setEditCompanyRegistrationCode('');
     setEditStatus('active');
+
+    setEditCep('');
+    setEditCity('');
+    setEditStateUf('');
+    setEditStreet('');
+    setEditStreetNumber('');
+    setEditNeighborhood('');
+    setEditLat('');
+    setEditLng('');
+    setEditPhone('');
+    setEditWhatsapp('');
+    setEditWebsite('');
+    setEditInstagram('');
+    setEditPublicNotes('');
   }
 
   function openEditModal(company) {
@@ -193,6 +361,21 @@ export default function AdminCompanies() {
       setEditCnpj(String(company.cnpj || '').trim());
       setEditCompanyRegistrationCode(String(company.company_registration_code || company.matricula_prefix || '').trim());
       setEditStatus(String(company.status || 'active'));
+
+      setEditCep(String(company.cep || '').trim());
+      setEditCity(String(company.city || '').trim());
+      setEditStateUf(String(company.state || '').trim());
+      setEditStreet(String(company.address_street || '').trim());
+      setEditStreetNumber(String(company.address_number || '').trim());
+      setEditNeighborhood(String(company.neighborhood || '').trim());
+      setEditLat(company.lat != null ? String(company.lat) : '');
+      setEditLng(company.lng != null ? String(company.lng) : '');
+      setEditPhone(String(company.phone || '').trim());
+      setEditWhatsapp(String(company.whatsapp || '').trim());
+      setEditWebsite(String(company.website || '').trim());
+      setEditInstagram(String(company.instagram || '').trim());
+      setEditPublicNotes(String(company.public_notes || '').trim());
+
       setEditOpen(true);
     } catch (e) {
       // no-op
@@ -385,8 +568,12 @@ export default function AdminCompanies() {
 
   async function createCompany(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    setLoading(true);
     setError('');
+    if (!String(tradeName || '').trim()) {
+      setError('Nome fantasia é obrigatório (ex.: FIAT Niterói).');
+      return;
+    }
+    setLoading(true);
     try {
       const url = `${apiBase()}/api/admin/companies`;
       const canonicalBrand = canonicalizeBrandFromOptions(brand, brandOptions);
@@ -400,6 +587,21 @@ export default function AdminCompanies() {
         company_registration_code: companyRegistrationCode || '',
         // Backward-compat with older backend versions
         matricula_prefix: companyRegistrationCode || '',
+
+        // Partners/location fields (optional)
+        cep: cep || null,
+        city: city || null,
+        state: stateUf || null,
+        address_street: street || null,
+        address_number: streetNumber || null,
+        neighborhood: neighborhood || null,
+        lat: lat === '' ? null : lat,
+        lng: lng === '' ? null : lng,
+        phone: phone || null,
+        whatsapp: whatsapp || null,
+        website: website || null,
+        instagram: instagram || null,
+        public_notes: publicNotes || null,
       };
       await fetchJson(url, {
         method: 'POST',
@@ -417,6 +619,20 @@ export default function AdminCompanies() {
       setCnpj('');
       setCompanyRegistrationCode('');
       setStatus('active');
+
+      setCep('');
+      setCity('');
+      setStateUf('');
+      setStreet('');
+      setStreetNumber('');
+      setNeighborhood('');
+      setLat('');
+      setLng('');
+      setPhone('');
+      setWhatsapp('');
+      setWebsite('');
+      setInstagram('');
+      setPublicNotes('');
       await loadCompanies();
       loadAuditLogs();
     } catch (e2) {
@@ -429,6 +645,11 @@ export default function AdminCompanies() {
   async function saveEditCompany(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
     if (editCompanyId == null) return;
+
+    if (!String(editTradeName || '').trim()) {
+      setEditError('Nome fantasia é obrigatório (ex.: FIAT Niterói).');
+      return;
+    }
 
     setEditSaving(true);
     setEditError('');
@@ -445,6 +666,21 @@ export default function AdminCompanies() {
         company_registration_code: editCompanyRegistrationCode || '',
         // Backward-compat with older backend versions
         matricula_prefix: editCompanyRegistrationCode || '',
+
+        // Partners/location fields (optional)
+        cep: editCep || null,
+        city: editCity || null,
+        state: editStateUf || null,
+        address_street: editStreet || null,
+        address_number: editStreetNumber || null,
+        neighborhood: editNeighborhood || null,
+        lat: editLat === '' ? '' : editLat,
+        lng: editLng === '' ? '' : editLng,
+        phone: editPhone || null,
+        whatsapp: editWhatsapp || null,
+        website: editWebsite || null,
+        instagram: editInstagram || null,
+        public_notes: editPublicNotes || null,
       };
 
       await fetchJson(url, {
@@ -598,6 +834,86 @@ export default function AdminCompanies() {
                     <option value="pending">Pendente</option>
                     <option value="suspended">Suspensa</option>
                   </select>
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">CEP</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input className="input" value={cep} onChange={(e) => setCep(e.target.value)} placeholder="Ex.: 01001-000" inputMode="numeric" />
+                    <button className="btn btn-secondary" type="button" onClick={() => handleAutoFillFromCep('create')} disabled={cepLoading || !token}>
+                      {cepLoading ? 'Buscando...' : 'Buscar'}
+                    </button>
+                  </div>
+                  <div className="admin-help">Preenche rua, bairro, cidade e UF automaticamente.</div>
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Cidade</label>
+                  <input className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex.: São Paulo" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">UF</label>
+                  <input className="input admin-uppercase" value={stateUf} onChange={(e) => setStateUf(e.target.value)} placeholder="Ex.: SP" maxLength={2} />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Rua</label>
+                  <input className="input" value={street} onChange={(e) => setStreet(e.target.value)} placeholder="Ex.: Av. Paulista" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Número</label>
+                  <input className="input" value={streetNumber} onChange={(e) => setStreetNumber(e.target.value)} placeholder="Ex.: 1000" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Bairro</label>
+                  <input className="input" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} placeholder="Ex.: Bela Vista" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Latitude</label>
+                  <input className="input" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="Ex.: -23.561684" inputMode="decimal" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Longitude</label>
+                  <input className="input" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="Ex.: -46.655981" inputMode="decimal" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Coordenadas</label>
+                  <button className="btn btn-secondary" type="button" onClick={() => handleGeocodeFromAddress('create')} disabled={geoCodeLoading || !token}>
+                    {geoCodeLoading ? 'Gerando...' : 'Gerar por endereço'}
+                  </button>
+                  <div className="admin-help">Usa o endereço para sugerir lat/lng (pode ajustar manualmente).</div>
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Telefone</label>
+                  <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(opcional)" inputMode="tel" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">WhatsApp</label>
+                  <input className="input" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="(opcional)" inputMode="tel" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Website</label>
+                  <input className="input" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://... (opcional)" />
+                </div>
+
+                <div className="admin-field">
+                  <label className="admin-label">Instagram</label>
+                  <input className="input" value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="@... (opcional)" />
+                </div>
+
+                <div className="admin-field" style={{ gridColumn: '1 / -1' }}>
+                  <label className="admin-label">Notas públicas</label>
+                  <textarea className="input" value={publicNotes} onChange={(e) => setPublicNotes(e.target.value)} placeholder="Ex.: Especialista em freios, alinhamento e suspensão." rows={3} />
+                  <div className="admin-help">Essas informações podem aparecer na página de Parceiros.</div>
                 </div>
               </div>
 
@@ -907,6 +1223,85 @@ export default function AdminCompanies() {
                           <option value="pending">Pendente</option>
                           <option value="suspended">Suspensa</option>
                         </select>
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">CEP</label>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input className="input" value={editCep} onChange={(e) => setEditCep(e.target.value)} placeholder="Ex.: 01001-000" inputMode="numeric" />
+                          <button className="btn btn-secondary" type="button" onClick={() => handleAutoFillFromCep('edit')} disabled={editCepLoading || !token || editSaving}>
+                            {editCepLoading ? 'Buscando...' : 'Buscar'}
+                          </button>
+                        </div>
+                        <div className="admin-help">Preenche rua, bairro, cidade e UF automaticamente.</div>
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Cidade</label>
+                        <input className="input" value={editCity} onChange={(e) => setEditCity(e.target.value)} placeholder="Ex.: São Paulo" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">UF</label>
+                        <input className="input admin-uppercase" value={editStateUf} onChange={(e) => setEditStateUf(e.target.value)} placeholder="Ex.: SP" maxLength={2} />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Rua</label>
+                        <input className="input" value={editStreet} onChange={(e) => setEditStreet(e.target.value)} placeholder="Ex.: Av. Paulista" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Número</label>
+                        <input className="input" value={editStreetNumber} onChange={(e) => setEditStreetNumber(e.target.value)} placeholder="Ex.: 1000" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Bairro</label>
+                        <input className="input" value={editNeighborhood} onChange={(e) => setEditNeighborhood(e.target.value)} placeholder="Ex.: Bela Vista" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Latitude</label>
+                        <input className="input" value={editLat} onChange={(e) => setEditLat(e.target.value)} placeholder="Ex.: -23.561684" inputMode="decimal" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Longitude</label>
+                        <input className="input" value={editLng} onChange={(e) => setEditLng(e.target.value)} placeholder="Ex.: -46.655981" inputMode="decimal" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Coordenadas</label>
+                        <button className="btn btn-secondary" type="button" onClick={() => handleGeocodeFromAddress('edit')} disabled={editGeoCodeLoading || !token || editSaving}>
+                          {editGeoCodeLoading ? 'Gerando...' : 'Gerar por endereço'}
+                        </button>
+                        <div className="admin-help">Usa o endereço para sugerir lat/lng (pode ajustar manualmente).</div>
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Telefone</label>
+                        <input className="input" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="(opcional)" inputMode="tel" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">WhatsApp</label>
+                        <input className="input" value={editWhatsapp} onChange={(e) => setEditWhatsapp(e.target.value)} placeholder="(opcional)" inputMode="tel" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Website</label>
+                        <input className="input" value={editWebsite} onChange={(e) => setEditWebsite(e.target.value)} placeholder="https://... (opcional)" />
+                      </div>
+
+                      <div className="admin-field">
+                        <label className="admin-label">Instagram</label>
+                        <input className="input" value={editInstagram} onChange={(e) => setEditInstagram(e.target.value)} placeholder="@... (opcional)" />
+                      </div>
+
+                      <div className="admin-field" style={{ gridColumn: '1 / -1' }}>
+                        <label className="admin-label">Notas públicas</label>
+                        <textarea className="input" value={editPublicNotes} onChange={(e) => setEditPublicNotes(e.target.value)} placeholder="Ex.: Especialista em freios, alinhamento e suspensão." rows={3} />
                       </div>
                     </div>
 
