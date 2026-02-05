@@ -24,11 +24,6 @@ services:
     startCommand: cd backend && npm start
 
 # Observação:
-# - Se você preferir que frontend e backend rodem no mesmo serviço, remova um dos blocos
-#   e ajuste os comandos accordingly. Este arquivo é um ponto de partida que pode ser
-#   personalizado no painel do Render.
-type: web
-name: fixed-backend
-env: node
-buildCommand: cd backend && npm config set registry https://registry.npmjs.org/ && npm cache clean --force && npm ci --prefer-online
-startCommand: cd backend && npm start
+# - Este arquivo descreve 2 serviços (frontend estático + backend web).
+# - Se você preferir rodar tudo em um serviço só, remova um dos blocos acima
+#   e ajuste os comandos no painel do Render.
