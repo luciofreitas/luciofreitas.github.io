@@ -515,7 +515,7 @@ export default function Parceiros() {
           <div className="parceiros-ranking">
             <div className="parceiros-ranking-card" aria-label="Ranking de empresas mais citadas">
               <div className="parceiros-ranking-header">
-                <h3 className="parceiros-ranking-title">Mais citados no histórico</h3>
+                <h3 className="parceiros-ranking-title">Ranking dos locais onde mais foram registradas manutenções</h3>
                 {rankingLoading ? (
                   <span className="parceiros-ranking-sub">Carregando…</span>
                 ) : (
