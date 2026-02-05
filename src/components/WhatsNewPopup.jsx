@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import useFocusTrap from '../hooks/useFocusTrap';
 import './WhatsNewPopup.css';
 
-const WHATS_NEW_VERSION = '2026-02-05-whatsnew-json';
+const WHATS_NEW_VERSION = '2026-02-05-whatsnew-json-2';
 const LS_KEY = 'gs_whatsnew_dismissed';
 const DEFAULT_ITEM_TTL_DAYS = 30;
 

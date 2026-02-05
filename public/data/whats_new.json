@@ -1,5 +1,5 @@
 {
-  "id": "2026-02-05-parceiros-ranking",
+  "id": "2026-02-05-pagina-parceiros",
   "active": true,
   "title": "Novidades",
   "items": [
@@ -18,8 +18,8 @@
     {
       "date": "2026-02-05",
       "tag": "Novo",
-      "title": "Parceiros: ranking de mais citados",
-      "text": "Na página Parceiros, agora existe o ranking \"Mais citados no histórico\" com as empresas mais mencionadas no seu histórico de manutenção.",
+      "title": "Página Parceiros",
+      "text": "Nova página Parceiros com lista, mapa e ranking \"Mais citados no histórico\".",
       "ttlDays": 60
     }
   ]
