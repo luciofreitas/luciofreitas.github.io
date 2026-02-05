@@ -80,6 +80,7 @@ export default function Parceiros() {
   const mapRef = useRef(null);
   const markersLayerRef = useRef(null);
   const markerByIdRef = useRef(new Map());
+  const geoTooltipTimerRef = useRef(null);
 
   function digitsOnly(value) {
     return String(value || '').replace(/\D+/g, '');
@@ -372,6 +373,11 @@ export default function Parceiros() {
     const markersLayer = markersLayerRef.current;
     if (!map || !markersLayer) return;
 
+    if (geoTooltipTimerRef.current) {
+      clearTimeout(geoTooltipTimerRef.current);
+      geoTooltipTimerRef.current = null;
+    }
+
     markersLayer.clearLayers();
     markerByIdRef.current = new Map();
 
@@ -399,6 +405,25 @@ export default function Parceiros() {
         weight: 2,
       }).addTo(markersLayer);
       userMarker.bindPopup('Você está aqui');
+
+      if (Number.isFinite(acc) && acc > 0) {
+        const label = `± ${formatAccuracyMeters(acc)}`;
+        userMarker.bindTooltip(label, { direction: 'top', offset: [0, -10], opacity: 0.95, sticky: false });
+        userMarker.on('mouseover', () => {
+          if (geoTooltipTimerRef.current) clearTimeout(geoTooltipTimerRef.current);
+          geoTooltipTimerRef.current = setTimeout(() => {
+            geoTooltipTimerRef.current = null;
+            try { userMarker.openTooltip(); } catch (e) {}
+          }, 700);
+        });
+        userMarker.on('mouseout', () => {
+          if (geoTooltipTimerRef.current) {
+            clearTimeout(geoTooltipTimerRef.current);
+            geoTooltipTimerRef.current = null;
+          }
+          try { userMarker.closeTooltip(); } catch (e) {}
+        });
+      }
       boundsPoints.push([Number(userPos.lat), Number(userPos.lng)]);
     }
 
@@ -429,6 +454,13 @@ export default function Parceiros() {
         // ignore
       }
     }
+
+    return () => {
+      if (geoTooltipTimerRef.current) {
+        clearTimeout(geoTooltipTimerRef.current);
+        geoTooltipTimerRef.current = null;
+      }
+    };
   }, [partnersView, userPos]);
 
   // When selecting partner in list, center map and open popup
@@ -490,7 +522,6 @@ export default function Parceiros() {
                 {!partnersLoading && userPos && (
                   <span className="parceiros-list-sub">
                     Ordenado por distância
-                    {userPos?.accuracyM ? ` • Precisão ~ ${formatAccuracyMeters(userPos.accuracyM)}` : ''}
                   </span>
                 )}
                 {!partnersLoading && !userPos && <span className="parceiros-list-sub">Ative a localização para ordenar por distância</span>}
