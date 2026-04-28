@@ -115,23 +115,17 @@ export default function Home() {
             Engenheiros eletricistas especializados em projetos para sua empresa, indústria ou residência. 
             Mais de 1.000 projetos concluídos com eficiência e comprometimento.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <a
               href="#contato"
               onClick={(e) => {
                 e.preventDefault()
                 document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' })
               }}
-              className="bg-[#f5a623] text-white font-bold px-8 py-3 rounded-lg hover:bg-yellow-400 transition-colors text-lg"
+              className="bg-[#f5a623] text-white font-bold px-12 py-4 rounded-lg hover:bg-yellow-400 transition-colors text-xl"
             >
               Solicitar Orçamento
             </a>
-            <Link
-              to="/login"
-              className="border-2 border-white/60 text-white font-semibold px-8 py-3 rounded-lg hover:border-[#f5a623] hover:text-[#f5a623] transition-colors text-lg"
-            >
-              Formulário de Homologação
-            </Link>
           </div>
         </div>
       </section>
