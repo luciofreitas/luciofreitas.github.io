@@ -281,7 +281,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {[
               { icon: <Phone size={24} className="text-[#f5a623]" />, label: 'Telefones', lines: ['(21) 95903-0972', '(21) 99384-2781'], href: ['tel:+5521959030972', 'tel:+5521993842781'] },
-              { icon: <Mail size={24} className="text-[#f5a623]" />, label: 'E-mail', lines: ['mpsprojetoseletricos@gmail.com'], href: ['mailto:mpsprojetoseletricos@gmail.com'] },
+              { icon: <Mail size={24} className="text-[#f5a623]" />, label: 'E-mail', lines: ['mpsprojetoseletricos@gmail.com'], href: [null] },
               { icon: <MapPin size={24} className="text-[#f5a623]" />, label: 'Localização', lines: ['Rio de Janeiro, RJ'], href: [null] },
             ].map((card) => (
               <div key={card.label} className="bg-white/10 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">

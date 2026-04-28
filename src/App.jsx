@@ -28,8 +28,8 @@ export default function App() {
       >
         <Zap
           size={42}
-          stroke="#f5a623"
-          fill={dark ? '#f5a623' : 'none'}
+          stroke="#facc15"
+          fill={dark ? '#facc15' : 'none'}
           strokeWidth={1.5}
         />
       </button>
