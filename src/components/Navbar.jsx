@@ -63,19 +63,6 @@ export default function Navbar({ dark, onToggleDark }) {
 
         {/* Ícone de usuário — direita */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
-          {/* Zap dark mode */}
-          <button
-            onClick={onToggleDark}
-            aria-label="Alternar modo escuro"
-            className="transition-all duration-200 hover:scale-110 flex items-center justify-center"
-          >
-            <Zap
-              size={32}
-              stroke="#facc15"
-              fill={dark ? 'none' : '#facc15'}
-              strokeWidth={1.5}
-            />
-          </button>
           <Link
             to={user ? '/portal' : '/login'}
             aria-label="Área do cliente"
