@@ -5,7 +5,7 @@ import { Upload, ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react'
 // ─── Web3Forms – configuração ─────────────────────────────────────────────────
 // 1. Crie conta gratuita em https://web3forms.com
 // 2. Clique em "Create your Access Key" e cole abaixo:
-const WEB3FORMS_ACCESS_KEY = 'SUA_ACCESS_KEY_AQUI'
+const WEB3FORMS_ACCESS_KEY = '2e475e19-11f9-42ef-8f36-cfd3458678af'
 // Os dados e arquivos serão entregues no email cadastrado.
 // ─────────────────────────────────────────────────────────────────────────────
 
