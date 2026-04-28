@@ -13,8 +13,12 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      // Após OAuth redirecionar para a raiz, manda para o portal
+      if (event === 'SIGNED_IN' && window.location.pathname === '/') {
+        window.location.replace('/portal')
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -26,12 +30,12 @@ export function AuthProvider({ children }) {
     if (user) {
       return supabase.auth.linkIdentity({
         provider: 'google',
-        options: { redirectTo: window.location.origin + '/portal' },
+        options: { redirectTo: window.location.origin },
       })
     }
     return supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/portal' },
+      options: { redirectTo: window.location.origin },
     })
   }
 
