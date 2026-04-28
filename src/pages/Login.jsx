@@ -45,7 +45,8 @@ export default function Login() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 pt-16">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+      <div className="w-full max-w-md py-8 sm:py-12">
+      <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 justify-center mb-8">
           <Zap className="text-[#f5a623]" size={28} />
@@ -156,6 +157,7 @@ export default function Login() {
             </button>
           )}
         </div>
+      </div>
       </div>
     </main>
   )
