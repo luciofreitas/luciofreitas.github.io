@@ -13,29 +13,18 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      // Após OAuth redirecionar para a raiz, manda para o portal
-      if (event === 'SIGNED_IN' && window.location.pathname === '/') {
-        window.location.replace('/portal')
-      }
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  // Se já estiver logado com e-mail/senha → vincula o Google à conta existente
-  // Se não estiver logado → inicia o fluxo OAuth normalmente
   const signInWithGoogle = () => {
-    if (user) {
-      return supabase.auth.linkIdentity({
-        provider: 'google',
-        options: { redirectTo: window.location.origin },
-      })
-    }
+    sessionStorage.setItem('oauth_pending', '1')
     return supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.origin + '/' },
     })
   }
 

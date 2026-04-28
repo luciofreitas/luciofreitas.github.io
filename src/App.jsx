@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { Zap } from 'lucide-react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
@@ -14,6 +14,21 @@ function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return null
   return user ? children : <Navigate to="/login" replace />
+}
+
+// Redireciona para /portal após login OAuth sem full page reload
+function AuthRedirect() {
+  const { user, loading } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!loading && user && sessionStorage.getItem('oauth_pending')) {
+      sessionStorage.removeItem('oauth_pending')
+      navigate('/portal', { replace: true })
+    }
+  }, [user, loading, navigate])
+
+  return null
 }
 
 function AppContent() {
@@ -42,6 +57,7 @@ function AppContent() {
           strokeWidth={1.5}
         />
       </button>
+      <AuthRedirect />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
