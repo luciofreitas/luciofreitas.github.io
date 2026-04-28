@@ -30,9 +30,9 @@ export default function Portal() {
                 <User size={20} className="text-white" />
               </div>
             )}
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-white/60">Bem-vindo,</p>
-              <p className="font-bold">{displayName}</p>
+              <p className="font-bold truncate max-w-[140px] sm:max-w-none">{displayName}</p>
             </div>
           </div>
           <button
@@ -48,13 +48,13 @@ export default function Portal() {
         <div className="max-w-5xl mx-auto px-4 flex gap-6 border-t border-white/10">
           <button
             onClick={() => setTab('processos')}
-            className={`py-3 text-sm font-semibold border-b-2 transition-colors ${tab === 'processos' ? 'border-[#f5a623] text-white' : 'border-transparent text-white/60 hover:text-white'}`}
+            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${tab === 'processos' ? 'border-[#f5a623] text-white' : 'border-transparent text-white/60 hover:text-white'}`}
           >
             Meus Processos
           </button>
           <button
             onClick={() => setTab('novo')}
-            className={`py-3 text-sm font-semibold border-b-2 transition-colors ${tab === 'novo' ? 'border-[#f5a623] text-white' : 'border-transparent text-white/60 hover:text-white'}`}
+            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${tab === 'novo' ? 'border-[#f5a623] text-white' : 'border-transparent text-white/60 hover:text-white'}`}
           >
             Novo Processo
           </button>

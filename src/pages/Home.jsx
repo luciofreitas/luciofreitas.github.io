@@ -127,7 +127,7 @@ export default function Home() {
               Solicitar Orçamento
             </a>
             <Link
-              to="/homologacao"
+              to="/login"
               className="border-2 border-white/60 text-white font-semibold px-8 py-3 rounded-lg hover:border-[#f5a623] hover:text-[#f5a623] transition-colors text-lg"
             >
               Formulário de Homologação
@@ -138,11 +138,11 @@ export default function Home() {
 
       {/* STATS */}
       <section className="bg-[#f5a623]">
-        <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-3 gap-4 text-center">
+        <div className="max-w-6xl mx-auto px-4 py-5 sm:py-8 grid grid-cols-3 gap-2 sm:gap-6 text-center">
           {stats.map((s) => (
             <div key={s.label}>
-              <p className="text-3xl md:text-4xl font-extrabold text-[#1a2e5a]">{s.value}</p>
-              <p className="text-[#1a2e5a]/80 text-sm font-medium mt-1">{s.label}</p>
+              <p className="text-xl sm:text-3xl md:text-4xl font-extrabold text-[#1a2e5a]">{s.value}</p>
+              <p className="text-[#1a2e5a]/80 text-[10px] sm:text-sm font-medium mt-1 leading-tight">{s.label}</p>
             </div>
           ))}
         </div>
@@ -183,7 +183,7 @@ export default function Home() {
           <div className="relative">
             <button
               onClick={() => scroll(-1)}
-              className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2 hover:bg-[#f5a623] hover:text-white transition-colors border border-gray-100"
+              className="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2 hover:bg-[#f5a623] hover:text-white transition-colors border border-gray-100 items-center justify-center"
               aria-label="Anterior"
             >
               <ChevronLeft size={22} />
@@ -191,13 +191,13 @@ export default function Home() {
 
             <div
               ref={carouselRef}
-              className="flex gap-5 overflow-x-auto pb-4 px-1"
+              className="flex gap-4 sm:gap-5 overflow-x-auto pb-4 px-1"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {services.map((s) => (
                 <div
                   key={s.title}
-                  className="flex-none w-[320px] bg-white rounded-2xl p-7 shadow-sm hover:shadow-md transition-shadow border border-gray-100 group"
+                  className="flex-none w-[260px] sm:w-[300px] md:w-[320px] bg-white rounded-2xl p-5 sm:p-7 shadow-sm hover:shadow-md transition-shadow border border-gray-100 group"
                 >
                   <div className="mb-4 w-14 h-14 rounded-xl bg-[#1a2e5a]/5 flex items-center justify-center group-hover:bg-[#1a2e5a]/10 transition-colors">
                     {s.icon}
@@ -218,7 +218,7 @@ export default function Home() {
 
             <button
               onClick={() => scroll(1)}
-              className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2 hover:bg-[#f5a623] hover:text-white transition-colors border border-gray-100"
+              className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2 hover:bg-[#f5a623] hover:text-white transition-colors border border-gray-100 items-center justify-center"
               aria-label="Próximo"
             >
               <ChevronRight size={22} />
@@ -227,7 +227,7 @@ export default function Home() {
 
           <div className="text-center mt-10">
             <Link
-              to="/homologacao"
+              to="/login"
               className="inline-block bg-[#f5a623] text-white font-bold px-8 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
             >
               Solicitar Homologação Fotovoltaica
@@ -250,7 +250,7 @@ export default function Home() {
               { name: 'Paulo', img: PAULO_IMG, role: 'Engenheiro Eletricista', desc: 'Especialista em projetos industriais e consultoria técnica com vasta experiência em normas ABNT.' },
             ].map((member) => (
               <div key={member.name} className="text-center group">
-                <div className="w-48 h-48 mx-auto rounded-2xl overflow-hidden mb-5 border-4 border-[#f5a623]/30 group-hover:border-[#f5a623] transition-colors shadow-md">
+                <div className="w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 mx-auto rounded-2xl overflow-hidden mb-5 border-4 border-[#f5a623]/30 group-hover:border-[#f5a623] transition-colors shadow-md">
                   <img
                     src={member.img}
                     alt={member.name}

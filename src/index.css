@@ -19,6 +19,7 @@ body {
   background: #fff;
   color: #1a2e5a;
   transition: background-color 0.3s, color 0.3s;
+  overflow-x: hidden;
 }
 
 html.dark body {

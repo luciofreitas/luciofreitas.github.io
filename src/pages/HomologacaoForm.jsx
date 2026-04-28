@@ -66,7 +66,7 @@ export default function HomologacaoForm({ onSuccess }) {
         <p className="text-gray-600 mb-6">
           Recebemos suas informações. Nossa equipe entrará em contato em breve.
         </p>
-        <div className="flex gap-3 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button onClick={reset} className="bg-[#f5a623] text-white font-bold px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors">
             Enviar novo formulário
           </button>
