@@ -1,10 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mpsprojetoeletricos</title>
+    <title>MPS Projetos Elétricos</title>
+    <!-- Restaura rota após redirect do 404.html (GitHub Pages SPA) -->
+    <script>
+      (function() {
+        var q = window.location.search;
+        if (q && q[1] === 'p') {
+          var params = q.slice(1).split('&').reduce(function(acc, s) {
+            var r = s.split('=');
+            acc[r[0]] = r.slice(1).join('=');
+            return acc;
+          }, {});
+          if (params.p !== undefined) {
+            window.history.replaceState(
+              null, null,
+              decodeURIComponent(params.p) + (params.h ? decodeURIComponent(params.h) : '')
+            );
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
