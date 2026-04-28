@@ -1,13 +1,20 @@
-import { useState, useRef } from 'react'
-import emailjs from '@emailjs/browser'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Upload, ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react'
 
-// ─── Credenciais EmailJS ───────────────────────────────────────────────────────
-// Crie sua conta em https://emailjs.com e preencha abaixo:
-const EMAILJS_SERVICE_ID  = 'SEU_SERVICE_ID'   // Ex: 'service_abc123'
-const EMAILJS_TEMPLATE_ID = 'SEU_TEMPLATE_ID'  // Ex: 'template_xyz456'
-const EMAILJS_PUBLIC_KEY  = 'SUA_PUBLIC_KEY'   // Ex: 'user_XXXXXXXXXXXXXXXX'
+// ─── Google Forms – configuração ──────────────────────────────────────────────
+const GOOGLE_FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLScr3n5U5fdtix3DB6bXhdMyQZvp6AT_oncTHm3zxgoqadMrjA/formResponse'
+const ENTRIES = {
+  email:           'emailAddress',
+  empresa:         'entry.1741242545',
+  localizacao:     'entry.1863498895',
+  padraoEntrada:   'entry.845018163',
+  inversor:        'entry.2141607241',
+  placa:           'entry.667742013',
+  inversorHibrido: 'entry.749531846',
+  mudancaPadrao:   'entry.18116731',
+  rateioCreditos:  'entry.1428365114',
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PADRÃO_OPTIONS = [
@@ -18,7 +25,6 @@ const PADRÃO_OPTIONS = [
 ]
 
 export default function Homologacao() {
-  const formRef = useRef(null)
   const [form, setForm] = useState({
     email: '',
     empresa: '',
@@ -55,17 +61,26 @@ export default function Homologacao() {
     setSending(true)
     setError(false)
 
-    emailjs
-      .sendForm(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, formRef.current, EMAILJS_PUBLIC_KEY)
-      .then(() => {
-        setSubmitted(true)
-      })
-      .catch(() => {
-        setError(true)
-      })
-      .finally(() => {
-        setSending(false)
-      })
+    const fileNames = Object.entries(files)
+      .filter(([, f]) => f)
+      .map(([k, f]) => `${k}: ${f.name}`)
+      .join(' | ')
+
+    const body = new FormData()
+    body.append(ENTRIES.email,           form.email)
+    body.append(ENTRIES.empresa,         form.empresa)
+    body.append(ENTRIES.localizacao,     form.localizacao)
+    body.append(ENTRIES.padraoEntrada,   form.padraoEntrada)
+    body.append(ENTRIES.inversor,        form.inversor)
+    body.append(ENTRIES.placa,           form.placa)
+    body.append(ENTRIES.inversorHibrido, form.inversorHibrido)
+    body.append(ENTRIES.mudancaPadrao,   form.mudancaPadrao === 'Outro' ? `Outro: ${form.mudancaOutro}` : form.mudancaPadrao)
+    body.append(ENTRIES.rateioCreditos,  form.rateioCreditcredit)
+
+    fetch(GOOGLE_FORM_ACTION, { method: 'POST', mode: 'no-cors', body })
+      .then(() => setSubmitted(true))
+      .catch(() => setError(true))
+      .finally(() => setSending(false))
   }
 
   if (submitted) {
@@ -114,7 +129,7 @@ export default function Homologacao() {
           A ausência de qualquer item poderá acarretar atrasos na análise do processo.
         </div>
 
-        <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Empresa */}
           <Section title="Identificação">
             <Field label="Seu e-mail" required>
@@ -283,7 +298,7 @@ export default function Homologacao() {
           {error && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm">
               <AlertCircle size={16} />
-              Ocorreu um erro ao enviar. Verifique as credenciais do EmailJS ou tente novamente.
+              Ocorreu um erro ao enviar. Verifique a URL do Google Form e tente novamente.
             </div>
           )}
 
