@@ -2,19 +2,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Upload, ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react'
 
-// ─── Google Forms – configuração ──────────────────────────────────────────────
-const GOOGLE_FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLScr3n5U5fdtix3DB6bXhdMyQZvp6AT_oncTHm3zxgoqadMrjA/formResponse'
-const ENTRIES = {
-  email:           'emailAddress',
-  empresa:         'entry.1741242545',
-  localizacao:     'entry.1863498895',
-  padraoEntrada:   'entry.845018163',
-  inversor:        'entry.2141607241',
-  placa:           'entry.667742013',
-  inversorHibrido: 'entry.749531846',
-  mudancaPadrao:   'entry.18116731',
-  rateioCreditos:  'entry.1428365114',
-}
+// ─── Web3Forms – configuração ─────────────────────────────────────────────────
+// 1. Crie conta gratuita em https://web3forms.com
+// 2. Clique em "Create your Access Key" e cole abaixo:
+const WEB3FORMS_ACCESS_KEY = 'SUA_ACCESS_KEY_AQUI'
+// Os dados e arquivos serão entregues no email cadastrado.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PADRÃO_OPTIONS = [
@@ -61,24 +53,29 @@ export default function Homologacao() {
     setSending(true)
     setError(false)
 
-    const fileNames = Object.entries(files)
-      .filter(([, f]) => f)
-      .map(([k, f]) => `${k}: ${f.name}`)
-      .join(' | ')
-
     const body = new FormData()
-    body.append(ENTRIES.email,           form.email)
-    body.append(ENTRIES.empresa,         form.empresa)
-    body.append(ENTRIES.localizacao,     form.localizacao)
-    body.append(ENTRIES.padraoEntrada,   form.padraoEntrada)
-    body.append(ENTRIES.inversor,        form.inversor)
-    body.append(ENTRIES.placa,           form.placa)
-    body.append(ENTRIES.inversorHibrido, form.inversorHibrido)
-    body.append(ENTRIES.mudancaPadrao,   form.mudancaPadrao === 'Outro' ? `Outro: ${form.mudancaOutro}` : form.mudancaPadrao)
-    body.append(ENTRIES.rateioCreditos,  form.rateioCreditcredit)
+    body.append('access_key', WEB3FORMS_ACCESS_KEY)
+    body.append('subject', 'Novo Formulário de Homologação - MPS Projetos Elétricos')
+    body.append('E-mail', form.email)
+    body.append('Empresa Parceira', form.empresa)
+    body.append('Localização', form.localizacao)
+    body.append('Padrão de Entrada', form.padraoEntrada)
+    body.append('Inversor', form.inversor)
+    body.append('Placa', form.placa)
+    body.append('Inversor Híbrido', form.inversorHibrido)
+    body.append('Mudança no Padrão', form.mudancaPadrao === 'Outro' ? `Outro: ${form.mudancaOutro}` : form.mudancaPadrao)
+    body.append('Rateio de Créditos', form.rateioCreditcredit)
+    if (files.documento)    body.append('Documento de Identificação', files.documento)
+    if (files.procuracao)   body.append('Procuração', files.procuracao)
+    if (files.fatura)       body.append('Fatura de Energia', files.fatura)
+    if (files.titularidade) body.append('Documentos do Titular Correto', files.titularidade)
 
-    fetch(GOOGLE_FORM_ACTION, { method: 'POST', mode: 'no-cors', body })
-      .then(() => setSubmitted(true))
+    fetch('https://api.web3forms.com/submit', { method: 'POST', body })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setSubmitted(true)
+        else setError(true)
+      })
       .catch(() => setError(true))
       .finally(() => setSending(false))
   }
