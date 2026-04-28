@@ -63,7 +63,7 @@ export default function Navbar({ dark, onToggleDark }) {
         <div className="hidden md:flex items-center gap-3 shrink-0">
           <Link
             to="/homologacao"
-            className="bg-[#f5a623] text-[#1a2e5a] px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition-colors duration-200"
+            className="bg-[#f5a623] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition-colors duration-200"
           >
             Solicitar Homologação
           </Link>
@@ -95,7 +95,7 @@ export default function Navbar({ dark, onToggleDark }) {
           <Link
             to="/homologacao"
             onClick={() => setOpen(false)}
-            className="bg-[#f5a623] text-[#1a2e5a] px-4 py-2 rounded-lg text-sm font-bold text-center hover:bg-yellow-400 transition-colors"
+            className="bg-[#f5a623] text-white px-4 py-2 rounded-lg text-sm font-bold text-center hover:bg-yellow-400 transition-colors"
           >
             Solicitar Homologação
           </Link>
@@ -103,7 +103,7 @@ export default function Navbar({ dark, onToggleDark }) {
             onClick={() => { onToggleDark(); setOpen(false) }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-bold transition-colors ${
               dark
-                ? 'bg-[#f5a623] border-[#f5a623] text-[#1a2e5a]'
+                ? 'bg-[#f5a623] border-[#f5a623] text-white'
                 : 'bg-transparent border-[#f5a623] text-[#f5a623]'
             }`}
           >

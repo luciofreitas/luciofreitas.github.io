@@ -122,7 +122,7 @@ export default function Home() {
                 e.preventDefault()
                 document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' })
               }}
-              className="bg-[#f5a623] text-[#1a2e5a] font-bold px-8 py-3 rounded-lg hover:bg-yellow-400 transition-colors text-lg"
+              className="bg-[#f5a623] text-white font-bold px-8 py-3 rounded-lg hover:bg-yellow-400 transition-colors text-lg"
             >
               Solicitar Orçamento
             </a>
@@ -228,7 +228,7 @@ export default function Home() {
           <div className="text-center mt-10">
             <Link
               to="/homologacao"
-              className="inline-block bg-[#f5a623] text-[#1a2e5a] font-bold px-8 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
+              className="inline-block bg-[#f5a623] text-white font-bold px-8 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
             >
               Solicitar Homologação Fotovoltaica
             </Link>

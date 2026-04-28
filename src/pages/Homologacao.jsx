@@ -79,7 +79,7 @@ export default function Homologacao() {
           </p>
           <button
             onClick={() => { setSubmitted(false); setForm({ email: '', empresa: '', localizacao: '', padraoEntrada: '', inversor: '', placa: '', inversorHibrido: '', mudancaPadrao: '', mudancaOutro: '', rateioCreditcredit: '' }); setFiles({ documento: null, procuracao: null, fatura: null, titularidade: null }) }}
-            className="bg-[#f5a623] text-[#1a2e5a] font-bold px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
+            className="bg-[#f5a623] text-white font-bold px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
           >
             Enviar novo formulário
           </button>
