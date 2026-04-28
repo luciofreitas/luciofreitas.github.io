@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, Zap } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Menu, X, Zap, User } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 const navLinks = [
   { label: 'Início', href: '/#inicio' },
@@ -11,6 +12,7 @@ const navLinks = [
 ]
 
 export default function Navbar({ dark, onToggleDark }) {
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
@@ -59,13 +61,18 @@ export default function Navbar({ dark, onToggleDark }) {
           ))}
         </nav>
 
-        {/* Botão — direita */}
+        {/* Ícone de usuário — direita */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
           <Link
-            to="/homologacao"
-            className="bg-[#f5a623] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition-colors duration-200"
+            to={user ? '/portal' : '/login'}
+            aria-label="Área do cliente"
+            className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors duration-200 overflow-hidden"
           >
-            Solicitar Homologação
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+            ) : (
+              <User size={20} className="text-white" />
+            )}
           </Link>
         </div>
 
@@ -93,11 +100,12 @@ export default function Navbar({ dark, onToggleDark }) {
             </a>
           ))}
           <Link
-            to="/homologacao"
+            to={user ? '/portal' : '/login'}
             onClick={() => setOpen(false)}
-            className="bg-[#f5a623] text-white px-4 py-2 rounded-lg text-sm font-bold text-center hover:bg-yellow-400 transition-colors"
+            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold text-center flex items-center justify-center gap-2 transition-colors"
           >
-            Solicitar Homologação
+            <User size={16} />
+            {user ? 'Minha Área' : 'Área do Cliente'}
           </Link>
           <button
             onClick={() => { onToggleDark(); setOpen(false) }}

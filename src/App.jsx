@@ -1,13 +1,22 @@
 ﻿import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Zap } from 'lucide-react'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home'
 import Homologacao from './pages/Homologacao'
+import Login from './pages/Login'
+import Portal from './pages/Portal'
 import './index.css'
 
-export default function App() {
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  return user ? children : <Navigate to="/login" replace />
+}
+
+function AppContent() {
   const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
 
   useEffect(() => {
@@ -18,9 +27,8 @@ export default function App() {
   const toggle = () => setDark((d) => !d)
 
   return (
-    <BrowserRouter>
+    <>
       <Navbar dark={dark} onToggleDark={toggle} />
-      {/* Botão raio fixo no canto superior direito */}
       <button
         onClick={toggle}
         aria-label="Alternar modo escuro"
@@ -35,9 +43,21 @@ export default function App() {
       </button>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/homologacao" element={<Homologacao />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/portal" element={<ProtectedRoute><Portal /></ProtectedRoute>} />
+        <Route path="/homologacao" element={<ProtectedRoute><Homologacao /></ProtectedRoute>} />
       </Routes>
       <Footer />
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </BrowserRouter>
   )
 }
