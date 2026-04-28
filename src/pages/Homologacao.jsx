@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import emailjs from '@emailjs/browser'
 import { Link } from 'react-router-dom'
 import { Upload, ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react'
 
-// Google Forms field entry IDs (obtained from the form's prefill URL)
-const GOOGLE_FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSdrGvqV1-4YDr9wV4JSa7zbZuN-8EfeHQtkvW3Njvr2p9j4uetpZ4/formResponse'
+// ─── Credenciais EmailJS ───────────────────────────────────────────────────────
+// Crie sua conta em https://emailjs.com e preencha abaixo:
+const EMAILJS_SERVICE_ID  = 'SEU_SERVICE_ID'   // Ex: 'service_abc123'
+const EMAILJS_TEMPLATE_ID = 'SEU_TEMPLATE_ID'  // Ex: 'template_xyz456'
+const EMAILJS_PUBLIC_KEY  = 'SUA_PUBLIC_KEY'   // Ex: 'user_XXXXXXXXXXXXXXXX'
+// ─────────────────────────────────────────────────────────────────────────────
 
 const PADRÃO_OPTIONS = [
   'AUMENTO DE CARGA',
@@ -13,6 +18,7 @@ const PADRÃO_OPTIONS = [
 ]
 
 export default function Homologacao() {
+  const formRef = useRef(null)
   const [form, setForm] = useState({
     email: '',
     empresa: '',
@@ -33,6 +39,7 @@ export default function Homologacao() {
   })
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(false)
+  const [sending, setSending] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -45,30 +52,20 @@ export default function Homologacao() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Google Forms doesn't support CORS file uploads via fetch.
-    // We open the native form with prefilled data as fallback.
-    try {
-      const params = new URLSearchParams()
-      if (form.email) params.set('entry.emailAddress', form.email)
-      if (form.empresa) params.set('entry.empresa', form.empresa)
-      if (form.localizacao) params.set('entry.localizacao', form.localizacao)
-      if (form.padraoEntrada) params.set('entry.padraoEntrada', form.padraoEntrada)
-      if (form.inversor) params.set('entry.inversor', form.inversor)
-      if (form.placa) params.set('entry.placa', form.placa)
-      if (form.inversorHibrido) params.set('entry.inversorHibrido', form.inversorHibrido)
-      const mudanca = form.mudancaPadrao === 'Outro' ? form.mudancaOutro : form.mudancaPadrao
-      if (mudanca) params.set('entry.mudancaPadrao', mudanca)
-      if (form.rateioCreditcredit) params.set('entry.rateioCreditcredit', form.rateioCreditcredit)
+    setSending(true)
+    setError(false)
 
-      // Open Google Form with prefill for user to attach files and submit
-      window.open(
-        `https://docs.google.com/forms/d/1YDr9wV4JSa7zbZuN-8EfeHQtkvW3Njvr2p9j4uetpZ4/viewform?${params.toString()}`,
-        '_blank'
-      )
-      setSubmitted(true)
-    } catch {
-      setError(true)
-    }
+    emailjs
+      .sendForm(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, formRef.current, EMAILJS_PUBLIC_KEY)
+      .then(() => {
+        setSubmitted(true)
+      })
+      .catch(() => {
+        setError(true)
+      })
+      .finally(() => {
+        setSending(false)
+      })
   }
 
   if (submitted) {
@@ -76,29 +73,16 @@ export default function Homologacao() {
       <main className="pt-16 min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-lg p-10 max-w-lg w-full text-center">
           <CheckCircle size={56} className="text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-extrabold text-[#1a2e5a] mb-2">Quase lá!</h2>
-          <p className="text-gray-600 mb-4">
-            Abrimos o formulário do Google com seus dados preenchidos. Por favor, <strong>anexe os documentos</strong> e clique em <strong>Enviar</strong> na aba que abriu.
+          <h2 className="text-2xl font-extrabold text-[#1a2e5a] mb-2">Formulário enviado!</h2>
+          <p className="text-gray-600 mb-6">
+            Recebemos suas informações com sucesso. Nossa equipe entrará em contato em breve pelo e-mail informado.
           </p>
-          <p className="text-gray-500 text-sm mb-6">
-            Se a aba não abriu, verifique se o bloqueador de pop-ups está ativo.
-          </p>
-          <div className="flex flex-col gap-3">
-            <a
-              href="https://docs.google.com/forms/d/1YDr9wV4JSa7zbZuN-8EfeHQtkvW3Njvr2p9j4uetpZ4/viewform"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#f5a623] text-[#1a2e5a] font-bold px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
-            >
-              Abrir Formulário do Google
-            </a>
-            <button
-              onClick={() => setSubmitted(false)}
-              className="text-[#1a2e5a] underline text-sm"
-            >
-              Voltar e editar dados
-            </button>
-          </div>
+          <button
+            onClick={() => { setSubmitted(false); setForm({ email: '', empresa: '', localizacao: '', padraoEntrada: '', inversor: '', placa: '', inversorHibrido: '', mudancaPadrao: '', mudancaOutro: '', rateioCreditcredit: '' }); setFiles({ documento: null, procuracao: null, fatura: null, titularidade: null }) }}
+            className="bg-[#f5a623] text-[#1a2e5a] font-bold px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
+          >
+            Enviar novo formulário
+          </button>
         </div>
       </main>
     )
@@ -130,7 +114,7 @@ export default function Homologacao() {
           A ausência de qualquer item poderá acarretar atrasos na análise do processo.
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
           {/* Empresa */}
           <Section title="Identificação">
             <Field label="Seu e-mail" required>
@@ -299,20 +283,16 @@ export default function Homologacao() {
           {error && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm">
               <AlertCircle size={16} />
-              Ocorreu um erro ao abrir o formulário. Tente novamente ou acesse diretamente o link do Google Forms.
+              Ocorreu um erro ao enviar. Verifique as credenciais do EmailJS ou tente novamente.
             </div>
           )}
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-            <strong>Como funciona:</strong> Ao clicar em "Enviar", abriremos o formulário oficial do Google com seus dados já preenchidos. 
-            Você precisará anexar os documentos e clicar em <strong>Enviar</strong> lá.
-          </div>
-
           <button
             type="submit"
-            className="w-full bg-[#1a2e5a] hover:bg-[#0f1e3d] text-white font-bold py-4 rounded-xl text-lg transition-colors"
+            disabled={sending}
+            className="w-full bg-[#1a2e5a] hover:bg-[#0f1e3d] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg transition-colors"
           >
-            Preencher e Abrir Formulário de Homologação
+            {sending ? 'Enviando...' : 'Enviar Formulário de Homologação'}
           </button>
         </form>
       </div>

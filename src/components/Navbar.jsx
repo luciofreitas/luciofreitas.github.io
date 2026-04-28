@@ -10,7 +10,7 @@ const navLinks = [
   { label: 'Contato', href: '/#contato' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ dark, onToggleDark }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
@@ -37,16 +37,16 @@ export default function Navbar() {
         scrolled ? 'bg-[#1a2e5a] shadow-lg' : 'bg-[#1a2e5a]/90 backdrop-blur-sm'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 text-white font-bold text-xl">
+      <div className="max-w-6xl mx-auto px-4 flex items-center h-16">
+        {/* Logo — esquerda */}
+        <Link to="/" className="flex items-center gap-2 text-white font-bold text-xl shrink-0">
           <Zap className="text-[#f5a623]" size={24} />
           <span>MPS</span>
           <span className="text-[#f5a623] font-light text-sm hidden sm:block">Projetos Elétricos</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6">
+        {/* Desktop nav — centro */}
+        <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
           {navLinks.map((link) => (
             <a
               key={link.label}
@@ -57,17 +57,21 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
+        </nav>
+
+        {/* Botão — direita */}
+        <div className="hidden md:flex items-center gap-3 shrink-0">
           <Link
             to="/homologacao"
             className="bg-[#f5a623] text-[#1a2e5a] px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition-colors duration-200"
           >
             Solicitar Homologação
           </Link>
-        </nav>
+        </div>
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden text-white p-1"
+          className="md:hidden text-white p-1 ml-auto"
           onClick={() => setOpen(!open)}
           aria-label="Menu"
         >
@@ -95,6 +99,17 @@ export default function Navbar() {
           >
             Solicitar Homologação
           </Link>
+          <button
+            onClick={() => { onToggleDark(); setOpen(false) }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-bold transition-colors ${
+              dark
+                ? 'bg-[#f5a623] border-[#f5a623] text-[#1a2e5a]'
+                : 'bg-transparent border-[#f5a623] text-[#f5a623]'
+            }`}
+          >
+            <Zap size={16} />
+            {dark ? 'Modo Claro' : 'Modo Escuro'}
+          </button>
         </div>
       )}
     </header>
