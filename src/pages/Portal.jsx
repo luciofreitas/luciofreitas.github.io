@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, FileText, Clock, CheckCircle, ChevronRight, User } from 'lucide-react'
+import { LogOut, FileText, Clock, CheckCircle, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import HomologacaoForm from './HomologacaoForm'
 
@@ -90,12 +90,9 @@ function ProcessosTab({ onNew }) {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
         <FileText size={48} className="text-gray-200 mx-auto mb-4" />
         <h3 className="text-gray-500 font-semibold mb-1">Nenhum processo ainda</h3>
-        <p className="text-gray-400 text-sm mb-6">
-          Clique em "Novo Processo" para enviar seus documentos e iniciar a homologação.
+        <p className="text-gray-400 text-sm">
+          Clique em "+ Novo Processo" para enviar seus documentos e iniciar a homologação.
         </p>
-        <button onClick={onNew} className="inline-flex items-center gap-2 bg-[#1a2e5a] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#0f1e3d] transition-colors">
-          Iniciar processo <ChevronRight size={16} />
-        </button>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-4 text-xs text-gray-500">
