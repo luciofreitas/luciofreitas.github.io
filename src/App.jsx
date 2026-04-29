@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Zap } from 'lucide-react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
@@ -10,6 +10,12 @@ import Login from './pages/Login'
 import Portal from './pages/Portal'
 import ServicoPage from './pages/ServicoPage'
 import './index.css'
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -29,6 +35,7 @@ function AppContent() {
 
   return (
     <>
+      <ScrollToTop />
       <Navbar dark={dark} onToggleDark={toggle} />
       {/* Botão raio fixo — canto inferior direito */}
       <button
