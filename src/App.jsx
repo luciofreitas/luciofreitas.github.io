@@ -16,14 +16,13 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" replace />
 }
 
-// Redireciona para /portal após login OAuth sem full page reload
+// Redireciona para /portal após login OAuth detectando access_token no hash
 function AuthRedirect() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!loading && user && sessionStorage.getItem('oauth_pending')) {
-      sessionStorage.removeItem('oauth_pending')
+    if (!loading && user && window.location.hash.includes('access_token')) {
       navigate('/portal', { replace: true })
     }
   }, [user, loading, navigate])

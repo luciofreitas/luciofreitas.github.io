@@ -20,13 +20,11 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signInWithGoogle = () => {
-    sessionStorage.setItem('oauth_pending', '1')
-    return supabase.auth.signInWithOAuth({
+  const signInWithGoogle = () =>
+    supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/' },
     })
-  }
 
   const signOut = () => supabase.auth.signOut()
 
