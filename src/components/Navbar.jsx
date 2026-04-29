@@ -58,16 +58,18 @@ export default function Navbar({ dark, onToggleDark }) {
         scrolled ? 'bg-[#1a2e5a] shadow-lg' : 'bg-[#1a2e5a]/90 backdrop-blur-sm'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-4 flex items-center h-16">
+      <div className="w-full px-4 sm:px-6 lg:px-10 flex items-center h-16">
         {/* Logo — esquerda */}
-        <Link to="/" className="flex items-center gap-2 text-white font-bold text-xl shrink-0">
-          <Zap className="text-[#f5a623]" size={24} />
-          <span>MPS</span>
-          <span className="text-[#f5a623] font-light text-sm hidden sm:block">Projetos Elétricos</span>
-        </Link>
+        <div className="flex-1">
+          <Link to="/" className="flex items-center gap-2 text-white font-bold text-xl">
+            <Zap className="text-[#f5a623]" size={24} />
+            <span>MPS</span>
+            <span className="text-[#f5a623] font-light text-sm hidden sm:block">Projetos Elétricos</span>
+          </Link>
+        </div>
 
         {/* Desktop nav — centro */}
-        <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
+        <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
             <a
               key={link.label}
@@ -96,7 +98,7 @@ export default function Navbar({ dark, onToggleDark }) {
         </nav>
 
         {/* Ícone de usuário — direita */}
-        <div className="hidden md:flex items-center gap-3 shrink-0">
+        <div className="hidden md:flex items-center gap-3 flex-1 justify-end">
           {user ? (
             <div className="relative" ref={userMenuRef}>
               <button
