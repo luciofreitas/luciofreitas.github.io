@@ -8,8 +8,8 @@ const navLinks = [
   { label: 'Sobre', href: '/#sobre' },
   { label: 'Serviços', href: '/#servicos' },
   { label: 'Equipe', href: '/#equipe' },
-  { label: 'Contato', href: '/#contato' },
 ]
+const contatoLink = { label: 'Contato', href: '/#contato' }
 
 export default function Navbar({ dark, onToggleDark }) {
   const { user, signOut } = useAuth()
@@ -86,6 +86,13 @@ export default function Navbar({ dark, onToggleDark }) {
               Homologação
             </Link>
           )}
+          <a
+            href={contatoLink.href}
+            onClick={(e) => handleNavClick(e, contatoLink.href)}
+            className="text-white/90 hover:text-[#f5a623] text-sm font-medium transition-colors duration-200"
+          >
+            {contatoLink.label}
+          </a>
         </nav>
 
         {/* Ícone de usuário — direita */}
@@ -163,6 +170,13 @@ export default function Navbar({ dark, onToggleDark }) {
               Homologação
             </Link>
           )}
+          <a
+            href={contatoLink.href}
+            onClick={(e) => { handleNavClick(e, contatoLink.href); setOpen(false) }}
+            className="text-white/90 hover:text-[#f5a623] font-medium py-1"
+          >
+            {contatoLink.label}
+          </a>
           <Link
             to={user ? '/portal' : '/login'}
             onClick={() => setOpen(false)}
