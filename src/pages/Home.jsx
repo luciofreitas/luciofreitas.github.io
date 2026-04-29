@@ -1,61 +1,11 @@
 import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Zap, Sun, Car, Lightbulb, CheckCircle, Phone, Mail, MapPin, Building2, TrendingUp, Gauge, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle, Phone, Mail, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { services } from '../data/services'
 
 const HERO_IMG = '/imagens/foto-apresentacao.jpeg'
 const MARIANA_IMG = 'https://static.wixstatic.com/media/1c7735_7217d17fa1de4b96aa45ab268a0c93d5~mv2.jpg/v1/crop/x_17,y_0,w_1046,h_1080/fill/w_403,h_416,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/mari-wats_edited.jpg'
 const PAULO_IMG = 'https://static.wixstatic.com/media/1c7735_681415656ffd46b4aad085b9ab959185~mv2.png/v1/crop/x_17,y_0,w_1046,h_1080/fill/w_403,h_416,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/paulo.png'
-
-const services = [
-  {
-    icon: <Zap size={32} className="text-[#f5a623]" />,
-    title: 'Projetos Elétricos Prediais',
-    description: 'Segurança e eficiência para obras residenciais, comerciais e industriais conforme normas ABNT.',
-    items: ['Projetos elétricos prediais e industriais', 'Ligação nova', 'Projetos para shoppings'],
-  },
-  {
-    icon: <Sun size={32} className="text-[#f5a623]" />,
-    title: 'Projetos Fotovoltaicos',
-    description: 'Homologação e projetos executivos para energia solar, desde microgeração até minigeração.',
-    items: ['Homologação microgeração e minigeração', 'Projeto executivo micro/minigeração', 'Projeto para consulta de acesso', 'Laudos de fatura de energia elétrica'],
-  },
-  {
-    icon: <Car size={32} className="text-[#f5a623]" />,
-    title: 'Carregadores Veiculares',
-    description: 'Infraestrutura dedicada e segura para estações de recarga de veículos elétricos.',
-    items: ['Visita técnica inclusa', 'Projeto de instalação', 'ART (Anotação de Responsabilidade Técnica)'],
-  },
-  {
-    icon: <Building2 size={32} className="text-[#f5a623]" />,
-    title: 'Projetos de Subestações',
-    description: 'Dimensionamento de subestações de média tensão para distribuição eficiente de energia.',
-    items: ['Subestações de média tensão', 'Distribuição de energia', 'Conformidade com normas técnicas'],
-  },
-  {
-    icon: <TrendingUp size={32} className="text-[#f5a623]" />,
-    title: 'Aumento de Carga',
-    description: 'Adequação técnica da infraestrutura elétrica para suportar novas demandas de potência.',
-    items: ['Análise de demanda', 'Projeto de adequação', 'Aprovação junto à concessionária'],
-  },
-  {
-    icon: <Gauge size={32} className="text-[#f5a623]" />,
-    title: 'Medição Coletiva e Individual',
-    description: 'Centros de medição agrupada ou individualizados conforme normas da concessionária.',
-    items: ['Medição coletiva', 'Medição individual', 'Conformidade com normas da concessionária'],
-  },
-  {
-    icon: <Shield size={32} className="text-[#f5a623]" />,
-    title: 'SPDA — Para-raios',
-    description: 'Sistemas de proteção contra descargas atmosféricas e laudos de conformidade técnica.',
-    items: ['Projeto de SPDA', 'Laudo técnico de conformidade', 'Inspeção e manutenção'],
-  },
-  {
-    icon: <Lightbulb size={32} className="text-[#f5a623]" />,
-    title: 'Consultoria Especializada',
-    description: 'Orientações precisas e soluções inovadoras para sua instalação.',
-    items: ['Diagnóstico de instalações', 'Adequação a normas técnicas', 'Suporte em todas as etapas'],
-  },
-]
 
 const stats = [
   { value: '1.000+', label: 'Projetos concluídos' },
@@ -171,14 +121,15 @@ export default function Home() {
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {services.map((s) => (
-                <div
+                <Link
                   key={s.title}
-                  className="flex-none w-[260px] sm:w-[300px] md:w-[320px] bg-white rounded-2xl p-5 sm:p-7 shadow-sm hover:shadow-md transition-shadow border border-gray-100 group"
+                  to={`/servicos/${s.slug}`}
+                  className="flex-none w-[260px] sm:w-[300px] md:w-[320px] bg-white rounded-2xl p-5 sm:p-7 shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer"
                 >
                   <div className="mb-4 w-14 h-14 rounded-xl bg-[#1a2e5a]/5 flex items-center justify-center group-hover:bg-[#1a2e5a]/10 transition-colors">
                     {s.icon}
                   </div>
-                  <h3 className="text-lg font-bold text-[#1a2e5a] mb-2">{s.title}</h3>
+                  <h3 className="text-lg font-bold text-[#1a2e5a] mb-2 group-hover:text-[#f5a623] transition-colors">{s.title}</h3>
                   <p className="text-gray-500 text-sm mb-4">{s.description}</p>
                   <ul className="space-y-2">
                     {s.items.map((item) => (
@@ -188,7 +139,8 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
-                </div>
+                  <span className="inline-block mt-4 text-xs font-semibold text-[#f5a623] group-hover:underline">Saiba mais →</span>
+                </Link>
               ))}
             </div>
 

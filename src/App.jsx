@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import Homologacao from './pages/Homologacao'
 import Login from './pages/Login'
 import Portal from './pages/Portal'
+import ServicoPage from './pages/ServicoPage'
 import './index.css'
 
 function ProtectedRoute({ children }) {
@@ -44,6 +45,7 @@ function AppContent() {
       </button>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/servicos/:slug" element={<ServicoPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/portal" element={<ProtectedRoute><Portal /></ProtectedRoute>} />
         <Route path="/homologacao" element={<ProtectedRoute><Homologacao /></ProtectedRoute>} />
