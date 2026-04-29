@@ -15,16 +15,26 @@ export function AuthProvider({ children }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      // Redireciona para o destino guardado antes do OAuth
+      if (_event === 'SIGNED_IN') {
+        const dest = localStorage.getItem('oauth_dest')
+        if (dest) {
+          localStorage.removeItem('oauth_dest')
+          window.location.href = dest
+        }
+      }
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  const signInWithGoogle = () =>
-    supabase.auth.signInWithOAuth({
+  const signInWithGoogle = () => {
+    localStorage.setItem('oauth_dest', window.location.origin + '/portal')
+    return supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/' },
     })
+  }
 
   const signOut = () => supabase.auth.signOut()
 
