@@ -30,18 +30,20 @@ export default function Navbar({ dark, onToggleDark }) {
   useEffect(() => {
     if (location.pathname !== '/') return
     const sectionIds = [...navLinks.map(l => l.href.slice(2)), contatoLink.href.slice(2)]
-    const observers = []
-    sectionIds.forEach((id) => {
-      const el = document.getElementById(id)
-      if (!el) return
-      const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setActiveSection(id) },
-        { threshold: 0.4 }
-      )
-      obs.observe(el)
-      observers.push(obs)
-    })
-    return () => observers.forEach(obs => obs.disconnect())
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY + 80
+      let current = sectionIds[0]
+      sectionIds.forEach((id) => {
+        const el = document.getElementById(id)
+        if (el && el.offsetTop <= scrollY) current = id
+      })
+      setActiveSection(current)
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [location.pathname])
 
   useEffect(() => {
@@ -66,6 +68,7 @@ export default function Navbar({ dark, onToggleDark }) {
       if (location.pathname !== '/') return
       e.preventDefault()
       const id = href.slice(2)
+      setActiveSection(id)
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
     }
   }
