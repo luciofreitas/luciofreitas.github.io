@@ -115,12 +115,12 @@ export default function Navbar({ dark, onToggleDark }) {
                     <p className="text-xs text-gray-400">Logado como</p>
                     <p className="text-sm font-semibold text-[#1a2e5a] truncate">{user?.user_metadata?.full_name || user?.email?.split('@')[0]}</p>
                   </div>
-                  <Link to="/portal" onClick={() => setUserMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <UserCircle size={16} className="text-[#1a2e5a]" /> Perfil
-                  </Link>
-                  <Link to="/portal" onClick={() => setUserMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <Settings size={16} className="text-[#1a2e5a]" /> Configurações
-                  </Link>
+                  <button disabled className="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 cursor-not-allowed w-full">
+                    <UserCircle size={16} /> Perfil
+                  </button>
+                  <button disabled className="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 cursor-not-allowed w-full">
+                    <Settings size={16} /> Configurações
+                  </button>
                   <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
                     <LogOut size={16} /> Sair
                   </button>
