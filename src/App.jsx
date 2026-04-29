@@ -10,19 +10,22 @@ import Login from './pages/Login'
 import Portal from './pages/Portal'
 import './index.css'
 
+// Captura ANTES do Supabase limpar o hash da URL (código de módulo é síncrono)
+const cameFromOAuth = window.location.hash.includes('access_token')
+
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return null
   return user ? children : <Navigate to="/login" replace />
 }
 
-// Redireciona para /portal após login OAuth detectando access_token no hash
+// Redireciona para /portal após login OAuth
 function AuthRedirect() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!loading && user && window.location.hash.includes('access_token')) {
+    if (!loading && user && cameFromOAuth) {
       navigate('/portal', { replace: true })
     }
   }, [user, loading, navigate])
