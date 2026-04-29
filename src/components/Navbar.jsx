@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, Zap, User } from 'lucide-react'
+import { Menu, X, Zap, User, LogOut, Settings, UserCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const navLinks = [
@@ -12,16 +12,35 @@ const navLinks = [
 ]
 
 export default function Navbar({ dark, onToggleDark }) {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [userMenu, setUserMenu] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
+  const userMenuRef = useRef(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const handleSignOut = async () => {
+    setUserMenu(false)
+    await signOut()
+    navigate('/')
+  }
 
   const handleNavClick = (e, href) => {
     setOpen(false)
@@ -59,21 +78,57 @@ export default function Navbar({ dark, onToggleDark }) {
               {link.label}
             </a>
           ))}
+          {user && (
+            <Link
+              to="/portal"
+              className="text-white/90 hover:text-[#f5a623] text-sm font-medium transition-colors duration-200"
+            >
+              Homologação
+            </Link>
+          )}
         </nav>
 
         {/* Ícone de usuário — direita */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
-          <Link
-            to={user ? '/portal' : '/login'}
-            aria-label="Área do cliente"
-            className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors duration-200 overflow-hidden"
-          >
-            {user?.user_metadata?.avatar_url ? (
-              <img src={user.user_metadata.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-            ) : (
+          {user ? (
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenu((v) => !v)}
+                className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors duration-200 overflow-hidden"
+              >
+                {user?.user_metadata?.avatar_url ? (
+                  <img src={user.user_metadata.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={20} className="text-white" />
+                )}
+              </button>
+              {userMenu && (
+                <div className="absolute right-0 top-11 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-xs text-gray-400">Logado como</p>
+                    <p className="text-sm font-semibold text-[#1a2e5a] truncate">{user?.user_metadata?.full_name || user?.email?.split('@')[0]}</p>
+                  </div>
+                  <Link to="/portal" onClick={() => setUserMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <UserCircle size={16} className="text-[#1a2e5a]" /> Perfil
+                  </Link>
+                  <Link to="/portal" onClick={() => setUserMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <Settings size={16} className="text-[#1a2e5a]" /> Configurações
+                  </Link>
+                  <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                    <LogOut size={16} /> Sair
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              aria-label="Área do cliente"
+              className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors duration-200"
+            >
               <User size={20} className="text-white" />
-            )}
-          </Link>
+            </Link>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -99,6 +154,15 @@ export default function Navbar({ dark, onToggleDark }) {
               {link.label}
             </a>
           ))}
+          {user && (
+            <Link
+              to="/portal"
+              onClick={() => setOpen(false)}
+              className="text-white/90 hover:text-[#f5a623] font-medium py-1"
+            >
+              Homologação
+            </Link>
+          )}
           <Link
             to={user ? '/portal' : '/login'}
             onClick={() => setOpen(false)}

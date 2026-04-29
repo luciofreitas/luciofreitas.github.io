@@ -1,51 +1,15 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { LogOut, FileText, Clock, CheckCircle, User } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
+import { FileText, Clock, CheckCircle } from 'lucide-react'
 import HomologacaoForm from './HomologacaoForm'
 
 export default function Portal() {
-  const { user, signOut } = useAuth()
-  const navigate = useNavigate()
   const [tab, setTab] = useState('processos')
-
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
-  }
-
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Cliente'
-  const avatarUrl = user?.user_metadata?.avatar_url
 
   return (
     <main className="min-h-screen bg-gray-50 pt-16">
-      {/* Header do portal */}
+      {/* Tabs */}
       <div className="bg-[#1a2e5a] text-white">
-        <div className="max-w-5xl mx-auto px-4 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="w-10 h-10 rounded-full object-cover" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-[#f5a623] flex items-center justify-center">
-                <User size={20} className="text-white" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-xs text-white/60">Bem-vindo,</p>
-              <p className="font-bold truncate max-w-[140px] sm:max-w-none">{displayName}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors"
-          >
-            <LogOut size={16} />
-            Sair
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="max-w-5xl mx-auto px-4 flex gap-6 border-t border-white/10">
+        <div className="max-w-5xl mx-auto px-4 flex gap-6">
           <button
             onClick={() => setTab('processos')}
             className={`py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${tab === 'processos' ? 'border-[#f5a623] text-white' : 'border-transparent text-white/60 hover:text-white'}`}

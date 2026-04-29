@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Zap, Sun, Car, Lightbulb, CheckCircle, Phone, Mail, MapPin, Building2, TrendingUp, Gauge, Shield, Flame, Droplets, Wind, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Zap, Sun, Car, Lightbulb, CheckCircle, Phone, Mail, MapPin, Building2, TrendingUp, Gauge, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const HERO_IMG = '/imagens/foto-apresentacao.jpeg'
 const MARIANA_IMG = 'https://static.wixstatic.com/media/1c7735_7217d17fa1de4b96aa45ab268a0c93d5~mv2.jpg/v1/crop/x_17,y_0,w_1046,h_1080/fill/w_403,h_416,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/mari-wats_edited.jpg'
@@ -48,24 +48,6 @@ const services = [
     title: 'SPDA — Para-raios',
     description: 'Sistemas de proteção contra descargas atmosféricas e laudos de conformidade técnica.',
     items: ['Projeto de SPDA', 'Laudo técnico de conformidade', 'Inspeção e manutenção'],
-  },
-  {
-    icon: <Flame size={32} className="text-[#f5a623]" />,
-    title: 'Prevenção e Combate a Incêndio',
-    description: 'Sistemas de detecção e combate a incêndios para segurança e obtenção do AVCB.',
-    items: ['Projeto de PPCI', 'Obtenção do AVCB', 'Detecção e alarme de incêndio'],
-  },
-  {
-    icon: <Droplets size={32} className="text-[#f5a623]" />,
-    title: 'Instalações Hidrossanitárias',
-    description: 'Redes de água fria, quente e esgoto planejadas para eficiência e durabilidade.',
-    items: ['Água fria e quente', 'Esgoto sanitário', 'Drenagem pluvial'],
-  },
-  {
-    icon: <Wind size={32} className="text-[#f5a623]" />,
-    title: 'Projetos de HVAC',
-    description: 'Sistemas de climatização e ventilação para conforto térmico e qualidade do ar.',
-    items: ['Climatização central e split', 'Ventilação mecânica', 'Eficiência energética'],
   },
   {
     icon: <Lightbulb size={32} className="text-[#f5a623]" />,
