@@ -17,6 +17,7 @@ export default function Navbar({ dark, onToggleDark }) {
   const [open, setOpen] = useState(false)
   const [userMenu, setUserMenu] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [activeSection, setActiveSection] = useState('inicio')
   const location = useLocation()
   const userMenuRef = useRef(null)
 
@@ -25,6 +26,23 @@ export default function Navbar({ dark, onToggleDark }) {
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    if (location.pathname !== '/') return
+    const sectionIds = [...navLinks.map(l => l.href.slice(2)), contatoLink.href.slice(2)]
+    const observers = []
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id)
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id) },
+        { threshold: 0.4 }
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+    return () => observers.forEach(obs => obs.disconnect())
+  }, [location.pathname])
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -70,20 +88,28 @@ export default function Navbar({ dark, onToggleDark }) {
 
         {/* Desktop nav — centro */}
         <nav className="hidden md:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              onClick={(e) => handleNavClick(e, link.href)}
-              className="text-white/90 hover:text-[#f5a623] text-sm font-medium transition-colors duration-200"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) => {
+            const sectionId = link.href.slice(2)
+            const isActive = location.pathname === '/' && activeSection === sectionId
+            return (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
+                className={`text-sm font-medium transition-colors duration-200 ${
+                  isActive ? 'text-[#f5a623]' : 'text-white/90 hover:text-[#f5a623]'
+                }`}
+              >
+                {link.label}
+              </a>
+            )
+          })}
           {user && (
             <Link
               to="/portal"
-              className="text-white/90 hover:text-[#f5a623] text-sm font-medium transition-colors duration-200"
+              className={`text-sm font-medium transition-colors duration-200 ${
+                location.pathname === '/portal' ? 'text-[#f5a623]' : 'text-white/90 hover:text-[#f5a623]'
+              }`}
             >
               Homologação
             </Link>
@@ -91,7 +117,11 @@ export default function Navbar({ dark, onToggleDark }) {
           <a
             href={contatoLink.href}
             onClick={(e) => handleNavClick(e, contatoLink.href)}
-            className="text-white/90 hover:text-[#f5a623] text-sm font-medium transition-colors duration-200"
+            className={`text-sm font-medium transition-colors duration-200 ${
+              location.pathname === '/' && activeSection === contatoLink.href.slice(2)
+                ? 'text-[#f5a623]'
+                : 'text-white/90 hover:text-[#f5a623]'
+            }`}
           >
             {contatoLink.label}
           </a>
@@ -153,16 +183,22 @@ export default function Navbar({ dark, onToggleDark }) {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-[#1a2e5a] border-t border-white/10 px-4 py-4 flex flex-col gap-3">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              onClick={(e) => handleNavClick(e, link.href)}
-              className="text-white/90 hover:text-[#f5a623] font-medium py-1"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) => {
+            const sectionId = link.href.slice(2)
+            const isActive = location.pathname === '/' && activeSection === sectionId
+            return (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
+                className={`font-medium py-1 transition-colors duration-200 ${
+                  isActive ? 'text-[#f5a623]' : 'text-white/90 hover:text-[#f5a623]'
+                }`}
+              >
+                {link.label}
+              </a>
+            )
+          })}
           {user && (
             <Link
               to="/portal"
