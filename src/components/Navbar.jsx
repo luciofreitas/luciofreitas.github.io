@@ -34,6 +34,11 @@ export default function Navbar({ dark, onToggleDark }) {
   useEffect(() => {
     const allIds = [...navLinks.map(l => l.href.slice(2)), contatoLink.href.slice(2)]
 
+    // Inicializa a partir do hash da URL (ou 'inicio' por padrão)
+    const hash = window.location.hash.slice(1)
+    if (allIds.includes(hash)) setActiveSection(hash)
+    else setActiveSection('inicio')
+
     const handleScroll = () => {
       if (window.location.pathname !== '/') return
       let current = allIds[0]
@@ -45,7 +50,6 @@ export default function Navbar({ dark, onToggleDark }) {
       window.history.replaceState(null, '', `/#${current}`)
     }
 
-    handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
