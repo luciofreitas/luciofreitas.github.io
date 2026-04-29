@@ -42,6 +42,7 @@ export default function Navbar({ dark, onToggleDark }) {
         if (el && el.getBoundingClientRect().top <= 90) current = id
       })
       setActiveSection(current)
+      window.history.replaceState(null, '', `/#${current}`)
     }
 
     handleScroll()
