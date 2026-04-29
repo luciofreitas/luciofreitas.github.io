@@ -22,21 +22,24 @@ export default function Navbar({ dark, onToggleDark }) {
   const userMenuRef = useRef(null)
 
   useEffect(() => {
+    if (location.pathname !== '/') setActiveSection('')
+  }, [location.pathname])
+
+  useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   useEffect(() => {
-    if (location.pathname !== '/') return
-    const sectionIds = [...navLinks.map(l => l.href.slice(2)), contatoLink.href.slice(2)]
+    const allIds = [...navLinks.map(l => l.href.slice(2)), contatoLink.href.slice(2)]
 
     const handleScroll = () => {
-      const scrollY = window.scrollY + 80
-      let current = sectionIds[0]
-      sectionIds.forEach((id) => {
+      if (window.location.pathname !== '/') return
+      let current = allIds[0]
+      allIds.forEach((id) => {
         const el = document.getElementById(id)
-        if (el && el.offsetTop <= scrollY) current = id
+        if (el && el.getBoundingClientRect().top <= 90) current = id
       })
       setActiveSection(current)
     }
@@ -44,7 +47,7 @@ export default function Navbar({ dark, onToggleDark }) {
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [location.pathname])
+  }, [])
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -93,7 +96,7 @@ export default function Navbar({ dark, onToggleDark }) {
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => {
             const sectionId = link.href.slice(2)
-            const isActive = location.pathname === '/' && activeSection === sectionId
+            const isActive = activeSection === sectionId
             return (
               <a
                 key={link.label}
@@ -121,7 +124,7 @@ export default function Navbar({ dark, onToggleDark }) {
             href={contatoLink.href}
             onClick={(e) => handleNavClick(e, contatoLink.href)}
             className={`text-sm font-medium transition-colors duration-200 ${
-              location.pathname === '/' && activeSection === contatoLink.href.slice(2)
+              activeSection === contatoLink.href.slice(2)
                 ? 'text-[#f5a623]'
                 : 'text-white/90 hover:text-[#f5a623]'
             }`}
