@@ -9,13 +9,23 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null)
+      const sessionUser = data.session?.user ?? null
+      setUser(sessionUser)
       setLoading(false)
+
+      // Verifica destino OAuth ao carregar a sessão (cobre INITIAL_SESSION)
+      if (sessionUser) {
+        const dest = localStorage.getItem('oauth_dest')
+        if (dest) {
+          localStorage.removeItem('oauth_dest')
+          window.location.href = dest
+        }
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      // Redireciona para o destino guardado antes do OAuth
+      // Cobre SIGNED_IN caso getSession não tenha capturado
       if (_event === 'SIGNED_IN') {
         const dest = localStorage.getItem('oauth_dest')
         if (dest) {
