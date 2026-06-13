@@ -91,7 +91,7 @@ export default function Financeiro() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
         <div className="bg-green-50 rounded-xl p-4 border border-green-100">
           <div className="flex items-center gap-2 text-green-700 mb-1">
             <TrendingUp size={16} /> <span className="text-xs font-medium">Receitas</span>
@@ -116,7 +116,8 @@ export default function Financeiro() {
 
       {/* Tabela */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[500px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Data</th>
@@ -145,6 +146,7 @@ export default function Financeiro() {
           </tbody>
         </table>
         {filtrados.length === 0 && <p className="text-center text-gray-400 text-sm py-8">Nenhum lançamento encontrado.</p>}
+        </div>
       </div>
 
       {/* Modal */}

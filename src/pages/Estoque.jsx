@@ -91,7 +91,8 @@ export default function Estoque() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[560px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Insumo</th>
@@ -143,6 +144,7 @@ export default function Estoque() {
           </tbody>
         </table>
         {filtrados.length === 0 && <p className="text-center text-gray-400 text-sm py-8">Nenhum item encontrado.</p>}
+        </div>
       </div>
 
       {/* Modal Cadastro */}

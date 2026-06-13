@@ -90,7 +90,7 @@ export default function Relatorios() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
           <p className="text-xs text-gray-400 font-medium">Receita total</p>
           <p className="text-2xl font-bold text-brownie-700 mt-1">R$ {totalReceita.toFixed(2)}</p>
