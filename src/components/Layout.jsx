@@ -3,24 +3,27 @@ import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, ShoppingCart, Package, Boxes,
   ClipboardList, Users, DollarSign, BarChart2,
-  ChevronLeft, ChevronRight, RefreshCw, Cookie
+  ChevronLeft, ChevronRight, RefreshCw, Cookie, LogOut
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
+import Tour from './Tour'
 
 const NAV = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/pdv', label: 'PDV', icon: ShoppingCart },
-  { to: '/produtos', label: 'Produtos', icon: Cookie },
-  { to: '/estoque', label: 'Estoque', icon: Boxes },
-  { to: '/pedidos', label: 'Pedidos', icon: ClipboardList },
-  { to: '/clientes', label: 'Clientes', icon: Users },
-  { to: '/financeiro', label: 'Financeiro', icon: DollarSign },
-  { to: '/relatorios', label: 'Relatórios', icon: BarChart2 },
+  { to: '/',           label: 'Dashboard', icon: LayoutDashboard, tourId: 'tour-nav-dashboard' },
+  { to: '/pdv',        label: 'PDV',       icon: ShoppingCart,    tourId: 'tour-nav-pdv' },
+  { to: '/produtos',   label: 'Produtos',  icon: Cookie,          tourId: 'tour-nav-produtos' },
+  { to: '/estoque',    label: 'Estoque',   icon: Boxes,           tourId: 'tour-nav-estoque' },
+  { to: '/pedidos',    label: 'Pedidos',   icon: ClipboardList,   tourId: 'tour-nav-pedidos' },
+  { to: '/clientes',   label: 'Clientes',  icon: Users,           tourId: 'tour-nav-clientes' },
+  { to: '/financeiro', label: 'Financeiro',icon: DollarSign,      tourId: 'tour-nav-financeiro' },
+  { to: '/relatorios', label: 'Relatórios',icon: BarChart2,       tourId: 'tour-nav-relatorios' },
 ]
 
 export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false)
   const { resetarDados } = useApp()
+  const { user, logout, showTour, finishTour } = useAuth()
   const location = useLocation()
 
   function handleReset() {
@@ -33,7 +36,10 @@ export default function Layout({ children }) {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Sidebar */}
-      <aside className={`flex flex-col bg-brownie-900 text-white transition-all duration-300 ${collapsed ? 'w-16' : 'w-60'} flex-shrink-0`}>
+      <aside
+        id="tour-sidebar"
+        className={`flex flex-col bg-brownie-900 text-white transition-all duration-300 ${collapsed ? 'w-16' : 'w-60'} flex-shrink-0`}
+      >
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-brownie-700">
           <div className="w-8 h-8 bg-brownie-400 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -49,10 +55,11 @@ export default function Layout({ children }) {
 
         {/* Nav */}
         <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto scrollbar-thin">
-          {NAV.map(({ to, label, icon: Icon }) => (
+          {NAV.map(({ to, label, icon: Icon, tourId }) => (
             <NavLink
               key={to}
               to={to}
+              id={tourId}
               end={to === '/'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
@@ -71,13 +78,23 @@ export default function Layout({ children }) {
         {/* Footer */}
         <div className="p-2 border-t border-brownie-700 space-y-1">
           {!collapsed && (
-            <button
-              onClick={handleReset}
-              className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs text-brownie-300 hover:bg-brownie-800 hover:text-white transition-colors"
-            >
-              <RefreshCw size={14} />
-              Resetar dados
-            </button>
+            <>
+              <button
+                id="tour-reset"
+                onClick={handleReset}
+                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs text-brownie-300 hover:bg-brownie-800 hover:text-white transition-colors"
+              >
+                <RefreshCw size={14} />
+                Resetar dados
+              </button>
+              <button
+                onClick={logout}
+                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs text-brownie-300 hover:bg-brownie-800 hover:text-white transition-colors"
+              >
+                <LogOut size={14} />
+                Sair
+              </button>
+            </>
           )}
           <button
             onClick={() => setCollapsed(p => !p)}
@@ -95,8 +112,13 @@ export default function Layout({ children }) {
           <h1 className="text-lg font-semibold text-gray-800">
             {NAV.find(n => n.to === location.pathname)?.label ?? 'ERP'}
           </h1>
-          <div className="text-sm text-gray-500">
-            São Gonçalo — RJ
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-400">São Gonçalo — RJ</span>
+            {user && (
+              <span className="text-xs bg-brownie-100 text-brownie-700 px-2.5 py-1 rounded-full font-medium capitalize">
+                {user}
+              </span>
+            )}
           </div>
         </header>
 
@@ -105,6 +127,9 @@ export default function Layout({ children }) {
           {children}
         </main>
       </div>
+
+      {/* Tour */}
+      {showTour && <Tour onFinish={finishTour} />}
     </div>
   )
 }
