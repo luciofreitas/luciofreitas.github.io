@@ -33,8 +33,14 @@ export function AuthProvider({ children }) {
     setShowTour(false)
   }
 
+  function reiniciarAprendizagem() {
+    if (user) localStorage.removeItem(`erp_tour_${user}`)
+    setUser(null)
+    localStorage.removeItem('erp_user')
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, showTour, finishTour }}>
+    <AuthContext.Provider value={{ user, login, logout, showTour, finishTour, reiniciarAprendizagem }}>
       {children}
     </AuthContext.Provider>
   )
