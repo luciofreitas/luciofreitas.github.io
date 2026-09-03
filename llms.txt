@@ -1,0 +1,22 @@
+# MetaCorpus Pilates
+
+> A maior rede de Pilates do Brasil. Fundada pelos fisioterapeutas Michel Henriques Salgado e Sérgio Machado Cunha, é referência em Pilates há mais de duas décadas, com unidades próprias e credenciadas em todo o país.
+
+MetaCorpus opera um método próprio de Pilates, formação profissional para instrutores, e um modelo de franquia (Unidades MetaCorpus) além de uma rede de estúdios credenciados independentes.
+
+## Studios
+- [Localizador de studios](https://metacorpus-omega.vercel.app/studios): busca por cidade, CEP ou nome — cobre unidades próprias MetaCorpus e credenciadas em todo o Brasil.
+
+## Método e formação
+- [Sobre o método](https://metacorpus-omega.vercel.app/metodo): baseado no trabalho de Joseph Hubertus Pilates, adaptado pela MetaCorpus.
+- [Cursos e formação profissional](https://metacorpus-omega.vercel.app/cursos): cursos de formação em Pilates para instrutores.
+- [Quem somos](https://metacorpus-omega.vercel.app/quem-somos): história, fundadores e missão da rede.
+
+## Franquia
+- [Seja um franqueado](https://metacorpus-omega.vercel.app/seja-franqueado): como abrir uma Unidade MetaCorpus.
+
+## Conteúdo
+- [Blog](https://metacorpus-omega.vercel.app/blog): artigos sobre Pilates, saúde e bem-estar.
+
+## Contato
+- [Fale conosco](https://metacorpus-omega.vercel.app/fale-conosco)

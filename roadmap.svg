@@ -1,0 +1,170 @@
+<svg viewBox="0 0 820 620" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" style="background:#0f0f0f">
+  <title>Mapa do Sistema MetaCorpus Pilates</title>
+  <desc>Diagrama mostrando Portal Público e Software de Gestão com módulos e integrações</desc>
+
+  <!-- Background -->
+  <rect width="820" height="620" fill="#0f0f0f" rx="12"/>
+
+  <!-- Title -->
+  <text x="410" y="34" text-anchor="middle" fill="#f0f0f0" font-size="15" font-weight="700" letter-spacing="0.5">METACORPUS PILATES — MAPA DO SISTEMA</text>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- COLUNA ESQUERDA: Portal Público -->
+  <!-- ══════════════════════════════════════════ -->
+
+  <!-- Header Portal -->
+  <rect x="20" y="52" width="370" height="28" rx="6" fill="#1a2e1a"/>
+  <text x="205" y="70" text-anchor="middle" fill="#4caf50" font-size="11" font-weight="700" letter-spacing="1">PORTAL PÚBLICO  ·  B2C</text>
+
+  <!-- Entrada do cliente -->
+  <rect x="20" y="88" width="370" height="52" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="205" y="108" text-anchor="middle" fill="#f0f0f0" font-size="11" font-weight="600">Entrada do cliente</text>
+  <text x="205" y="125" text-anchor="middle" fill="#888" font-size="10">Tráfego pago · Mídia · Divulgação</text>
+
+  <!-- Seta -->
+  <line x1="205" y1="140" x2="205" y2="155" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Identificação Wellhub/Balcão -->
+  <rect x="60" y="155" width="290" height="56" rx="6" fill="#1a1a2e" stroke="#3f51b5" stroke-width="1.5"/>
+  <text x="205" y="175" text-anchor="middle" fill="#7986cb" font-size="11" font-weight="700">IDENTIFICAÇÃO DO CLIENTE</text>
+  <rect x="76" y="183" width="110" height="20" rx="4" fill="#3f51b5"/>
+  <text x="131" y="197" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Wellhub (80%)</text>
+  <rect x="224" y="183" width="110" height="20" rx="4" fill="#555"/>
+  <text x="279" y="197" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Balcão (20%)</text>
+
+  <!-- Seta -->
+  <line x1="205" y1="211" x2="205" y2="226" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Buscador de Estúdios -->
+  <rect x="20" y="226" width="370" height="60" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="205" y="247" text-anchor="middle" fill="#f0f0f0" font-size="11" font-weight="600">Buscador de Estúdios</text>
+  <rect x="36" y="255" width="100" height="18" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <text x="86" y="267" text-anchor="middle" fill="#aaa" font-size="9">CEP / Endereço</text>
+  <rect x="146" y="255" width="80" height="18" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <text x="186" y="267" text-anchor="middle" fill="#aaa" font-size="9">Cidade</text>
+  <rect x="236" y="255" width="80" height="18" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <text x="276" y="267" text-anchor="middle" fill="#aaa" font-size="9">Estado</text>
+  <rect x="326" y="255" width="50" height="18" rx="3" fill="#4caf50"/>
+  <text x="351" y="267" text-anchor="middle" fill="#fff" font-size="9" font-weight="600">Buscar</text>
+
+  <!-- Seta -->
+  <line x1="205" y1="286" x2="205" y2="301" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Card de Estúdio selecionado -->
+  <rect x="20" y="301" width="370" height="50" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="205" y="320" text-anchor="middle" fill="#f0f0f0" font-size="11" font-weight="600">Estúdio selecionado → Modal</text>
+  <text x="205" y="338" text-anchor="middle" fill="#888" font-size="10">Endereço · Horários · Fotos · Avaliações</text>
+
+  <!-- Seta -->
+  <line x1="205" y1="351" x2="205" y2="366" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- CTA Modal -->
+  <rect x="60" y="366" width="130" height="28" rx="5" fill="#1565c0"/>
+  <text x="125" y="384" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Agendar Aula</text>
+  <rect x="210" y="366" width="130" height="28" rx="5" fill="#2e7d32"/>
+  <text x="275" y="384" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Contato Direto</text>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- COLUNA DIREITA: Software de Gestão -->
+  <!-- ══════════════════════════════════════════ -->
+
+  <!-- Header Gestão -->
+  <rect x="430" y="52" width="370" height="28" rx="6" fill="#2e1a1a"/>
+  <text x="615" y="70" text-anchor="middle" fill="#ef5350" font-size="11" font-weight="700" letter-spacing="1">SOFTWARE DE GESTÃO  ·  B2B</text>
+
+  <!-- Visão Franqueador -->
+  <rect x="430" y="88" width="180" height="100" rx="6" fill="#1c1c1c" stroke="#ef5350" stroke-width="1.5"/>
+  <text x="520" y="108" text-anchor="middle" fill="#ef5350" font-size="10" font-weight="700">FRANQUEADOR</text>
+  <text x="520" y="124" text-anchor="middle" fill="#888" font-size="9">Visão geral da rede</text>
+  <rect x="446" y="132" width="148" height="16" rx="3" fill="#2a2a2a"/>
+  <text x="520" y="143" text-anchor="middle" fill="#aaa" font-size="9">Dashboard consolidado</text>
+  <rect x="446" y="152" width="148" height="16" rx="3" fill="#2a2a2a"/>
+  <text x="520" y="163" text-anchor="middle" fill="#aaa" font-size="9">KPIs por unidade</text>
+  <rect x="446" y="172" width="148" height="8" rx="3" fill="#2a2a2a"/>
+
+  <!-- Visão Franqueado -->
+  <rect x="620" y="88" width="180" height="100" rx="6" fill="#1c1c1c" stroke="#ff9800" stroke-width="1.5"/>
+  <text x="710" y="108" text-anchor="middle" fill="#ff9800" font-size="10" font-weight="700">FRANQUEADO</text>
+  <text x="710" y="124" text-anchor="middle" fill="#888" font-size="9">Gestão da unidade</text>
+  <rect x="636" y="132" width="148" height="16" rx="3" fill="#2a2a2a"/>
+  <text x="710" y="143" text-anchor="middle" fill="#aaa" font-size="9">Agenda e alunos</text>
+  <rect x="636" y="152" width="148" height="16" rx="3" fill="#2a2a2a"/>
+  <text x="710" y="163" text-anchor="middle" fill="#aaa" font-size="9">Operação diária</text>
+  <rect x="636" y="172" width="148" height="8" rx="3" fill="#2a2a2a"/>
+
+  <!-- Conectores -->
+  <line x1="520" y1="188" x2="520" y2="210" stroke="#444" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="710" y1="188" x2="710" y2="210" stroke="#444" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="615" y1="210" x2="615" y2="224" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="520" y1="210" x2="710" y2="210" stroke="#444" stroke-width="1"/>
+
+  <!-- Módulos label -->
+  <text x="615" y="244" text-anchor="middle" fill="#888" font-size="10" font-weight="600">MÓDULOS</text>
+
+  <!-- Módulo Financeiro -->
+  <rect x="430" y="252" width="168" height="72" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="514" y="270" text-anchor="middle" fill="#f0f0f0" font-size="10" font-weight="600">Financeiro</text>
+  <text x="514" y="285" text-anchor="middle" fill="#888" font-size="9">Receitas · Despesas</text>
+  <text x="514" y="298" text-anchor="middle" fill="#888" font-size="9">Repasses franquia</text>
+  <text x="514" y="311" text-anchor="middle" fill="#888" font-size="9">Relatórios</text>
+
+  <!-- Módulo Avaliação -->
+  <rect x="610" y="252" width="168" height="72" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="694" y="270" text-anchor="middle" fill="#f0f0f0" font-size="10" font-weight="600">Avaliação de Alunos</text>
+  <text x="694" y="285" text-anchor="middle" fill="#888" font-size="9">Anamnese</text>
+  <text x="694" y="298" text-anchor="middle" fill="#888" font-size="9">Evolução corporal</text>
+  <text x="694" y="311" text-anchor="middle" fill="#888" font-size="9">Histórico</text>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- INTEGRAÇÕES -->
+  <!-- ══════════════════════════════════════════ -->
+
+  <line x1="20" y1="430" x2="800" y2="430" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="410" y="450" text-anchor="middle" fill="#888" font-size="10" font-weight="600" letter-spacing="1">INTEGRAÇÕES</text>
+
+  <!-- Wellhub -->
+  <rect x="30" y="460" width="150" height="60" rx="6" fill="#1c1c1c" stroke="#3f51b5" stroke-width="1.5"/>
+  <text x="105" y="480" text-anchor="middle" fill="#7986cb" font-size="11" font-weight="700">Wellhub</text>
+  <text x="105" y="496" text-anchor="middle" fill="#888" font-size="9">Validação de plano</text>
+  <text x="105" y="509" text-anchor="middle" fill="#888" font-size="9">Check-in / presença</text>
+
+  <!-- Software Local -->
+  <rect x="200" y="460" width="160" height="60" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="280" y="480" text-anchor="middle" fill="#f0f0f0" font-size="11" font-weight="600">Software Local</text>
+  <text x="280" y="496" text-anchor="middle" fill="#888" font-size="9">Sistema da unidade</text>
+  <text x="280" y="509" text-anchor="middle" fill="#888" font-size="9">Sync de dados</text>
+
+  <!-- WhatsApp / CRM -->
+  <rect x="380" y="460" width="150" height="60" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="455" y="480" text-anchor="middle" fill="#f0f0f0" font-size="11" font-weight="600">WhatsApp / CRM</text>
+  <text x="455" y="496" text-anchor="middle" fill="#888" font-size="9">Contato do estúdio</text>
+  <text x="455" y="509" text-anchor="middle" fill="#888" font-size="9">Pós-agendamento</text>
+
+  <!-- Agendamento -->
+  <rect x="550" y="460" width="150" height="60" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="625" y="480" text-anchor="middle" fill="#f0f0f0" font-size="11" font-weight="600">Agendamento</text>
+  <text x="625" y="496" text-anchor="middle" fill="#888" font-size="9">Aula experimental</text>
+  <text x="625" y="509" text-anchor="middle" fill="#888" font-size="9">Aula avulsa / plano</text>
+
+  <!-- Maps / CEP -->
+  <rect x="720" y="460" width="80" height="60" rx="6" fill="#1c1c1c" stroke="#333" stroke-width="1"/>
+  <text x="760" y="480" text-anchor="middle" fill="#f0f0f0" font-size="10" font-weight="600">Maps</text>
+  <text x="760" y="496" text-anchor="middle" fill="#888" font-size="9">CEP lookup</text>
+  <text x="760" y="509" text-anchor="middle" fill="#888" font-size="9">Geolocation</text>
+
+  <!-- Conector entre as colunas -->
+  <line x1="390" y1="200" x2="430" y2="200" stroke="#555" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="410" y="196" text-anchor="middle" fill="#555" font-size="9">API</text>
+
+  <!-- Divisor vertical -->
+  <line x1="410" y1="52" x2="410" y2="420" stroke="#2a2a2a" stroke-width="1"/>
+
+  <!-- Footer -->
+  <text x="410" y="600" text-anchor="middle" fill="#333" font-size="9">React + Vite · Supabase · luciofreitas.github.io</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#444"/>
+    </marker>
+  </defs>
+</svg>

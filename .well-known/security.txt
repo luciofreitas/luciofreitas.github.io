@@ -1,0 +1,4 @@
+Contact: mailto:metacorpus@metacorpus.com.br
+Expires: 2027-08-27T00:00:00.000Z
+Preferred-Languages: pt-BR, en
+Policy: https://metacorpus-omega.vercel.app/politica-de-seguranca

@@ -1,0 +1,6 @@
+# Espelho pessoal (luciofreitas.github.io) do site MetaCorpus Pilates —
+# o domínio de produção é https://metacorpus-omega.vercel.app, é lá que
+# deve ser indexado. Bloqueia geral aqui pra não duplicar conteúdo no
+# Google/bots de IA.
+User-agent: *
+Disallow: /

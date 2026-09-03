@@ -1,0 +1,1 @@
+function t(e){return e.length<8?"A senha deve ter pelo menos 8 caracteres.":!/[a-z]/.test(e)||!/[A-Z]/.test(e)||!/\d/.test(e)?"A senha deve conter letra maiúscula, letra minúscula e número.":""}export{t as v};
